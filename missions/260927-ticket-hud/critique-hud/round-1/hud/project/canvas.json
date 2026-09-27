@@ -1,0 +1,36 @@
+{
+ "order": [
+  "Phone.html",
+  "PhoneRoutine.html",
+  "PhoneCrises.html",
+  "PhoneOverflow.html",
+  "PC.html",
+  "Kit.html"
+ ],
+ "boards": {
+  "Phone.html": {
+   "w": 844,
+   "h": 390
+  },
+  "PhoneRoutine.html": {
+   "w": 844,
+   "h": 390
+  },
+  "PhoneCrises.html": {
+   "w": 844,
+   "h": 390
+  },
+  "PhoneOverflow.html": {
+   "w": 844,
+   "h": 390
+  },
+  "PC.html": {
+   "w": 1280,
+   "h": 720
+  },
+  "Kit.html": {
+   "w": 1400,
+   "h": 1180
+  }
+ }
+}

@@ -1,0 +1,105 @@
+{
+ "sheet": [
+  658,
+  482
+ ],
+ "megapixels": 0.32,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "frame-01-depot-shell",
+   "src": "/home/user/claude/missions/260927-depot-buildings/progress/frame-01-depot-shell.png",
+   "box": [
+    6,
+    24,
+    320,
+    95
+   ],
+   "scale": "fit x0.25"
+  },
+  {
+   "n": 2,
+   "label": "frame-02-depot-roof",
+   "src": "/home/user/claude/missions/260927-depot-buildings/progress/frame-02-depot-roof.png",
+   "box": [
+    332,
+    24,
+    320,
+    95
+   ],
+   "scale": "fit x0.25"
+  },
+  {
+   "n": 3,
+   "label": "frame-03-depot-details",
+   "src": "/home/user/claude/missions/260927-depot-buildings/progress/frame-03-depot-details.png",
+   "box": [
+    6,
+    143,
+    320,
+    95
+   ],
+   "scale": "fit x0.25"
+  },
+  {
+   "n": 4,
+   "label": "frame-04-depot-dressing",
+   "src": "/home/user/claude/missions/260927-depot-buildings/progress/frame-04-depot-dressing.png",
+   "box": [
+    332,
+    143,
+    320,
+    95
+   ],
+   "scale": "fit x0.25"
+  },
+  {
+   "n": 5,
+   "label": "frame-05-hall-shell",
+   "src": "/home/user/claude/missions/260927-depot-buildings/progress/frame-05-hall-shell.png",
+   "box": [
+    6,
+    262,
+    320,
+    95
+   ],
+   "scale": "fit x0.25"
+  },
+  {
+   "n": 6,
+   "label": "frame-06-hall-roof",
+   "src": "/home/user/claude/missions/260927-depot-buildings/progress/frame-06-hall-roof.png",
+   "box": [
+    332,
+    262,
+    320,
+    95
+   ],
+   "scale": "fit x0.25"
+  },
+  {
+   "n": 7,
+   "label": "frame-07-hall-details",
+   "src": "/home/user/claude/missions/260927-depot-buildings/progress/frame-07-hall-details.png",
+   "box": [
+    6,
+    381,
+    320,
+    95
+   ],
+   "scale": "fit x0.25"
+  },
+  {
+   "n": 8,
+   "label": "frame-08-hall-dressing",
+   "src": "/home/user/claude/missions/260927-depot-buildings/progress/frame-08-hall-dressing.png",
+   "box": [
+    332,
+    381,
+    320,
+    95
+   ],
+   "scale": "fit x0.25"
+  }
+ ]
+}

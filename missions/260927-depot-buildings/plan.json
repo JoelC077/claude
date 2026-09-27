@@ -1,0 +1,12 @@
+{"mission":"260927-depot-buildings","design_critic_installed":false,"tasks":[
+{"id":"T0","do":"Shared kit spec in mission.md (orchestrator)","deps":[],"role":"orchestrator","model":"session","effort":"high","reqs":["R1","R8","R10","R11","R*12"],"out":"mission.md#Spec","done_when":"palette+modules+cameras+naming written"},
+{"id":"T1","do":"Depot v1; writes src/kit.py first","deps":["T0"],"role":"maker","kind":"v1","model":"strongest","effort":"high","reqs":["R2","R4","R9","R*13"],"out":"src/depot/build.py","done_when":"rebuilds from empty; 4 milestone frames"},
+{"id":"T2","do":"Hall v1 using src/kit.py","deps":["T0"],"role":"maker","kind":"v1","model":"strongest","effort":"high","reqs":["R2","R3","R9"],"out":"src/hall/build.py","done_when":"rebuilds from empty; 4 milestone frames"},
+{"id":"T3","do":"Pre-flight + contact sheet both","deps":["T1","T2"],"role":"script","model":"-","effort":"-","reqs":["R*12","R*13"],"out":"critique-buildings/pass-1/contact.png","done_when":"zero objective failures"},
+{"id":"T4","do":"Critic pass 1","deps":["T3"],"role":"critic","kind":"full","crit":"critique-buildings","model":"strongest","effort":"high","reqs":["R5","R7"],"out":"critique-buildings/pass-1/verdict.md","done_when":"verdict checked"},
+{"id":"T5","do":"Depot fixes","deps":["T4"],"role":"maker","kind":"fix","repeat":2,"model":"strongest","effort":"medium","reqs":["R4"],"out":"src/depot/","done_when":"blocks-8 addressed"},
+{"id":"T6","do":"Hall fixes","deps":["T4"],"role":"maker","kind":"fix","repeat":2,"model":"strongest","effort":"medium","reqs":["R3"],"out":"src/hall/","done_when":"blocks-8 addressed"},
+{"id":"T7","do":"Delta pass","deps":["T5","T6"],"role":"critic","kind":"delta","crit":"critique-buildings","model":"strongest","effort":"high","reqs":["R5"],"out":"critique-buildings/pass-2/verdict.md","done_when":"scores logged"},
+{"id":"T8","do":"Final pass (fresh)","deps":["T7"],"role":"critic","kind":"final","crit":"critique-buildings","model":"strongest","effort":"high","reqs":["R7"],"out":"critique-buildings/pass-3/verdict.md","done_when":"all >= 8 both"},
+{"id":"T9","do":"Export both (continued depot maker)","deps":["T8"],"role":"exporter","kind":"continued","model":"continued maker","effort":"low","reqs":["R10","R11","R*12","R*13"],"out":"export/","done_when":"reimport in studs; parts.csv; studio_setup.lua"},
+{"id":"T10","do":"Debrief","deps":["T9"],"role":"orchestrator","model":"session","effort":"-","reqs":["R1"],"out":"progress.log","done_when":"cover --final OK"}]}

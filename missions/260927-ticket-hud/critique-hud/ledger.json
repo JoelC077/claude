@@ -1,0 +1,73 @@
+[
+ {
+  "pass": 1,
+  "kind": "full",
+  "agent": "independent-critic",
+  "model": "claude-opus-5-5",
+  "scores": {
+   "B5": 6
+  },
+  "tokens": 0,
+  "new": 0,
+  "carried": 0,
+  "tools": 0,
+  "minutes": 0,
+  "fixes": "",
+  "note": "independent critic pass 1; only overall 6 (B5) recorded in maker log",
+  "budget": 120000
+ },
+ {
+  "pass": 2,
+  "kind": "full",
+  "agent": "independent-critic",
+  "model": "claude-opus-5-5",
+  "scores": {
+   "B3": 7,
+   "B4": 7,
+   "B6": 7
+  },
+  "tokens": 0,
+  "new": 0,
+  "carried": 0,
+  "tools": 0,
+  "minutes": 0,
+  "fixes": "",
+  "note": "independent critic pass 2; overall 7 (B3,B4,B6) from maker log",
+  "budget": 120000
+ },
+ {
+  "pass": 3,
+  "kind": "full",
+  "agent": "independent-critic",
+  "model": "claude-opus-5-5",
+  "scores": {
+   "B4": 7
+  },
+  "tokens": 0,
+  "new": 0,
+  "carried": 0,
+  "tools": 0,
+  "minutes": 0,
+  "fixes": "",
+  "note": "independent critic pass 3; overall 7 (B4) from maker log",
+  "budget": 120000
+ },
+ {
+  "pass": 4,
+  "kind": "full",
+  "agent": "independent-critic",
+  "model": "claude-opus-5-5",
+  "scores": {
+   "B2": 7,
+   "B3": 7
+  },
+  "tokens": 0,
+  "new": 0,
+  "carried": 0,
+  "tools": 0,
+  "minutes": 0,
+  "fixes": "",
+  "note": "independent critic pass 4; overall 7 (B2,B3) from maker log",
+  "budget": 120000
+ }
+]

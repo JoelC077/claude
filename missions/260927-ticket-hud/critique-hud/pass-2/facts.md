@@ -1,0 +1,12 @@
+# Facts pass 2 (independent, fresh render of current src/hud via render_design.py, measured)
+- Phone.html: 844x390, texts 8, min contrast 7.05, sizes 15/17/18/20/24px, contrast fails 0, small text 0, overlaps 0, spill 0, clipped 1, fonts not loaded 0, errors 0
+- PhoneRoutine.html: 844x390, texts 7, min contrast 7.05, sizes 15/17/18/20/22/24px, contrast fails 0, small text 0, overlaps 0, spill 0, clipped 1, fonts not loaded 0, errors 0
+- PhoneCrises.html: 844x390, texts 5, min contrast 8.2 (was 7.9), sizes 15/18/20px, contrast fails 0, small text 0, overlaps 0, spill 0, clipped 1, errors 0
+- PhoneOverflow.html: 844x390, texts 6, min contrast 8.2 (was 7.9), sizes 15/16/18/20px, contrast fails 0, small text 0, overlaps 0, spill 0, clipped 1, errors 0
+- PC.html: 1280x720, texts 20, min contrast 7.05, sizes 13/15/17/18/20/22/24px (13px x8 are PC scene labels, not ticket text), contrast fails 0, overlaps 0, clipped 1, errors 0
+- Kit.html: 1320x1080, texts 67, min contrast 5.38, sizes 12-34px (12px x17 are kit annotations), contrast fails 0, small text 0, overlaps 0, errors 0
+- Smallest ticket text on all Phone boards: 15px (pass 1: 13.5px).
+- 'offboard' items are stand-in background hills (scene decoration, not judged); 'clipped' = scene container clipping, not ticket text.
+- Contact sheet (856x1332, 1.14 MP): Phone crisis + Phone overflow at 1:1 true size (844x390); crises+junction, routine, PC, Kit scaled to fit. Full-size PNGs in pass-2/.
+- Spec (from mission.md): ticket 290x64 / compact 44; cap 4 + '+N MORE'; newest at bottom; bottom-right stack above jump zone; topbar top 36px; Luckiest Guy + Montserrat.
+- Previous self-review passes (archived in _selfreview-archive/) are NOT shown to this critic.

@@ -1,0 +1,11 @@
+2026-09-27T22:11Z [1/10] Intake - Intake - 9 lines (8 to cover), blueprint facts from scouted refs, env: bpy 5.0.1 headless, no Blender MCP, agents yes (45k)
+2026-09-27T22:11Z [2/10] Readback - Readback - 13 asks tagged, 3 questions defaulted (owner away), main hall flagged (60k)
+2026-09-27T22:11Z [3/10] Spec - Spec - mission.md + brief, coverage 8/8 OK (70k)
+2026-09-27T22:11Z [4/10] Plan - Plan - 11 tasks, 9 waves, est. 435-755k tokens (75k)
+2026-09-27T22:18Z [5/10] Build v1 - Build v1 - depot 209 parts / hall 178 parts, 8 milestone frames + buildup.gif (150k)  img=/home/user/claude/missions/260927-depot-buildings/progress/milestones.png
+2026-09-27T22:18Z [6/10] Pre-flight - Pre-flight - tris 2.8k/2.3k, palette ok, backfaces 0 on 12 cams, depot footprint exact (160k)
+2026-09-27T22:19Z [7/10] Critic pass 1 - Critic pass 1 (SELF-ASSESSED, no Agent tool) - overall 6: A4 6, hall A1 6, A7 6 (200k)  img=/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-1/contact.png
+2026-09-27T22:26Z [8/10] Fix + re-check - Fix + re-check - pass 2 (self): A1 8 A2 8 A3 8 A4 7 A5 8 A6 8 A7 7, fixing A4-3 A7-2 (300k)  img=/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-2/contact.png
+2026-09-27T22:33Z [8/10] Fix + re-check - Final pass 4 (self-assessed): all A1-A7 8 both buildings; 4 of 5 passes used (420k)  img=/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-4/contact.png
+2026-09-27T22:34Z [9/10] Roblox export - Export - 2 FBX (+2 atlas FBX), reimport 40x34x27.5 / 46x32x34.5 studs, 637 parts, studio_setup.lua x2 (440k)
+2026-09-27T22:34Z [10/10] Debrief - Debrief - 8/10 all criteria both buildings (self-assessed), 13 asks closed (450k)

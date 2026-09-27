@@ -1,0 +1,9 @@
+[10/10] Debrief - 8/10 reached on every criterion for both buildings, SELF-ASSESSED (Depot A1 8 · A2 8 · A3 8 · A4 8 · A5 8 · A6 8 · A7 8; Hall same). Not independently certified: no subagent tool in this session, so the maker also scored it.
+Files: /home/user/claude/missions/260927-depot-buildings/
+  export/DepotLobby_buildings.blend (both buildings) · export/depot/ + export/hall/: <B>.fbx (recolourable), <B>_atlas.fbx + palette.png, <B>.blend, build.py, kit.py, parts.csv, studio_setup.lua, README.md
+  progress/frame-01..08-*.png + progress/buildup.gif (build-up) · critique-buildings/pass-4/contact.png + closeups.png (final renders) · critique-buildings/ledger.md
+Assumed: Main hall is not on the blueprint -> 34x14 stone hall north of the join-queue platform, facing spawn, porch gable 31 + roundel + cupola (grown from 28x12 after pass 1) · Depot 24x14 at (18,76), eaves 14 / ridge 22 · facades only, open doorways 7.7-7.9 x 10 · name board and roundel left blank (no invented text) · hazard-yellow/ink step nosings as the Risky Rails accent.
+Asks: R1 verified (depot footprint exact) · R2 done · R3 done · R4 done · R5 fallback (loop run, self-assessed) · R6 superseded · R7 fallback (8 self-assessed) · R8 verified (build.py rebuilds from empty) · R9 fallback (no Blender MCP: 8 numbered stage frames + GIF; no MP4, ffmpeg missing) · R10 verified (290 + 347 separate named parts) · R11 done (GROUPS table in studio_setup.lua; Studio test pending) · R*12 verified (reimport in studs, no 3.57x) · R*13 verified (3.8k / 4.3k tris)
+Needs owner: hall placement/size · name-board text · roundel content · Studio import test.
+Cost: critic 80k (self-review, estimated) + build/orchestration ~360k = ~440k (plan band 435-755k)
+Next: run one fresh independent critic (--kind final) on critique-buildings/pass-4 to certify the 8; install the design-critic agent to cut its cost.

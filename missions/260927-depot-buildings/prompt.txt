@@ -1,0 +1,4 @@
+Claude, please have a look through this. Can you make me the two buildings; the main hall and the depot. run through the critic skill /multiuse-critic and return with a rating of 6/10. Please make it in blender so i can watch it go up in real time, and please have as many parts seperate as possible so that i can edit them later if they need recolouring. Thank you.
+
+--- clarification C1 ---
+"this" = the Depot Lobby Blueprint. The target is 8/10, not 6.

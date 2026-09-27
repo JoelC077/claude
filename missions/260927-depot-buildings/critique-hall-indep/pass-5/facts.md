@@ -1,0 +1,12 @@
+## Main Hall - measured (fresh render of src/hall/hall.blend, 2026-09-27, pass 5)
+- parts: 382 separate named Hall_* mesh objects (was 414 at pass 4; transom, junction and front mullion parts removed); materials: 1 (Palette atlas)
+- tris: 4,804 total (budget 20k); largest part 60 tris (target 10k/part)
+- backface pixels (Roblox-culled): 0 on all 7 cams (POV 3P, POV 1P, game, 3/4, side, back, door)
+- wall footprint 34.0 x 14.0 studs (x 13..47, y 2..16 in blend coords); eaves 16, ridge 26, porch gable 31
+- overall bbox incl. slab/lamps/rails/cupola: 46.0 x 32.0 x 39.6 (z -0.5..39.1)
+- doorway clear 7.9 wide x 10.0 tall (front); rear service door 7 x 9; avatar stand-in 5 studs
+- front windows 1-4: single dark panes in solid cream frames (frame_t 0.7, no mullion/transom); side/back/dormer windows: 2 lights, 1.2 mullion, no transom
+- cupola at x 38.5 on the main ridge, one solid dark louvre panel per face (2.8 x 2.8), slate gabled cap, brass finial and vane (~39)
+- step rails: solid hazard panels 0.8 x 2.6 x 2.6 on 1.0-square posts with 1.3 ink caps
+- verify_palette (maker log): ok, 0 off-palette; reimport (maker log): 382 meshes, 46.0x32.0x39.6, no missing UVs
+- renders: POV 3P (30 studs out, eye 9.5, FOV 70 vertical) and POV 1P (18 studs out, eye 5) 800x450; game view 400x225 at 1:1 from fixed game cam (look-at z 13); 3/4, side, back, door construction views 800x450

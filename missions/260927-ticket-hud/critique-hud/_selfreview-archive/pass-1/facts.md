@@ -1,0 +1,11 @@
+# Facts pass 1 (render_design.py, measured)
+- Phone.html: 844x390, texts 8, min contrast 7.05, sizes 18px, 20px, 13.5px, 24px, 17px, contrast fails 0, small text 0, overlaps 0, spill 0
+- PhoneRoutine.html: 844x390, texts 7, min contrast 7.05, sizes 18px, 24px, 20px, 13.5px, 22px, 17px, contrast fails 0, small text 0, overlaps 0, spill 0
+- PhoneCrises.html: 844x390, texts 4, min contrast 7.9, sizes 18px, 20px, 13.5px, contrast fails 0, small text 0, overlaps 0, spill 0
+- PhoneOverflow.html: 844x390, texts 6, min contrast 7.9, sizes 18px, 16px, 20px, 13.5px, contrast fails 0, small text 0, overlaps 0, spill 0
+- PC.html: 1280x720, texts 20, min contrast 7.05, sizes 13px, 15px, 18px, 17px, 20px, 13.5px, 24px, 22px, contrast fails 0, small text 0, overlaps 0, spill 0
+- Kit.html: 1400x1180, texts 67, min contrast 5.38, sizes 20px, 12px, 13.5px, 18px, 22px, 24px, 17px, 13px, 34px, 16px, contrast fails 0, small text 0, overlaps 0, spill 0
+- 'outside the artboard' items are the stand-in background hills (clipped by the scene), not UI.
+- Phone: stack right 14px, bottom 112px (jump button zone top at y~278); overflow board stack top y=39 (topbar ends 36).
+- Ticket 290x64 full / 290x40 compact; crisis slot +10px halo; gap 6px; body 13.5px Montserrat 700 #463c2e on card #f7edd3-#e7d4a6; titles Luckiest Guy 20 (compact 18).
+- Text diff vs prototype facts: 10 titles/bodies identical (build.py TYPES).

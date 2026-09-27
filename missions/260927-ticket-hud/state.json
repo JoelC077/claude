@@ -1,0 +1,25 @@
+{
+ "slug": "ticket-hud",
+ "kind": "ui",
+ "status": "done",
+ "step": 10,
+ "steps": 10,
+ "bar": 8,
+ "cap_passes": 5,
+ "budget": null,
+ "tokens": 250000,
+ "env": {
+  "critic": "/home/user/claude/multiuse-critic",
+  "agent_tool": "no-Agent-tool-in-toolset",
+  "design_critic_agent": false,
+  "blender_mcp": false,
+  "bpy": 5.0,
+  "playwright": true,
+  "owner": "away",
+  "design_access": "list-only"
+ },
+ "agent": {},
+ "next": "split + tag prompt (intake.py split)",
+ "created": "2026-09-27T22:09Z",
+ "updated": "2026-09-27T22:18Z"
+}

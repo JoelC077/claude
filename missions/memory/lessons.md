@@ -1,0 +1,1 @@
+- 2026-09-27 (260927-depot-buildings): overlapping kit parts with coplanar front faces (ivy clusters) and a gable prism coplanar with a wall rendered pitch-black in Cycles; backfaces() misses it; stagger depths / never share a face plane. Cost 4 diagnostic renders.

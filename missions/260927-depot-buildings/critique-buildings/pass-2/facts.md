@@ -1,0 +1,28 @@
+## Depot (measured)
+- parts (separate named mesh objects): 256; materials: 1
+- tris total 3,376 (budget 20k); largest part Depot_Bay1Vent_Dark_01 36
+- verify_palette: ok=True faces=1612 spanning=0 near_edge=0 off=0
+- backfaces Depot_Cam_34: 0 px 
+- backfaces Depot_Cam_Back: 0 px 
+- backfaces Depot_Cam_Door: 0 px 
+- backfaces Depot_Cam_Game: 0 px 
+- backfaces Depot_Cam_POV_3P: 0 px 
+- backfaces Depot_Cam_Side: 0 px 
+- wall footprint: x 18.0..42.0 (24.0), plan y 76.0..90.0 (14.0), eave 14.0
+- overall size studs (x,y,z): 40.0 x 34.0 x 27.5
+- doorway clear width 7.7, height 10.0 (avatar 5)
+- unclassified raised parts (float check): none
+## Hall (measured)
+- parts (separate named mesh objects): 305; materials: 1
+- tris total 3,836 (budget 20k); largest part Hall_RoundelFace_Mortar_01 60
+- verify_palette: ok=True faces=1874 spanning=0 near_edge=0 off=0
+- backfaces Hall_Cam_34: 0 px 
+- backfaces Hall_Cam_Back: 0 px 
+- backfaces Hall_Cam_Door: 0 px 
+- backfaces Hall_Cam_Game: 0 px 
+- backfaces Hall_Cam_POV_3P: 0 px 
+- backfaces Hall_Cam_Side: 0 px 
+- wall footprint: x 13.0..47.0 (34.0), plan y -16.0..-2.0 (14.0), eave 16.0
+- overall size studs (x,y,z): 46.0 x 32.0 x 34.5
+- doorway clear width 7.9, height 10.0 (avatar 5)
+- unclassified raised parts (float check): none

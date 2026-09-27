@@ -1,0 +1,9 @@
+Info: Saved as "hall.blend"
+00:00.484  cycles           | WARNING CUEW initialization failed: Error opening the library
+00:00.484  cycles           | WARNING HIPEW initialization failed: Error opening HIP dynamic library
+00:07.546  render           | Saved: '../../critique-hall-indep/round-3/renders/hall_pov3p.png'
+00:09.348  render           | Saved: '../../critique-hall-indep/round-3/renders/hall_game.png'
+00:23.557  render           | Saved: '../../critique-hall-indep/round-3/renders/hall_34.png'
+00:38.355  render           | Saved: '../../critique-hall-indep/round-3/renders/hall_side.png'
+00:47.245  render           | Saved: '../../critique-hall-indep/round-3/renders/hall_back.png'
+01:01.077  render           | Saved: '../../critique-hall-indep/round-3/renders/hall_door.png'

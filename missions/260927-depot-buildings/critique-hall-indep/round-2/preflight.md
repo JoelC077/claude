@@ -1,0 +1,14 @@
+## Hall (measured)
+- parts (separate named mesh objects): 414; materials: 1
+- tris total 5,188 (budget 20k); largest part Hall_RoundelFace_Cream_01 60
+- verify_palette: ok=True faces=2539 spanning=0 near_edge=0 off=0
+- backfaces Hall_Cam_34: 0 px 
+- backfaces Hall_Cam_Back: 0 px 
+- backfaces Hall_Cam_Door: 0 px 
+- backfaces Hall_Cam_Game: 0 px 
+- backfaces Hall_Cam_POV_3P: 0 px 
+- backfaces Hall_Cam_Side: 0 px 
+- wall footprint: x 13.0..47.0 (34.0), plan y -16.0..-2.0 (14.0), eave 16.0
+- overall size studs (x,y,z): 46.0 x 32.0 x 38.6
+- doorway clear width 7.9, height 10.0 (avatar 5)
+- unclassified raised parts (float check): ['Hall_Rail1Bar_Hazard_01', 'Hall_Rail1Cap_Ink_01', 'Hall_Rail1Cap_Ink_02', 'Hall_Rail2Bar_Hazard_01', 'Hall_Rail2Cap_Ink_01', 'Hall_Rail2Cap_Ink_02', 'Hall_ServiceLintel_Stonedark_01']

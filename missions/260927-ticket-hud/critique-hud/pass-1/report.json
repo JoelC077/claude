@@ -1,0 +1,1298 @@
+{
+ "Phone.html": {
+  "title": "Phone - crisis at bottom",
+  "size": "844x390",
+  "print": false,
+  "min_text_px": 12,
+  "fluid": true,
+  "png": "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-1/Phone.png",
+  "detail_views": [],
+  "errors": [],
+  "failed_requests": [],
+  "contrast_fails": [],
+  "small_text": [],
+  "clipped": [
+   {
+    "el": "$ FARE BANKED! $120 JUNCTION AHEAD! CREW JOINED! M",
+    "by": {
+     "w": 211,
+     "h": 0
+    },
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 844,
+     "h": 390
+    }
+   }
+  ],
+  "spill": [],
+  "offboard": [
+   {
+    "el": "div",
+    "rect": {
+     "x": -84,
+     "y": 117,
+     "w": 591,
+     "h": 156
+    }
+   },
+   {
+    "el": "div",
+    "rect": {
+     "x": 380,
+     "y": 133,
+     "w": 675,
+     "h": 156
+    }
+   }
+  ],
+  "overlaps": [],
+  "targets": [],
+  "clickDivs": [],
+  "unlabeled": [],
+  "images": [],
+  "placeholders": [],
+  "content_size": {
+   "w": 844,
+   "h": 390
+  },
+  "font_sizes": [
+   [
+    "18px",
+    2
+   ],
+   [
+    "20px",
+    2
+   ],
+   [
+    "13.5px",
+    2
+   ],
+   [
+    "24px",
+    1
+   ],
+   [
+    "17px",
+    1
+   ]
+  ],
+  "families": [
+   [
+    "Luckiest Guy",
+    6
+   ],
+   [
+    "Montserrat",
+    2
+   ]
+  ],
+  "text_colors": [
+   [
+    "#15171c",
+    5
+   ],
+   [
+    "#463c2e",
+    2
+   ],
+   [
+    "#0f5c31",
+    1
+   ]
+  ],
+  "fonts_not_loaded": [],
+  "text_count": 8,
+  "min_contrast": 7.05
+ },
+ "Phone.html @390px": {
+  "title": "Phone - crisis at bottom",
+  "size": "390x844",
+  "print": false,
+  "min_text_px": 12,
+  "fluid": true,
+  "png": "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-1/Phone.mobile.png",
+  "detail_views": [
+   "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-1/Phone.mobile.part1.png"
+  ],
+  "errors": [],
+  "failed_requests": [],
+  "contrast_fails": [],
+  "small_text": [],
+  "clipped": [
+   {
+    "el": "$ FARE BANKED! $120 JUNCTION AHEAD! CREW JOINED! M",
+    "by": {
+     "w": 211,
+     "h": 0
+    },
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 844,
+     "h": 390
+    }
+   }
+  ],
+  "spill": [],
+  "offboard": [
+   {
+    "el": "$ FARE BANKED! $120 JUNCTION AHEAD! CREW JOINED! M",
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 844,
+     "h": 390
+    }
+   }
+  ],
+  "overlaps": [],
+  "targets": [],
+  "clickDivs": [],
+  "unlabeled": [],
+  "images": [],
+  "placeholders": [],
+  "content_size": {
+   "w": 844,
+   "h": 844
+  },
+  "font_sizes": [
+   [
+    "18px",
+    2
+   ],
+   [
+    "20px",
+    2
+   ],
+   [
+    "13.5px",
+    2
+   ],
+   [
+    "24px",
+    1
+   ],
+   [
+    "17px",
+    1
+   ]
+  ],
+  "families": [
+   [
+    "Luckiest Guy",
+    6
+   ],
+   [
+    "Montserrat",
+    2
+   ]
+  ],
+  "text_colors": [
+   [
+    "#15171c",
+    5
+   ],
+   [
+    "#463c2e",
+    2
+   ],
+   [
+    "#0f5c31",
+    1
+   ]
+  ],
+  "fonts_not_loaded": [],
+  "text_count": 8,
+  "min_contrast": 7.05
+ },
+ "PhoneRoutine.html": {
+  "title": "Phone - three routine tickets",
+  "size": "844x390",
+  "print": false,
+  "min_text_px": 12,
+  "fluid": true,
+  "png": "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-1/PhoneRoutine.png",
+  "detail_views": [],
+  "errors": [],
+  "failed_requests": [],
+  "contrast_fails": [],
+  "small_text": [],
+  "clipped": [
+   {
+    "el": "CRATE LANDED! CREW LEFT! $ FARE BANKED! Station pa",
+    "by": {
+     "w": 211,
+     "h": 0
+    },
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 844,
+     "h": 390
+    }
+   }
+  ],
+  "spill": [],
+  "offboard": [
+   {
+    "el": "div",
+    "rect": {
+     "x": -84,
+     "y": 117,
+     "w": 591,
+     "h": 156
+    }
+   },
+   {
+    "el": "div",
+    "rect": {
+     "x": 380,
+     "y": 133,
+     "w": 675,
+     "h": 156
+    }
+   }
+  ],
+  "overlaps": [],
+  "targets": [],
+  "clickDivs": [],
+  "unlabeled": [],
+  "images": [],
+  "placeholders": [],
+  "content_size": {
+   "w": 844,
+   "h": 390
+  },
+  "font_sizes": [
+   [
+    "18px",
+    2
+   ],
+   [
+    "24px",
+    1
+   ],
+   [
+    "20px",
+    1
+   ],
+   [
+    "13.5px",
+    1
+   ],
+   [
+    "22px",
+    1
+   ],
+   [
+    "17px",
+    1
+   ]
+  ],
+  "families": [
+   [
+    "Luckiest Guy",
+    6
+   ],
+   [
+    "Montserrat",
+    1
+   ]
+  ],
+  "text_colors": [
+   [
+    "#15171c",
+    4
+   ],
+   [
+    "#463c2e",
+    1
+   ],
+   [
+    "#0f5c31",
+    1
+   ],
+   [
+    "#ffe29a",
+    1
+   ]
+  ],
+  "fonts_not_loaded": [],
+  "text_count": 7,
+  "min_contrast": 7.05
+ },
+ "PhoneRoutine.html @390px": {
+  "title": "Phone - three routine tickets",
+  "size": "390x844",
+  "print": false,
+  "min_text_px": 12,
+  "fluid": true,
+  "png": "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-1/PhoneRoutine.mobile.png",
+  "detail_views": [
+   "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-1/PhoneRoutine.mobile.part1.png"
+  ],
+  "errors": [],
+  "failed_requests": [],
+  "contrast_fails": [],
+  "small_text": [],
+  "clipped": [
+   {
+    "el": "CRATE LANDED! CREW LEFT! $ FARE BANKED! Station pa",
+    "by": {
+     "w": 211,
+     "h": 0
+    },
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 844,
+     "h": 390
+    }
+   }
+  ],
+  "spill": [],
+  "offboard": [
+   {
+    "el": "CRATE LANDED! CREW LEFT! $ FARE BANKED! Station pa",
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 844,
+     "h": 390
+    }
+   }
+  ],
+  "overlaps": [],
+  "targets": [],
+  "clickDivs": [],
+  "unlabeled": [],
+  "images": [],
+  "placeholders": [],
+  "content_size": {
+   "w": 844,
+   "h": 844
+  },
+  "font_sizes": [
+   [
+    "18px",
+    2
+   ],
+   [
+    "24px",
+    1
+   ],
+   [
+    "20px",
+    1
+   ],
+   [
+    "13.5px",
+    1
+   ],
+   [
+    "22px",
+    1
+   ],
+   [
+    "17px",
+    1
+   ]
+  ],
+  "families": [
+   [
+    "Luckiest Guy",
+    6
+   ],
+   [
+    "Montserrat",
+    1
+   ]
+  ],
+  "text_colors": [
+   [
+    "#15171c",
+    4
+   ],
+   [
+    "#463c2e",
+    1
+   ],
+   [
+    "#0f5c31",
+    1
+   ],
+   [
+    "#ffe29a",
+    1
+   ]
+  ],
+  "fonts_not_loaded": [],
+  "text_count": 7,
+  "min_contrast": 7.05
+ },
+ "PhoneCrises.html": {
+  "title": "Phone - two crises + junction",
+  "size": "844x390",
+  "print": false,
+  "min_text_px": 12,
+  "fluid": true,
+  "png": "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-1/PhoneCrises.png",
+  "detail_views": [],
+  "errors": [],
+  "failed_requests": [],
+  "contrast_fails": [],
+  "small_text": [],
+  "clipped": [
+   {
+    "el": "PRESSURE HIGH! BREAKDOWN! Grab a wrench and fix it",
+    "by": {
+     "w": 211,
+     "h": 0
+    },
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 844,
+     "h": 390
+    }
+   }
+  ],
+  "spill": [],
+  "offboard": [
+   {
+    "el": "div",
+    "rect": {
+     "x": -84,
+     "y": 117,
+     "w": 591,
+     "h": 156
+    }
+   },
+   {
+    "el": "div",
+    "rect": {
+     "x": 380,
+     "y": 133,
+     "w": 675,
+     "h": 156
+    }
+   }
+  ],
+  "overlaps": [],
+  "targets": [],
+  "clickDivs": [],
+  "unlabeled": [],
+  "images": [],
+  "placeholders": [],
+  "content_size": {
+   "w": 844,
+   "h": 390
+  },
+  "font_sizes": [
+   [
+    "20px",
+    2
+   ],
+   [
+    "13.5px",
+    2
+   ],
+   [
+    "18px",
+    1
+   ]
+  ],
+  "families": [
+   [
+    "Luckiest Guy",
+    3
+   ],
+   [
+    "Montserrat",
+    2
+   ]
+  ],
+  "text_colors": [
+   [
+    "#15171c",
+    3
+   ],
+   [
+    "#463c2e",
+    2
+   ]
+  ],
+  "fonts_not_loaded": [],
+  "text_count": 5,
+  "min_contrast": 7.9
+ },
+ "PhoneCrises.html @390px": {
+  "title": "Phone - two crises + junction",
+  "size": "390x844",
+  "print": false,
+  "min_text_px": 12,
+  "fluid": true,
+  "png": "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-1/PhoneCrises.mobile.png",
+  "detail_views": [
+   "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-1/PhoneCrises.mobile.part1.png"
+  ],
+  "errors": [],
+  "failed_requests": [],
+  "contrast_fails": [],
+  "small_text": [],
+  "clipped": [
+   {
+    "el": "PRESSURE HIGH! BREAKDOWN! Grab a wrench and fix it",
+    "by": {
+     "w": 211,
+     "h": 0
+    },
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 844,
+     "h": 390
+    }
+   }
+  ],
+  "spill": [],
+  "offboard": [
+   {
+    "el": "PRESSURE HIGH! BREAKDOWN! Grab a wrench and fix it",
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 844,
+     "h": 390
+    }
+   }
+  ],
+  "overlaps": [],
+  "targets": [],
+  "clickDivs": [],
+  "unlabeled": [],
+  "images": [],
+  "placeholders": [],
+  "content_size": {
+   "w": 844,
+   "h": 844
+  },
+  "font_sizes": [
+   [
+    "20px",
+    2
+   ],
+   [
+    "13.5px",
+    2
+   ],
+   [
+    "18px",
+    1
+   ]
+  ],
+  "families": [
+   [
+    "Luckiest Guy",
+    3
+   ],
+   [
+    "Montserrat",
+    2
+   ]
+  ],
+  "text_colors": [
+   [
+    "#15171c",
+    3
+   ],
+   [
+    "#463c2e",
+    2
+   ]
+  ],
+  "fonts_not_loaded": [],
+  "text_count": 5,
+  "min_contrast": 7.9
+ },
+ "PhoneOverflow.html": {
+  "title": "Phone - four crises, +1 more",
+  "size": "844x390",
+  "print": false,
+  "min_text_px": 12,
+  "fluid": true,
+  "png": "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-1/PhoneOverflow.png",
+  "detail_views": [],
+  "errors": [],
+  "failed_requests": [],
+  "contrast_fails": [],
+  "small_text": [],
+  "clipped": [
+   {
+    "el": "+1 MORE PASSENGERS UPSET! BREAKDOWN! PRESSURE HIGH",
+    "by": {
+     "w": 211,
+     "h": 0
+    },
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 844,
+     "h": 390
+    }
+   }
+  ],
+  "spill": [],
+  "offboard": [
+   {
+    "el": "div",
+    "rect": {
+     "x": -84,
+     "y": 117,
+     "w": 591,
+     "h": 156
+    }
+   },
+   {
+    "el": "div",
+    "rect": {
+     "x": 380,
+     "y": 133,
+     "w": 675,
+     "h": 156
+    }
+   }
+  ],
+  "overlaps": [],
+  "targets": [],
+  "clickDivs": [],
+  "unlabeled": [],
+  "images": [],
+  "placeholders": [],
+  "content_size": {
+   "w": 844,
+   "h": 390
+  },
+  "font_sizes": [
+   [
+    "18px",
+    3
+   ],
+   [
+    "16px",
+    1
+   ],
+   [
+    "20px",
+    1
+   ],
+   [
+    "13.5px",
+    1
+   ]
+  ],
+  "families": [
+   [
+    "Luckiest Guy",
+    5
+   ],
+   [
+    "Montserrat",
+    1
+   ]
+  ],
+  "text_colors": [
+   [
+    "#15171c",
+    4
+   ],
+   [
+    "#ffe29a",
+    1
+   ],
+   [
+    "#463c2e",
+    1
+   ]
+  ],
+  "fonts_not_loaded": [],
+  "text_count": 6,
+  "min_contrast": 7.9
+ },
+ "PhoneOverflow.html @390px": {
+  "title": "Phone - four crises, +1 more",
+  "size": "390x844",
+  "print": false,
+  "min_text_px": 12,
+  "fluid": true,
+  "png": "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-1/PhoneOverflow.mobile.png",
+  "detail_views": [
+   "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-1/PhoneOverflow.mobile.part1.png"
+  ],
+  "errors": [],
+  "failed_requests": [],
+  "contrast_fails": [],
+  "small_text": [],
+  "clipped": [
+   {
+    "el": "+1 MORE PASSENGERS UPSET! BREAKDOWN! PRESSURE HIGH",
+    "by": {
+     "w": 211,
+     "h": 0
+    },
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 844,
+     "h": 390
+    }
+   }
+  ],
+  "spill": [],
+  "offboard": [
+   {
+    "el": "+1 MORE PASSENGERS UPSET! BREAKDOWN! PRESSURE HIGH",
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 844,
+     "h": 390
+    }
+   }
+  ],
+  "overlaps": [],
+  "targets": [],
+  "clickDivs": [],
+  "unlabeled": [],
+  "images": [],
+  "placeholders": [],
+  "content_size": {
+   "w": 844,
+   "h": 844
+  },
+  "font_sizes": [
+   [
+    "18px",
+    3
+   ],
+   [
+    "16px",
+    1
+   ],
+   [
+    "20px",
+    1
+   ],
+   [
+    "13.5px",
+    1
+   ]
+  ],
+  "families": [
+   [
+    "Luckiest Guy",
+    5
+   ],
+   [
+    "Montserrat",
+    1
+   ]
+  ],
+  "text_colors": [
+   [
+    "#15171c",
+    4
+   ],
+   [
+    "#ffe29a",
+    1
+   ],
+   [
+    "#463c2e",
+    1
+   ]
+  ],
+  "fonts_not_loaded": [],
+  "text_count": 6,
+  "min_contrast": 7.9
+ },
+ "PC.html": {
+  "title": "PC 1280x720",
+  "size": "1280x720",
+  "print": false,
+  "min_text_px": 12,
+  "fluid": true,
+  "png": "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-1/PC.png",
+  "detail_views": [],
+  "errors": [],
+  "failed_requests": [],
+  "contrast_fails": [],
+  "small_text": [],
+  "clipped": [
+   {
+    "el": "People Cash JoelRails $340 MayaChoo $210 Tinkerbol",
+    "by": {
+     "w": 320,
+     "h": 0
+    },
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 720
+    }
+   }
+  ],
+  "spill": [],
+  "offboard": [
+   {
+    "el": "div",
+    "rect": {
+     "x": -128,
+     "y": 216,
+     "w": 896,
+     "h": 288
+    }
+   },
+   {
+    "el": "div",
+    "rect": {
+     "x": 576,
+     "y": 245,
+     "w": 1024,
+     "h": 288
+    }
+   }
+  ],
+  "overlaps": [],
+  "targets": [],
+  "clickDivs": [],
+  "unlabeled": [],
+  "images": [],
+  "placeholders": [],
+  "content_size": {
+   "w": 1280,
+   "h": 720
+  },
+  "font_sizes": [
+   [
+    "13px",
+    8
+   ],
+   [
+    "15px",
+    2
+   ],
+   [
+    "18px",
+    2
+   ],
+   [
+    "17px",
+    2
+   ],
+   [
+    "20px",
+    2
+   ],
+   [
+    "13.5px",
+    2
+   ],
+   [
+    "24px",
+    1
+   ],
+   [
+    "22px",
+    1
+   ]
+  ],
+  "families": [
+   [
+    "Luckiest Guy",
+    10
+   ],
+   [
+    "Montserrat",
+    10
+   ]
+  ],
+  "text_colors": [
+   [
+    "#f7edd3",
+    8
+   ],
+   [
+    "#15171c",
+    6
+   ],
+   [
+    "#ffe29a",
+    3
+   ],
+   [
+    "#463c2e",
+    2
+   ],
+   [
+    "#0f5c31",
+    1
+   ]
+  ],
+  "fonts_not_loaded": [],
+  "text_count": 20,
+  "min_contrast": 7.05
+ },
+ "PC.html @390px": {
+  "title": "PC 1280x720",
+  "size": "390x844",
+  "print": false,
+  "min_text_px": 12,
+  "fluid": true,
+  "png": "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-1/PC.mobile.png",
+  "detail_views": [
+   "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-1/PC.mobile.part1.png"
+  ],
+  "errors": [],
+  "failed_requests": [],
+  "contrast_fails": [],
+  "small_text": [],
+  "clipped": [
+   {
+    "el": "People Cash JoelRails $340 MayaChoo $210 Tinkerbol",
+    "by": {
+     "w": 320,
+     "h": 0
+    },
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 720
+    }
+   }
+  ],
+  "spill": [],
+  "offboard": [
+   {
+    "el": "People Cash JoelRails $340 MayaChoo $210 Tinkerbol",
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 720
+    }
+   }
+  ],
+  "overlaps": [],
+  "targets": [],
+  "clickDivs": [],
+  "unlabeled": [],
+  "images": [],
+  "placeholders": [],
+  "content_size": {
+   "w": 1280,
+   "h": 844
+  },
+  "font_sizes": [
+   [
+    "13px",
+    8
+   ],
+   [
+    "15px",
+    2
+   ],
+   [
+    "18px",
+    2
+   ],
+   [
+    "17px",
+    2
+   ],
+   [
+    "20px",
+    2
+   ],
+   [
+    "13.5px",
+    2
+   ],
+   [
+    "24px",
+    1
+   ],
+   [
+    "22px",
+    1
+   ]
+  ],
+  "families": [
+   [
+    "Luckiest Guy",
+    10
+   ],
+   [
+    "Montserrat",
+    10
+   ]
+  ],
+  "text_colors": [
+   [
+    "#f7edd3",
+    8
+   ],
+   [
+    "#15171c",
+    6
+   ],
+   [
+    "#ffe29a",
+    3
+   ],
+   [
+    "#463c2e",
+    2
+   ],
+   [
+    "#0f5c31",
+    1
+   ]
+  ],
+  "fonts_not_loaded": [],
+  "text_count": 20,
+  "min_contrast": 7.05
+ },
+ "Kit.html": {
+  "title": "Kit",
+  "size": "1320x1080",
+  "print": false,
+  "min_text_px": 12,
+  "fluid": true,
+  "png": "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-1/Kit.png",
+  "detail_views": [],
+  "errors": [],
+  "failed_requests": [],
+  "contrast_fails": [],
+  "small_text": [],
+  "clipped": [],
+  "spill": [],
+  "offboard": [],
+  "overlaps": [],
+  "targets": [],
+  "clickDivs": [],
+  "unlabeled": [],
+  "images": [],
+  "placeholders": [],
+  "content_size": {
+   "w": 1320,
+   "h": 1080
+  },
+  "font_sizes": [
+   [
+    "20px",
+    18
+   ],
+   [
+    "12px",
+    17
+   ],
+   [
+    "13.5px",
+    12
+   ],
+   [
+    "18px",
+    5
+   ],
+   [
+    "22px",
+    4
+   ],
+   [
+    "24px",
+    4
+   ],
+   [
+    "17px",
+    3
+   ],
+   [
+    "13px",
+    2
+   ],
+   [
+    "34px",
+    1
+   ],
+   [
+    "16px",
+    1
+   ]
+  ],
+  "families": [
+   [
+    "Luckiest Guy",
+    36
+   ],
+   [
+    "Montserrat",
+    31
+   ]
+  ],
+  "text_colors": [
+   [
+    "#15171c",
+    22
+   ],
+   [
+    "#dfe4ea",
+    17
+   ],
+   [
+    "#463c2e",
+    12
+   ],
+   [
+    "#ffe29a",
+    10
+   ],
+   [
+    "#0f5c31",
+    4
+   ],
+   [
+    "#f7edd3",
+    2
+   ]
+  ],
+  "fonts_not_loaded": [],
+  "text_count": 67,
+  "min_contrast": 5.38
+ },
+ "Kit.html @390px": {
+  "title": "Kit",
+  "size": "390x844",
+  "print": false,
+  "min_text_px": 12,
+  "fluid": true,
+  "png": "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-1/Kit.mobile.png",
+  "detail_views": [
+   "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-1/Kit.mobile.part1.png"
+  ],
+  "errors": [],
+  "failed_requests": [],
+  "contrast_fails": [],
+  "small_text": [],
+  "clipped": [],
+  "spill": [],
+  "offboard": [
+   {
+    "el": "RISKY RAILS - TICKET NOTIFICATIONS Railway-company",
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 1320,
+     "h": 1080
+    }
+   }
+  ],
+  "overlaps": [],
+  "targets": [],
+  "clickDivs": [],
+  "unlabeled": [],
+  "images": [],
+  "placeholders": [],
+  "content_size": {
+   "w": 1320,
+   "h": 1080
+  },
+  "font_sizes": [
+   [
+    "20px",
+    18
+   ],
+   [
+    "12px",
+    17
+   ],
+   [
+    "13.5px",
+    12
+   ],
+   [
+    "18px",
+    5
+   ],
+   [
+    "22px",
+    4
+   ],
+   [
+    "24px",
+    4
+   ],
+   [
+    "17px",
+    3
+   ],
+   [
+    "13px",
+    2
+   ],
+   [
+    "34px",
+    1
+   ],
+   [
+    "16px",
+    1
+   ]
+  ],
+  "families": [
+   [
+    "Luckiest Guy",
+    36
+   ],
+   [
+    "Montserrat",
+    31
+   ]
+  ],
+  "text_colors": [
+   [
+    "#15171c",
+    22
+   ],
+   [
+    "#dfe4ea",
+    17
+   ],
+   [
+    "#463c2e",
+    12
+   ],
+   [
+    "#ffe29a",
+    10
+   ],
+   [
+    "#0f5c31",
+    4
+   ],
+   [
+    "#f7edd3",
+    2
+   ]
+  ],
+  "fonts_not_loaded": [],
+  "text_count": 67,
+  "min_contrast": 5.38
+ },
+ "_fonts_unavailable": []
+}

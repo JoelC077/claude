@@ -1,0 +1,9 @@
+Info: Saved as "depot.blend"
+00:00.477  cycles           | WARNING CUEW initialization failed: Error opening the library
+00:00.477  cycles           | WARNING HIPEW initialization failed: Error opening HIP dynamic library
+00:04.117  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/src/depot/renders/depot_pov3p.png'
+00:04.882  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/src/depot/renders/depot_game.png'
+00:11.731  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/src/depot/renders/depot_34.png'
+00:19.263  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/src/depot/renders/depot_side.png'
+00:25.949  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/src/depot/renders/depot_back.png'
+00:38.396  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/src/depot/renders/depot_door.png'

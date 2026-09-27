@@ -1,0 +1,57 @@
+{
+ "sheet": [
+  780,
+  1416
+ ],
+ "megapixels": 1.1,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "Depot POV 3P",
+   "src": "/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-3/depot_pov3p.png",
+   "box": [
+    6,
+    24,
+    768,
+    432
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "Hall POV 3P",
+   "src": "/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-3/hall_pov3p.png",
+   "box": [
+    6,
+    480,
+    768,
+    432
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 3,
+   "label": "Depot game 400",
+   "src": "/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-3/depot_game.png",
+   "box": [
+    6,
+    936,
+    400,
+    225
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 4,
+   "label": "Hall game 400",
+   "src": "/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-3/hall_game.png",
+   "box": [
+    6,
+    1185,
+    400,
+    225
+   ],
+   "scale": "1:1 true size"
+  }
+ ]
+}

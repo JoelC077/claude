@@ -1,0 +1,13 @@
+# Facts pass 6 (independent, fresh render of current src/hud via render_design.py at canvas sizes, measured in Chromium)
+- Phone.html: 844x390, texts 8, sizes 15/17/18/20/24px, min contrast 7.21, contrast fails 0
+- PhoneRoutine.html: 844x390, texts 7, sizes 15/18/20/22/24px, min contrast 7.21, contrast fails 0
+- PhoneCrises.html: 844x390, texts 5, sizes 15/18/20px, min contrast 8.2, contrast fails 0
+- PhoneOverflow.html: 844x390, texts 6, sizes 15/16/18/20px, min contrast 8.2, contrast fails 0 (pass 5: 1 sampler false positive on "PRESSURE HIGH!")
+- PC.html: 1280x720, texts 20, sizes 13-24px, min contrast 7.21, contrast fails 0
+- Kit.html: 1320x1080, texts 67, sizes 12-34px, min contrast 5.38, contrast fails 0
+- Teal/green pixel count (Pillow, g > r+15 and g > b-10) on the COAL LOW bottom edge, x542-832 y248-268 (inside the halo, under the red timer bar): Phone 0, PhoneOverflow 0 (pass 5: 334 on each).
+- closeups.png: 4x nearest-neighbour zoom of the COAL LOW bottom edge on Phone, pass 5 (top) vs pass 6 (bottom).
+- Smallest ticket text on Phone boards: 15px. Fonts: Luckiest Guy + Montserrat only.
+- Contact sheet: Phone crisis + Phone overflow at 1:1 true size; crises+junction, routine, PC, Kit fitted. Full-size PNGs in pass-6/ (*.mobile.* = tool's 390px reflow, not a target view).
+- Spec (mission.md): ticket 290x64 / compact 44; cap 4 + '+N MORE'; newest at bottom; bottom-right above jump zone.
+- Self-review passes (_selfreview-archive/) are NOT shown to this critic.

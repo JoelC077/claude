@@ -1,0 +1,471 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>Depot Lobby Blueprint</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root{
+    --bg:#e4dcc4;
+    --paper:#f2ecda;
+    --paper2:#eae2c8;
+    --grid-minor:#d9cda9;
+    --grid-major:#c3b589;
+    --ink:#1f3b57;
+    --ink-soft:#4e6e88;
+    --ink-faint:rgba(31,59,87,0.06);
+    --accent:#b1502b;
+    --accent-soft:rgba(177,80,43,0.16);
+    --border:#c3b589;
+    --shadow:rgba(31,27,10,0.18);
+    --slab-clean:#f7f3e6;
+    --slab-base:#cabb8a;
+    --slab-crack:#ad9968;
+    --moss:#6d7d43;
+    --ballast:#b7a17a;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0d2540;
+      --paper:#14395d;
+      --paper2:#123153;
+      --grid-minor:#2a567f;
+      --grid-major:#3a6b95;
+      --ink:#eaf4f8;
+      --ink-soft:#a9cee0;
+      --ink-faint:rgba(234,244,248,0.07);
+      --accent:#e8a23d;
+      --accent-soft:rgba(232,162,61,0.20);
+      --border:#3a6b95;
+      --shadow:rgba(0,0,0,0.45);
+      --slab-clean:#1c4468;
+      --slab-base:#2c5c88;
+      --slab-crack:#3d739e;
+      --moss:#8fae5c;
+      --ballast:#8a7550;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0d2540;
+    --paper:#14395d;
+    --paper2:#123153;
+    --grid-minor:#2a567f;
+    --grid-major:#3a6b95;
+    --ink:#eaf4f8;
+    --ink-soft:#a9cee0;
+    --ink-faint:rgba(234,244,248,0.07);
+    --accent:#e8a23d;
+    --accent-soft:rgba(232,162,61,0.20);
+    --border:#3a6b95;
+    --shadow:rgba(0,0,0,0.45);
+    --slab-clean:#1c4468;
+    --slab-base:#23507a;
+    --slab-crack:#2f5c86;
+    --moss:#8fae5c;
+    --ballast:#8a7550;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    padding:28px 18px 60px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:20px;
+  }
+  .wrap{ width:100%; max-width:980px; display:flex; flex-direction:column; gap:20px; }
+
+  header{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  h1{
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    font-size:clamp(24px,4vw,34px);
+    letter-spacing:0.01em;
+    text-wrap:balance;
+    margin:2px 0 0;
+  }
+
+  .sheet{
+    background:var(--paper);
+    border:1px solid var(--border);
+    border-radius:3px;
+    box-shadow:0 10px 30px var(--shadow);
+    padding:16px 16px 8px;
+    overflow-x:auto;
+  }
+  .sheet svg{ display:block; width:100%; height:auto; min-width:640px; }
+
+  .grid-two{ display:grid; grid-template-columns:1.3fr 1fr; gap:18px; }
+  @media (max-width:720px){ .grid-two{ grid-template-columns:1fr; } }
+
+  .box{
+    background:var(--paper);
+    border:1px solid var(--border);
+    border-radius:3px;
+    padding:16px 18px;
+  }
+  .box h2{
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin:0 0 10px;
+  }
+  .notes{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+  .notes li{
+    font-size:13.5px;
+    line-height:1.5;
+    color:var(--ink-soft);
+    padding-left:1.4em;
+    text-indent:-1.4em;
+  }
+  .notes li b{ color:var(--ink); font-weight:600; }
+
+  .titleblock{ font-family:'IBM Plex Mono', monospace; font-size:12.5px; }
+  .titleblock table{ width:100%; border-collapse:collapse; }
+  .titleblock td{ padding:5px 0; border-bottom:1px dashed var(--border); color:var(--ink-soft); }
+  .titleblock td:last-child{ text-align:right; color:var(--ink); font-weight:500; }
+  .titleblock tr:last-child td{ border-bottom:none; }
+
+  .legend{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  .legend caption{ text-align:left; }
+  .legend th{
+    font-family:'Oswald', sans-serif;
+    font-size:11.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    text-align:left;
+    padding:8px 10px;
+    border-bottom:2px solid var(--border);
+  }
+  .legend td{
+    padding:9px 10px;
+    border-bottom:1px solid var(--grid-minor);
+    vertical-align:top;
+    color:var(--ink);
+  }
+  .legend tr:last-child td{ border-bottom:none; }
+  .num{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:20px; height:20px; border-radius:50%;
+    background:var(--ink); color:var(--paper);
+    font-family:'IBM Plex Mono', monospace; font-size:11px; font-weight:500;
+  }
+  .dim{ font-family:'IBM Plex Mono', monospace; font-variant-numeric:tabular-nums; color:var(--ink-soft); white-space:nowrap; }
+  .desc{ color:var(--ink-soft); }
+
+  footer{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--ink-soft); text-align:center; }
+
+  .rule{ font-size:13.5px; line-height:1.6; color:var(--ink-soft); margin:0 0 14px; max-width:64ch; }
+  .rule b{ color:var(--ink); font-weight:600; }
+  .swatches{ display:flex; flex-wrap:wrap; gap:14px 22px; }
+  .swatch{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-soft); }
+  .swatch i{ width:16px; height:16px; border-radius:2px; display:inline-block; border:1px solid var(--border); flex:none; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Risky Rails &middot; Environment Reference</div>
+      <h1>Depot Lobby — Layout Plan</h1>
+    </div>
+    <div class="eyebrow">Scale&nbsp; 1 square = 5 studs</div>
+  </header>
+
+  <div class="sheet">
+    <svg id="plan" viewBox="-16 -11 92 118" xmlns="http://www.w3.org/2000/svg">
+      <!-- grid drawn by script -->
+      <g id="grid"></g>
+
+      <!-- main lobby + fence boundary -->
+      <rect x="0" y="0" width="60" height="70" fill="none" stroke="var(--ink)" stroke-width="0.6"/>
+      <!-- depot yard -->
+      <rect x="10" y="70" width="40" height="20" fill="none" stroke="var(--ink)" stroke-width="0.6" stroke-dasharray="1.5 1"/>
+
+      <!-- central path -->
+      <rect x="26" y="15" width="8" height="45" fill="var(--ink-faint)"/>
+
+      <!-- classes placeholder pad -->
+      <rect x="44" y="30" width="12" height="12" fill="var(--ink-faint)" stroke="var(--ink-soft)" stroke-width="0.4" stroke-dasharray="1 1"/>
+
+      <!-- info board -->
+      <rect x="1.5" y="32" width="3" height="8" fill="var(--ink-soft)"/>
+
+      <!-- display track strip -->
+      <rect x="14" y="70" width="32" height="6" fill="var(--accent-soft)"/>
+      <!-- station building -->
+      <rect x="18" y="76" width="24" height="14" fill="var(--ink-faint)" stroke="var(--ink)" stroke-width="0.5"/>
+
+      <!-- join queue platform -->
+      <rect x="20" y="5" width="20" height="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="0.5"/>
+
+      <!-- lamp posts -->
+      <g fill="var(--ink-soft)">
+        <circle cx="23" cy="28" r="0.9"/>
+        <circle cx="37" cy="28" r="0.9"/>
+        <circle cx="23" cy="47" r="0.9"/>
+        <circle cx="37" cy="47" r="0.9"/>
+      </g>
+
+      <!-- spawn marker -->
+      <circle cx="30" cy="60" r="1.6" fill="none" stroke="var(--accent)" stroke-width="0.6"/>
+      <line x1="30" y1="60" x2="30" y2="55.5" stroke="var(--accent)" stroke-width="0.6" marker-end="url(#arrow)"/>
+
+      <!-- dimension lines -->
+      <g id="dims" font-family="IBM Plex Mono, monospace" font-size="2.6" fill="var(--ink-soft)"></g>
+
+      <!-- callout numbers -->
+      <g id="callouts" font-family="IBM Plex Mono, monospace" font-size="2.4" font-weight="500"></g>
+
+      <!-- north / direction arrow -->
+      <g transform="translate(70,-4)">
+        <line x1="0" y1="10" x2="0" y2="0" stroke="var(--ink)" stroke-width="0.6" marker-end="url(#arrow)"/>
+        <text x="0" y="14" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="2.6" fill="var(--ink-soft)">N</text>
+      </g>
+
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/>
+        </marker>
+      </defs>
+    </svg>
+  </div>
+
+  <div class="grid-two">
+    <div class="box">
+      <h2>General Notes</h2>
+      <ul class="notes">
+        <li><b>01 —</b> All dimensions in studs (1 stud ≈ 0.28 m). Grid square = 5 studs, labelled ruler = every 10.</li>
+        <li><b>02 —</b> Footprint sized for a 6-player server per the game plan — this is a small hub, not a large public plaza. Don't over-build it.</li>
+        <li><b>03 —</b> Treat every number here as a starting point, not gospel — nudge wall and zone positions once actual fence-panel and station-building footprints are measured in Studio.</li>
+        <li><b>04 —</b> Outer boundary of the main lobby and depot yard is the palisade fence itself (mix bent-bar / vine-overgrown panels along the run) — there's no separate architectural wall.</li>
+        <li><b>05 —</b> North (↑) = direction of travel from spawn to the join-queue platform.</li>
+      </ul>
+    </div>
+    <div class="box titleblock">
+      <h2>Title Block</h2>
+      <table>
+        <tr><td>Project</td><td>Risky Rails</td></tr>
+        <tr><td>Drawing</td><td>Depot Lobby — Layout Plan</td></tr>
+        <tr><td>Scale</td><td>1 sq = 5 studs</td></tr>
+        <tr><td>Occupancy</td><td>6 players max</td></tr>
+        <tr><td>Rev.</td><td>01</td></tr>
+        <tr><td>Date</td><td>06 Sep 2026</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="box">
+    <h2>Legend — What Goes Where</h2>
+    <div style="overflow-x:auto;">
+      <table class="legend">
+        <thead>
+          <tr><th>No.</th><th>Zone</th><th>Footprint</th><th>Notes</th></tr>
+        </thead>
+        <tbody id="legend-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <header style="margin-top:6px;">
+    <div>
+      <div class="eyebrow">Risky Rails &middot; Environment Reference</div>
+      <h1 style="font-size:clamp(20px,3.4vw,28px);">Floor Paving Plan</h1>
+    </div>
+    <div class="eyebrow">Scale&nbsp; 1 square = 5 studs</div>
+  </header>
+
+  <div class="box">
+    <p class="rule"><b>The rule:</b> keep the ground <b>clean along the routes players actually use</b> — the centre path, the queue platform, the run up to spawn — so the space reads clearly. Push the cracking, lifted slabs and grass straight to the <b>fence line and yard corners</b>, where nobody's walking and decay reads as atmosphere rather than an obstacle.</p>
+  </div>
+
+  <div class="sheet">
+    <svg id="paving" viewBox="-16 -11 92 118" xmlns="http://www.w3.org/2000/svg">
+      <g id="slabs"></g>
+      <rect x="0" y="0" width="60" height="70" fill="none" stroke="var(--ink)" stroke-width="0.5"/>
+      <rect x="10" y="70" width="40" height="20" fill="none" stroke="var(--ink)" stroke-width="0.5" stroke-dasharray="1.5 1"/>
+      <rect x="18" y="76" width="24" height="14" fill="none" stroke="var(--ink-soft)" stroke-width="0.35" stroke-dasharray="0.8 0.8"/>
+    </svg>
+  </div>
+
+  <div class="box">
+    <h2>Paving Key</h2>
+    <div class="swatches">
+      <div class="swatch"><i style="background:var(--slab-clean)"></i>Clean walkway — path, platform, spawn approach</div>
+      <div class="swatch"><i style="background:var(--slab-base)"></i>Weathered concrete — everyday yard slab</div>
+      <div class="swatch"><i style="background:var(--slab-crack)"></i>Cracked / lifted slab — edges &amp; corners only</div>
+      <div class="swatch"><i style="background:var(--moss)"></i>Grass through the seams — fence line &amp; corners</div>
+      <div class="swatch"><i style="background:var(--ballast)"></i>Gravel ballast — under the display track</div>
+    </div>
+  </div>
+
+  <footer>RISKY RAILS — ENVIRONMENT REFERENCE — NOT FOR FINAL DIMENSIONS</footer>
+</div>
+
+<script>
+(function(){
+  const svgNS = "http://www.w3.org/2000/svg";
+  const grid = document.getElementById('grid');
+  const dims = document.getElementById('dims');
+  const callouts = document.getElementById('callouts');
+  const legendBody = document.getElementById('legend-body');
+
+  function el(tag, attrs){
+    const e = document.createElementNS(svgNS, tag);
+    for(const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  // grid: minor every 5 studs, major every 10, across the full plan (x:-2..62, y:-2..92)
+  const xMin=-2, xMax=62, yMin=-2, yMax=92;
+  for(let x=0; x<=60; x+=5){
+    grid.appendChild(el('line',{x1:x,y1:yMin,x2:x,y2:yMax,stroke:x%10===0?'var(--grid-major)':'var(--grid-minor)','stroke-width':x%10===0?0.25:0.12}));
+  }
+  for(let y=-2; y<=92; y+=5){
+    grid.appendChild(el('line',{x1:xMin,y1:y,x2:xMax,y2:y,stroke:((y+2)%10===0)?'var(--grid-major)':'var(--grid-minor)','stroke-width':((y+2)%10===0)?0.25:0.12}));
+  }
+  // ruler labels
+  for(let x=0; x<=60; x+=10){
+    const t = el('text',{x:x, y:-3.2, 'text-anchor':'middle','font-family':'IBM Plex Mono, monospace','font-size':2.4, fill:'var(--ink-soft)'});
+    t.textContent = x; grid.appendChild(t);
+  }
+  for(let y=0; y<=90; y+=10){
+    const t = el('text',{x:-4, y:y+0.9, 'text-anchor':'end','font-family':'IBM Plex Mono, monospace','font-size':2.4, fill:'var(--ink-soft)'});
+    t.textContent = y; grid.appendChild(t);
+  }
+
+  // dimension helper: horizontal
+  function hDim(x1,x2,y,label){
+    const g = el('g',{});
+    g.appendChild(el('line',{x1:x1,y1:y,x2:x2,y2:y,stroke:'var(--ink-soft)','stroke-width':0.25}));
+    g.appendChild(el('line',{x1:x1,y1:y-1,x2:x1,y2:y+1,stroke:'var(--ink-soft)','stroke-width':0.25}));
+    g.appendChild(el('line',{x1:x2,y1:y-1,x2:x2,y2:y+1,stroke:'var(--ink-soft)','stroke-width':0.25}));
+    const t = el('text',{x:(x1+x2)/2, y:y-1.3, 'text-anchor':'middle'}); t.textContent = label; g.appendChild(t);
+    dims.appendChild(g);
+  }
+  function vDim(y1,y2,x,label){
+    const g = el('g',{});
+    g.appendChild(el('line',{x1:x,y1:y1,x2:x,y2:y2,stroke:'var(--ink-soft)','stroke-width':0.25}));
+    g.appendChild(el('line',{x1:x-1,y1:y1,x2:x+1,y2:y1,stroke:'var(--ink-soft)','stroke-width':0.25}));
+    g.appendChild(el('line',{x1:x-1,y1:y2,x2:x+1,y2:y2,stroke:'var(--ink-soft)','stroke-width':0.25}));
+    const t = el('text',{x:x-1.6, y:(y1+y2)/2, 'text-anchor':'middle', transform:`rotate(-90 ${x-1.6} ${(y1+y2)/2})`}); t.textContent = label; g.appendChild(t);
+    dims.appendChild(g);
+  }
+
+  hDim(0,60,-6.5,'60');
+  vDim(0,70,-9,'70');
+  vDim(70,90,-9,'20');
+  hDim(18,42,92.5,'24');
+  vDim(76,90,15.5,'14');
+  hDim(20,40,2.5,'20');
+  vDim(5,15,45,'10');
+
+  // callouts: [number, x, y]
+  const points = [
+    [1,30,60],[2,30,37],[3,23,28],[4,3,36],[5,50,36],
+    [6,58,58],[7,30,83],[8,30,72],[9,45,80],[10,30,10]
+  ];
+  points.forEach(([n,x,y])=>{
+    const c = el('circle',{cx:x,cy:y,r:2.0,fill:'var(--ink)',stroke:'var(--paper)','stroke-width':0.3});
+    callouts.appendChild(c);
+    const t = el('text',{x:x,y:y+0.85,'text-anchor':'middle',fill:'var(--paper)'});
+    t.textContent = n; callouts.appendChild(t);
+  });
+
+  // legend rows
+  const rows = [
+    [1,'Spawn point','—','Player spawns facing north, station/depot behind them.'],
+    [2,'Central path','8 × 45','Cracked paving strip from spawn to queue platform.'],
+    [3,'Lamp posts','4 pts','Iron railway lanterns flanking the path, ~19 studs apart.'],
+    [4,'Game info board','3 × 8','West wall. Timber/iron frame, peeling notices, one vine.'],
+    [5,'Classes pad','12 × 12','Placeholder only — plan flags classes as post-launch.'],
+    [6,'Boundary fence','perimeter','Palisade fence, mix in bent-bar / vine variants.'],
+    [7,'Depot building','24 × 14','Two-gable stone station house, front faces the yard.'],
+    [8,'Display track','32 × 6','Equipped train sits here; browsing tweens client-side.'],
+    [9,'Foliage + clutter','yard corners','Moss, ivy, crates, drums — heaviest near the building.'],
+    [10,'Join-queue platform','20 × 10','Main CTA — boldest lighting and signage in the lobby.'],
+  ];
+  rows.forEach(([n,zone,fp,note])=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><span class="num">${n}</span></td><td>${zone}</td><td class="dim">${fp}</td><td class="desc">${note}</td>`;
+    legendBody.appendChild(tr);
+  });
+
+  // ---- floor paving plan ----
+  const slabs = document.getElementById('slabs');
+  if(slabs){
+    const cell = 5;
+    function distToBoundary(cx,cy){
+      // distance to nearest fence line, accounting for the depot-yard extension
+      if(cy <= 70){
+        return Math.min(cx, 60-cx, cy, /*no south bound in main lobby except where yard opens*/ 999);
+      }
+      return Math.min(cx-10, 50-cx, 90-cy);
+    }
+    function inBounds(cx,cy){
+      if(cy>=0 && cy<=70) return cx>=0 && cx<=60;
+      if(cy>70 && cy<=90) return cx>=10 && cx<=50;
+      return false;
+    }
+    function crackMark(x,y,c){
+      const g = el('g',{});
+      g.appendChild(el('path',{d:`M${x+0.8},${y+1} L${x+2.2},${y+2.6} L${x+1.6},${y+3.2} L${x+3.4},${y+4.2}`, stroke:'var(--ink-soft)','stroke-width':0.18, fill:'none', opacity:0.8}));
+      return g;
+    }
+    function grassMark(x,y){
+      const g = el('g',{fill:'var(--moss)'});
+      [[1.2,3.6],[2.4,4.2],[3.4,3.3]].forEach(([dx,dy])=>{
+        g.appendChild(el('path',{d:`M${x+dx},${y+dy} l0.35,-1.3 l0.35,1.3 z`}));
+      });
+      return g;
+    }
+    function ballastMark(x,y){
+      const g = el('g',{fill:'var(--ink-soft)',opacity:0.55});
+      for(let i=0;i<6;i++){
+        const dx = 0.6 + (i*0.8)%4.2, dy = 0.8 + ((i*1.7)%3.6);
+        g.appendChild(el('circle',{cx:x+dx,cy:y+dy,r:0.22}));
+      }
+      return g;
+    }
+
+    for(let y=0; y<90; y+=cell){
+      for(let x=0; x<60; x+=cell){
+        const cx=x+cell/2, cy=y+cell/2;
+        if(!inBounds(cx,cy)) continue;
+
+        const onPath = (cx>=25 && cx<=35);
+        const onQueue = (cy<=15 && cx>=20 && cx<=40);
+        const onTrack = (cy>70 && cy<76);
+        const edgeDist = distToBoundary(cx,cy);
+
+        let fill = 'var(--slab-base)', mark = null;
+        if(onTrack){
+          fill = 'var(--ballast)'; mark = ballastMark(x,y);
+        } else if(onPath || onQueue){
+          fill = 'var(--slab-clean)';
+        } else if(edgeDist < 8){
+          const dappled = (Math.round(x/cell) + Math.round(y/cell)) % 2 === 0;
+          if(dappled){ fill = 'var(--slab-crack)'; mark = crackMark(x,y); }
+          else { fill = 'var(--slab-base)'; mark = grassMark(x,y); }
+        }
+
+        slabs.appendChild(el('rect',{x:x,y:y,width:cell,height:cell,fill:fill,stroke:'var(--grid-minor)','stroke-width':0.1}));
+        if(mark) slabs.appendChild(mark);
+      }
+    }
+  }
+})();
+</script>
+
+</body></html>

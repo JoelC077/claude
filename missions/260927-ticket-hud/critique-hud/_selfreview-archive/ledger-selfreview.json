@@ -1,0 +1,67 @@
+[
+ {
+  "pass": 1,
+  "kind": "full",
+  "agent": "self-review",
+  "model": "claude-opus-5-5",
+  "scores": {
+   "B1": 7,
+   "B2": 8,
+   "B3": 7,
+   "B4": 7,
+   "B5": 7,
+   "B6": 7
+  },
+  "tokens": 16000,
+  "new": 16000,
+  "carried": 0,
+  "tools": 2,
+  "minutes": 3.0,
+  "fixes": "",
+  "note": "",
+  "budget": 120000
+ },
+ {
+  "pass": 2,
+  "kind": "delta",
+  "agent": "self-review",
+  "model": "claude-opus-5-5",
+  "scores": {
+   "B1": 8,
+   "B3": 8,
+   "B4": 8,
+   "B5": 8,
+   "B6": 8
+  },
+  "tokens": 26000,
+  "new": 10000,
+  "carried": 16000,
+  "tools": 2,
+  "minutes": 2.0,
+  "fixes": "",
+  "note": "",
+  "budget": 120000
+ },
+ {
+  "pass": 3,
+  "kind": "final",
+  "agent": "self-final",
+  "model": "claude-opus-5-5",
+  "scores": {
+   "B1": 8,
+   "B2": 8,
+   "B3": 8,
+   "B4": 8,
+   "B5": 8,
+   "B6": 8
+  },
+  "tokens": 9000,
+  "new": 9000,
+  "carried": 0,
+  "tools": 1,
+  "minutes": 2.0,
+  "fixes": "",
+  "note": "",
+  "budget": 120000
+ }
+]

@@ -1,0 +1,1 @@
+- 2026-09-27: target bar 8/10 (corrected from 6/10); wants separate named parts for recolouring; wants to watch builds go up (live Blender preferred).

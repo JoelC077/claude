@@ -1,0 +1,57 @@
+{
+ "sheet": [
+  856,
+  918
+ ],
+ "megapixels": 0.79,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "Phone overflow 844x390",
+   "src": "/home/user/claude/missions/260927-ticket-hud/progress/v1b/PhoneOverflow.png",
+   "box": [
+    6,
+    24,
+    844,
+    390
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "Phone",
+   "src": "/home/user/claude/missions/260927-ticket-hud/progress/v1b/Phone.png",
+   "box": [
+    6,
+    458,
+    400,
+    185
+   ],
+   "scale": "fit x0.47"
+  },
+  {
+   "n": 3,
+   "label": "PC",
+   "src": "/home/user/claude/missions/260927-ticket-hud/progress/v1b/PC.png",
+   "box": [
+    412,
+    438,
+    400,
+    225
+   ],
+   "scale": "fit x0.31"
+  },
+  {
+   "n": 4,
+   "label": "Kit",
+   "src": "/home/user/claude/missions/260927-ticket-hud/progress/v1b/Kit.png",
+   "box": [
+    72,
+    687,
+    267,
+    225
+   ],
+   "scale": "fit x0.19"
+  }
+ ]
+}

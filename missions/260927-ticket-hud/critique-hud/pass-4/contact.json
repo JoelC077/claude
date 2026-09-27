@@ -1,0 +1,81 @@
+{
+ "sheet": [
+  856,
+  1332
+ ],
+ "megapixels": 1.14,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "Phone crisis",
+   "src": "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-4/Phone.png",
+   "box": [
+    6,
+    24,
+    844,
+    390
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "Phone overflow",
+   "src": "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-4/PhoneOverflow.png",
+   "box": [
+    6,
+    438,
+    844,
+    390
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 3,
+   "label": "Phone crises+junction",
+   "src": "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-4/PhoneCrises.png",
+   "box": [
+    6,
+    872,
+    400,
+    185
+   ],
+   "scale": "fit x0.47"
+  },
+  {
+   "n": 4,
+   "label": "Phone routine",
+   "src": "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-4/PhoneRoutine.png",
+   "box": [
+    412,
+    872,
+    400,
+    185
+   ],
+   "scale": "fit x0.47"
+  },
+  {
+   "n": 5,
+   "label": "PC",
+   "src": "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-4/PC.png",
+   "box": [
+    6,
+    1101,
+    400,
+    225
+   ],
+   "scale": "fit x0.31"
+  },
+  {
+   "n": 6,
+   "label": "Kit",
+   "src": "/home/user/claude/missions/260927-ticket-hud/critique-hud/pass-4/Kit.png",
+   "box": [
+    474,
+    1101,
+    275,
+    225
+   ],
+   "scale": "fit x0.21"
+  }
+ ]
+}

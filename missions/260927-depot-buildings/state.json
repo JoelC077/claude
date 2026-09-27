@@ -1,0 +1,25 @@
+{
+ "slug": "depot-buildings",
+ "kind": "3d",
+ "status": "done",
+ "step": 10,
+ "steps": 10,
+ "bar": 8,
+ "cap_passes": 5,
+ "budget": null,
+ "tokens": 450000,
+ "env": {
+  "critic": "/home/user/claude/multiuse-critic",
+  "agents": true,
+  "design_critic": false,
+  "blender": "bpy-headless",
+  "blender_mcp": false,
+  "playwright": true,
+  "owner": "away",
+  "root": "/home/user/claude/missions"
+ },
+ "agent": {},
+ "next": "wait for T1/T2 makers; then preflight + contact sheet",
+ "created": "2026-09-27T22:09Z",
+ "updated": "2026-09-27T22:34Z"
+}

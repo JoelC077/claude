@@ -1,0 +1,110 @@
+{
+ "sheet": "rr_ticket_icons.png",
+ "cell": 128,
+ "grid": [
+  5,
+  2
+ ],
+ "icons": {
+  "coal": {
+   "ImageRectOffset": [
+    0,
+    0
+   ],
+   "ImageRectSize": [
+    128,
+    128
+   ]
+  },
+  "gauge": {
+   "ImageRectOffset": [
+    128,
+    0
+   ],
+   "ImageRectSize": [
+    128,
+    128
+   ]
+  },
+  "wrench": {
+   "ImageRectOffset": [
+    256,
+    0
+   ],
+   "ImageRectSize": [
+    128,
+    128
+   ]
+  },
+  "passenger": {
+   "ImageRectOffset": [
+    384,
+    0
+   ],
+   "ImageRectSize": [
+    128,
+    128
+   ]
+  },
+  "lever": {
+   "ImageRectOffset": [
+    512,
+    0
+   ],
+   "ImageRectSize": [
+    128,
+    128
+   ]
+  },
+  "fork": {
+   "ImageRectOffset": [
+    0,
+    128
+   ],
+   "ImageRectSize": [
+    128,
+    128
+   ]
+  },
+  "coin": {
+   "ImageRectOffset": [
+    128,
+    128
+   ],
+   "ImageRectSize": [
+    128,
+    128
+   ]
+  },
+  "crate": {
+   "ImageRectOffset": [
+    256,
+    128
+   ],
+   "ImageRectSize": [
+    128,
+    128
+   ]
+  },
+  "crewjoin": {
+   "ImageRectOffset": [
+    384,
+    128
+   ],
+   "ImageRectSize": [
+    128,
+    128
+   ]
+  },
+  "crewleave": {
+   "ImageRectOffset": [
+    512,
+    128
+   ],
+   "ImageRectSize": [
+    128,
+    128
+   ]
+  }
+ }
+}

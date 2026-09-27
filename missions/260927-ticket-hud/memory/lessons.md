@@ -1,0 +1,1 @@
+- 2026-09-27 (lesson, measured): self-assessed critic loop on ticket HUD took 3 passes / ~35k tokens (no Agent tool); independent critic still owed.

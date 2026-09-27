@@ -1,0 +1,14 @@
+# Facts pass 3 (independent, fresh render of current src/hud via render_design.py, measured in Chromium)
+- Phone.html: 844x390, texts 8, min contrast 7.05, sizes 15/17/18/20/24px, contrast fails 0, small text 0, overlaps 0, clipped 1 (scene container), errors 0
+- PhoneRoutine.html: 844x390, texts 7, min contrast 7.05, sizes 15/17/18/20/22/24px, contrast fails 0, small text 0, overlaps 0, clipped 1, errors 0
+- PhoneCrises.html: 844x390, texts 5, min contrast 8.2, sizes 15/18/20px, contrast fails 0, small text 0, overlaps 0, clipped 1, errors 0
+- PhoneOverflow.html: 844x390, texts 6, min contrast 8.2, sizes 15/16/18/20px, contrast fails 0, small text 0, overlaps 0, clipped 1, errors 0
+- PC.html: 1280x720, texts 20, min contrast 7.05, sizes 13-24px (13px are PC scene labels, not ticket text), contrast fails 0, errors 0
+- Kit.html: 1320x1080, texts 67, min contrast 5.38, sizes 12-34px (12px are kit annotations), contrast fails 0, errors 0
+- Smallest ticket text on all Phone boards: 15px. Fonts: Luckiest Guy + Montserrat only.
+- Geometry (844x390): topbar 0-36; stack bottom y267 on all four phone boards; crisis beam y260-266 (Phone, PhoneOverflow), y192-198 (PhoneCrises); jump zone top y278 per spec -> 11-12px clearance.
+- PhoneOverflow: "+N MORE" pill y36-61 (touches topbar edge, not inside), first notch/ticket from y66.
+- End notches: 10px, all within ticket bounds on the four phone boards.
+- Contact sheet 856x1256 (1.08 MP): Phone crisis + Phone overflow at 1:1 true size; crises+junction, routine, PC, Kit fitted. Full-size PNGs in pass-3/. (*.mobile.* renders are the tool's 390px reflow, not a target view.)
+- Spec (mission.md): ticket 290x64 / compact 44; cap 4 + '+N MORE'; newest at bottom; bottom-right stack above jump zone; Scale + UIAspectRatioConstraint.
+- Self-review passes (_selfreview-archive/) are NOT shown to this critic.

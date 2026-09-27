@@ -1,0 +1,93 @@
+{
+ "sheet": [
+  658,
+  867
+ ],
+ "megapixels": 0.57,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "Game 400x225",
+   "src": "/home/user/claude/missions/260927-depot-buildings/critique-hall-indep/pass-3/hall_game.png",
+   "box": [
+    6,
+    24,
+    400,
+    225
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "POV 3P eye 9.5",
+   "src": "/home/user/claude/missions/260927-depot-buildings/critique-hall-indep/pass-3/hall_pov3p.png",
+   "box": [
+    6,
+    273,
+    320,
+    180
+   ],
+   "scale": "fit x0.40"
+  },
+  {
+   "n": 3,
+   "label": "POV 1P eye 5",
+   "src": "/home/user/claude/missions/260927-depot-buildings/critique-hall-indep/pass-3/hall_pov1p.png",
+   "box": [
+    332,
+    273,
+    320,
+    180
+   ],
+   "scale": "fit x0.40"
+  },
+  {
+   "n": 4,
+   "label": "3/4",
+   "src": "/home/user/claude/missions/260927-depot-buildings/critique-hall-indep/pass-3/hall_34.png",
+   "box": [
+    6,
+    477,
+    320,
+    180
+   ],
+   "scale": "fit x0.40"
+  },
+  {
+   "n": 5,
+   "label": "Side",
+   "src": "/home/user/claude/missions/260927-depot-buildings/critique-hall-indep/pass-3/hall_side.png",
+   "box": [
+    332,
+    477,
+    320,
+    180
+   ],
+   "scale": "fit x0.40"
+  },
+  {
+   "n": 6,
+   "label": "Back",
+   "src": "/home/user/claude/missions/260927-depot-buildings/critique-hall-indep/pass-3/hall_back.png",
+   "box": [
+    6,
+    681,
+    320,
+    180
+   ],
+   "scale": "fit x0.40"
+  },
+  {
+   "n": 7,
+   "label": "Door",
+   "src": "/home/user/claude/missions/260927-depot-buildings/critique-hall-indep/pass-3/hall_door.png",
+   "box": [
+    332,
+    681,
+    320,
+    180
+   ],
+   "scale": "fit x0.40"
+  }
+ ]
+}

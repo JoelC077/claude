@@ -1,0 +1,17 @@
+00:00.376  cycles           | WARNING CUEW initialization failed: Error opening the library
+00:00.377  cycles           | WARNING HIPEW initialization failed: Error opening HIP dynamic library
+00:03.405  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/progress/depot-1-shell-pov.png'
+00:05.980  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/progress/depot-1-shell-34.png'
+00:09.515  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/progress/depot-2-roof-pov.png'
+00:12.318  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/progress/depot-2-roof-34.png'
+00:15.774  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/progress/depot-3-details-pov.png'
+00:18.698  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/progress/depot-3-details-34.png'
+00:22.629  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/progress/depot-4-dressing-pov.png'
+00:25.837  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/progress/depot-4-dressing-34.png'
+Info: Saved as "depot.blend"
+00:32.177  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-2/depot_pov3p.png'
+00:33.659  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-2/depot_game.png'
+00:47.812  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-2/depot_34.png'
+01:02.456  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-2/depot_side.png'
+01:16.223  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-2/depot_back.png'
+01:40.591  render           | Saved: '/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-2/depot_door.png'

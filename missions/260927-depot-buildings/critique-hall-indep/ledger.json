@@ -1,0 +1,70 @@
+[
+ {
+  "pass": 1,
+  "kind": "full",
+  "agent": "",
+  "model": "",
+  "scores": {
+   "overall": 7
+  },
+  "tokens": 0,
+  "new": 0,
+  "carried": 0,
+  "tools": 0,
+  "minutes": 0,
+  "fixes": "",
+  "note": "independent pass 1; per-criterion scores not recorded, overall 7 from maker-log",
+  "budget": 120000
+ },
+ {
+  "pass": 2,
+  "kind": "full",
+  "agent": "",
+  "model": "",
+  "scores": {
+   "overall": 7
+  },
+  "tokens": 0,
+  "new": 0,
+  "carried": 0,
+  "tools": 0,
+  "minutes": 0,
+  "fixes": "",
+  "note": "independent pass 2; per-criterion scores not recorded, overall 7 from maker-log",
+  "budget": 120000
+ },
+ {
+  "pass": 3,
+  "kind": "full",
+  "agent": "",
+  "model": "",
+  "scores": {
+   "overall": 7
+  },
+  "tokens": 0,
+  "new": 0,
+  "carried": 0,
+  "tools": 0,
+  "minutes": 0,
+  "fixes": "",
+  "note": "independent pass 3; per-criterion scores not recorded, overall 7 from maker-log",
+  "budget": 120000
+ },
+ {
+  "pass": 4,
+  "kind": "full",
+  "agent": "",
+  "model": "",
+  "scores": {
+   "overall": 7
+  },
+  "tokens": 0,
+  "new": 0,
+  "carried": 0,
+  "tools": 0,
+  "minutes": 0,
+  "fixes": "",
+  "note": "independent pass 4; per-criterion scores not recorded, overall 7 from maker-log",
+  "budget": 120000
+ }
+]

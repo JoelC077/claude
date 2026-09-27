@@ -1,0 +1,15 @@
+{
+ "mission": "260927-ticket-hud",
+ "design_critic_installed": false, "note": "No Agent tool: makers and critics run in the lead session; critic passes self-assessed",
+ "tasks": [
+  {"id":"T0","do":"Style tokens: enamel/brass on ticket frame, kinds table, device frames","deps":[],"role":"orchestrator","model":"session","effort":"high","reqs":["R4","R5","R*9"],"out":"refs/style.md","done_when":"tokens cover 4 kinds; anatomy list"},
+  {"id":"T1","do":"Remake canvas v1: PC, 4 phone scenarios, Kit","deps":["T0"],"role":"maker","kind":"v1","model":"strongest","effort":"high","reqs":["R1","R2","R3","R4","R5","R*9"],"out":"src/hud/project/","done_when":"all 10 types + compact + overflow + merge on boards"},
+  {"id":"T2","do":"Pre-flight: render_design report, text diff vs facts, contact sheet","deps":["T1"],"role":"script","model":"-","effort":"-","reqs":["R*9"],"out":"critique-hud/pass-1/facts.md","done_when":"no contrast/small-text/clipping/safe-zone errors"},
+  {"id":"T3","do":"Critic pass 1","deps":["T2"],"role":"critic","kind":"full","crit":"critique-hud","model":"strongest","effort":"high","reqs":["R6"],"out":"critique-hud/pass-1/verdict.md","done_when":"verdict checked"},
+  {"id":"T4","do":"Fix round(s), continued maker (snapshot src to round-N first)","deps":["T3"],"role":"maker","kind":"fix","repeat":2,"model":"strongest","effort":"medium","reqs":["R6"],"out":"src/hud/project/","done_when":"every blocks-8 addressed"},
+  {"id":"T5","do":"Delta pass (continued critic)","deps":["T4"],"role":"critic","kind":"delta","crit":"critique-hud","model":"strongest","effort":"high","reqs":["R6"],"out":"critique-hud/pass-2/verdict.md","done_when":"scores logged"},
+  {"id":"T6","do":"Final pass (fresh)","deps":["T5"],"role":"critic","kind":"final","crit":"critique-hud","model":"strongest","effort":"high","reqs":["R6"],"out":"critique-hud/pass-3/verdict.md","done_when":"all B1-B6 >= 8"},
+  {"id":"T7","do":"Roblox export: ScreenGui builder, controller, icon sheet, ASSETS.md","deps":["T6"],"role":"exporter","model":"continued maker","effort":"medium","reqs":["R7"],"out":"export/roblox/","done_when":"luau syntax check passes; layout render matches design","kind":"continued"},
+  {"id":"T8","do":"Debrief + memory (10/10)","deps":["T7"],"role":"orchestrator","model":"session","effort":"-","reqs":["R8"],"out":"progress.log","done_when":"intake.py cover --final OK"}
+ ]
+}

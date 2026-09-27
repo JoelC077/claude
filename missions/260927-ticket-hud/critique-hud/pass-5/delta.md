@@ -1,0 +1,5 @@
+# Delta since pass 4 (overall 7; B2, B3) - from maker-log Round 4
+Source saved before editing: critique-hud/round-4/src-before-critic-pass4/hud/. Edited src/hud/build.py, then reran it (all 6 boards rebuilt).
+- C4-1 (blocks-8; NEEDS OWNER: soft vs full-ink stamp) -> `.stamp.soft` now uses opacity 1 (was .8). It keeps rotate(-8deg) scale(.9), so the softening comes only from the rotation and scale. The stamp ink #6b4712 is at full strength again, back to the pass-3 contrast of about 7:1.
+- C4-2 (blocks-8) -> the crisis `.halo` changed from a box at left/right -7px (ink box plus a red :after) to a box at inset 0 with border-radius 11px. The ring is drawn only with box-shadow (3px red, then a 5px ink spread), and the pulse glow is added as further box-shadows (8px red spread and a 16px blur). The halo :after rule is removed. The frame of the full crisis ticket now starts at the same x as the compact tickets, and the frame width stays 290.
+- C3-1, C4-3, C4-4 -> not changed (low, not blocks-8).

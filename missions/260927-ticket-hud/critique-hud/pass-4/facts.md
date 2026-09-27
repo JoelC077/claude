@@ -1,0 +1,13 @@
+# Facts pass 4 (independent, fresh render of current src/hud via render_design.py, measured in Chromium)
+- Phone.html: 844x390, texts 8, sizes 15/17/18/20/24px, min contrast 4.47, contrast fails 1 ("$120" 17px mustard stamp #876939 on #f8efd7, 4.47:1), overlaps 0, errors 0
+- PhoneRoutine.html: 844x390, texts 7, sizes 15/18/20/22/24px, min contrast 4.47, contrast fails 1 ("$200" 22px stamp, 4.47:1)
+- PhoneCrises.html: 844x390, texts 5, sizes 15/18/20px, min contrast 8.2, contrast fails 0
+- PhoneOverflow.html: 844x390, texts 6, sizes 15/16/18/20px, min contrast 8.2, contrast fails 0
+- PC.html: 1280x720, texts 20, sizes 13-24px (13px = scene labels), min contrast 4.47, contrast fails 1 ("$12K" 22px stamp)
+- Kit.html: 1320x1080, texts 67, min contrast 4.03, contrast fails 4 (cash stamps #846536 on #e6dfc8, 4.03:1)
+- NEW vs pass 3: the cash stamp is now brass on cream with .soft opacity .8 and measures 4.03-4.47:1 (pass 3 had 0 contrast fails, min 7.05). Large-text (>=18.66px bold) AA is 3:1, so the 22px stamps pass large-text AA; the 17px compact stamp does not meet 4.5.
+- Smallest ticket text on Phone boards: 15px. Fonts: Luckiest Guy + Montserrat only. No green in any render.
+- Geometry (844x390): topbar 0-36; red beam pixels end at y263 (Phone, PhoneOverflow), y195 (PhoneCrises); jump zone top y278 -> >=12px clearance. Stack/pill geometry unchanged from pass 3 (pill y36-61).
+- Contact sheet 856x1332 (1.14 MP): Phone crisis + Phone overflow at 1:1 true size; crises+junction, routine, PC, Kit fitted. Full-size PNGs in pass-4/ (*.mobile.* = tool's 390px reflow, not a target view).
+- Spec (mission.md): ticket 290x64 / compact 44; cap 4 + '+N MORE'; newest at bottom; bottom-right above jump zone.
+- Self-review passes (_selfreview-archive/) are NOT shown to this critic.

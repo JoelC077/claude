@@ -1,0 +1,105 @@
+{
+ "sheet": [
+  946,
+  1146
+ ],
+ "megapixels": 1.08,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "Depot 3/4",
+   "src": "/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-3/depot_34.png",
+   "box": [
+    6,
+    24,
+    464,
+    261
+   ],
+   "scale": "fit x0.36"
+  },
+  {
+   "n": 2,
+   "label": "Depot side",
+   "src": "/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-3/depot_side.png",
+   "box": [
+    476,
+    24,
+    464,
+    261
+   ],
+   "scale": "fit x0.36"
+  },
+  {
+   "n": 3,
+   "label": "Depot back",
+   "src": "/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-3/depot_back.png",
+   "box": [
+    6,
+    309,
+    464,
+    261
+   ],
+   "scale": "fit x0.36"
+  },
+  {
+   "n": 4,
+   "label": "Depot door",
+   "src": "/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-3/depot_door.png",
+   "box": [
+    476,
+    309,
+    464,
+    261
+   ],
+   "scale": "fit x0.36"
+  },
+  {
+   "n": 5,
+   "label": "Hall 3/4",
+   "src": "/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-3/hall_34.png",
+   "box": [
+    6,
+    594,
+    464,
+    261
+   ],
+   "scale": "fit x0.36"
+  },
+  {
+   "n": 6,
+   "label": "Hall side",
+   "src": "/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-3/hall_side.png",
+   "box": [
+    476,
+    594,
+    464,
+    261
+   ],
+   "scale": "fit x0.36"
+  },
+  {
+   "n": 7,
+   "label": "Hall back",
+   "src": "/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-3/hall_back.png",
+   "box": [
+    6,
+    879,
+    464,
+    261
+   ],
+   "scale": "fit x0.36"
+  },
+  {
+   "n": 8,
+   "label": "Hall door",
+   "src": "/home/user/claude/missions/260927-depot-buildings/critique-buildings/pass-3/hall_door.png",
+   "box": [
+    476,
+    879,
+    464,
+    261
+   ],
+   "scale": "fit x0.36"
+  }
+ ]
+}
