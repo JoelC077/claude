@@ -10,7 +10,8 @@
 
 The stage name is added by `step`; do not repeat it in the text (a leading copy is stripped).
 --est marks the token figure as an estimate (shown "~84k est") until a measured one replaces it.
-env.critic_mode=self (no independent critic) makes step 7-10 lines carry "UNCERTIFIED".
+env.critic_mode: agent | remote | handoff (caller spawns the critic) | self.
+self makes step 7-10 lines carry "UNCERTIFIED"; handoff prints the pending critic hand-off.
 
 Files: M/state.json (status, step, bar, env, agents, next) and M/progress.log
 (the exact lines sent to the owner). `step` prints the owner line to paste:
@@ -153,7 +154,9 @@ def cmd_status(a, m=None):
     if st.get("env"):
         print("env: " + ", ".join(f"{k}={v}" for k, v in st["env"].items()))
         if st["env"].get("critic_mode") == "self":
-            print("WARN critic_mode=self: scores are UNCERTIFIED; never report the bar as met")
+            print("WARN critic_mode=self: scores are UNCERTIFIED (cap at bar-1); never report the bar as met")
+        elif st["env"].get("critic_mode") == "handoff":
+            print("NOTE critic_mode=handoff: a fresh critic is spawned by the caller; see references/orchestrated.md")
     if st.get("agent"):
         print("agents: " + ", ".join(f"{k}={v}" for k, v in st["agent"].items()))
     for l in tail(m):

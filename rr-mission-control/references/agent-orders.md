@@ -28,7 +28,7 @@ Never a cheap model on a judgement task (critic, maker, triage): measured lenien
 Warn the owner at 120k for any single critic pass (kit prints it) and at 1.3x the plan estimate overall.
 
 ## DAG templates (plan.json; full examples in `examples/`)
-- **3D, N buildings:** T0 kit spec by the orchestrator in mission.md (palette, modules, cameras, naming; no agent) -> makers in parallel (the first writes `src/kit.py`) -> pre-flight scripts -> one critic full for all buildings (per-building score block, one contact sheet) -> fix/delta ... -> one final -> export (continued maker) -> debrief. One CRIT for up to 3 same-kind deliverables; split only when the images exceed the contact-sheet limit.
+- **3D, N buildings:** T0 kit spec by the orchestrator in mission.md (palette, modules, cameras, naming; no agent) -> makers in parallel (each writes its own kit helpers from the T0 spec; no cross-maker imports in one wave) -> pre-flight scripts -> one critic full for all buildings (per-building score block, one contact sheet) -> fix/delta ... -> one final -> export (continued maker) -> debrief. One CRIT for up to 3 same-kind deliverables; split only when the images exceed the contact-sheet limit.
 - **UI, one screen system:** T0 style tokens (orchestrator) -> maker v1 canvas -> pre-flight -> full -> fix -> delta -> final -> export -> debrief.
 - **Mixed:** run the UI and 3D chains in parallel after a joint T0; export tasks depend on their own final pass only.
 Plan 2 fix rounds (`"repeat": 2`) and delta+final per deliverable; the cap is 5 passes. Each task lists `reqs` so every R is owned (`plan.py --mission` checks).
@@ -39,7 +39,7 @@ Plan 2 fix rounds (`"repeat": 2`) and delta+final per deliverable; the cap is 5 
 ```
 # T<n> <deliverable> v1  (mission <slug>)
 Goal: <one sentence>. Stage: draft for critic pass 1 at bar <bar>.
-Read only: <M>/refs/<x>.facts.md, <M>/mission.md sections Spec + Acceptance (<deliverable>). Kit API (3D): `blender_kit` functions palette_image, add cameras by name, render, tris, verify_palette, reimport; run `python3 -c "import sys; sys.path.insert(0,'<critic>/scripts'); import blender_kit; help(blender_kit)"` if you need signatures. Do not read the critic pipeline docs.
+Read only: <M>/refs/<x>.facts.md, <M>/mission.md sections Spec + Acceptance (<deliverable>). Kit API (3D): `blender_kit` functions palette_image, add cameras by name, render, tris, verify_palette, reimport; run `python3 -c "import sys; sys.path.insert(0,'<critic>/scripts'); import blender_kit; help(blender_kit)"` if you need signatures. Render sizes and contact-sheet layout: <orchestrator pastes from the critic pipeline doc>; do not read the pipeline docs yourself.
 Tools: 3D -> one build.py at <M>/src/<deliverable>/ that rebuilds from an empty scene in its own file (cloud) / in its own new collection RR_<slug> in a new file (live MCP), never clearing or saving over the owner's data, using <critic>/scripts/blender_kit.py (palette atlas, named cameras, kit.render). UI -> Claude Design canvas / HTML with boards: <list>.
 Must: every Acceptance line; every editable part a separate named object <Bldg>_<Part>_<Mat>_<nn>; cameras/frames exactly: <list>.
 Milestones: render Cam_POV_3P + Cam_34 at 640x360 after shell, roof, details, dressing -> <M>/progress/<deliverable>-<k>.png   (3D only; if a Blender MCP is attached, build through it instead and skip milestone renders)
@@ -77,4 +77,4 @@ Run the verify steps listed there; reply <= 10 lines with file list, sizes and v
 - One message per wave: spawn every ready task of the wave together.
 - Record each agent id: `mission_state.py set <M> agent.<role>-<deliverable>=<id>`.
 - Critics get only what `critic_kit.py build` prints. Makers never see the critic's reasoning, only your checked fix list.
-- If there is no Agent tool: do makers yourself in sequence (keep build files, not your context, as the memory; hard rule 2 is waived for build files only). Critics follow SKILL.md Steps 7-8 (remote session, else self-review = UNCERTIFIED).
+- If there is no Agent tool: do makers yourself in sequence (keep build files, not your context, as the memory; hard rule 2 is waived for build files only). Critics follow SKILL.md Steps 7-8 by `env.critic_mode` (remote session, handoff to the caller per `orchestrated.md`, else self-review = UNCERTIFIED, capped at bar-1).
