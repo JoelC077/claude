@@ -2,11 +2,15 @@
 """rr-mission-control state: machine state + progress log for one mission folder.
 
   mission_state.py init   M --slug S --kind 3d|ui|mixed [--bar 8] [--steps 10] [--budget N]
-  mission_state.py step   M K "result text" [--tokens N] [--stage NAME] [--image PATH]
+  mission_state.py step   M K "result text" [--tokens N [--est]] [--stage NAME] [--image PATH]
   mission_state.py set    M key=value [key=value ...]    (dotted keys: agent.critic-depot=abc)
   mission_state.py next   M "exact next action"
   mission_state.py status M
-  mission_state.py resume [ROOT]                         (newest unfinished under ROOT, default ~/.rr-missions)
+  mission_state.py resume [ROOT]                         (newest unfinished under ROOT, else $RR_MISSIONS_ROOT, else ~/.rr-missions)
+
+The stage name is added by `step`; do not repeat it in the text (a leading copy is stripped).
+--est marks the token figure as an estimate (shown "~84k est") until a measured one replaces it.
+env.critic_mode=self (no independent critic) makes step 7-10 lines carry "UNCERTIFIED".
 
 Files: M/state.json (status, step, bar, env, agents, next) and M/progress.log
 (the exact lines sent to the owner). `step` prints the owner line to paste:
@@ -19,7 +23,7 @@ STAGES = ["Intake", "Readback", "Spec", "Plan", "Build v1", "Pre-flight",
           "Critic pass 1", "Fix + re-check", "Roblox export", "Debrief"]
 DONE = {"done", "stopped"}
 INT_KEYS = {"bar", "step", "steps", "budget", "tokens", "cap_passes"}
-DEFAULT_ROOT = os.path.expanduser("~/.rr-missions")
+DEFAULT_ROOT = os.environ.get("RR_MISSIONS_ROOT") or os.path.expanduser("~/.rr-missions")
 
 
 def now():
@@ -62,7 +66,7 @@ def cmd_init(a):
         print(f"backed up old state to {bak}")
     st = {"slug": a.slug, "kind": a.kind, "status": "intake", "step": 1, "steps": a.steps,
           "bar": a.bar, "cap_passes": 5, "budget": a.budget, "tokens": 0,
-          "env": {}, "agent": {}, "next": "split + tag prompt (intake.py split)", "created": now()}
+          "env": {"root": os.path.abspath(os.path.dirname(os.path.abspath(a.mission.rstrip("/"))))}, "agent": {}, "next": "split + tag prompt (intake.py split)", "created": now()}
     save(a.mission, st)
     open(os.path.join(a.mission, "progress.log"), "a").close()
     print(f"mission {a.slug} initialised at {a.mission} (bar {a.bar}, {a.steps} steps)")
@@ -76,9 +80,17 @@ def cmd_step(a):
     stage = a.stage or (STAGES[k-1] if 1 <= k <= len(STAGES) else f"Step {k}")
     if a.tokens is not None:
         st["tokens"] = a.tokens
-    line = f"[{k}/{st['steps']}] {stage} - {a.text}"
+        st["tokens_est"] = bool(a.est)
+    text = a.text
+    for pre in (stage + " - ", stage + ": ", stage + " "):
+        if text.lower().startswith(pre.lower()):
+            text = text[len(pre):]
+            break
+    if k >= 7 and st.get("env", {}).get("critic_mode") == "self" and "UNCERTIFIED" not in text:
+        text += " [UNCERTIFIED: self-assessed, no independent critic]"
+    line = f"[{k}/{st['steps']}] {stage} - {text}"
     if st.get("tokens"):
-        line += f" ({ktok(st['tokens'])})"
+        line += f" (~{ktok(st['tokens'])} est)" if st.get("tokens_est") else f" ({ktok(st['tokens'])})"
     st["step"] = k
     if k == st["steps"] and st["status"] not in DONE:
         st["status"] = "debrief"
@@ -136,10 +148,12 @@ def cmd_status(a, m=None):
     m = m or a.mission
     st = load(m)
     print(f"MISSION {st['slug']}  status={st['status']}  step {st['step']}/{st['steps']}  "
-          f"bar {st['bar']}  kind {st['kind']}  tokens {ktok(st.get('tokens', 0))}"
+          f"bar {st['bar']}  kind {st['kind']}  tokens {'~' if st.get('tokens_est') else ''}{ktok(st.get('tokens', 0))}"
           + (f"/{ktok(st['budget'])}" if st.get("budget") else ""))
     if st.get("env"):
         print("env: " + ", ".join(f"{k}={v}" for k, v in st["env"].items()))
+        if st["env"].get("critic_mode") == "self":
+            print("WARN critic_mode=self: scores are UNCERTIFIED; never report the bar as met")
     if st.get("agent"):
         print("agents: " + ", ".join(f"{k}={v}" for k, v in st["agent"].items()))
     for l in tail(m):
@@ -182,11 +196,11 @@ def main():
     i.add_argument("--bar", type=int, default=8); i.add_argument("--steps", type=int, default=10)
     i.add_argument("--budget", type=int); i.add_argument("--force", action="store_true")
     s = sub.add_parser("step"); s.add_argument("mission"); s.add_argument("k", type=int); s.add_argument("text")
-    s.add_argument("--tokens", type=int, help="cumulative tokens so far"); s.add_argument("--stage"); s.add_argument("--image")
+    s.add_argument("--tokens", type=int, help="cumulative tokens so far"); s.add_argument("--est", action="store_true", help="token figure is an estimate"); s.add_argument("--stage"); s.add_argument("--image")
     se = sub.add_parser("set"); se.add_argument("mission"); se.add_argument("pairs", nargs="+")
     n = sub.add_parser("next"); n.add_argument("mission"); n.add_argument("action")
     st = sub.add_parser("status"); st.add_argument("mission")
-    r = sub.add_parser("resume"); r.add_argument("root", nargs="?", help="default ~/.rr-missions")
+    r = sub.add_parser("resume"); r.add_argument("root", nargs="?", help="default $RR_MISSIONS_ROOT or ~/.rr-missions")
     a = ap.parse_args()
     {"init": cmd_init, "step": cmd_step, "set": cmd_set, "next": cmd_next,
      "status": cmd_status, "resume": cmd_resume}[a.cmd](a)

@@ -40,8 +40,8 @@ Plan: 10 steps · bar 8 · one critic for both buildings, cap 5 passes · est. 0
 MISSION 260927-ticket-hud: remake the notification HUD in a Risky Rails style, ticket frame kept, 8/10, Roblox export, 10 steps.
 ... R-lines ...
 Decided: phone 844x390 first, PC second; enamel-signage + brass style on the ticket frame; exact texts and behaviour kept.
-Prototype: your link didn't open for me; found "Risky Rails - Notifications HUD" by your title, using it.
-(no match case: 1. No design named "Risky Rails - HUD notification" is listed; closest is "<title>" (<how it differs>). Use it? Waiting on Q1 only; building style tokens now.)
+Prototype: your link didn't open for me; <match case: found "<exact listed title>" by your title, using it | no match case: 1. No design named "<owner's title>" is listed; closest is "<title>" (<how it differs>). Use it? Waiting on Q1 only; building style tokens now. Owner away: using "<title>" as fallback, flagged under Needs owner.>
+(Only claim a match you saw in the `Artifact list` result.)
 Plan: 10 steps · bar 8 · cap 5 passes · est. 350-600k tokens. Proceeding; reply to redirect.
 ```
 
@@ -56,12 +56,12 @@ Needs-owner blocker · spend > 1.3x estimate · capability gap discovered mid-ru
 
 ## 4. Debrief (step 10, one message)
 ```
-[10/10] Debrief - <8/10 reached (A1 8 · A2 9 ...) | stopped at 7/10: <reason>>
+[10/10] Debrief - <8/10 reached (A1 8 · A2 9 ...) | stopped at 7/10: <reason> | uncertified: self-assessed 8/10, no independent critic>
 Files: <paths / links>
 Assumed: <A-lines still defaults>
 Asks: R1 done · R9 fallback (renders; no Blender MCP) · ... (every R, one line)
 Needs owner: <list>
-Cost: critic <kit show total> + build ~<k> = <total>
+Cost: critic <kit show total> + build ~<k> = <total> (mark estimates "est.")
 Next: <one suggested move> (e.g. install the design-critic agent; saving per multiuse-critic)
 ```
 Delivery: images (step 5 strip, each contact.png, step 9 hero) and the debrief file via `SendUserFile` (status `proactive` when the owner is away); the one-line debrief via `PushNotification` if that tool exists; otherwise put the paths in chat.

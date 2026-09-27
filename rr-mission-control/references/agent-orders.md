@@ -77,4 +77,4 @@ Run the verify steps listed there; reply <= 10 lines with file list, sizes and v
 - One message per wave: spawn every ready task of the wave together.
 - Record each agent id: `mission_state.py set <M> agent.<role>-<deliverable>=<id>`.
 - Critics get only what `critic_kit.py build` prints. Makers never see the critic's reasoning, only your checked fix list.
-- If there is no Agent tool: do makers yourself in sequence (keep build files, not your context, as the memory), and label critic passes self-review.
+- If there is no Agent tool: do makers yourself in sequence (keep build files, not your context, as the memory; hard rule 2 is waived for build files only). Critics follow SKILL.md Steps 7-8 (remote session, else self-review = UNCERTIFIED).
