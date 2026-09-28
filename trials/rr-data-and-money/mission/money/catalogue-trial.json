@@ -1,0 +1,203 @@
+{
+ "_doc": "SYNTHETIC trial copy of the skill's catalogue with a proposed launch ladder (owner decides; not canon). Everything Risky Rails sells, for econ.py ladder and guard. Prices are {v, canon} so they cannot drift from rr-bible. sells: time | status | identity | access | convenience | power | survival | odds (be honest: guard judges this against D-007). gameplay: true when it changes how a crisis, tool, lever or carry rule works. affects_crew: true when one buyer changes the run for the whole crew. random: true for anything with a chance outcome (then odds + policy fields are required). state: live | proposed | post_launch | hidden.",
+ "products": [
+  {
+   "id": "horn_launch",
+   "kind": "pass",
+   "price_rs": {
+    "v": 49,
+    "canon": "economy.passes.liveries"
+   },
+   "state": "proposed",
+   "sells": "identity",
+   "effect": "Launch Whistle: one alternate train horn, cosmetic only, heard by the crew",
+   "also_fare": false,
+   "note": "SYNTHETIC trial ladder design 2026-09-28: brings one liveries-family item forward to launch as the <=99 R$ entry (canon says liveries post-launch: owner decides)"
+  },
+  {
+   "id": "double_fare",
+   "kind": "pass",
+   "price_rs": {
+    "v": 299,
+    "canon": "economy.passes.double_fare"
+   },
+   "state": "proposed",
+   "sells": "time",
+   "effect": "2x banked fare for the buyer only",
+   "fare_mult": 2,
+   "rank": "unboosted",
+   "prompt": {
+    "where": "results",
+    "after_run": 3,
+    "trigger": "best run so far",
+    "once": true
+   }
+  },
+  {
+   "id": "toolbelt",
+   "kind": "pass",
+   "price_rs": {
+    "v": 149,
+    "canon": "economy.passes.toolbelt"
+   },
+   "state": "post_launch",
+   "sells": "convenience",
+   "effect": "Conductor's Toolbelt: +2 tool slots",
+   "gameplay": true,
+   "touches": [
+    "gameplay.supplies.hand"
+   ],
+   "note": "SYNTHETIC trial ladder design 2026-09-28: off the launch ladder; mechanic review says it breaks carry-one-thing (gameplay.supplies.hand). Rework as cosmetic or cut."
+  },
+  {
+   "id": "first_class",
+   "kind": "pass",
+   "price_rs": {
+    "v": 399,
+    "canon": "economy.passes.first_class"
+   },
+   "state": "proposed",
+   "sells": "identity",
+   "effect": "golden coach livery, gold name tag, unique whistle, VIP lounge"
+  },
+  {
+   "id": "express_depot",
+   "kind": "pass",
+   "price_rs": {
+    "v": 199,
+    "canon": "economy.passes.express_depot"
+   },
+   "state": "post_launch",
+   "sells": "access",
+   "effect": "private platform + pick the line",
+   "note": "SYNTHETIC trial ladder design 2026-09-28: 'hidden' still HOLDs in the gate, so parked as post_launch; canon says ship private servers first"
+  },
+  {
+   "id": "private_server",
+   "kind": "private_server",
+   "price_rs": {
+    "v": 150,
+    "canon": "economy.passes.private_server"
+   },
+   "state": "proposed",
+   "sells": "access",
+   "effect": "private servers, monthly",
+   "period": "month"
+  },
+  {
+   "id": "auto_stoker",
+   "kind": "pass",
+   "price_rs": {
+    "v": 449,
+    "canon": "economy.passes.auto_stoker"
+   },
+   "state": "post_launch",
+   "sells": "power",
+   "effect": "automates coal shovelling for the train",
+   "gameplay": true,
+   "affects_crew": true,
+   "touches": [
+    "gameplay.crisis.firebox",
+    "identity.pillars.four_systems"
+   ]
+  },
+  {
+   "id": "fare_pack_s",
+   "kind": "product",
+   "price_rs": {
+    "v": 99,
+    "canon": "economy.passes.fare_packs"
+   },
+   "state": "proposed",
+   "sells": "time",
+   "effect": "2,500 fare",
+   "fare": {
+    "v": 2500,
+    "canon": "economy.passes.fare_packs"
+   },
+   "prompt": {
+    "where": "short_of_unlock",
+    "after_run": 3,
+    "short_pct": 30
+   }
+  },
+  {
+   "id": "fare_pack_m",
+   "kind": "product",
+   "price_rs": {
+    "v": 249,
+    "canon": "economy.passes.fare_packs"
+   },
+   "state": "proposed",
+   "sells": "time",
+   "effect": "7,500 fare",
+   "fare": {
+    "v": 7500,
+    "canon": "economy.passes.fare_packs"
+   },
+   "prompt": {
+    "where": "short_of_unlock",
+    "after_run": 3,
+    "short_pct": 30
+   }
+  },
+  {
+   "id": "fare_pack_l",
+   "kind": "product",
+   "price_rs": {
+    "v": 449,
+    "assumed": "SYNTHETIC trial ladder design 2026-09-28: 15,000 fare for 449 R$ keeps 33.4 fare/R$ and fits 10 runs of baseline fare (canon 20,000 / 599)"
+   },
+   "state": "proposed",
+   "sells": "time",
+   "effect": "15,000 fare",
+   "fare": {
+    "v": 15000,
+    "assumed": "SYNTHETIC trial ladder design 2026-09-28: see price"
+   },
+   "prompt": {
+    "where": "short_of_unlock",
+    "after_run": 3,
+    "short_pct": 30
+   }
+  },
+  {
+   "id": "livery_low",
+   "kind": "pass",
+   "price_rs": {
+    "v": 49,
+    "canon": "economy.passes.liveries"
+   },
+   "state": "post_launch",
+   "sells": "identity",
+   "effect": "livery / horn / headlamp colour (cheapest)",
+   "also_fare": true
+  },
+  {
+   "id": "livery_high",
+   "kind": "pass",
+   "price_rs": {
+    "v": 199,
+    "canon": "economy.passes.liveries"
+   },
+   "state": "post_launch",
+   "sells": "identity",
+   "effect": "livery / horn / headlamp colour (top)",
+   "also_fare": true
+  },
+  {
+   "id": "supplies_robux",
+   "kind": "product",
+   "price_rs": {
+    "v": 10,
+    "canon": "economy.supplies.coal"
+   },
+   "state": "hidden",
+   "sells": "survival",
+   "effect": "buy coal and tools mid-run with Robux (terminal USE ROBUX option)",
+   "question": "OQ-010",
+   "gameplay": true,
+   "affects_crew": true
+  }
+ ]
+}

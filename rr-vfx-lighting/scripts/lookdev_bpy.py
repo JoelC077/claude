@@ -254,11 +254,11 @@ class Scene:
             self.box(f"Coach{tag}_EndR", x0, x0 + 0.5, fl, rf - 0.6, -W, W, navy, "train")
             for side in (-1, 1):   # capped-post hazard-yellow roof rails (style.form.rails): the players' edge
                 zr = side * (W - 0.4)
-                self.box(f"Coach{tag}_Rail{side}", x0 + 1, x1 - 1, rf + 1.4, rf + 1.8, zr - 0.2, zr + 0.2, "@style.world.hazard", "hazard")
+                self.box(f"Coach{tag}_Rail{side}", x0 + 1, x1 - 1, rf + 1.3, rf + 1.6, zr - 0.15, zr + 0.15, "@style.world.hazard", "hazard")
                 x = x0 + 1
                 while x <= x1 - 1 + 1e-6:
-                    self.box(f"Coach{tag}_Post{side}_{x:.0f}", x - 0.25, x + 0.25, rf, rf + 1.8, zr - 0.25, zr + 0.25, "@style.world.hazard", "hazard")
-                    self.box(f"Coach{tag}_Cap{side}_{x:.0f}", x - 0.4, x + 0.4, rf + 1.8, rf + 2.1, zr - 0.4, zr + 0.4, "@style.world.hazard", "hazard")
+                    self.box(f"Coach{tag}_Post{side}_{x:.0f}", x - 0.2, x + 0.2, rf, rf + 1.6, zr - 0.2, zr + 0.2, "@style.world.hazard", "hazard")
+                    self.box(f"Coach{tag}_Cap{side}_{x:.0f}", x - 0.32, x + 0.32, rf + 1.6, rf + 1.85, zr - 0.32, zr + 0.32, "@style.world.hazard", "hazard")
                     x += (x1 - x0 - 2) / 6
         self.box("Tender", 10.5, 25.5, 1, 10, -W + 0.5, W - 0.5, navy, "train")
         self.box("TenderCoal", 11, 25, 10, 11, -W + 1, W - 1, "@style.cab.coal", "train")
@@ -266,6 +266,9 @@ class Scene:
         # cab: open-backed shell so the cab camera sees the backhead and firebox door (tech.camera.cab_view)
         self.box("CabWallL", 27.5, 36, 4.5, 8.5, -W, -W + 0.5, navy, "train")
         self.box("CabWallR", 27.5, 36, 4.5, 8.5, W - 0.5, W, navy, "train")
+        for side in (-1, 1):   # interior trim (style.world.cream) and a walked floor (style.world.diamond_plate)
+            self.box(f"CabLine{side}", 27.6, 35.5, 4.5, 8.4, min(side * (W - 0.6), side * (W - 0.5)), max(side * (W - 0.6), side * (W - 0.5)), cream, "train")
+        self.box("CabFloor", 27.5, 35.5, 4.5, 4.6, -W + 0.5, W - 0.5, "@style.world.diamond_plate", "train")
         for side in (-1, 1):
             self.box(f"CabPostF{side}", 35.3, 36, 8.5, 13.5, min(side * W, side * (W - 0.5)), max(side * W, side * (W - 0.5)), navy, "train")
         self.box("Backhead", 35.5, 36, 4.5, 13.5, -W + 0.5, W - 0.5, soot, "train")
@@ -520,7 +523,8 @@ def setup_render(res, samples, quick):
 # name -> (stand point, look-at point, eye height above the stand) from the canon stand dims
 CAMERAS = {
     "roof3p": lambda c: ((-70, c.roof, 0), (160, 4, 110), c.eye_3p),                      # on coach B's roof
-    "door1p": lambda c: ((-20, c.floor, c.half_w + 0.5), (200, 7, c.half_w + 29), c.eye_1p),  # leaning out of A's door
+    "door1p": lambda c: ((-20, c.floor, c.half_w + 1.2), (160, 2, c.half_w + 16), c.eye_1p),  # leaning out of A's door,
+                                                                                               # looking along the train
     "cab1p": lambda c: ((29, 0, -1.5), (36, 6.5, 0.3), c.cab_eye),                         # loco cab, facing the firebox
     "coach1p": lambda c: ((-26, c.floor, -2), (8, c.floor + 3, c.half_w - 1), c.eye_1p),  # inside A, power box end
 }
@@ -855,6 +859,8 @@ def main(argv=None):
                 results.append(facts)
                 print(json.dumps({"png": str(png), "contrast": facts["train_vs_world_contrast"], "luma": facts["mean_luma"],
                                   "spawn_fog": facts["spawn_edge_fog"], "bands": facts["bands"]}))
+    import shutil
+    shutil.rmtree(tmp, ignore_errors=True)   # EXR passes
     (out / "canon_used.json").write_text(json.dumps({"keys": canon.used, "eye_3p": canon.eye_3p, "eye_1p": canon.eye_1p,
                                                      "cab_eye": canon.cab_eye, "fov": canon.fov, "phone_res": list(canon.phone_res),
                                                      "stand": model.dims, "cameras": list(CAMERAS),

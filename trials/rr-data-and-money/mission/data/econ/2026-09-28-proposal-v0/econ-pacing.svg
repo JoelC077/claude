@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="c" viewBox="0 0 640 218" width="640" height="218" role="img" aria-label="Median hours of play to each unlock">
+<style>.c{--s:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--mut:#898781;--grid:#e1e0d9;--base:#c3c2b7;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a}@media (prefers-color-scheme: dark){:root:where(:not([data-theme="light"])) .c{--s:#1a1a19;--ink:#ffffff;--ink2:#c3c2b7;--mut:#898781;--grid:#2c2c2a;--base:#383835;--s1:#3987e5;--s2:#d95926;--s3:#199e70}}:root[data-theme="dark"] .c{--s:#1a1a19;--ink:#ffffff;--ink2:#c3c2b7;--mut:#898781;--grid:#2c2c2a;--base:#383835;--s1:#3987e5;--s2:#d95926;--s3:#199e70}.c text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:11px;fill:var(--ink2)}.c .t{fill:var(--ink);font-size:13px;font-weight:600}.c .st{fill:var(--mut)}.c .ax{fill:var(--mut);font-variant-numeric:tabular-nums}.c .v{fill:var(--ink)}.c .hit{fill:transparent}</style>
+<rect width="640" height="218" fill="var(--s)" rx="8"/>
+<text class="t" x="16" y="22">Median hours of play to each unlock</text>
+<text class="st" x="16" y="38">engaged non-payers; canon target about 2 h apart</text>
+<line x1="170" x2="170" y1="52" y2="206" stroke="var(--base)" stroke-width="1"/>
+<text x="162" y="69" text-anchor="end">loco_2</text>
+<path d="M170.0,56.0 H207.7 Q211.7,56.0 211.7,60.0 V70.0 Q211.7,74.0 207.7,74.0 H170.0 Z" fill="var(--s1)"><title>loco_2: 1.6 h · 7 runs</title></path>
+<text class="v" x="217.7" y="69">1.6 h · 7 runs</text>
+<text x="162" y="99" text-anchor="end">loco_3</text>
+<path d="M170.0,86.0 H315.0 Q319.0,86.0 319.0,90.0 V100.0 Q319.0,104.0 315.0,104.0 H170.0 Z" fill="var(--s1)"><title>loco_3: 5.6 h · 25 runs</title></path>
+<text class="v" x="325.0" y="99">5.6 h · 25 runs</text>
+<text x="162" y="129" text-anchor="end">loco_4</text>
+<path d="M170.0,116.0 H470.0 Q474.0,116.0 474.0,120.0 V130.0 Q474.0,134.0 470.0,134.0 H170.0 Z" fill="var(--s1)"><title>loco_4: 11.5 h · 51 runs</title></path>
+<text class="v" x="480.0" y="129">11.5 h · 51 runs</text>
+<text x="162" y="159" text-anchor="end">loco_5</text>
+<path d="M170.0,146.0 H170.5 Q171.0,146.0 171.0,146.5 V163.5 Q171.0,164.0 170.5,164.0 H170.0 Z" fill="var(--s1)"><title>loco_5: 0.0 h · not reached</title></path>
+<text class="v" x="176.0" y="159">0.0 h · not reached</text>
+<text x="162" y="189" text-anchor="end">line_2</text>
+<path d="M170.0,176.0 H170.5 Q171.0,176.0 171.0,176.5 V193.5 Q171.0,194.0 170.5,194.0 H170.0 Z" fill="var(--s1)"><title>line_2: 0.0 h · not reached</title></path>
+<text class="v" x="176.0" y="189">0.0 h · not reached</text>
+</svg>

@@ -1,13 +1,13 @@
 {
  "sheet": [
   786,
-  1072
+  1162
  ],
- "megapixels": 0.84,
+ "megapixels": 0.91,
  "tiles": [
   {
    "n": 1,
-   "label": "coal_dust (burst p2): burst time strip, 17.78 px/stud (construction view)",
+   "label": "coal_dust (burst p2): burst time strip, 17.78 px/stud, construction view",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/strip_coal_dust.png",
    "box": [
     6,
@@ -19,23 +19,23 @@
   },
   {
    "n": 2,
-   "label": "sparks_brake (loop p2): side strip, Speed 35, 23.13 px/stud (construction view)",
+   "label": "sparks_brake (loop p2): side strip, Speed 35, 16.0 px/stud, construction view",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/strip_sparks_brake.png",
    "box": [
     6,
     172,
     772,
-    134
+    224
    ],
    "scale": "1:1 true size"
   },
   {
    "n": 3,
-   "label": "steam_chimney (loop p2): side strip, Speed 35, 3.66 px/stud (construction view)",
+   "label": "steam_chimney (loop p2): side strip, Speed 35, 3.66 px/stud, construction view",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/strip_steam_chimney.png",
    "box": [
     6,
-    330,
+    420,
     772,
     120
    ],
@@ -43,11 +43,11 @@
   },
   {
    "n": 4,
-   "label": "smoke_chimney (loop p3): side strip, Speed 35, 2.61 px/stud (construction view)",
+   "label": "smoke_chimney (loop p3): side strip, Speed 35, 2.61 px/stud, construction view",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/strip_smoke_chimney.png",
    "box": [
     6,
-    474,
+    564,
     772,
     112
    ],
@@ -55,11 +55,11 @@
   },
   {
    "n": 5,
-   "label": "grassland.dusk door1p: steam_chimney, smoke_chimney, sparks_brake + light headlamp \u00b7 stand-in train",
-   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.dusk_door1p.png",
+   "label": "night roof3p: steam_chimney, smoke_chimney, sparks_brake +..",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.night_roof3p.png",
    "box": [
     6,
-    610,
+    700,
     384,
     216
    ],
@@ -67,11 +67,11 @@
   },
   {
    "n": 6,
-   "label": "grassland.night roof3p: steam_chimney, smoke_chimney + light headlamp; NOT SEEN sparks_brake \u00b7 stand-in train",
-   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.night_roof3p.png",
+   "label": "night door1p: steam_chimney, sparks_brake +headlamp; hidde..",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.night_door1p.png",
    "box": [
     396,
-    610,
+    700,
     384,
     216
    ],
@@ -79,23 +79,11 @@
   },
   {
    "n": 7,
-   "label": "grassland.night door1p: steam_chimney, smoke_chimney, sparks_brake + light headlamp \u00b7 stand-in train",
-   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.night_door1p.png",
-   "box": [
-    6,
-    850,
-    384,
-    216
-   ],
-   "scale": "fit x0.50"
-  },
-  {
-   "n": 8,
-   "label": "grassland.day cab1p: coal_dust; NOT SEEN steam_chimney, smoke_chimney, sparks_brake \u00b7 stand-in train",
+   "label": "day cab1p: coal_dust",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_coal_dust.png",
    "box": [
-    396,
-    850,
+    6,
+    940,
     384,
     216
    ],

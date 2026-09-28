@@ -2080,7 +2080,7 @@
      "glow"
     ],
     "rate_idle": 0,
-    "rate_max": 60
+    "rate_max": 80
    },
    "layers": [
     {
@@ -2092,20 +2092,20 @@
       "gauge/2"
      ],
      "dir": [
-      -0.6,
-      0.35,
-      0.75
+      -0.35,
+      0.5,
+      0.8
      ],
      "props": {
       "Texture": "rbxasset://textures/particles/sparkles_main.dds",
-      "Rate": 60,
+      "Rate": 80,
       "Lifetime": [
-       0.3,
-       0.6
+       0.4,
+       0.8
       ],
       "Speed": [
-       18,
-       28
+       30,
+       44
       ],
       "SpreadAngle": [
        20,
@@ -2116,16 +2116,16 @@
        -50,
        0
       ],
-      "Drag": 1.0,
+      "Drag": 0.4,
       "WindAffectsDrag": true,
       "Size": [
        [
         0,
-        1.0
+        1.6
        ],
        [
         1,
-        0.3
+        0.6
        ]
       ],
       "Transparency": [
@@ -2145,28 +2145,28 @@
       "Color": [
        [
         0,
-        "@style.light.firebox_hot"
+        "@style.thumb.glow"
        ],
        [
-        0.5,
-        "@style.light.firebox"
+        0.4,
+        "@style.light.firebox_hot"
        ],
        [
         1,
         "@style.light.firebox_deep"
        ]
       ],
-      "LightEmission": 1,
+      "LightEmission": 0.7,
       "LightInfluence": 0,
       "Brightness": 2.5,
       "Squash": [
        [
         0,
-        2
+        1.5
        ],
        [
         1,
-        2
+        1.5
        ]
       ],
       "Orientation": "Enum.ParticleOrientation.VelocityParallel"
@@ -2181,20 +2181,20 @@
       "-gauge/2"
      ],
      "dir": [
-      -0.6,
-      0.35,
-      -0.75
+      -0.35,
+      0.5,
+      -0.8
      ],
      "props": {
       "Texture": "rbxasset://textures/particles/sparkles_main.dds",
-      "Rate": 60,
+      "Rate": 80,
       "Lifetime": [
-       0.3,
-       0.6
+       0.4,
+       0.8
       ],
       "Speed": [
-       18,
-       28
+       30,
+       44
       ],
       "SpreadAngle": [
        20,
@@ -2205,16 +2205,16 @@
        -50,
        0
       ],
-      "Drag": 1.0,
+      "Drag": 0.4,
       "WindAffectsDrag": true,
       "Size": [
        [
         0,
-        1.0
+        1.6
        ],
        [
         1,
-        0.3
+        0.6
        ]
       ],
       "Transparency": [
@@ -2234,28 +2234,28 @@
       "Color": [
        [
         0,
-        "@style.light.firebox_hot"
+        "@style.thumb.glow"
        ],
        [
-        0.5,
-        "@style.light.firebox"
+        0.4,
+        "@style.light.firebox_hot"
        ],
        [
         1,
         "@style.light.firebox_deep"
        ]
       ],
-      "LightEmission": 1,
+      "LightEmission": 0.7,
       "LightInfluence": 0,
       "Brightness": 2.5,
       "Squash": [
        [
         0,
-        2
+        1.5
        ],
        [
         1,
-        2
+        1.5
        ]
       ],
       "Orientation": "Enum.ParticleOrientation.VelocityParallel"

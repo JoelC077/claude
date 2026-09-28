@@ -956,7 +956,7 @@ def cmd_crit(a):
             fam = load_family(p["family"])
             pr = p["options"].get("pov")
             txt = fam.VIEW.get("premises", {}).get(pr) if pr else fam.VIEW.get("player", "")
-            st = ", ".join(s["label"] for s in m.get("pov_stands", []))
+            st = "; ".join(s["label"] for s in m.get("pov_stands", []))
             views.append(f"{p['asset']}: {'premise ' + pr + ': ' if pr else ''}{txt} POV stands: {st or 'one'}.")
         open(brief, "w").write("\n".join([
             f"# {', '.join(p['asset'] for p, _ in mans)}",

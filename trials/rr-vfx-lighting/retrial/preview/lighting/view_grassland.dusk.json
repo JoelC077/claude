@@ -41,9 +41,9 @@
  "depth": "grassland.dusk.depth.png",
  "depth_scale": 16,
  "particle_light": [
-  0.267,
-  0.267,
-  0.267
+  0.365,
+  0.365,
+  0.365
  ],
  "phone": false,
  "fog": {

@@ -742,12 +742,17 @@ def pov(model, names, view_path, out, speed=None, t=None, plate=None, tier="pc")
     for n in names:
         st = per.get(n)
         if not st:   # lights, beams or debris only: no particle stats
-            presets[n] = {"live": 0, "visible": 0, "hidden": 0, "offscreen": 0, "covered": 0.0, "dluma": None}
+            presets[n] = {"live": 0, "visible": 0, "hidden": 0, "offscreen": 0, "covered": 0.0, "dluma": None, "peak": None}
             continue
         m = st.pop("mask")
         cov = sum(m.histogram()[1:])
+        peak = None
+        if cov:   # 90th percentile of the luma change over its pixels: how hard its core reads against the plate
+            h = ImageChops.difference(im.convert("L"), plate_im.convert("L")).histogram(mask=m)
+            acc, tot = 0, sum(h)
+            peak = next((i for i, v in enumerate(h) if (acc := acc + v) >= 0.9 * tot), 0)
         presets[n] = {**st, "covered": round(cov / total, 4),
-                      "dluma": round(luma(im, m) - luma(plate_im, m), 1) if cov else None}
+                      "dluma": round(luma(im, m) - luma(plate_im, m), 1) if cov else None, "peak": peak}
     return {"out": str(out), "presets": names, "speed": speed, "tier": tier, "t": round(warm + t_after, 2),
             "live": sim.live(), "hidden_by_depth": hidden, "overdraw_max": mx, "overdraw_p95": p95,
             "overdraw_mean": round(mean, 2), "screen_covered": round(covered / total, 4), "per_preset": presets,

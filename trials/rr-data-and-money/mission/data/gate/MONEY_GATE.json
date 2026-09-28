@@ -1,0 +1,150 @@
+{
+ "verdict": "HOLD",
+ "checked_at": "2026-09-28",
+ "catalogue_sha256": "784b4e2c0678de54",
+ "blocking": [],
+ "hold": [
+  {
+   "product": "private_server",
+   "severity": "HOLD",
+   "rule": "M01",
+   "msg": "sells access: not named in D-007 (time, status, identity); owner confirms it is time or identity in practice",
+   "canon": "D-007"
+  }
+ ],
+ "future": [
+  {
+   "product": "auto_stoker",
+   "severity": "FUTURE",
+   "rule": "M01",
+   "msg": "[post_launch, not in this release] sells power: D-007 allows time, status, identity only",
+   "canon": "D-007"
+  },
+  {
+   "product": "auto_stoker",
+   "severity": "FUTURE",
+   "rule": "M04",
+   "msg": "[post_launch, not in this release] one buyer changes the whole crew's run: pay-to-win in co-op",
+   "canon": "identity.pillars.four_systems"
+  },
+  {
+   "product": "express_depot",
+   "severity": "FUTURE",
+   "rule": "M01",
+   "msg": "[post_launch, not in this release] sells access: not named in D-007 (time, status, identity); owner confirms it is time or identity in practice",
+   "canon": "D-007"
+  },
+  {
+   "product": "toolbelt",
+   "severity": "FUTURE",
+   "rule": "M01",
+   "msg": "[post_launch, not in this release] sells convenience: not named in D-007 (time, status, identity); owner confirms it is time or identity in practice",
+   "canon": "D-007"
+  },
+  {
+   "product": "toolbelt",
+   "severity": "FUTURE",
+   "rule": "M03",
+   "msg": "[post_launch, not in this release] changes gameplay (gameplay.supplies.hand): run risky-rails-mechanic-reviewer, then the owner decides",
+   "canon": "gameplay.supplies.hand"
+  }
+ ],
+ "info": [
+  {
+   "product": "(code)",
+   "severity": "INFO",
+   "rule": "M09",
+   "msg": "ProcessReceipt, server price tables and grant idempotency are audited by rr-exploit-guard",
+   "canon": "tech.security.process_receipt"
+  },
+  {
+   "product": "auto_stoker",
+   "severity": "INFO",
+   "rule": "M13",
+   "msg": "price 449 R$ is proposed in canon (economy.passes.auto_stoker), not decided",
+   "canon": "economy.passes.auto_stoker"
+  },
+  {
+   "product": "double_fare",
+   "severity": "INFO",
+   "rule": "M13",
+   "msg": "price 299 R$ is proposed in canon (economy.passes.double_fare), not decided",
+   "canon": "economy.passes.double_fare"
+  },
+  {
+   "product": "express_depot",
+   "severity": "INFO",
+   "rule": "M13",
+   "msg": "price 199 R$ is proposed in canon (economy.passes.express_depot), not decided",
+   "canon": "economy.passes.express_depot"
+  },
+  {
+   "product": "fare_pack_m",
+   "severity": "INFO",
+   "rule": "M13",
+   "msg": "price 249 R$ is proposed in canon (economy.passes.fare_packs), not decided",
+   "canon": "economy.passes.fare_packs"
+  },
+  {
+   "product": "fare_pack_s",
+   "severity": "INFO",
+   "rule": "M13",
+   "msg": "price 99 R$ is proposed in canon (economy.passes.fare_packs), not decided",
+   "canon": "economy.passes.fare_packs"
+  },
+  {
+   "product": "first_class",
+   "severity": "INFO",
+   "rule": "M13",
+   "msg": "price 399 R$ is proposed in canon (economy.passes.first_class), not decided",
+   "canon": "economy.passes.first_class"
+  },
+  {
+   "product": "horn_launch",
+   "severity": "INFO",
+   "rule": "M13",
+   "msg": "price 49 R$ is proposed in canon (economy.passes.liveries), not decided",
+   "canon": "economy.passes.liveries"
+  },
+  {
+   "product": "livery_high",
+   "severity": "INFO",
+   "rule": "M13",
+   "msg": "price 199 R$ is proposed in canon (economy.passes.liveries), not decided",
+   "canon": "economy.passes.liveries"
+  },
+  {
+   "product": "livery_low",
+   "severity": "INFO",
+   "rule": "M13",
+   "msg": "price 49 R$ is proposed in canon (economy.passes.liveries), not decided",
+   "canon": "economy.passes.liveries"
+  },
+  {
+   "product": "private_server",
+   "severity": "INFO",
+   "rule": "M13",
+   "msg": "price 150 R$ is proposed in canon (economy.passes.private_server), not decided",
+   "canon": "economy.passes.private_server"
+  },
+  {
+   "product": "supplies_robux",
+   "severity": "INFO",
+   "rule": "M01",
+   "msg": "sells survival: D-007 allows time, status, identity only (hidden per OQ-010 default; keep it hidden)",
+   "canon": "D-007"
+  },
+  {
+   "product": "toolbelt",
+   "severity": "INFO",
+   "rule": "M13",
+   "msg": "price 149 R$ is proposed in canon (economy.passes.toolbelt), not decided",
+   "canon": "economy.passes.toolbelt"
+  }
+ ],
+ "shipping_states": [
+  "live",
+  "proposed"
+ ],
+ "waivers": "owner only; record with bible decide"
+}

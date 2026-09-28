@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="c" viewBox="0 0 640 250" width="640" height="250" role="img" aria-label="Coin balance of active players">
+<style>.c{--s:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--mut:#898781;--grid:#e1e0d9;--base:#c3c2b7;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a}@media (prefers-color-scheme: dark){:root:where(:not([data-theme="light"])) .c{--s:#1a1a19;--ink:#ffffff;--ink2:#c3c2b7;--mut:#898781;--grid:#2c2c2a;--base:#383835;--s1:#3987e5;--s2:#d95926;--s3:#199e70}}:root[data-theme="dark"] .c{--s:#1a1a19;--ink:#ffffff;--ink2:#c3c2b7;--mut:#898781;--grid:#2c2c2a;--base:#383835;--s1:#3987e5;--s2:#d95926;--s3:#199e70}.c text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:11px;fill:var(--ink2)}.c .t{fill:var(--ink);font-size:13px;font-weight:600}.c .st{fill:var(--mut)}.c .ax{fill:var(--mut);font-variant-numeric:tabular-nums}.c .v{fill:var(--ink)}.c .hit{fill:transparent}</style>
+<rect width="640" height="250" fill="var(--s)" rx="8"/>
+<text class="t" x="16" y="22">Coin balance of active players</text>
+<text class="st" x="16" y="38">end of day; rising p90 with nothing left to buy = inflation</text>
+<line x1="16" y1="52" x2="30" y2="52" stroke="var(--s1)" stroke-width="2" stroke-linecap="round"/><text x="35" y="56">median</text>
+<line x1="85.0" y1="52" x2="99.0" y2="52" stroke="var(--s2)" stroke-width="2" stroke-linecap="round"/><text x="104.0" y="56">90th percentile</text>
+<line x1="56" x2="570" y1="220.0" y2="220.0" stroke="var(--grid)" stroke-width="1"/>
+<text class="ax" x="50" y="223.5" text-anchor="end">0</text>
+<line x1="56" x2="570" y1="171.3" y2="171.3" stroke="var(--grid)" stroke-width="1"/>
+<text class="ax" x="50" y="174.8" text-anchor="end">2,000</text>
+<line x1="56" x2="570" y1="122.7" y2="122.7" stroke="var(--grid)" stroke-width="1"/>
+<text class="ax" x="50" y="126.2" text-anchor="end">4,000</text>
+<line x1="56" x2="570" y1="74.0" y2="74.0" stroke="var(--grid)" stroke-width="1"/>
+<text class="ax" x="50" y="77.5" text-anchor="end">6,000</text>
+<line x1="56" x2="570" y1="220" y2="220" stroke="var(--base)" stroke-width="1"/>
+<text class="ax" x="126.9" y="235" text-anchor="middle">d4</text>
+<text class="ax" x="215.5" y="235" text-anchor="middle">d9</text>
+<text class="ax" x="304.1" y="235" text-anchor="middle">d14</text>
+<text class="ax" x="392.8" y="235" text-anchor="middle">d19</text>
+<text class="ax" x="481.4" y="235" text-anchor="middle">d24</text>
+<text class="ax" x="570.0" y="235" text-anchor="middle">d29</text>
+<path d="M56.0,194.9 L73.7,192.1 L91.4,191.9 L109.2,194.8 L126.9,193.6 L144.6,190.4 L162.3,191.0 L180.1,192.1 L197.8,189.8 L215.5,187.2 L233.2,189.5 L251.0,191.5 L268.7,187.6 L286.4,190.4 L304.1,189.6 L321.9,187.9 L339.6,185.6 L357.3,190.3 L375.0,188.0 L392.8,189.3 L410.5,188.8 L428.2,187.2 L445.9,185.5 L463.7,187.1 L481.4,189.2 L499.1,187.4 L516.8,186.2 L534.6,187.1 L552.3,188.6 L570.0,184.7" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle class="hit" cx="56.0" cy="194.9" r="7"><title>median d0: 1,033</title></circle>
+<circle class="hit" cx="73.7" cy="192.1" r="7"><title>median d1: 1,146</title></circle>
+<circle class="hit" cx="91.4" cy="191.9" r="7"><title>median d2: 1,157</title></circle>
+<circle class="hit" cx="109.2" cy="194.8" r="7"><title>median d3: 1,037</title></circle>
+<circle class="hit" cx="126.9" cy="193.6" r="7"><title>median d4: 1,084</title></circle>
+<circle class="hit" cx="144.6" cy="190.4" r="7"><title>median d5: 1,215</title></circle>
+<circle class="hit" cx="162.3" cy="191.0" r="7"><title>median d6: 1,190</title></circle>
+<circle class="hit" cx="180.1" cy="192.1" r="7"><title>median d7: 1,146</title></circle>
+<circle class="hit" cx="197.8" cy="189.8" r="7"><title>median d8: 1,242</title></circle>
+<circle class="hit" cx="215.5" cy="187.2" r="7"><title>median d9: 1,349</title></circle>
+<circle class="hit" cx="233.2" cy="189.5" r="7"><title>median d10: 1,252</title></circle>
+<circle class="hit" cx="251.0" cy="191.5" r="7"><title>median d11: 1,170</title></circle>
+<circle class="hit" cx="268.7" cy="187.6" r="7"><title>median d12: 1,330</title></circle>
+<circle class="hit" cx="286.4" cy="190.4" r="7"><title>median d13: 1,215</title></circle>
+<circle class="hit" cx="304.1" cy="189.6" r="7"><title>median d14: 1,248</title></circle>
+<circle class="hit" cx="321.9" cy="187.9" r="7"><title>median d15: 1,317</title></circle>
+<circle class="hit" cx="339.6" cy="185.6" r="7"><title>median d16: 1,415</title></circle>
+<circle class="hit" cx="357.3" cy="190.3" r="7"><title>median d17: 1,221</title></circle>
+<circle class="hit" cx="375.0" cy="188.0" r="7"><title>median d18: 1,315</title></circle>
+<circle class="hit" cx="392.8" cy="189.3" r="7"><title>median d19: 1,261</title></circle>
+<circle class="hit" cx="410.5" cy="188.8" r="7"><title>median d20: 1,282</title></circle>
+<circle class="hit" cx="428.2" cy="187.2" r="7"><title>median d21: 1,349</title></circle>
+<circle class="hit" cx="445.9" cy="185.5" r="7"><title>median d22: 1,419</title></circle>
+<circle class="hit" cx="463.7" cy="187.1" r="7"><title>median d23: 1,350</title></circle>
+<circle class="hit" cx="481.4" cy="189.2" r="7"><title>median d24: 1,264</title></circle>
+<circle class="hit" cx="499.1" cy="187.4" r="7"><title>median d25: 1,340</title></circle>
+<circle class="hit" cx="516.8" cy="186.2" r="7"><title>median d26: 1,390</title></circle>
+<circle class="hit" cx="534.6" cy="187.1" r="7"><title>median d27: 1,352</title></circle>
+<circle class="hit" cx="552.3" cy="188.6" r="7"><title>median d28: 1,292</title></circle>
+<circle class="hit" cx="570.0" cy="184.7" r="7"><title>median d29: 1,449</title></circle>
+<circle cx="570.0" cy="184.7" r="4" fill="var(--s1)" stroke="var(--s)" stroke-width="2"/>
+<text class="v" x="578.0" y="188.7">1,449</text>
+<path d="M56.0,161.3 L73.7,160.9 L91.4,153.8 L109.2,157.0 L126.9,157.2 L144.6,150.9 L162.3,151.3 L180.1,149.8 L197.8,149.3 L215.5,140.4 L233.2,144.7 L251.0,143.2 L268.7,140.9 L286.4,139.8 L304.1,139.8 L321.9,136.7 L339.6,134.5 L357.3,140.3 L375.0,130.3 L392.8,126.1 L410.5,137.0 L428.2,128.1 L445.9,130.9 L463.7,131.6 L481.4,136.1 L499.1,131.0 L516.8,132.0 L534.6,130.6 L552.3,128.0 L570.0,120.5" fill="none" stroke="var(--s2)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle class="hit" cx="56.0" cy="161.3" r="7"><title>90th percentile d0: 2,414</title></circle>
+<circle class="hit" cx="73.7" cy="160.9" r="7"><title>90th percentile d1: 2,428</title></circle>
+<circle class="hit" cx="91.4" cy="153.8" r="7"><title>90th percentile d2: 2,719</title></circle>
+<circle class="hit" cx="109.2" cy="157.0" r="7"><title>90th percentile d3: 2,589</title></circle>
+<circle class="hit" cx="126.9" cy="157.2" r="7"><title>90th percentile d4: 2,581</title></circle>
+<circle class="hit" cx="144.6" cy="150.9" r="7"><title>90th percentile d5: 2,841</title></circle>
+<circle class="hit" cx="162.3" cy="151.3" r="7"><title>90th percentile d6: 2,822</title></circle>
+<circle class="hit" cx="180.1" cy="149.8" r="7"><title>90th percentile d7: 2,885</title></circle>
+<circle class="hit" cx="197.8" cy="149.3" r="7"><title>90th percentile d8: 2,907</title></circle>
+<circle class="hit" cx="215.5" cy="140.4" r="7"><title>90th percentile d9: 3,272</title></circle>
+<circle class="hit" cx="233.2" cy="144.7" r="7"><title>90th percentile d10: 3,093</title></circle>
+<circle class="hit" cx="251.0" cy="143.2" r="7"><title>90th percentile d11: 3,154</title></circle>
+<circle class="hit" cx="268.7" cy="140.9" r="7"><title>90th percentile d12: 3,252</title></circle>
+<circle class="hit" cx="286.4" cy="139.8" r="7"><title>90th percentile d13: 3,297</title></circle>
+<circle class="hit" cx="304.1" cy="139.8" r="7"><title>90th percentile d14: 3,295</title></circle>
+<circle class="hit" cx="321.9" cy="136.7" r="7"><title>90th percentile d15: 3,422</title></circle>
+<circle class="hit" cx="339.6" cy="134.5" r="7"><title>90th percentile d16: 3,512</title></circle>
+<circle class="hit" cx="357.3" cy="140.3" r="7"><title>90th percentile d17: 3,274</title></circle>
+<circle class="hit" cx="375.0" cy="130.3" r="7"><title>90th percentile d18: 3,688</title></circle>
+<circle class="hit" cx="392.8" cy="126.1" r="7"><title>90th percentile d19: 3,860</title></circle>
+<circle class="hit" cx="410.5" cy="137.0" r="7"><title>90th percentile d20: 3,412</title></circle>
+<circle class="hit" cx="428.2" cy="128.1" r="7"><title>90th percentile d21: 3,777</title></circle>
+<circle class="hit" cx="445.9" cy="130.9" r="7"><title>90th percentile d22: 3,661</title></circle>
+<circle class="hit" cx="463.7" cy="131.6" r="7"><title>90th percentile d23: 3,632</title></circle>
+<circle class="hit" cx="481.4" cy="136.1" r="7"><title>90th percentile d24: 3,450</title></circle>
+<circle class="hit" cx="499.1" cy="131.0" r="7"><title>90th percentile d25: 3,656</title></circle>
+<circle class="hit" cx="516.8" cy="132.0" r="7"><title>90th percentile d26: 3,616</title></circle>
+<circle class="hit" cx="534.6" cy="130.6" r="7"><title>90th percentile d27: 3,675</title></circle>
+<circle class="hit" cx="552.3" cy="128.0" r="7"><title>90th percentile d28: 3,781</title></circle>
+<circle class="hit" cx="570.0" cy="120.5" r="7"><title>90th percentile d29: 4,088</title></circle>
+<circle cx="570.0" cy="120.5" r="4" fill="var(--s2)" stroke="var(--s)" stroke-width="2"/>
+<text class="v" x="578.0" y="124.5">4,088</text>
+</svg>

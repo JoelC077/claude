@@ -1,0 +1,391 @@
+{
+ "_doc": "SYNTHETIC: a made-up owner proposal for a fares/crates/upgrades economy, written for the rr-data-and-money trial. Not canon, not live data. Base = the skill's preset; changed values are labelled 'assumed' with the proposal as the reason.",
+ "horizon": {
+  "days": {
+   "v": 30,
+   "assumed": "one month of installs"
+  },
+  "installs_per_day": {
+   "v": 300,
+   "assumed": "soft-launch scale; only changes totals, not per-player pacing"
+  },
+  "seed": 7
+ },
+ "retention": {
+  "d1": {
+   "v": 0.1,
+   "canon": "release.kpi.d1"
+  },
+  "d7": {
+   "v": 0.02,
+   "canon": "release.kpi.d7"
+  },
+  "d30": {
+   "v": 0.007,
+   "canon": "release.kpi.d30"
+  },
+  "play_prob_retained": {
+   "v": 0.6,
+   "assumed": "share of still-engaged players who play on a given day"
+  }
+ },
+ "session": {
+  "run_min": {
+   "v": 12,
+   "canon": "gameplay.run.length_min"
+  },
+  "queue_s": {
+   "v": 15,
+   "canon": "gameplay.run.queue_countdown_s"
+  },
+  "board_s": {
+   "v": 45,
+   "canon": "gameplay.run.board_wait_s"
+  },
+  "results_s": {
+   "v": 30,
+   "canon": "gameplay.run.results_home_s"
+  },
+  "runs_day0_mean": {
+   "v": 1.8,
+   "assumed": "first session length; canon asks >= 10 min (one run + results)"
+  },
+  "runs_later_mean": {
+   "v": 2.2,
+   "assumed": "runs per active day after day 0"
+  },
+  "engaged_runs_per_day": {
+   "v": 4,
+   "assumed": "pacing cohort: plays every day until the hour limit"
+  },
+  "engaged_hours": {
+   "v": 12,
+   "assumed": "canon pacing runs through hour 10"
+  }
+ },
+ "difficulty": {
+  "Easy": {
+   "fare_full": {
+    "v": 1200,
+    "assumed": "SYNTHETIC owner proposal v0 (trial 2026-09-28): flat fares, small step per tier"
+   },
+   "p_arrive": {
+    "v": 0.65,
+    "assumed": "arrival chance; overall completion is checked against release.kpi.completion"
+   },
+   "kit": {
+    "coal": 1,
+    "sandwich": 1
+   }
+  },
+  "Medium": {
+   "fare_full": {
+    "v": 1500,
+    "assumed": "SYNTHETIC owner proposal v0 (trial 2026-09-28): flat fares, small step per tier"
+   },
+   "p_arrive": {
+    "v": 0.55,
+    "assumed": "see Easy"
+   },
+   "kit": {
+    "coal": 2,
+    "sandwich": 1,
+    "toolbox": 0.3
+   }
+  },
+  "Hard": {
+   "fare_full": {
+    "v": 1700,
+    "assumed": "SYNTHETIC owner proposal v0 (trial 2026-09-28): flat fares, small step per tier"
+   },
+   "p_arrive": {
+    "v": 0.4,
+    "assumed": "see Easy"
+   },
+   "kit": {
+    "coal": 3,
+    "sandwich": 2,
+    "toolbox": 1,
+    "medkit": 0.5
+   }
+  },
+  "Insane": {
+   "fare_full": {
+    "v": 1900,
+    "assumed": "SYNTHETIC owner proposal v0 (trial 2026-09-28): flat fares, small step per tier"
+   },
+   "p_arrive": {
+    "v": 0.25,
+    "assumed": "see Easy"
+   },
+   "kit": {
+    "coal": 4,
+    "sandwich": 3,
+    "toolbox": 1.5,
+    "medkit": 1
+   }
+  }
+ },
+ "difficulty_mix": [
+  {
+   "from_run": 0,
+   "mix": {
+    "Easy": 1.0
+   }
+  },
+  {
+   "from_run": 2,
+   "mix": {
+    "Easy": 0.5,
+    "Medium": 0.4,
+    "Hard": 0.1
+   }
+  },
+  {
+   "from_run": 10,
+   "mix": {
+    "Easy": 0.2,
+    "Medium": 0.4,
+    "Hard": 0.3,
+    "Insane": 0.1
+   }
+  },
+  {
+   "from_run": 30,
+   "mix": {
+    "Easy": 0.1,
+    "Medium": 0.3,
+    "Hard": 0.4,
+    "Insane": 0.2
+   }
+  }
+ ],
+ "fare_cv": {
+  "v": 0.35,
+  "assumed": "run-to-run spread from forks, mood and crew"
+ },
+ "skill_range": {
+  "v": [
+   0.85,
+   1.15
+  ],
+  "assumed": "per-player multiplier on arrival chance"
+ },
+ "failed_trip": {
+  "option": "B",
+  "question": "OQ-011",
+  "_options": "A pays the banked fare, B pays nothing, C pays banked minus penalty",
+  "banked_share": {
+   "v": [
+    0.2,
+    0.8
+   ],
+   "assumed": "share of the run's fare already banked at stations when it fails"
+  },
+  "penalty": {
+   "v": 0.5,
+   "assumed": "option C only"
+  }
+ },
+ "fare_split": {
+  "v": "each_full",
+  "assumed": "each crew member banks the full crew fare (no canon; proposed open question)"
+ },
+ "start_coins": {
+  "v": 0,
+  "assumed": "no canon; the petty-cash float is superseded (economy.currency.float)"
+ },
+ "prices": {
+  "coal": {
+   "v": 60,
+   "assumed": "SYNTHETIC owner proposal v0 (trial 2026-09-28): crate price hike to make supplies a real sink (canon economy.supplies.coal = 40)"
+  },
+  "toolbox": {
+   "v": 200,
+   "assumed": "SYNTHETIC owner proposal v0 (trial 2026-09-28): crate price hike to make supplies a real sink (canon economy.supplies.toolbox = 120)"
+  },
+  "sandwich": {
+   "v": 30,
+   "assumed": "SYNTHETIC owner proposal v0 (trial 2026-09-28): crate price hike to make supplies a real sink (canon economy.supplies.sandwich = 25)"
+  },
+  "medkit": {
+   "v": 150,
+   "assumed": "SYNTHETIC owner proposal v0 (trial 2026-09-28): crate price hike to make supplies a real sink (canon economy.supplies.medkit = 90)"
+  }
+ },
+ "short_penalty": {
+  "v": 0.9,
+  "assumed": "arrival chance multiplier when a player could not afford the run's kit"
+ },
+ "recovery": {
+  "fee": {
+   "v": 5,
+   "canon": "economy.currency.recovery_fee"
+  },
+  "falls_per_run": {
+   "v": 0.3,
+   "assumed": "players falling off per run"
+  }
+ },
+ "unlocks": [
+  {
+   "id": "loco_2",
+   "price": {
+    "v": 4000,
+    "assumed": "SYNTHETIC owner proposal v0 (trial 2026-09-28): doubling curve"
+   }
+  },
+  {
+   "id": "loco_3",
+   "price": {
+    "v": 9000,
+    "assumed": "SYNTHETIC owner proposal v0 (trial 2026-09-28): doubling curve"
+   }
+  },
+  {
+   "id": "loco_4",
+   "price": {
+    "v": 20000,
+    "assumed": "SYNTHETIC owner proposal v0 (trial 2026-09-28): doubling curve"
+   }
+  },
+  {
+   "id": "loco_5",
+   "price": {
+    "v": 40000,
+    "assumed": "SYNTHETIC owner proposal v0 (trial 2026-09-28): doubling curve"
+   }
+  },
+  {
+   "id": "line_2",
+   "price": {
+    "v": 60000,
+    "assumed": "SYNTHETIC owner proposal v0 (trial 2026-09-28): doubling curve"
+   }
+  }
+ ],
+ "double_fare": {
+  "price_rs": {
+   "v": 299,
+   "canon": "economy.passes.double_fare"
+  },
+  "mult": {
+   "v": 2,
+   "canon": "economy.passes.double_fare"
+  }
+ },
+ "fare_packs": [
+  {
+   "sku": "fare_pack_s",
+   "fare": {
+    "v": 2500,
+    "canon": "economy.passes.fare_packs"
+   },
+   "price_rs": {
+    "v": 99,
+    "canon": "economy.passes.fare_packs"
+   }
+  },
+  {
+   "sku": "fare_pack_m",
+   "fare": {
+    "v": 7500,
+    "canon": "economy.passes.fare_packs"
+   },
+   "price_rs": {
+    "v": 249,
+    "canon": "economy.passes.fare_packs"
+   }
+  },
+  {
+   "sku": "fare_pack_l",
+   "fare": {
+    "v": 20000,
+    "canon": "economy.passes.fare_packs"
+   },
+   "price_rs": {
+    "v": 599,
+    "canon": "economy.passes.fare_packs"
+   }
+  }
+ ],
+ "buying": {
+  "payer_share": {
+   "v": 0.12,
+   "assumed": "players who would ever pay"
+  },
+  "p_double_fare": {
+   "v": 0.1,
+   "assumed": "a would-be payer buys Double Fare when shown"
+  },
+  "p_pack": {
+   "v": 0.06,
+   "assumed": "a would-be payer buys a pack when shown while short"
+  },
+  "p_organic_daily": {
+   "v": 0.03,
+   "assumed": "a would-be payer buys Double Fare unprompted (shop, store page) on an active day"
+  }
+ },
+ "rules": {
+  "prompt_after_run": {
+   "v": 3,
+   "canon": "economy.rules.no_early_prompts"
+  },
+  "max_prompts": {
+   "v": 2,
+   "canon": "economy.rules.no_early_prompts"
+  },
+  "pack_short_pct": {
+   "v": 30,
+   "canon": "economy.passes.fare_packs"
+  },
+  "pack_cap_runs": {
+   "v": 10,
+   "canon": "economy.passes.fare_packs"
+  }
+ },
+ "targets": {
+  "first_unlock_runs": {
+   "v": 2,
+   "canon": "gameplay.progress.first_unlock"
+  },
+  "first_unlock_min": {
+   "v": 30,
+   "canon": "gameplay.progress.first_unlock"
+  },
+  "unlock_gap_h": {
+   "v": 2,
+   "canon": "gameplay.progress.pacing"
+  },
+  "pacing_through_h": {
+   "v": 10,
+   "canon": "gameplay.progress.pacing"
+  },
+  "max_item_runs": {
+   "v": 15,
+   "canon": "gameplay.progress.pacing"
+  },
+  "completion": {
+   "v": [
+    0.3,
+    0.6
+   ],
+   "canon": "release.kpi.completion"
+  },
+  "payer_conversion": {
+   "v": 0.015,
+   "canon": "release.kpi.conversion"
+  }
+ },
+ "platform": {
+  "creator_share": {
+   "v": 0.7,
+   "canon": "economy.platform.creator_share"
+  },
+  "devex_usd": {
+   "v": 0.0038,
+   "canon": "economy.platform.devex_rate"
+  }
+ }
+}

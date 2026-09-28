@@ -5,15 +5,21 @@ on temporary copies (the real canon and specs are never written).
   selftest.py [-v] [--keep]      exit 0 = all passed
 
 Covers: --help on every script; list/show; validate PASS on the examples, --strict and --json; a planted bad
-spec fails on hex, unknown role, contrast, small text, small target, top bar, jump zone, nav, machine, feel name
-and canon number; stack policy (cap, merge, sticky, compact, halo, lift cap); pin + scale numbers (phone 1.0,
-PC = canon 1.16); render (PNGs, contact sheet under 1.15 MP, facts.md, HTML-only, text stress); crit hand-off
-and critic_kit build; sheet; ingest of an annotated mock (roles, canon text match, validates); build with every
-gate; luatest parity + runtime and a planted kit bug that parity must catch; one bible token change reskins
-every screen (temp canon copy via RR_BIBLE_DIR) while the screen modules stay identical.
+spec fails on hex, unknown role, contrast, small text, small target, top bar, jump zone, nav, machine, feel name,
+canon number, difficulty colour as chrome and a missing icon; stack policy (cap, merge, sticky, compact, halo, lift
+cap); pin + scale numbers (phone 1.0, PC = canon 1.16, own fit on the notched phone); render (PNGs, contact sheet
+under 1.15 MP, facts.md, HTML-only, text stress, a two-screen set with both phones at true size, the kit board);
+crit hand-off for one screen and a set (canon rules in the brief, owner present/away) and critic_kit build; sheet;
+ingest (annotated mock; bible tokens snap to their roles, never difficulty/kind roles, off-palette = DECIDE);
+build with every gate, BUILD DRAFT with --no-check, rebuild without stale screens, demo only in demo.project.json;
+luatest parity + generic runtime, a planted kit bug parity must catch, renamed specs (other screen names, ids and
+geometry) that must still BUILD PASS, a missing package; a decided OQ-001 (temp canon) keeps specs valid and makes
+its option the main skin; one bible token change reskins every screen while the screen modules stay identical.
 Playwright, luaparse and lupa steps are skipped (and said so) when missing.
 """
-import argparse, json, os, re, shutil, subprocess, sys, tempfile
+import sys
+sys.dont_write_bytecode = True  # noqa: E402
+import argparse, json, os, re, shutil, subprocess, tempfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -65,10 +71,12 @@ BAD_SPEC = {
         {"id": "small_btn", "use": "button", "rect": [300, 150, 30, 30], "slots": {"text": "S"}, "action": "go"},
         {"id": "lost_btn", "use": "button", "rect": [400, 150, 120, 48], "slots": {"text": "LOST"}, "action": "go"},
         {"id": "jumpy", "use": "button", "rect": [760, 320, 70, 48], "slots": {"text": "J"}, "action": "go"},
+        {"id": "tier_face", "type": "frame", "rect": [300, 250, 160, 44], "fill": "diff.hard"},
         {"id": "stack", "type": "stack", "rect": [540, 58, 290, 220], "pin": "br",
          "stack": {"template": "ticket", "compact": "ticket_compact", "gap": {"v": 9, "canon": "ui.hud.gap_px"}, "max": 4}}
     ],
     "nav": {"grid": [["small_btn"], ["ghost"]], "default": "small_btn"},
+    "types": {"Lost": {"kind": "info", "icon": "no_such_icon", "text": ["LOST!", "gone"]}},
     "machine": {"initial": "idle", "states": {"idle": {"hide": ["nobody"]}},
                 "transitions": [["idle", "go", "gone", "no_such_feel_event"]]}
 }
@@ -85,6 +93,27 @@ body{margin:0;width:844px;height:390px;background:#7C8A56;font-family:Montserrat
 <div class="c" style="left:20px" data-rr="chip:c1">1</div><div class="c" style="left:72px" data-rr="chip:c2">2</div>
 <div class="a" data-rr="text:alert">Shovel coal in the firebox!</div>
 <div class="b" data-rr="button:go" data-rr-variant="primary">GO</div></div></body></html>"""
+
+
+MOCK_TOKENS = """<!doctype html><html><body style="margin:0;width:844px;height:390px;background:#7C8A56">
+<div data-rr="frame:card" style="position:absolute;left:242px;top:70px;width:360px;height:290px;background:#F5E7C9">
+<div data-rr="frame:head" style="position:absolute;left:0;top:0;width:360px;height:56px;background:#C44A20"></div>
+<div data-rr="frame:odd" style="position:absolute;left:20px;top:100px;width:60px;height:30px;background:#FF00FF"></div></div></body></html>"""
+
+
+def renamed_specs(tmp):
+    """The examples under other screen names, ids and geometry: the gates must not depend on the examples."""
+    lob = json.loads((SKILL / "specs" / "lobby_create_match.json").read_text())
+    lob = json.loads(json.dumps(lob).replace('"join"', '"go"').replace('"join.label"', '"go.label"'))
+    lob["screen"] = "LobbyJoinQueue"
+    lob["nodes"][1]["rect"] = [192, 79, 460, 290]
+    hud = json.loads((SKILL / "specs" / "hud_tickets.json").read_text())
+    hud["screen"] = "HudCrew"
+    out = []
+    for name, d in (("lobby_q.json", lob), ("hud_crew.json", hud)):
+        (tmp / name).write_text(json.dumps(d))
+        out.append(str(tmp / name))
+    return out
 
 
 def model_tests():
@@ -117,7 +146,12 @@ def model_tests():
     ok("PC: no touch zones, full canon cap", sc["stack"]["visible"] == 4)
     z = kit.zones_for(phone)
     ok("phone touch zones from canon (small controls)", z["_size"] == "small" and z["jump"][2] == 136)
-    ok("notched phone scales by 0.86", abs(kit.fit(notch, "CoreUISafeInsets") - 726 / 844) < 1e-9)
+    ok("notched phone area fit is 0.86", abs(kit.fit(notch, "CoreUISafeInsets") - 726 / 844) < 1e-9)
+    lob = U.Screen(kit, SKILL / "specs" / "lobby_create_match.json")
+    _, kl = U.place_top(kit, notch, lob.index["panel"], "CoreUISafeInsets")
+    _, kh = U.place_top(kit, notch, node, "CoreUISafeInsets")
+    ok("own fit: the notched phone keeps the lobby panel at 1.0 and shrinks the HUD only to its own fit (0.94)",
+       abs(kl - 1) < 1e-9 and abs(kh - 311 / 332) < 1e-6, f"panel {kl:.3f}, hud {kh:.3f}")
     ok("slot fill and filters", U.fill_slots("{a|upper}-{b}", {"a": "x", "b": 2}) == "X-2" and U.fill_slots("{z}", {}, False) == "")
     ok("rect expressions", U.ev("100%-6", 64) == 58 and U.ev("50%+2", 10) == 7)
     lua = U.lua({"type": "x", "a b": [1, 2.5, True], "s": 'q"'})
@@ -142,8 +176,8 @@ def main(argv=None):
         ok("show prints tree, machine, nav", code == 0 and "machine:" in out and "nav: default join" in out)
         code, out = run(UI + ["validate", "hud_tickets", "lobby_create_match"])
         ok("validate: both examples PASS", code == 0 and out.count("PASS") == 2, out[-300:] if code else "")
-        code, out = run(UI + ["validate", "hud_tickets", "--strict"])
-        ok("validate --strict fails on warnings (notched-phone text)", code == 1)
+        code, out = run(UI + ["validate", "hud_tickets", "lobby_create_match", "--strict"])
+        ok("validate --strict: both examples have 0 warnings (notched phone included)", code == 0, out[-300:] if code else "")
         code, out = run(UI + ["validate", "lobby_create_match", "--json"])
         try:
             j = json.loads(out)
@@ -160,7 +194,8 @@ def main(argv=None):
                           ("nav unreachable", r"lost_btn is unreachable"), ("machine state", r"unknown state gone"),
                           ("hide unknown id", r"unknown id nobody"), ("feel event", r"no_such_feel_event"),
                           ("canon number", r"9 does not appear in ui.hud.gap_px"), ("unknown canon key", r"canon no.such.key not found"),
-                          ("unknown OQ", r"oq OQ-999 not found")]:
+                          ("unknown OQ", r"oq OQ-999 not found"), ("difficulty colour as chrome", r"tier_face.fill: diff.hard"),
+                          ("missing icon", r"icon no_such_icon has no file")]:
             ok(f"bad spec caught: {label}", code == 1 and re.search(rx, out) is not None)
         if pw:
             rd = tmp / "render"
@@ -184,11 +219,30 @@ def main(argv=None):
             ok("render --text-scale stress board runs and reports", code in (0, 1) and "Text stress" in (tmp / "stress" / "facts.md").read_text())
             code, out = run(UI + ["render", "lobby_create_match", "--out", str(tmp / "html"), "--html-only"])
             ok("render --html-only writes HTML without a browser", code == 0 and list((tmp / "html").glob("*.html")) and not list((tmp / "html").glob("*.png")))
+            code, out = run(UI + ["render", "lobby_create_match", "--out", str(tmp / "zz"), "--skins", "Z"])
+            ok("render: an unknown skin is refused before rendering", code != 0 and "unknown device or skin: Z" in out and not (tmp / "zz" / "facts.md").exists())
+            st = tmp / "set"
+            code, out = run(UI + ["render", "hud_tickets", "lobby_create_match", "--out", str(st), "--devices", "phone,phone_notch,pc", "--skins", "C,A"])
+            cj = json.loads((st / "contact.json").read_text()) if (st / "contact.json").is_file() else {"tiles": []}
+            ones = [t["label"] for t in cj["tiles"] if t["scale"].startswith("1:1")]
+            ok("render SET: one contact sheet, both screens' phone boards at true size, facts for both",
+               code == 0 and sum("phone" in x for x in ones) == 2 and (st / "facts.md").read_text().count("### Facts:") == 2
+               and cj.get("megapixels", 9) <= 1.15, f"{ones} {cj.get('megapixels')}")
+            code, out = run(UI + ["crit", str(tmp / "critset"), "--pass", "1", "--from", str(st), "--spec", "hud_tickets,lobby_create_match",
+                                  "--owner", "away"])
+            b2 = (tmp / "critset" / "brief.md").read_text() if (tmp / "critset" / "brief.md").is_file() else ""
+            ok("crit SET: one brief for both screens with both screens' canon; owner away pre-answers step 2",
+               code == 0 and b2.startswith("# UI kit set: HudTickets + LobbyCreateMatch") and "ui.rules.one_accent = " in b2
+               and b2.strip().endswith("owner away)"))
+            code, out = run(UI + ["render", "--kit", "--out", str(tmp / "kit"), "--skins", "C,B"])
+            ok("render --kit: every template x state x variant boarded, 0 errors in every skin", code == 0 and "checks: 0 errors" in out
+               and (tmp / "kit" / "contact.png").is_file(), out[-300:])
             crit = tmp / "crit"
             code, out = run(UI + ["crit", str(crit), "--pass", "1", "--from", str(rd), "--spec", "hud_tickets"])
-            ok("crit: pass files + brief + critic_kit command", code == 0 and (crit / "pass-1" / "contact.png").is_file()
-               and (crit / "brief.md").read_text().strip().endswith("step 2: pre-answered (canon via rr-bible; owner away)")
-               and "--profile B" in out)
+            brief = (crit / "brief.md").read_text() if (crit / "brief.md").is_file() else ""
+            ok("crit: pass files + brief (canon rules, source, owner asked) + critic_kit command with an absolute path",
+               code == 0 and (crit / "pass-1" / "contact.png").is_file() and "ui.hud.compact_rule = " in brief
+               and "Source: " in brief and brief.strip().endswith("before pass 1") and "--profile B" in out and f"build {crit}" in out)
             critic = U.find_sibling("multiuse-critic", "RR_CRITIC_SKILL")
             if critic:
                 code, out = run([sys.executable, str(critic / "scripts" / "critic_kit.py"), "build", str(crit), "--pass", "1",
@@ -196,7 +250,8 @@ def main(argv=None):
                 ok("critic_kit.py builds critic.md from the hand-off", code == 0 and (crit / "pass-1" / "critic.md").is_file())
             code, out = run(UI + ["sheet", "--out", str(tmp / "sheet")])
             meta = json.loads((tmp / "sheet" / "icons.json").read_text()) if (tmp / "sheet" / "icons.json").is_file() else {}
-            ok("sheet: 10 icons packed with offsets", code == 0 and len(meta.get("icons", {})) == 10)
+            n_icons = len(list((SKILL / "assets" / "icons").glob("*.svg")))
+            ok(f"sheet: all {n_icons} icons packed with offsets", code == 0 and len(meta.get("icons", {})) == n_icons)
             mock = tmp / "mock.html"
             mock.write_text(MOCK)
             draft = tmp / "draft.json"
@@ -208,24 +263,37 @@ def main(argv=None):
                and not re.search(r'"fill": "#', flat))
             code, out = run(UI + ["validate", str(draft)])
             ok("ingested draft loads and validates", code == 0, out[-400:])
+            (tmp / "mock2.html").write_text(MOCK_TOKENS)
+            code, out = run(UI + ["ingest", str(tmp / "mock2.html"), "--out", str(tmp / "draft2.json")])
+            d2 = json.loads((tmp / "draft2.json").read_text()) if (tmp / "draft2.json").is_file() else {}
+            fills = re.findall(r'"fill": "([^"]+)"', json.dumps(d2))
+            ok("ingest: bible tokens of another skin snap to their roles, never diff/kind/danger; off-palette is a DECIDE",
+               code == 0 and {"panel", "header"} <= set(fills) and not any(f.startswith(("diff.", "on_diff.", "kind.")) or f == "danger" for f in fills)
+               and "DECIDE odd: #FF00FF" in out, f"{fills}")
         else:
             ok("render/crit/sheet/ingest SKIPPED (no Playwright)", True)
         pkg = tmp / "pkg"
         code, out = run(UI + ["build", "hud_tickets", "lobby_create_match", "--out", str(pkg)])
         ok("build: BUILD PASS with every gate", code == 0 and "BUILD PASS" in out, out[-600:])
+        screens1 = {f.name: f.read_text() for f in (pkg / "src/shared/RR_UI/screens").glob("*.lua")}
+        theme1 = (pkg / "src/shared/RR_UI/RR_UITheme.lua").read_text() if (pkg / "src/shared/RR_UI/RR_UITheme.lua").is_file() else ""
+        readme = (pkg / "README.md").read_text() if (pkg / "README.md").is_file() else ""
+        ok("package: README from the built screens; the demo only in demo.project.json, Studio-guarded",
+           "screens.LobbyCreateMatch" in readme and "Remove RR_UIDemo before publishing" in readme
+           and "RR_UIDemo" not in (pkg / "default.project.json").read_text() and "RR_UIDemo" in (pkg / "demo.project.json").read_text()
+           and "IsStudio()" in (pkg / "src/client/RR_UIDemo.client.lua").read_text())
         for f in ("default.project.json", "ASSETS.md", "UI_SPEC.md", "README.md", "manifest.json", "src/shared/RR_UI/RR_UIKit.lua",
                   "src/shared/RR_UI/RR_UITheme.lua", "src/shared/RR_UI/RR_UITemplates.lua", "src/shared/RR_UI/screens/HudTickets.lua",
                   "src/shared/RR_UI/screens/LobbyCreateMatch.lua", "src/client/RR_UIDemo.client.lua"):
             ok(f"package has {f}", (pkg / f).is_file())
         man = json.loads((pkg / "manifest.json").read_text()) if (pkg / "manifest.json").is_file() else {}
-        ok("manifest: skin labelled assumed, gates recorded, Studio pending", man.get("skin_status", "").startswith("assumed")
-           and man.get("gates", {}).get("bible_check") == "PASS" and "pending" in man.get("studio", ""))
+        ok("manifest: skin labelled assumed, every gate recorded, Studio pending", man.get("skin_status", "").startswith("assumed")
+           and man.get("gates", {}).get("bible_check") == "PASS" and man.get("gates", {}).get("validate") == "PASS"
+           and man.get("gates", {}).get("luatest") in ("PASS", "SKIP") and "pending" in man.get("studio", ""))
         ok("luaparse gate ran", man.get("gates", {}).get("luaparse") in ("PASS", "SKIP"), man.get("gates", {}).get("luaparse"))
-        (pkg / "asset_ids.json").write_text(json.dumps({"iconSheet": "rbxassetid://123", "hazardTile": "rbxassetid://456"}))
-        code, out = run(UI + ["build", "hud_tickets", "--out", str(pkg), "--no-parity"])
-        ok("asset_ids.json survives a rebuild", code == 0 and 'rbxassetid://123' in (pkg / "src/shared/RR_UI/RR_UITheme.lua").read_text())
         if lp:
-            code, out = run([sys.executable, str(HERE / "luatest.py"), "--package", str(pkg), "-v"])
+            code, out = run([sys.executable, str(HERE / "luatest.py"), "--package", str(pkg), "-v", "--specs",
+                             f"{SKILL / 'specs' / 'hud_tickets.json'},{SKILL / 'specs' / 'lobby_create_match.json'}"])
             m = re.search(r"parity: (\d+)/(\d+)", out)
             ok("luatest parity: every node matches", code == 0 and m and m[1] == m[2] and int(m[2]) > 500, m[0] if m else out[-300:])
             m2 = re.search(r"runtime: (\d+)/(\d+)", out)
@@ -234,10 +302,32 @@ def main(argv=None):
             shutil.copytree(pkg, mut)
             kitf = mut / "src/shared/RR_UI/RR_UIKit.lua"
             kitf.write_text(kitf.read_text().replace("inst.TextSize = e.v * k", "inst.TextSize = e.v * k * 1.1", 1))
-            code, out = run([sys.executable, str(HERE / "luatest.py"), "--package", str(mut), "--only", "parity"])
+            code, out = run([sys.executable, str(HERE / "luatest.py"), "--package", str(mut), "--only", "parity", "--specs",
+                             f"{SKILL / 'specs' / 'hud_tickets.json'},{SKILL / 'specs' / 'lobby_create_match.json'}"])
             ok("parity catches a planted kit bug (text 10% big)", code == 1 and "text size" in out)
+            code, out = run(UI + ["build", *renamed_specs(tmp), "--out", str(tmp / "pkg_ren")])
+            m3 = re.search(r"runtime: (\d+)/(\d+)", out)
+            ok("renamed specs (other screen names, ids, panel width) still BUILD PASS with a full runtime",
+               code == 0 and "BUILD PASS" in out and m3 and m3[1] == m3[2] and int(m3[2]) >= 40, m3[0] if m3 else out[-400:])
+            code, out = run([sys.executable, str(HERE / "luatest.py"), "--package", str(tmp / "no_pkg"), "--specs", "x.json"])
+            ok("luatest: a missing package fails (never 'all passed')", code == 1 and "FAILED" in out)
         else:
             ok("luatest SKIPPED (no lupa)", True)
+        (pkg / "asset_ids.json").write_text(json.dumps({"iconSheet": "rbxassetid://123", "hazardTile": "rbxassetid://456"}))
+        code, out = run(UI + ["build", "hud_tickets", "--out", str(pkg), "--no-parity"])
+        ok("asset_ids.json survives a rebuild", code == 0 and 'rbxassetid://123' in (pkg / "src/shared/RR_UI/RR_UITheme.lua").read_text())
+        ok("rebuild with fewer screens: no stale screen modules, README follows; skipped gates = BUILD DRAFT",
+           [f.name for f in (pkg / "src/shared/RR_UI/screens").glob("*.lua")] == ["HudTickets.lua"]
+           and "LobbyCreateMatch" not in (pkg / "README.md").read_text() and "BUILD DRAFT" in out and "BUILD PASS" not in out)
+        code, out = run(UI + ["build", "lobby_create_match", "--out", str(tmp / "pkg_draft"), "--no-check", "--no-parity"])
+        mand = json.loads((tmp / "pkg_draft" / "manifest.json").read_text()) if (tmp / "pkg_draft" / "manifest.json").is_file() else {}
+        ok("--no-check: BUILD DRAFT, manifest says validate SKIPPED (draft)", "BUILD DRAFT" in out and "BUILD PASS" not in out
+           and mand.get("gates", {}).get("validate") == "SKIPPED (draft)")
+        mission = tmp / "mission" / "src" / "hud"
+        mission.mkdir(parents=True)
+        shutil.copy2(SKILL / "specs" / "hud_tickets.json", mission / "spec.json")
+        code, out = run(UI + ["validate", str(mission / "spec.json"), "--strict"])
+        ok("a spec copied into a mission keeps its icons (skill set as fallback)", code == 0, out[-300:])
         bible = U.find_sibling("rr-bible", "RR_BIBLE_SKILL")
         canon = tmp / "canon"
         shutil.copytree(bible / "canon", canon)
@@ -247,17 +337,22 @@ def main(argv=None):
         ok("temp canon: one token changed (style.world.brass)", code == 0, out[-200:])
         pkg2 = tmp / "pkg2"
         code, out = run(UI + ["build", "hud_tickets", "lobby_create_match", "--out", str(pkg2), "--no-parity"], env=env)
-        t1 = (pkg / "src/shared/RR_UI/RR_UITheme.lua").read_text() if (pkg / "src/shared/RR_UI/RR_UITheme.lua").is_file() else ""
+        t1 = theme1
         t2 = (pkg2 / "src/shared/RR_UI/RR_UITheme.lua").read_text() if (pkg2 / "src/shared/RR_UI/RR_UITheme.lua").is_file() else ""
         ok("reskin: the theme now carries the new token for every C role mapped to it",
            code == 0 and t2.count('Color3.fromHex("B8862F")') >= 3 and 'Color3.fromHex("B8862F")' not in t1)
-        same = all((pkg / "src/shared/RR_UI/screens" / f).read_text() == (pkg2 / "src/shared/RR_UI/screens" / f).read_text()
-                   for f in ("HudTickets.lua", "LobbyCreateMatch.lua"))
+        same = len(screens1) == 2 and all(screens1[f] == (pkg2 / "src/shared/RR_UI/screens" / f).read_text() for f in screens1)
         ok("reskin: screen modules unchanged (they hold roles, not colours)", same)
         if pw:
             code, out = run(UI + ["render", "lobby_create_match", "--out", str(tmp / "r2"), "--devices", "phone", "--skins", "C", "--html-only"], env=env)
             html_text = "".join(p.read_text() for p in (tmp / "r2").glob("*.html"))
             ok("reskin: boards pick up the new token too", "#B8862F" in html_text.upper())
+        code, out = run([sys.executable, str(bible / "scripts" / "bible.py"), "decide", "OQ-001", "A", "--by", "owner",
+                         "--date", "2026-09-28"], env=env)
+        code, out = run(UI + ["validate", "hud_tickets", "lobby_create_match"], env=env)
+        code2, out2 = run(UI + ["list"], env=env)
+        ok("decided OQ-001 (temp canon): specs citing it stay valid, its option becomes the main skin",
+           code == 0 and "decided: A (D-" in out2 and "OQ-001 decided" in out, (out + out2)[-300:])
         code, out = run([sys.executable, str(bible / "scripts" / "bible.py"), "lint"])
         ok("real rr-bible untouched and lint OK", code == 0 and "lint OK" in out)
     finally:

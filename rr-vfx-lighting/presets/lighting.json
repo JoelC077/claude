@@ -158,7 +158,7 @@
    "Lighting": {
     "ClockTime": 17.85,
     "Brightness": 1.5,
-    "ExposureCompensation": 0.6,
+    "ExposureCompensation": 1.05,
     "ColorShift_Top": [
      150,
      100,
@@ -189,7 +189,7 @@
     "Glare": 0.6
    },
    "ColorCorrectionEffect": {
-    "Saturation": 0.16,
+    "Saturation": 0.22,
     "Contrast": 0.08,
     "TintColor": [
      255,

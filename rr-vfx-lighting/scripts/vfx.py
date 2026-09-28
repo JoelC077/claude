@@ -20,6 +20,8 @@ preview needs bpy (see lookdev_bpy.py --help).
 """
 import sys
 sys.dont_write_bytecode = True  # never leave __pycache__ inside the skill
+if __name__ == "__main__":
+    sys.modules["vfx"] = sys.modules[__name__]   # preview.py / fxsim.py `import vfx` must see this run's --presets
 import argparse, copy, datetime as _dt, json, math, os, re, shutil, subprocess, sys, tempfile
 from pathlib import Path
 

@@ -7,7 +7,7 @@
  "tiles": [
   {
    "n": 1,
-   "label": "grassland.day@cab1p: luma 16.6, train/world 5.4:1",
+   "label": "grassland.day@cab1p: luma 66, train/world 3.45",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/lighting/grassland.day_cab1p.png",
    "box": [
     6,

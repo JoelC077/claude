@@ -100,17 +100,21 @@ def plan(model, a):
         bursts = [p for p in presets if model.presets[p]["kind"] == "burst"]
         near = [c for c in dict.fromkeys(model.near.get(model.presets[p]["anchor"]) for p in presets)
                 if c and c not in ("roof3p", "door1p")]
+        cam_of = lambda n: model.near.get(model.presets[n]["anchor"]) or "roof3p"
         povs = []
         for i, lk in enumerate(plain):
             fx = [f for f in model.resolve_look(lk, vfx.Issues())["fx_on"] if f in model.presets and f not in loops]
-            if loops or fx:
-                for cam in ["roof3p", "door1p"] + (near if i == 0 else []):
-                    povs.append({"name": f"pov_{slug(lk)}_{cam}", "presets": loops + fx, "look": lk, "camera": cam,
+            for cam in ["roof3p", "door1p"] + (near if i == 0 else []):
+                # roof and door see the whole pack; a near camera (cab, coach) only the loops it exists for
+                ps = loops + fx if cam in ("roof3p", "door1p") else [p for p in loops if cam_of(p) == cam]
+                if ps:
+                    povs.append({"name": f"pov_{slug(lk)}_{cam}", "presets": ps, "look": lk, "camera": cam,
                                  "phone": cam == "roof3p"})
         for b in bursts:
-            p = model.presets[b]
-            povs.append({"name": f"pov_{b}", "presets": loops + [b], "look": plain[0],
-                         "camera": model.near.get(p["anchor"]) or "roof3p", "t": (p.get("preview") or {}).get("t", 0.4)})
+            p, cam = model.presets[b], cam_of(b)
+            ctx = loops if cam in ("roof3p", "door1p") else [x for x in loops if cam_of(x) == cam]
+            povs.append({"name": f"pov_{b}", "presets": ctx + [b], "look": plain[0], "camera": cam,
+                         "t": (p.get("preview") or {}).get("t", 0.4)})
         renders = [l for l in looks if "@" in l] + [x for lk in plain for x in (lk, f"{lk}@door1p")]
         phone = [p for p in (a.phone.split(",") if a.phone is not None else plain) if p]
     for pv in povs:
@@ -142,7 +146,7 @@ def lighting(model, P, a, d):
             if f.is_file():
                 facts.append(json.loads(f.read_text()))
     def lab(f):
-        return f"{f['look']}{' PHONE' if f['phone'] else ''}: luma {f['mean_luma']}, train/world {f['train_vs_world_contrast']}:1"
+        return f"{f['look']}{' PHONE' if f['phone'] else ''}: luma {f['mean_luma']:.0f}, train/world {f['train_vs_world_contrast']}"
     first = [(lab(facts[0]), str(d / facts[0]["png"]), True)] + [(lab(f), str(d / f["png"]), False) for f in facts[1:]]
     sheets(d, first, [])
     (d / "facts.md").write_text("\n".join(lighting_facts(model, d, facts)) + "\n")
@@ -250,7 +254,8 @@ def effects(model, P, a, d, plates):
             r.update(name=pv["name"] + ".phone", look=pv["look"])
             povs.append(r)
     order = sorted(names, key=lambda n: (model.presets[n]["priority"], n))
-    first = [(caption(model, r), r["out"], i == 0) for i, r in enumerate(sorted(povs, key=lambda r: r["tier"] != "phone"))]
+    ordered = sorted(povs, key=lambda r: r["tier"] != "phone")
+    first = [(caption(model, r, i == 0), r["out"], i == 0) for i, r in enumerate(ordered)]
     strips = [(strip_caption(model, n, stats[n]), str(d / f"strip_{n}.png"), True) for n in order]
     if not first:
         first, strips = strips[:1], strips[1:]
@@ -271,28 +276,36 @@ def seen(model, r, n):
     return s["covered"] >= SEEN_COVER * 0.5 or s["visible"] >= 3
 
 
-def caption(model, r):
+def caption(model, r, long=False):
+    """What the tile shows, and only that: seen presets, lights, and presets hidden from this camera."""
     cam = r.get("camera") or "?"
-    tier = " PHONE (phone rates, no shadows/Bloom/SunRays)" if r["tier"] == "phone" else ""
     shown = [n for n in r["presets"] if seen(model, r, n)]
     lights = [n for n in r["presets"] if seen(model, r, n) is None]
     unseen = [n for n in r["presets"] if seen(model, r, n) is False]
-    txt = f"{r['look']} {cam}{tier}: " + (", ".join(shown) or "no effect visible")
+    look = r["look"] if long else r["look"].split(".", 1)[-1]
+    if r["tier"] == "phone":
+        tier = " PHONE phone rates, no shadows/Bloom/SunRays" if long else " PHONE"
+    else:
+        tier = ""
+    txt = f"{look} {cam}{tier}: " + (", ".join(shown) or "no effect")
     if lights:
-        txt += f" + light {', '.join(lights)}"
+        txt += f" +{','.join(lights)}"
     if unseen:
-        txt += f"; NOT SEEN {', '.join(unseen)}"
-    return txt + " · stand-in train"
+        txt += f"; hidden: {','.join(unseen)}"
+    if long:
+        txt += " · stand-in train"
+    return txt if long or len(txt) <= 60 else txt[:58] + ".."
 
 
 def strip_caption(model, n, st):
     p = model.presets[n]
     what = f"side strip, Speed {st['speed']:g}" if p["kind"] == "loop" else "burst time strip"
-    return f"{n} ({p['kind']} p{p['priority']}): {what}, {st['px_per_stud']} px/stud (construction view)"
+    return f"{n} ({p['kind']} p{p['priority']}): {what}, {st['px_per_stud']} px/stud, construction view"
 
 
 def visibility_warnings(model, names, povs, pack):
-    """Every named preset (pack) or priority-1 preset (default) under SEEN_COVER in every POV it is in."""
+    """Every named preset (pack) or priority-1 preset (default): WARN when under SEEN_COVER in every POV it is in;
+    one line per preset for cameras that hide most of it and POVs where it reads faint."""
     out = []
     for n in names:
         p = model.presets[n]
@@ -311,12 +324,15 @@ def visibility_warnings(model, names, povs, pack):
             out.append(f"- WARN {n}: under {SEEN_COVER * 100:.1f}% of the screen in every POV (best {best['name']}: "
                        f"{b['visible']} of {b['live']} visible, {b['covered'] * 100:.2f}%): players may never see it "
                        "(references/presets.md, Visible from the players' views)")
-        for r in rs:
-            s = r["per_preset"][n]
-            if s["live"] and s["hidden"] >= 0.5 * s["live"]:
-                out.append(f"- {n}: {s['hidden']} of {s['live']} hidden by the train or ground in {r['name']}")
-            if s["dluma"] is not None and s["covered"] >= SEEN_COVER and abs(s["dluma"]) < 15:
-                out.append(f"- {n}: faint in {r['name']} (luma change {s['dluma']:+} over its pixels; heuristic: under 15 reads weak)")
+        hid = sorted({f"{r.get('camera')}{' phone' if r['tier'] == 'phone' else ''}" for r in rs
+                      if r["per_preset"][n]["live"] and r["per_preset"][n]["hidden"] >= 0.5 * r["per_preset"][n]["live"]})
+        if hid:
+            out.append(f"- {n}: mostly hidden by the train or ground from {', '.join(hid)}")
+        faint = [r["name"].replace("pov_", "") for r in rs if r["per_preset"][n]["peak"] is not None
+                 and r["per_preset"][n]["covered"] >= SEEN_COVER and r["per_preset"][n]["peak"] < 25]
+        if faint:
+            out.append(f"- {n}: faint in {', '.join(faint)} (peak luma change under 25: its core barely differs from "
+                       "what is behind it; heuristic)")
     return out
 
 
@@ -337,7 +353,8 @@ def vfx_facts(model, names, stats, povs, notes, pack, title=True):
     if povs:
         lines += ["", "POV composites (particles over the lookdev plate from the same camera; loops at steady state, "
                   "Speed = gameplay.speed.fast; bursts fire after the loops warm up). Per preset: visible / live, hidden "
-                  "by the train or ground, off-screen, share of the screen, luma change over its own pixels:", "",
+                  "by the train or ground, off-screen, share of the screen, mean and peak (90th percentile) luma change over its "
+                  "own pixels:", "",
                   "| POV | look | cam | tier | res | t s | overdraw max/p95 | screen | per preset |", "|---|---|---|---|---|---|---|---|---|"]
         for r in povs:
             per = []
@@ -347,7 +364,7 @@ def vfx_facts(model, names, stats, povs, notes, pack, title=True):
                     per.append(f"{n} (light/beam)")
                     continue
                 per.append(f"{n} {s['visible']}/{s['live']}, hid {s['hidden']}, off {s['offscreen']}, "
-                           f"{s['covered'] * 100:.2f}%" + (f", Δluma {s['dluma']:+}" if s["dluma"] is not None else ""))
+                           f"{s['covered'] * 100:.2f}%" + (f", Δluma {s['dluma']:+} peak {s['peak']}" if s["dluma"] is not None else ""))
             lines.append(f"| {r['name']} | {r['look']} | {r.get('camera')} | {r['tier']} | {'x'.join(str(x) for x in r['res'])} | "
                          f"{r['t']} | {r['overdraw_max']}/{r['overdraw_p95']} | {r['screen_covered'] * 100:.1f}% | {'; '.join(per)} |")
     warn = visibility_warnings(model, names, povs, pack)
@@ -380,8 +397,11 @@ def board(model, P, a, out, lfacts, stats, povs, notes):
         f.unlink()
     phone = [r for r in povs if r["tier"] == "phone"]
     hero = phone[0] if phone else (povs[0] if povs else None)
-    first = [(caption(model, hero), hero["out"], True)] if hero else []
-    first += [(caption(model, r), r["out"], False) for r in povs if r is not hero]
+    rank = {"roof3p": 0, "door1p": 1}
+    rest = sorted((r for r in povs if r is not hero),
+                  key=lambda r: (r["tier"] == "phone", rank.get(r.get("camera"), 2), P["looks"].index(r["look"]) if r["look"] in P["looks"] else 9))
+    first = [(caption(model, hero, True), hero["out"], True)] if hero else []
+    first += [(caption(model, r), r["out"], False) for r in rest]
     plates = {Path(r["out"]).name for r in povs}
     used = {r["look"] + ("" if r.get("camera") == "roof3p" else "@" + r["camera"]) for r in povs}
     for f in lfacts or []:   # looks with no POV (or phone renders without one) still get a tile
@@ -390,8 +410,8 @@ def board(model, P, a, out, lfacts, stats, povs, notes):
             continue
         if f["phone"] and any(r["look"] == key and r["tier"] == "phone" for r in povs):
             continue
-        first.append((f"{key}{' PHONE' if f['phone'] else ''} (no effects): luma {f['mean_luma']}, train/world "
-                      f"{f['train_vs_world_contrast']}:1 · stand-in train", str(out / "lighting" / f["png"]), False))
+        first.append((f"{key}{' PHONE' if f['phone'] else ''}: look only, luma {f['mean_luma']:.0f}",
+                      str(out / "lighting" / f["png"]), False))
     order = sorted(P["presets"], key=lambda n: (model.presets[n]["priority"], n))
     strips = [(strip_caption(model, n, stats[n]), str(out / "vfx" / f"strip_{n}.png"), True) for n in order]
     left = sheets(d, first, strips)

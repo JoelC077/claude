@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="c" viewBox="0 0 640 250" width="640" height="250" role="img" aria-label="Coins minted vs burned per day">
+<style>.c{--s:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--mut:#898781;--grid:#e1e0d9;--base:#c3c2b7;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a}@media (prefers-color-scheme: dark){:root:where(:not([data-theme="light"])) .c{--s:#1a1a19;--ink:#ffffff;--ink2:#c3c2b7;--mut:#898781;--grid:#2c2c2a;--base:#383835;--s1:#3987e5;--s2:#d95926;--s3:#199e70}}:root[data-theme="dark"] .c{--s:#1a1a19;--ink:#ffffff;--ink2:#c3c2b7;--mut:#898781;--grid:#2c2c2a;--base:#383835;--s1:#3987e5;--s2:#d95926;--s3:#199e70}.c text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:11px;fill:var(--ink2)}.c .t{fill:var(--ink);font-size:13px;font-weight:600}.c .st{fill:var(--mut)}.c .ax{fill:var(--mut);font-variant-numeric:tabular-nums}.c .v{fill:var(--ink)}.c .hit{fill:transparent}</style>
+<rect width="640" height="250" fill="var(--s)" rx="8"/>
+<text class="t" x="16" y="22">Coins minted vs burned per day</text>
+<text class="st" x="16" y="38">sim population, 9,000 installs; sink/source 0.57</text>
+<line x1="16" y1="52" x2="30" y2="52" stroke="var(--s1)" stroke-width="2" stroke-linecap="round"/><text x="35" y="56">minted</text>
+<line x1="85.0" y1="52" x2="99.0" y2="52" stroke="var(--s2)" stroke-width="2" stroke-linecap="round"/><text x="104.0" y="56">burned</text>
+<line x1="56" x2="624" y1="220.0" y2="220.0" stroke="var(--grid)" stroke-width="1"/>
+<text class="ax" x="50" y="223.5" text-anchor="end">0</text>
+<line x1="56" x2="624" y1="183.5" y2="183.5" stroke="var(--grid)" stroke-width="1"/>
+<text class="ax" x="50" y="187.0" text-anchor="end">500.0K</text>
+<line x1="56" x2="624" y1="147.0" y2="147.0" stroke="var(--grid)" stroke-width="1"/>
+<text class="ax" x="50" y="150.5" text-anchor="end">1.0M</text>
+<line x1="56" x2="624" y1="110.5" y2="110.5" stroke="var(--grid)" stroke-width="1"/>
+<text class="ax" x="50" y="114.0" text-anchor="end">1.5M</text>
+<line x1="56" x2="624" y1="74.0" y2="74.0" stroke="var(--grid)" stroke-width="1"/>
+<text class="ax" x="50" y="77.5" text-anchor="end">2.0M</text>
+<path d="M58.8,220.0 V165.8 Q58.8,163.0 61.7,163.0 H61.7 Q64.5,163.0 64.5,165.8 V220.0 Z" fill="var(--s1)"><title>minted d0: 781.4K</title></path>
+<path d="M66.5,220.0 V193.2 Q66.5,190.4 69.3,190.4 H69.3 Q72.1,190.4 72.1,193.2 V220.0 Z" fill="var(--s2)"><title>burned d0: 406.1K</title></path>
+<path d="M77.8,220.0 V159.4 Q77.8,156.6 80.6,156.6 H80.6 Q83.4,156.6 83.4,159.4 V220.0 Z" fill="var(--s1)"><title>minted d1: 868.9K</title></path>
+<path d="M85.4,220.0 V190.9 Q85.4,188.1 88.2,188.1 H88.2 Q91.0,188.1 91.0,190.9 V220.0 Z" fill="var(--s2)"><title>burned d1: 437.4K</title></path>
+<text class="ax" x="84.4" y="235" text-anchor="middle">d1</text>
+<path d="M96.7,220.0 V154.5 Q96.7,151.7 99.5,151.7 H99.5 Q102.3,151.7 102.3,154.5 V220.0 Z" fill="var(--s1)"><title>minted d2: 936.0K</title></path>
+<path d="M104.3,220.0 V189.5 Q104.3,186.7 107.1,186.7 H107.1 Q110.0,186.7 110.0,189.5 V220.0 Z" fill="var(--s2)"><title>burned d2: 456.8K</title></path>
+<path d="M115.6,220.0 V152.4 Q115.6,149.6 118.5,149.6 H118.5 Q121.3,149.6 121.3,152.4 V220.0 Z" fill="var(--s1)"><title>minted d3: 965.0K</title></path>
+<path d="M123.3,220.0 V188.0 Q123.3,185.2 126.1,185.2 H126.1 Q128.9,185.2 128.9,188.0 V220.0 Z" fill="var(--s2)"><title>burned d3: 477.3K</title></path>
+<path d="M134.6,220.0 V147.9 Q134.6,145.1 137.4,145.1 H137.4 Q140.2,145.1 140.2,147.9 V220.0 Z" fill="var(--s1)"><title>minted d4: 1.0M</title></path>
+<path d="M142.2,220.0 V186.7 Q142.2,183.9 145.0,183.9 H145.0 Q147.8,183.9 147.8,186.7 V220.0 Z" fill="var(--s2)"><title>burned d4: 494.5K</title></path>
+<path d="M153.5,220.0 V141.3 Q153.5,138.5 156.3,138.5 H156.3 Q159.1,138.5 159.1,141.3 V220.0 Z" fill="var(--s1)"><title>minted d5: 1.1M</title></path>
+<path d="M161.1,220.0 V182.3 Q161.1,179.5 163.9,179.5 H163.9 Q166.8,179.5 166.8,182.3 V220.0 Z" fill="var(--s2)"><title>burned d5: 554.7K</title></path>
+<text class="ax" x="160.1" y="235" text-anchor="middle">d5</text>
+<path d="M172.4,220.0 V142.9 Q172.4,140.0 175.3,140.0 H175.3 Q178.1,140.0 178.1,142.9 V220.0 Z" fill="var(--s1)"><title>minted d6: 1.1M</title></path>
+<path d="M180.1,220.0 V181.3 Q180.1,178.5 182.9,178.5 H182.9 Q185.7,178.5 185.7,181.3 V220.0 Z" fill="var(--s2)"><title>burned d6: 568.1K</title></path>
+<path d="M191.4,220.0 V146.7 Q191.4,143.9 194.2,143.9 H194.2 Q197.0,143.9 197.0,146.7 V220.0 Z" fill="var(--s1)"><title>minted d7: 1.0M</title></path>
+<path d="M199.0,220.0 V181.1 Q199.0,178.3 201.8,178.3 H201.8 Q204.6,178.3 204.6,181.1 V220.0 Z" fill="var(--s2)"><title>burned d7: 571.8K</title></path>
+<path d="M210.3,220.0 V137.3 Q210.3,134.5 213.1,134.5 H213.1 Q215.9,134.5 215.9,137.3 V220.0 Z" fill="var(--s1)"><title>minted d8: 1.2M</title></path>
+<path d="M217.9,220.0 V174.8 Q217.9,172.0 220.7,172.0 H220.7 Q223.6,172.0 223.6,174.8 V220.0 Z" fill="var(--s2)"><title>burned d8: 658.1K</title></path>
+<path d="M229.2,220.0 V139.7 Q229.2,136.9 232.1,136.9 H232.1 Q234.9,136.9 234.9,139.7 V220.0 Z" fill="var(--s1)"><title>minted d9: 1.1M</title></path>
+<path d="M236.9,220.0 V182.3 Q236.9,179.4 239.7,179.4 H239.7 Q242.5,179.4 242.5,182.3 V220.0 Z" fill="var(--s2)"><title>burned d9: 555.6K</title></path>
+<text class="ax" x="235.9" y="235" text-anchor="middle">d9</text>
+<path d="M248.2,220.0 V134.4 Q248.2,131.6 251.0,131.6 H251.0 Q253.8,131.6 253.8,134.4 V220.0 Z" fill="var(--s1)"><title>minted d10: 1.2M</title></path>
+<path d="M255.8,220.0 V174.9 Q255.8,172.1 258.6,172.1 H258.6 Q261.4,172.1 261.4,174.9 V220.0 Z" fill="var(--s2)"><title>burned d10: 656.5K</title></path>
+<path d="M267.1,220.0 V134.5 Q267.1,131.7 269.9,131.7 H269.9 Q272.7,131.7 272.7,134.5 V220.0 Z" fill="var(--s1)"><title>minted d11: 1.2M</title></path>
+<path d="M274.7,220.0 V173.6 Q274.7,170.7 277.5,170.7 H277.5 Q280.4,170.7 280.4,173.6 V220.0 Z" fill="var(--s2)"><title>burned d11: 674.8K</title></path>
+<path d="M286.0,220.0 V129.8 Q286.0,127.0 288.9,127.0 H288.9 Q291.7,127.0 291.7,129.8 V220.0 Z" fill="var(--s1)"><title>minted d12: 1.3M</title></path>
+<path d="M293.7,220.0 V171.6 Q293.7,168.8 296.5,168.8 H296.5 Q299.3,168.8 299.3,171.6 V220.0 Z" fill="var(--s2)"><title>burned d12: 701.1K</title></path>
+<path d="M305.0,220.0 V135.7 Q305.0,132.9 307.8,132.9 H307.8 Q310.6,132.9 310.6,135.7 V220.0 Z" fill="var(--s1)"><title>minted d13: 1.2M</title></path>
+<path d="M312.6,220.0 V166.9 Q312.6,164.1 315.4,164.1 H315.4 Q318.2,164.1 318.2,166.9 V220.0 Z" fill="var(--s2)"><title>burned d13: 765.5K</title></path>
+<text class="ax" x="311.6" y="235" text-anchor="middle">d13</text>
+<path d="M323.9,220.0 V132.5 Q323.9,129.7 326.7,129.7 H326.7 Q329.5,129.7 329.5,132.5 V220.0 Z" fill="var(--s1)"><title>minted d14: 1.2M</title></path>
+<path d="M331.5,220.0 V179.8 Q331.5,177.0 334.3,177.0 H334.3 Q337.2,177.0 337.2,179.8 V220.0 Z" fill="var(--s2)"><title>burned d14: 589.5K</title></path>
+<path d="M342.8,220.0 V127.2 Q342.8,124.4 345.7,124.4 H345.7 Q348.5,124.4 348.5,127.2 V220.0 Z" fill="var(--s1)"><title>minted d15: 1.3M</title></path>
+<path d="M350.5,220.0 V157.9 Q350.5,155.1 353.3,155.1 H353.3 Q356.1,155.1 356.1,157.9 V220.0 Z" fill="var(--s2)"><title>burned d15: 889.5K</title></path>
+<path d="M361.8,220.0 V125.8 Q361.8,122.9 364.6,122.9 H364.6 Q367.4,122.9 367.4,125.8 V220.0 Z" fill="var(--s1)"><title>minted d16: 1.3M</title></path>
+<path d="M369.4,220.0 V171.7 Q369.4,168.8 372.2,168.8 H372.2 Q375.0,168.8 375.0,171.7 V220.0 Z" fill="var(--s2)"><title>burned d16: 700.8K</title></path>
+<path d="M380.7,220.0 V123.6 Q380.7,120.8 383.5,120.8 H383.5 Q386.3,120.8 386.3,123.6 V220.0 Z" fill="var(--s1)"><title>minted d17: 1.4M</title></path>
+<path d="M388.3,220.0 V159.4 Q388.3,156.6 391.1,156.6 H391.1 Q394.0,156.6 394.0,159.4 V220.0 Z" fill="var(--s2)"><title>burned d17: 868.3K</title></path>
+<text class="ax" x="387.3" y="235" text-anchor="middle">d17</text>
+<path d="M399.6,220.0 V120.6 Q399.6,117.8 402.5,117.8 H402.5 Q405.3,117.8 405.3,120.6 V220.0 Z" fill="var(--s1)"><title>minted d18: 1.4M</title></path>
+<path d="M407.3,220.0 V162.5 Q407.3,159.7 410.1,159.7 H410.1 Q412.9,159.7 412.9,162.5 V220.0 Z" fill="var(--s2)"><title>burned d18: 825.6K</title></path>
+<path d="M418.6,220.0 V122.5 Q418.6,119.7 421.4,119.7 H421.4 Q424.2,119.7 424.2,122.5 V220.0 Z" fill="var(--s1)"><title>minted d19: 1.4M</title></path>
+<path d="M426.2,220.0 V163.9 Q426.2,161.1 429.0,161.1 H429.0 Q431.8,161.1 431.8,163.9 V220.0 Z" fill="var(--s2)"><title>burned d19: 807.4K</title></path>
+<path d="M437.5,220.0 V120.2 Q437.5,117.4 440.3,117.4 H440.3 Q443.1,117.4 443.1,120.2 V220.0 Z" fill="var(--s1)"><title>minted d20: 1.4M</title></path>
+<path d="M445.1,220.0 V162.2 Q445.1,159.4 447.9,159.4 H447.9 Q450.8,159.4 450.8,162.2 V220.0 Z" fill="var(--s2)"><title>burned d20: 830.7K</title></path>
+<path d="M456.4,220.0 V127.1 Q456.4,124.2 459.3,124.2 H459.3 Q462.1,124.2 462.1,127.1 V220.0 Z" fill="var(--s1)"><title>minted d21: 1.3M</title></path>
+<path d="M464.1,220.0 V169.0 Q464.1,166.2 466.9,166.2 H466.9 Q469.7,166.2 469.7,169.0 V220.0 Z" fill="var(--s2)"><title>burned d21: 737.6K</title></path>
+<text class="ax" x="463.1" y="235" text-anchor="middle">d21</text>
+<path d="M475.4,220.0 V119.8 Q475.4,116.9 478.2,116.9 H478.2 Q481.0,116.9 481.0,119.8 V220.0 Z" fill="var(--s1)"><title>minted d22: 1.4M</title></path>
+<path d="M483.0,220.0 V159.9 Q483.0,157.1 485.8,157.1 H485.8 Q488.6,157.1 488.6,159.9 V220.0 Z" fill="var(--s2)"><title>burned d22: 861.3K</title></path>
+<path d="M494.3,220.0 V124.8 Q494.3,122.0 497.1,122.0 H497.1 Q499.9,122.0 499.9,124.8 V220.0 Z" fill="var(--s1)"><title>minted d23: 1.3M</title></path>
+<path d="M501.9,220.0 V159.6 Q501.9,156.8 504.7,156.8 H504.7 Q507.6,156.8 507.6,159.6 V220.0 Z" fill="var(--s2)"><title>burned d23: 866.4K</title></path>
+<path d="M513.2,220.0 V125.2 Q513.2,122.4 516.1,122.4 H516.1 Q518.9,122.4 518.9,125.2 V220.0 Z" fill="var(--s1)"><title>minted d24: 1.3M</title></path>
+<path d="M520.9,220.0 V165.5 Q520.9,162.7 523.7,162.7 H523.7 Q526.5,162.7 526.5,165.5 V220.0 Z" fill="var(--s2)"><title>burned d24: 784.8K</title></path>
+<path d="M532.2,220.0 V118.5 Q532.2,115.7 535.0,115.7 H535.0 Q537.8,115.7 537.8,118.5 V220.0 Z" fill="var(--s1)"><title>minted d25: 1.4M</title></path>
+<path d="M539.8,220.0 V159.8 Q539.8,157.0 542.6,157.0 H542.6 Q545.4,157.0 545.4,159.8 V220.0 Z" fill="var(--s2)"><title>burned d25: 862.8K</title></path>
+<text class="ax" x="538.8" y="235" text-anchor="middle">d25</text>
+<path d="M551.1,220.0 V121.7 Q551.1,118.8 553.9,118.8 H553.9 Q556.7,118.8 556.7,121.7 V220.0 Z" fill="var(--s1)"><title>minted d26: 1.4M</title></path>
+<path d="M558.7,220.0 V159.4 Q558.7,156.6 561.5,156.6 H561.5 Q564.4,156.6 564.4,159.4 V220.0 Z" fill="var(--s2)"><title>burned d26: 868.3K</title></path>
+<path d="M570.0,220.0 V120.6 Q570.0,117.8 572.9,117.8 H572.9 Q575.7,117.8 575.7,120.6 V220.0 Z" fill="var(--s1)"><title>minted d27: 1.4M</title></path>
+<path d="M577.7,220.0 V163.1 Q577.7,160.3 580.5,160.3 H580.5 Q583.3,160.3 583.3,163.1 V220.0 Z" fill="var(--s2)"><title>burned d27: 818.1K</title></path>
+<path d="M589.0,220.0 V125.0 Q589.0,122.2 591.8,122.2 H591.8 Q594.6,122.2 594.6,125.0 V220.0 Z" fill="var(--s1)"><title>minted d28: 1.3M</title></path>
+<path d="M596.6,220.0 V168.7 Q596.6,165.9 599.4,165.9 H599.4 Q602.2,165.9 602.2,168.7 V220.0 Z" fill="var(--s2)"><title>burned d28: 740.8K</title></path>
+<path d="M607.9,220.0 V121.2 Q607.9,118.4 610.7,118.4 H610.7 Q613.5,118.4 613.5,121.2 V220.0 Z" fill="var(--s1)"><title>minted d29: 1.4M</title></path>
+<path d="M615.5,220.0 V162.1 Q615.5,159.3 618.3,159.3 H618.3 Q621.2,159.3 621.2,162.1 V220.0 Z" fill="var(--s2)"><title>burned d29: 831.4K</title></path>
+<text class="ax" x="614.5" y="235" text-anchor="middle">d29</text>
+<line x1="56" x2="624" y1="220" y2="220" stroke="var(--base)" stroke-width="1"/>
+</svg>
