@@ -1,0 +1,338 @@
+"""Shared helpers for rr-skill-smith (stdlib only). Not a CLI.
+
+Web = every skill folder in the JARVIS root (folders holding a SKILL.md) plus installed Risky Rails
+skills under ~/.claude/skills (read-only). Smith state lives in <home> (default <root>/smith).
+"""
+import sys
+
+sys.dont_write_bytecode = True  # never leave __pycache__ in a skill folder
+
+import datetime as _dt
+import hashlib
+import importlib.util
+import json
+import os
+import re
+import subprocess
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+SMITH_DIR = HERE.parent
+TEXT_EXT = {".md", ".py", ".lua", ".luau", ".json", ".txt", ".html", ".css", ".js", ".sh", ".svg", ".csv", ".toml",
+            ".yaml", ".yml"}
+SKIP_DIRS = {"__pycache__", "node_modules", ".git"}
+PACK_SKIP_ROOT = {"evals"}          # mirrors skill-creator package_skill: evals/ at the root is not packaged
+JUNK = ("__pycache__", ".pyc", ".DS_Store")
+SEV_W = {"H": 3, "M": 2, "L": 1}
+RR_PREFIXES = ("rr-", "risky-rails", "multiuse-critic")
+
+
+# ---------------------------------------------------------------- basics
+def die(msg, code=2):
+    print(msg, file=sys.stderr)
+    sys.exit(code)
+
+
+def now():
+    return _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
+
+
+def today():
+    return _dt.date.today().isoformat()
+
+
+def read(p):
+    try:
+        return Path(p).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return ""
+
+
+def load_json(p, default=None):
+    try:
+        return json.loads(Path(p).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return default
+
+
+def save_json(p, obj):
+    p = Path(p)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    tmp = p.with_suffix(p.suffix + ".tmp")
+    tmp.write_text(json.dumps(obj, indent=1, ensure_ascii=False, sort_keys=False) + "\n", encoding="utf-8")
+    tmp.replace(p)
+
+
+def toks(chars):
+    return int(chars) // 4
+
+
+def fp(*parts):
+    return hashlib.sha1("\x1f".join(str(p) for p in parts).encode()).hexdigest()[:10]
+
+
+def norm_words(text):
+    return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9 ]", " ", text.lower())).strip()
+
+
+STOP = set("""a an the and or but if then else of in on at to for from by with without into onto over under
+is are was were be been being it its this that these those there their them they we you your our my me
+not no nor so too very can cannot could should would will may might must does do did done has have had
+as than also only just any all each every both either one two three per via vs about after before when
+which what who whom how why where while use used uses using get gets got make makes made run runs
+skill skills step file files line lines says said see new more most less least some such own out up
+""".split())
+
+
+def content_words(text, minlen=4):
+    out = set()
+    for w in re.findall(r"[a-z][a-z0-9_]+", text.lower()):
+        if len(w) < minlen or w in STOP:
+            continue
+        for suf in ("ing", "ed", "es", "s"):
+            if w.endswith(suf) and len(w) - len(suf) >= 4:
+                w = w[: -len(suf)]
+                break
+        out.add(w)
+    return out
+
+
+# ---------------------------------------------------------------- roots
+def find_root(arg=None):
+    cands = [arg, os.environ.get("JARVIS_ROOT"), str(SMITH_DIR.parent)]
+    try:
+        top = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, timeout=5)
+        if top.returncode == 0:
+            cands.append(top.stdout.strip())
+    except (OSError, subprocess.SubprocessError):
+        pass
+    cands.append("/home/user/claude")
+    for c in cands:
+        if not c:
+            continue
+        p = Path(c).expanduser().resolve()
+        if (p / "rr-bible" / "SKILL.md").exists() or len(list(p.glob("rr-*/SKILL.md"))) >= 2:
+            return p
+    if arg:
+        return Path(arg).expanduser().resolve()
+    die("JARVIS root not found: pass --root or set JARVIS_ROOT (the folder holding rr-bible/ and the other rr-* skills)")
+
+
+def smith_home(root, arg=None):
+    h = Path(arg or os.environ.get("RR_SMITH_HOME") or (Path(root) / "smith")).expanduser().resolve()
+    return h
+
+
+def ensure_home(home):
+    home.mkdir(parents=True, exist_ok=True)
+    gi = home / ".gitignore"
+    if not gi.exists():
+        gi.write_text("stage/\nbackups/\nruns/\n", encoding="utf-8")
+    return home
+
+
+def rel(p, root):
+    try:
+        return str(Path(p).resolve().relative_to(Path(root).resolve()))
+    except ValueError:
+        return str(p)
+
+
+def common_args(ap):
+    ap.add_argument("--root", help="JARVIS root (folder with rr-bible/ and the rr-* skills); default: auto")
+    ap.add_argument("--home", help="smith state folder; default $RR_SMITH_HOME or <root>/smith")
+    return ap
+
+
+# ---------------------------------------------------------------- frontmatter (no yaml dependency)
+def frontmatter(text):
+    m = re.match(r"^---\n(.*?)\n---\n?", text, re.S)
+    if not m:
+        return {}, text
+    meta, lines, i = {}, m.group(1).splitlines(), 0
+    while i < len(lines):
+        line = lines[i]
+        km = re.match(r"^([A-Za-z_-]+):\s*(.*)$", line)
+        i += 1
+        if not km:
+            continue
+        k, v = km.group(1), km.group(2).strip()
+        if v in (">", "|", ">-", "|-", ""):
+            block = []
+            while i < len(lines) and (lines[i].startswith(" ") or not lines[i].strip()):
+                block.append(lines[i].strip())
+                i += 1
+            v = (" " if v.startswith(">") or v == "" else "\n").join(x for x in block if x)
+        elif v.startswith('"'):
+            try:
+                v = json.loads(v)
+            except ValueError:
+                v = v.strip('"')
+        elif v.startswith("'"):
+            v = v[1:-1].replace("''", "'")
+        meta[k] = v
+    return meta, text[m.end():]
+
+
+# ---------------------------------------------------------------- the web
+def _skill(d, origin):
+    t = read(d / "SKILL.md")
+    meta, body = frontmatter(t)
+    return {"name": meta.get("name") or d.name, "dir": d, "desc": meta.get("description", ""),
+            "origin": origin, "skill_md_chars": len(t), "body_lines": body.count("\n") + 1}
+
+
+def installed_dirs():
+    base = Path.home() / ".claude" / "skills"
+    out = []
+    if base.exists():
+        for p in base.glob("**/SKILL.md"):
+            if len(p.relative_to(base).parts) <= 5 and not any(s in p.parts for s in SKIP_DIRS):
+                out.append(p.parent)
+    return out
+
+
+def web(root, include_all_installed=False):
+    """name -> skill dict. Root skills are 'root' (editable); installed copies are 'installed' (read-only)."""
+    out = {}
+    for p in sorted(Path(root).glob("*/SKILL.md")):
+        s = _skill(p.parent, "root")
+        out[s["name"]] = s
+    for d in installed_dirs():
+        s = _skill(d, "installed")
+        if s["name"] in out:
+            continue
+        if include_all_installed or s["name"].startswith(RR_PREFIXES):
+            out[s["name"]] = s
+    return out
+
+
+def is_junk(p):
+    return any(j in p.name or j in p.parts for j in JUNK) or any(part in SKIP_DIRS for part in p.parts)
+
+
+def skill_files(d, text_only=True, packaged=False):
+    d = Path(d)
+    for p in sorted(d.rglob("*")):
+        if not p.is_file():
+            continue
+        relp = p.relative_to(d)
+        if any(part in SKIP_DIRS for part in relp.parts) or p.name.endswith(".pyc") or p.name == ".DS_Store":
+            continue
+        if packaged and relp.parts[0] in PACK_SKIP_ROOT:
+            continue
+        if text_only and p.suffix.lower() not in TEXT_EXT:
+            continue
+        yield p
+
+
+def tree_hash(d):
+    h = hashlib.sha256()
+    for p in skill_files(d, text_only=False, packaged=True):
+        h.update(str(p.relative_to(d)).encode())
+        h.update(p.read_bytes())
+    return h.hexdigest()[:16]
+
+
+def junk_in(d):
+    return [str(p.relative_to(d)) for p in Path(d).rglob("*") if p.name == "__pycache__" or p.suffix == ".pyc"
+            or p.name == ".DS_Store"]
+
+
+def clean_junk(d):
+    import shutil
+    n = 0
+    for p in list(Path(d).rglob("__pycache__")):
+        shutil.rmtree(p, ignore_errors=True)
+        n += 1
+    for p in list(Path(d).rglob("*.pyc")) + list(Path(d).rglob(".DS_Store")):
+        p.unlink(missing_ok=True)
+        n += 1
+    return n
+
+
+def file_index(skills):
+    """basename or stem -> skill name, only when unique across the web (critic_kit.py -> multiuse-critic)."""
+    seen = {}
+    for name, s in skills.items():
+        for p in skill_files(s["dir"]):
+            if p.name in ("SKILL.md", "selftest.py", "__init__.py", "README.md") or p.parent.name == "evals":
+                continue
+            for key in {p.name, p.stem} if p.suffix in (".py", ".md") and len(p.stem) >= 5 else {p.name}:
+                seen.setdefault(key, set()).add(name)
+    return {k: next(iter(v)) for k, v in seen.items() if len(v) == 1}
+
+
+# ---------------------------------------------------------------- versions
+VER_RE = re.compile(r"^## \[(\d+\.\d+\.\d+)\](?: - (\S+))?", re.M)
+
+
+def version_of(d):
+    m = VER_RE.search(read(Path(d) / "CHANGELOG.md"))
+    return (m.group(1), m.group(2) or "") if m else ("0.0.0", "")
+
+
+def bump(ver, part):
+    a, b, c = (int(x) for x in ver.split("."))
+    if part == "major":
+        return f"{a + 1}.0.0"
+    if part == "minor":
+        return f"{a}.{b + 1}.0"
+    return f"{a}.{b}.{c + 1}"
+
+
+# ---------------------------------------------------------------- tools
+def skill_creator():
+    for d in installed_dirs():
+        if d.name == "skill-creator" and (d / "scripts" / "quick_validate.py").exists():
+            return d
+    return None
+
+
+def quick_validate(d):
+    sc = skill_creator()
+    if sc:
+        env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
+        r = subprocess.run([sys.executable, "-m", "scripts.quick_validate", str(d)], cwd=sc, capture_output=True,
+                           text=True, env=env, timeout=60)
+        msg = (r.stdout + r.stderr).strip().splitlines()
+        return r.returncode == 0, (msg[-1] if msg else f"exit {r.returncode}")
+    meta, _ = frontmatter(read(Path(d) / "SKILL.md"))  # fallback: the rules quick_validate enforces
+    desc = meta.get("description", "")
+    if not meta.get("name") or not desc:
+        return False, "missing name or description (fallback validator)"
+    if len(desc) > 1024 or "<" in desc or ">" in desc:
+        return False, "description too long or has angle brackets (fallback validator)"
+    return True, "valid (fallback validator: skill-creator not found)"
+
+
+_BIBLE = {}
+
+
+def bible(root):
+    """(module, Bible) for the web's rr-bible, or (None, None). Honors RR_BIBLE_DIR."""
+    key = str(root)
+    if key in _BIBLE:
+        return _BIBLE[key]
+    script = Path(root) / "rr-bible" / "scripts" / "bible.py"
+    if not script.exists():
+        _BIBLE[key] = (None, None)
+        return _BIBLE[key]
+    spec = importlib.util.spec_from_file_location("rr_bible_for_smith", script)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    canon = Path(os.environ.get("RR_BIBLE_DIR") or script.parent.parent / "canon")
+    try:
+        b = mod.Bible(canon.resolve())
+    except Exception as e:  # a broken bible must not break the smith
+        print(f"warning: rr-bible not loadable ({e})", file=sys.stderr)
+        b = None
+    _BIBLE[key] = (mod, b)
+    return _BIBLE[key]
+
+
+def md_table(headers, rows):
+    out = ["| " + " | ".join(headers) + " |", "|" + "---|" * len(headers)]
+    for r in rows:
+        out.append("| " + " | ".join(str(x).replace("|", "/").replace("\n", " ") for x in r) + " |")
+    return "\n".join(out)
