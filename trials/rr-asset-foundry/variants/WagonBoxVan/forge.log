@@ -1,1 +1,20 @@
 tris: 56 meshes, 1,668 total, 0 over the 10.0k target
+palette: 13 cells exact; 678 faces; 0 span two cells; 0 too close to a cell edge; 0 off-palette
+names: 58 parts, 0 off the <Asset>_<Part>_<Group>_<nn> pattern
+coplanar: 0 overlapping same-facing face pairs
+floating: 0 parts not connected to the ground
+/home/user/claude/rr-asset-foundry/scripts/forge.py:198: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  if hasattr(w, "use_nodes"):
+/home/user/claude/rr-asset-foundry/scripts/forge.py:199: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  w.use_nodes = True
+/home/user/claude/rr-asset-foundry/scripts/forge.py:168: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if hasattr(m, "use_nodes"):
+/home/user/claude/rr-asset-foundry/scripts/forge.py:169: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m.use_nodes = True
+back faces in view Cam_34: none
+back faces in view Cam_POV_3P: none
+00:01.063  cycles           | WARNING CUEW initialization failed: Error opening the library
+00:01.063  cycles           | WARNING HIPEW initialization failed: Error opening HIP dynamic library
+00:01.847  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/variants/WagonBoxVan/renders/thumb.png'
+00:03.013  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/variants/WagonBoxVan/renders/game.png'
+00:06.314  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/variants/WagonBoxVan/renders/pov3p.png'
