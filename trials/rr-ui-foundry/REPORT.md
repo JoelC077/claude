@@ -80,7 +80,7 @@ I only changed `/home/user/claude/rr-ui-foundry/` and `/home/user/claude/trials/
 
 ## Rejected
 - **B2-2 (skins A and B fail AA):** they don't. Those texts are 22–26 px display type, and canon `ui.rules.contrast` requires 3:1 for large text, which both meet. facts.md now prints the bar for each text so a critic isn't misled.
-- **B1-2 (one expanded slot per stack):** it contradicts canon `ui.hud.compact_rule`. I drafted it as an owner question instead.
+- **B1-2 (one expanded slot per stack):** it contradicts canon `ui.hud.compact_rule`. I drafted it as an owner question instead (now OQ-047).
 - **B6-3's nav fix:** two controls sharing one neighbour can't both mirror it. I removed the noise instead.
 - **B2-1's type-size bumps:** own fit keeps the approved ticket sizes; only the badge changed.
 - **B3-1's 68 px header and B3-2's 20 px gap:** either would push the panel past the notched phone's height. I used 64 px and 16 px.
@@ -115,12 +115,15 @@ I only changed `/home/user/claude/rr-ui-foundry/` and `/home/user/claude/trials/
 
 ## Needs owner
 1. **rr-mission-control** should route UI work to rr-ui-foundry; its maintainer has to add that.
-2. **Two question drafts** (dry-run, not recorded), in `/home/user/claude/trials/rr-ui-foundry/oq-drafts.txt`:
-   - OQ-041: Players chips 1/2/3 vs `gameplay.crew.max` 6.
-   - OQ-042: one expanded HUD slot (critic B1-2) vs canon.
+2. **Two question drafts** (dry-run here; recorded 2026-09-28 by the bible reconcile), in `/home/user/claude/trials/rr-ui-foundry/oq-drafts.txt`:
+   - OQ-046 (draft OQ-041): Players chips 1/2/3 vs `gameplay.crew.max` 6.
+   - OQ-047 (draft OQ-042): one expanded HUD slot (critic B1-2) vs canon.
 3. **Kit changes to confirm:**
    - badge 16 → 18 px (16 is below canon's minimum text size on notched phones)
    - the new selected-chip look and the `cta` button
    - the panel header and seam
    - skin B's pressed accent colour
 4. **OQ-001 is still open;** skin C is in use as the assumed default.
+
+## Independent certification after fixes
+Fresh critic on the fixed re-trial: overall 7 ({'B1': 7, 'B2': 7, 'B3': 7, 'B4': 7, 'B5': 7, 'B6': 7}); 6 blocks-8 issues. Verdict saved at /home/user/claude/trials/rr-ui-foundry/retrial/crit/pass-1/verdict.md.

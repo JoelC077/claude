@@ -9,7 +9,7 @@ import _rolling as R
 FAMILY = "wagon"
 DESC = "Freight wagons (flat with crates, open coal wagon, box van, oval tank) on two axles or bogies."
 TAGS = ["wagon", "freight", "truck", "van", "tank", "coal", "flatbed", "rolling stock", "train"]
-OPEN = ["OQ-025"]          # exterior livery undecided: every colour here is assumed
+OPEN = ["OQ-025", "OQ-045"]  # livery undecided (every colour is assumed); where wagons appear undecided
 PARAMS = {
     "kind": ("choice", "open", ["flat", "open", "box", "tank"], "body type"),
     "length": ("float", 30.0, 16, 64, "over the buffer beams, studs"),
@@ -58,14 +58,14 @@ VIEW = {"stage": "track", "ground": "style.ground.pasture",
         "features": ["BufferHead", "Door", "DoorStrap", "Strap", "EndStrap", "Cap", "Side", "Repair", "Lump", "Wheel",
                      "Axlebox", "LadderRung", "Dome", "Stanchion", "Tape"],
         "premise": "siding",
-        "premises": {   # where the player sees a wagon; canon has no wagons in the crew train (question drafted, design-notes.md)
-            "siding": "ASSUMED, not canon yet (the owner decides): yard dressing on the marshalling-yard sidings "
+        "premises": {   # where the player sees a wagon; canon has no wagons in the crew train (OQ-045)
+            "siding": "ASSUMED (OQ-045 default A; the owner decides): yard dressing on the marshalling-yard sidings "
                       "(world.prefabs.15, world.biomes.mvp_forks), seen from the coach on the running line "
                       "(gameplay.train.layout, gameplay.train.keep_on) at the siding spacing of world.prefabs.15 while "
                       "the world scrolls past (D-002); seen in motion, so style.dont.hairlines applies.",
-            "lobby": "ASSUMED, not canon yet: Depot Lobby yard dressing, seen on foot at walking distance.",
+            "lobby": "ASSUMED (OQ-045 option B): Depot Lobby yard dressing, seen on foot at walking distance.",
             "coupled": "CONTRADICTS canon (gameplay.train.layout is cab + coach; D-013 no tender car): only if the "
-                       "owner puts wagons in the crew's train; seen from the next vehicle's end platform."},
+                       "owner picks OQ-045 option C (wagons in the crew's train); seen from the next vehicle's end platform."},
         "nums": {"siding": "@world.prefabs.15#1"},      # running line to siding centres (its note's second number)
         "rules": [R.RUNG_RULE]}
 OPTIONS = {"merge": "none", "collide": True, "lod": False}

@@ -620,9 +620,9 @@ Tiers: 1 fail, 2 crisis, 3 commit, 4 reward, 5 ui. A lower tier never outshouts 
 *actions · tier 3 (commit) · plays for: all*
 
 - **Intent:** the train digs in: everyone lurches forward, the wheels judder through the floor, then the view settles
-- **Trigger:** the server starts a brake harder than the station brake: the communication-cord emergency stop or the driver's brake at a pressure redline (OQ-037 default A); Feel.setSpeed keeps following Speed down, so the rumble fades as it stops
+- **Trigger:** the server starts a brake harder than the station brake: the communication-cord emergency stop or the driver's brake at a pressure redline (OQ-043 default A); Feel.setSpeed keeps following Speed down, so the rumble fades as it stops
 - **Canon:** `gameplay.run.brake_formula` = Speed = math.min(Speed, math.sqrt(2 * BRAKE * distanceToStop)); `identity.pillars.stable_train` = the train never moves; the world scrolls, so players stand on it with zero jitter
-- **Open:** OQ-037 (default in use; label 'assumed (OQ-037 default)'); OQ-018 (default in use; label 'assumed (OQ-018 default)')
+- **Open:** OQ-043 (default in use; label 'assumed (OQ-043 default)'); OQ-018 (default in use; label 'assumed (OQ-018 default)')
 
 | start s | end s | channel | target | what |
 |---|---|---|---|---|

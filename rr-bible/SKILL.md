@@ -5,7 +5,7 @@ description: "Risky Rails single source of truth (JARVIS canon): every fact abou
 
 # RR Bible
 
-The canon for Risky Rails: about 660 sourced facts, 25 open questions and 22 dated decisions, harvested 2026-09-28 from the owner's Drive docs, claude.ai artifacts, past missions and the existing skills. Other skills read slices of it, never whole files, and never restate it.
+The canon for Risky Rails: about 730 sourced facts, 56 open questions and 22 dated decisions (`bible lint` prints the live counts), harvested 2026-09-28 from the owner's Drive docs, claude.ai artifacts, past missions and the existing skills. Other skills read slices of it, never whole files, and never restate it.
 
 Paths: `<bible>` = this skill's folder: `dirname "$(find ~/.claude/skills /home/user -maxdepth 5 -path '*rr-bible/SKILL.md' 2>/dev/null | head -1)"`. Script: `python3 <bible>/scripts/bible.py` (below: `bible`). Canon files: `<bible>/canon/*.md`. `RR_BIBLE_DIR` or `--canon` points it at another copy.
 
@@ -56,7 +56,7 @@ Full grammar, block formats and how to add a domain file: `references/format.md`
 ## Record canon (write through the script, never by hand-editing lines)
 
 1. **A new measured or sourced fact:** `bible add-fact tech.units.coach_len 44 --src "owner 2026-09-30" --status measured --note "measured in Studio"`. Existing key: add `--replace`. New section: add `--title`. Numbers that files must never contradict: add `--check 'REGEX with (\d+)'`.
-2. **Missing or undecided canon:** `bible add-question "Coach length?" --option "A: 44 studs" --option "B: 48 studs" --default "A (fits the station platform)" --src DS --affects tech.units.train_len`. Always give a default so work can proceed; label that work "assumed (OQ-nnn default)".
+2. **Missing or undecided canon:** `bible add-question "Coach length?" --option "A: 44 studs" --option "B: 48 studs" --default "A (fits the station platform)" --src DS --affects tech.units.train_len`. Always give a default so work can proceed; label that work "assumed (OQ-nnn default)". A run that may not write canon (trial, parallel lanes) uses `--dry-run` and cites a placeholder its skill accepts (e.g. `OQ-TBD-<slug>`), never the number the dry run prints: parallel writers take it first.
 3. **The owner decides:** `bible decide OQ-003 C --by owner --via "chat 2026-09-30"`. Only the owner decides; any other `--by` is refused. It moves the block to decisions.md with the date and prints the affected fact keys: update each with `add-fact ... --status canon --src "owner DATE" --replace`.
 4. **A new source:** add a line to `canon/sources.md`: `` - `ID` — title | date | where ``.
 5. After any write: `bible lint` (must print `lint OK`).
@@ -83,7 +83,7 @@ On FAIL: switch to the token; or, for a deliberate one-off, `--allow HEX` and sa
 
 ## What is open right now
 
-`bible get questions` lists all 25 with defaults. The ones most likely to bite: OQ-001 HUD skin (heritage brass vs teal-cream/mustard livery, the owner's call), OQ-002 company name, OQ-003 currency naming, OQ-004/OQ-005 trip length and studs per mile, OQ-006..OQ-008 lever rules, OQ-010 Robux in the terminal vs "never sell odds", OQ-020 unreachable project docs, OQ-025 train exterior livery.
+`bible get questions` lists them all with defaults. The ones most likely to bite: OQ-001 HUD skin (heritage brass vs teal-cream/mustard livery, the owner's call), OQ-002 company name, OQ-003 currency naming, OQ-004/OQ-005 trip length and studs per mile, OQ-006..OQ-008 lever rules, OQ-010 Robux in the terminal vs "never sell odds", OQ-020 unreachable project docs, OQ-025 train exterior livery, OQ-048..OQ-056 the economy numbers (fare split, starting coins, base fare, packs, prices).
 
 ## Honest limits
 

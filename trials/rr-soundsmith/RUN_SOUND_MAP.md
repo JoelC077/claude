@@ -4,7 +4,7 @@ Generated from src/sound/soundmap.json + export/sound/SOUND_SPEC.md. Level = in-
 
 ## Lobby (Depot Lobby place)
 
-Mix: no ducking; lobby_bed is the only loop; open question lobby-audio (pending:lobby-audio, not yet in rr-bible) default A: no music
+Mix: no ducking; lobby_bed is the only loop; open question OQ-044 (lobby audio) default A: no music
 
 | event | via | action | sound | tier | group | space | level | Volume |
 |---|---|---|---|---|---|---|---|---|

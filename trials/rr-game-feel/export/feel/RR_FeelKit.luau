@@ -76,7 +76,7 @@ function Kit.leverCommitCrew(side: Side): Handle
 	return Feel.play("lever_commit_crew", { side = side })
 end
 
--- Hard brake, every client, as the server starts the stop (OQ-037 default: cord emergency stop or the redline
+-- Hard brake, every client, as the server starts the stop (OQ-043 default: cord emergency stop or the redline
 -- brake). Keep calling setSpeed while Speed falls so the rumble fades with it.
 function Kit.hardBrake(): Handle
 	return Feel.play("hard_brake")

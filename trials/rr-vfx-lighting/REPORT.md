@@ -144,3 +144,6 @@ Files are in `/home/user/claude/rr-vfx-lighting/`:
 - design-notes.md
 
 The re-trial board is `/home/user/claude/trials/rr-vfx-lighting/retrial/preview/board/`.
+
+## Independent certification after fixes
+Fresh critic on the fixed re-trial: overall 4 ({'F1': 4, 'F2': 6, 'F3': 5, 'F4': 5, 'F5': 6, 'F6': 6}); 9 blocks-8 issues. Verdict saved at /home/user/claude/trials/rr-vfx-lighting/retrial/crit/pass-1/verdict.md.

@@ -696,7 +696,8 @@ def cmd_add_question(b, a):
     block.append(f"- blocks: {a.blocks.strip() if a.blocks else 'none'}")
     text = "\n".join(block)
     if a.dry_run:
-        print("(dry run)\n" + text)
+        print(f"(dry run: {oid} is provisional; parallel writers may take it first. Cite a placeholder such as "
+              "OQ-TBD-<slug> until it is recorded, then cite the number the real run prints)\n" + text)
         return 0
     synced_warning(b)
     p = b.root / "open-questions.md"

@@ -522,7 +522,7 @@
       "group": "actions", "priority": 3, "who": "all",
       "trigger": "the server starts a brake harder than the station brake: the communication-cord emergency stop or a redline brake; Feel.setSpeed keeps following Speed down, so the rumble fades as it stops",
       "intent": "the train digs in: everyone lurches forward, the wheels judder through the floor, then the view settles",
-      "canon": ["gameplay.run.brake_formula", "identity.pillars.stable_train"], "oq": ["OQ-TBD-hard-brake", "OQ-018"],
+      "canon": ["gameplay.run.brake_formula", "identity.pillars.stable_train"], "oq": ["OQ-043", "OQ-018"],
       "channels": [
         {"type": "camkick", "angles_deg": [-0.7, 0, 0], "freq_hz": 1.8, "damping": 0.55, "dur": 1.2,
          "note": "delivered 0.7 deg: the view dips forward (Roblox: - pitch looks down)"},

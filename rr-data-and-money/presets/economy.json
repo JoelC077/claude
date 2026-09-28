@@ -22,16 +22,16 @@
   "engaged_hours": {"v": 12, "assumed": "canon pacing runs through hour 10"}
  },
  "difficulty": {
-  "Easy": {"fare_full": {"v": 1700, "assumed": "fare banked by an arriving crew member; calibrated by sweep so loco 2 lands in about 2 runs (gameplay.progress.first_unlock)"},
+  "Easy": {"fare_full": {"v": 1700, "assumed": "fare banked by an arriving crew member; calibrated by sweep so loco 2 lands in about 2 runs (gameplay.progress.first_unlock); OQ-050 default A"},
            "p_arrive": {"v": 0.65, "assumed": "arrival chance; overall completion is checked against release.kpi.completion"},
            "kit": {"v": {"coal": 1, "sandwich": 1}, "assumed": "supplies ordered per train per run (one Depotron order at a time, gameplay.supplies.one_order)"}},
-  "Medium": {"fare_full": {"v": 2100, "assumed": "+25% per step like the trip miles (gameplay.difficulty.trip_miles)"},
+  "Medium": {"fare_full": {"v": 2100, "assumed": "+25% per step like the trip miles (gameplay.difficulty.trip_miles); OQ-050 default A"},
              "p_arrive": {"v": 0.55, "assumed": "see Easy"},
              "kit": {"v": {"coal": 2, "sandwich": 1, "toolbox": 0.3}, "assumed": "per train per run"}},
-  "Hard": {"fare_full": {"v": 2650, "assumed": "risky forks pay more (gameplay.fork.risky)"},
+  "Hard": {"fare_full": {"v": 2650, "assumed": "risky forks pay more (gameplay.fork.risky); OQ-050 default A"},
            "p_arrive": {"v": 0.4, "assumed": "see Easy"},
            "kit": {"v": {"coal": 2, "sandwich": 2, "toolbox": 0.6, "medkit": 0.3}, "assumed": "per train per run"}},
-  "Insane": {"fare_full": {"v": 3300, "assumed": "up to x3.0 fork multipliers on Insane (gameplay.fork.risky)"},
+  "Insane": {"fare_full": {"v": 3300, "assumed": "up to x3.0 fork multipliers on Insane (gameplay.fork.risky); OQ-050 default A"},
              "p_arrive": {"v": 0.25, "assumed": "see Easy"},
              "kit": {"v": {"coal": 3, "sandwich": 2, "toolbox": 1, "medkit": 0.6}, "assumed": "per train per run"}}
  },
@@ -46,10 +46,10 @@
  "failed_trip": {"option": "A", "question": "OQ-011", "_options": "A pays the banked fare, B pays nothing, C pays banked minus penalty",
                  "banked_share": {"v": [0.2, 0.8], "assumed": "share of the run's fare already banked at stations when it fails"},
                  "penalty": {"v": 0.5, "assumed": "option C only"}},
- "fare_split": {"v": "each_full", "assumed": "each crew member banks the full crew fare (no canon; proposed open question)"},
- "kit_paid": {"v": "split", "assumed": "the kit is per train; whoever orders pays, so each player pays kit / crew_mean on average ('each' = every player pays the whole kit)"},
+ "fare_split": {"v": "each_full", "assumed": "each crew member banks the full crew fare (OQ-048 default A)"},
+ "kit_paid": {"v": "split", "assumed": "the kit is per train; whoever orders pays, so each player pays kit / crew_mean on average ('each' = every player pays the whole kit); OQ-055 default A"},
  "crew_mean": {"v": 3, "assumed": "mean crew size (up to 6 per train); replace with live crew counts from the run_end crew field"},
- "start_coins": {"v": 0, "assumed": "no canon; the petty-cash float is superseded (economy.currency.float)"},
+ "start_coins": {"v": 0, "assumed": "OQ-049 option A, kept to show the gap; its default B is a welcome grant of about 100 (set 100 to model it); the petty-cash float is superseded (economy.currency.float)"},
  "prices": {
   "coal": {"v": 40, "canon": "economy.supplies.coal"},
   "toolbox": {"v": 120, "canon": "economy.supplies.toolbox"},
@@ -61,10 +61,10 @@
               "falls_per_run": {"v": 0.3, "assumed": "players falling off per run"}},
  "unlocks": [
   {"id": "loco_2", "price": {"v": 2500, "canon": "gameplay.progress.first_unlock"}},
-  {"id": "loco_3", "price": {"v": 10000, "assumed": "set for about 2 h after loco 2 (gameplay.progress.pacing)"}},
-  {"id": "loco_4", "price": {"v": 12000, "assumed": "about 2 h later"}},
-  {"id": "loco_5", "price": {"v": 14000, "assumed": "about 2 h later; 5 locomotives at 1.0 (gameplay.progress.ladder)"}},
-  {"id": "line_2", "price": {"v": 16000, "assumed": "second line (gameplay.progress.ladder), about hour 8-10"}}
+  {"id": "loco_3", "price": {"v": 10000, "assumed": "set for about 2 h after loco 2 (gameplay.progress.pacing); OQ-052 default A"}},
+  {"id": "loco_4", "price": {"v": 12000, "assumed": "about 2 h later; OQ-052 default A"}},
+  {"id": "loco_5", "price": {"v": 14000, "assumed": "about 2 h later; 5 locomotives at 1.0 (gameplay.progress.ladder); OQ-052 default A"}},
+  {"id": "line_2", "price": {"v": 16000, "assumed": "second line (gameplay.progress.ladder), about hour 8-10; OQ-052 default A"}}
  ],
  "double_fare": {"price_rs": {"v": 299, "canon": "economy.passes.double_fare"}, "mult": {"v": 2, "canon": "economy.passes.double_fare", "in": "note"}},
  "fare_packs": [

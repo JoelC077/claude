@@ -255,8 +255,14 @@ def main(argv=None):
         code, out = run(S, "validate", "--release", presets=pre)
         ok(code == 1 and "release: lever_clunk is placeholder" in out and "or set its stage to siding" in out,
            "validate --release fails on placeholders and on unassigned alpha sounds once audio exists")
+        sm = json.loads((pre / "soundmap.json").read_text())
+        sm["meta"]["pending_oq"]["test-q"] = {"title": "Selftest pending question?", "options": ["A: yes", "B: no"],
+                                              "default": "A (test)", "affects": "av.audio.pack"}
+        sm["sounds"]["whistle"]["oq"] = sm["sounds"]["whistle"].get("oq", []) + ["pending:test-q"]
+        (pre / "soundmap.json").write_text(json.dumps(sm, indent=2))
         code, out = run(S, "oq", presets=pre)
-        ok(code == 0 and "OQ-035" in out and "add-question" in out, "oq lists cited questions and the pending add-question command")
+        ok(code == 0 and "OQ-035" in out and "add-question" in out and "pending:test-q" in out,
+           "oq lists cited questions and the pending add-question command")
         code, out = run(S, "promote", "--from", pre, "--to", tmp / "home")
         ok(code == 0 and json.loads((tmp / "home" / "assets.json").read_text()).get("lever_clunk"), "promote copies the register home")
         code, out = run(S, "where", env={"RR_SOUND_HOME": str(tmp / "home")})

@@ -13,7 +13,7 @@ for line in open(sys.argv[2]):
         rows.setdefault(c[1], []).append(c[1:])
 PHASES = [
     ("Lobby (Depot Lobby place)", ["lobby_enter", "queue_join", "queue_leave", "queue_countdown_tick", "queue_launch", "lobby_leave"],
-     "no ducking; lobby_bed is the only loop; open question lobby-audio (pending:lobby-audio, not yet in rr-bible) default A: no music"),
+     "no ducking; lobby_bed is the only loop; open question OQ-044 (lobby audio) default A: no music"),
     ("Departure", ["trip_start", "depart"], "wheels_loop follows Speed 0 -> Normal over ~5 s (gameplay.run.depart) when game code calls Sound.setSpeed every frame of the ramp; silent below 1.5 studs/s"),
     ("Junction", ["alert_junction_ahead", "fork_countdown_tick", "lever_commit", "lever_commit_crew", "alert_risky_route"],
      "duck `fork` (countdown_tick, lever_clunk, junction_beep): Ambient -5, Music -6 dB"),

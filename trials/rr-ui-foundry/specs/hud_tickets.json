@@ -6,7 +6,7 @@
   "design": {"device": "phone"},
   "gui": {"display_order": 20, "insets": "CoreUISafeInsets"},
   "canon": ["ui.hud.anchor", "ui.hud.max_visible", "ui.hud.gap_px", "ui.hud.compact_rule", "ui.hud.crisis_extra", "ui.hud.motion", "gameplay.alerts.transport"],
-  "oq": ["OQ-001", "OQ-003", "OQ-012", "OQ-034"],
+  "oq": ["OQ-001", "OQ-003", "OQ-012", "OQ-034", "OQ-047"],
   "icons": "../icons",
   "nodes": [
     {"id": "stack", "type": "stack", "rect": [540, 58, 290, 220], "pin": "br", "avoid": ["jump"],

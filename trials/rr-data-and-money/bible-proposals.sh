@@ -5,6 +5,12 @@
 #   bash bible-proposals.sh --canon DIR  # a copy, for a dry run
 # Source RBXM = Roblox creator-docs pages read on 2026-09-28 from github:Roblox/creator-docs (raw files).
 set -euo pipefail
+# APPLIED 2026-09-28 by the rr-bible reconcile (checked against canon first): source RBXM (+ DAM for this skill),
+# the 14 platform facts below, the odds-rule note D-008 -> D-007, and the questions as OQ-048 fare split,
+# OQ-049 starting coins (both starting-coins drafts merged), OQ-050 base fare, OQ-051 largest fare pack,
+# OQ-052 loco 3-5 + Line 2 prices, OQ-053 Auto Stoker, OQ-054 Toolbelt, OQ-055 who pays for supplies.
+# Replaying would duplicate the questions, so the script stops here. Kept as the record of what was proposed.
+echo "bible-proposals.sh: already applied to rr-bible on 2026-09-28 (OQ-048..OQ-055); nothing to do"; exit 0
 BIBLE_DIR="${RR_BIBLE_SKILL:-$(dirname "$(find /home/user ~/.claude/skills -maxdepth 5 -path '*rr-bible/SKILL.md' 2>/dev/null | grep -v synced | head -1)")}"
 CANON_ARGS=()
 if [[ "${1:-}" == "--canon" ]]; then CANON_ARGS=(--canon "$2"); CANON_DIR="$2"; else CANON_DIR="$BIBLE_DIR/canon"; fi

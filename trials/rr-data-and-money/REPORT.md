@@ -99,6 +99,7 @@ Inputs were FRICTION.md (23 items) and two independent reviews, which scored the
   - Three platform facts are added: funnel rules, pass grant, Roblox Experiments.
   - Two open questions are added: who pays for supplies, and starting coins.
   - It was dry-run on a copy of canon and lint passed; real canon was not written.
+  - Applied to the real rr-bible on 2026-09-28 by the reconcile (the two starting-coins drafts merged): OQ-048..OQ-055; the mission draft is OQ-056.
 
 ## Re-trial of the changed parts (trial inputs, outputs in the scratchpad)
 - **Mission hooks (`luatest --src`):** 27/34. It now catches the trial's real bugs: the 40/min server budget, `crateResolved` crediting the wrong player, missing hooks, and the old `unlockBought`.

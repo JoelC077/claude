@@ -1,6 +1,9 @@
+RECORDED 2026-09-28 by the bible reconcile: the first draft below is OQ-046 and the second is OQ-047 in rr-bible
+(the draft numbers OQ-041/OQ-042 went to rr-exploit-guard and rr-release-train). Kept as the dry-run record.
+
 (number assigned by bible.py at record time; siblings are adding OQs in parallel, so OQ-041 may shift)
 (dry run)
-### OQ-041 · Create match: what do the Players chips choose, and how many?
+### OQ-046 (draft OQ-041) · Create match: what do the Players chips choose, and how many?
 - status: open
 - raised: 2026-09-28
 - src: DTU
@@ -14,7 +17,7 @@
 - blocks: lobby UI
 
 (dry run, rr-ui-foundry fix pass 2026-09-28; number assigned at record time)
-### OQ-042 · HUD: one expanded slot per stack, or newest and newest crisis both full size?
+### OQ-047 (draft OQ-042) · HUD: one expanded slot per stack, or newest and newest crisis both full size?
 - status: open
 - raised: 2026-09-28
 - src: UIF

@@ -37,7 +37,7 @@ mkdir -p "$M/sheets"; cd "$M/sheets"
 python3 "$CS" kit_curves_1_lever.png "lever drag: finger to knob, detent 70%, snap, snapback=$PL/lever.png" \
   "lever_commit (actor, signature)=$PL/lever_commit.png" "lever_detent_tick=$PL/lever_detent_tick.png" \
   "lever_snapback=$PL/lever_snapback.png" "lever_commit_crew (other clients)=$PL/lever_commit_crew.png" --tile 740x228 | sed -n 1p
-python3 "$CS" kit_curves_2_brake_crate_fare.png "hard_brake (OQ-037 default)=$PL/hard_brake.png" \
+python3 "$CS" kit_curves_2_brake_crate_fare.png "hard_brake (OQ-043 default)=$PL/hard_brake.png" \
   "alert_crate_landed=$PL/alert_crate_landed.png" "alert_fare_banked=$PL/alert_fare_banked.png" \
   "sustain: speed rumble fades as the brake drops Speed=$PL/sustain.png" "easing styles (used ones marked)=$PL/easing.png" --tile 740x228 | sed -n 1p
 python3 "$CS" kit_curves_3_crisis.png "hud_crisis_arrival (every crisis: ticket shake, halo)=$PL/hud_crisis_arrival.png" \

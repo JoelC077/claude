@@ -36,7 +36,7 @@ Cloud: headless bpy 5.0, Cycles CPU only (renders are the slow part), no Studio:
 - **Critic lessons in the wagon family**: straps 1.3 x 0.3 and end straps 1.5 x 0.3 (foreshortened 3/4 view), two-peak heightfield coal 2.75 above the sides with bigger lumps, light cap rails, whole replaced planks instead of red-oxide patches, gap-free deck, outside-frame running gear with wheel_r 2.0.
 
 ## Pending, owner-gated (not done from this session: it may write only its own folder)
-**rr-bible question** (a question, not a decision; the family labels the premise ASSUMED until it exists). Dry-run OK (would be OQ-042 today):
+**rr-bible question**: recorded 2026-09-28 by the bible reconcile as **OQ-045** (default A, siding dressing) and added to wagon.py `OPEN`; the premises cite it. The command as drafted:
 ```
 python3 <rr-bible>/scripts/bible.py add-question "Where do freight wagons appear, and how does the player see them?" \
   --option "A: yard dressing on the marshalling-yard sidings (world.prefabs.15), seen from the coach at the siding spacing while the world scrolls" \
@@ -45,7 +45,7 @@ python3 <rr-bible>/scripts/bible.py add-question "Where do freight wagons appear
   --default "A (the only canon place for sidings; the train is cab + coach)" --src FDY --affects world.prefabs.15 \
   --blocks "rr-asset-foundry wagon POV premise and critic brief"
 ```
-Then add the new OQ id to wagon.py `OPEN`. Related: OQ-030 option on whether yard wagons use the coach width (17.4 on gauge 8).
+Related: OQ-030 option on whether yard wagons use the coach width (17.4 on gauge 8).
 
 **rr-mission-control patch** (its SKILL.md; the link is one-sided today):
 - Step 4: "For each 3D deliverable run `<foundry> list --match`; a match makes the maker's order `foundry.py make <family> --preset .. --set ..` (params in the order file)."

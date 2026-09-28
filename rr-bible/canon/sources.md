@@ -40,6 +40,7 @@ Every fact's `src:` field cites one or more IDs below (or `owner YYYY-MM-DD` for
 - `FEEL` — rr-game-feel presets, feel specs and preview measurements (Claude-authored juice presets, proposed) | 2026-09-28 | repo:rr-game-feel/presets/feel.json
 - `UIF` — rr-ui-foundry kit: device frames, skins (role -> token maps for the OQ-001 options), component templates, layout rule (Claude-authored, proposed) | 2026-09-28 | repo:rr-ui-foundry/design-notes.md
 - `SND` — rr-soundsmith design notes, soundmap and file standard (Claude-authored audio proposals, proposed) | 2026-09-28 | repo:rr-soundsmith/design-notes.md
+- `DAM` — rr-data-and-money economy sim, money gate and presets (Claude-authored economy proposals, proposed) | 2026-09-28 | repo:rr-data-and-money/presets/economy.json
 
 ## missions · past real missions (renders, ledgers, friction logs)
 - `DEPM` — mission 260927-depot-buildings (Depot + Main Hall, self-assessed 8/10) | 2026-09-27 | repo:missions/260927-depot-buildings
@@ -55,6 +56,7 @@ Every fact's `src:` field cites one or more IDs below (or `owner YYYY-MM-DD` for
 - `WCAG` — W3C WCAG 2.2 success criterion 2.3.1 Three Flashes or Below Threshold | 2023-10-05 | https://www.w3.org/TR/WCAG22/#three-flashes-or-below-threshold
 - `RBXOC` — Roblox Creator Docs Open Cloud: cloud/guides/usage-place-publishing.md, reference/cloud/universes-api/v1.json (Publish a Place, x-roblox-size-limit), cloud v2 OpenAPI (Luau execution session tasks, Universe restartServers), cloud/auth/api-keys.md, read from the GitHub mirror Roblox/creator-docs | fetched 2026-09-28 | github:Roblox/creator-docs/content/en-us (cloud)
 - `RT` — rr-release-train design notes and presets (Claude-authored release process proposals, proposed) | 2026-09-28 | repo:rr-release-train/design-notes.md
+- `RBXM` — Roblox Creator Docs analytics + monetization: production/analytics (event-types, custom-events, funnel-events, economy-events, experiments, configs), reference AnalyticsService, MarketplaceService, PolicyService; production/monetization (index, developer-products, subscriptions, price-optimization, paid-random-items, roblox-plus, engagement-based-payouts), creator-rewards.md, production/publishing/thumbnails.md, read from the GitHub mirror Roblox/creator-docs; spot-checked 2026-09-28 by the bible reconcile | fetched 2026-09-28 | github:Roblox/creator-docs/content/en-us
 
 ## unreachable · known canon the cloud session could not read (see OQ-020)
 - `VID` — Visual Identity doc (palette, materials, patched palisade fence, depot dressing checklist) | 2026-09-09 | claude.ai project Risky Rails (not reachable from cloud)

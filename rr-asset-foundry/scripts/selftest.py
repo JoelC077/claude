@@ -115,7 +115,7 @@ def main():
         for f in fams:
             assert "presets:" in run("show", f)
         o = run("show", "wagon")
-        assert "OQ-030" in o and "premises" in o and "siding" in o, o[-400:]
+        assert "OQ-030" in o and "OQ-045" in o and "premises" in o and "siding" in o, o[-400:]
 
     def t_plan():
         for f, presets in fams.items():

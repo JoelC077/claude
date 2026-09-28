@@ -60,10 +60,10 @@ loop is seamless. `len` must sit inside the class length; validate checks the sp
 
 ## Pending open questions (`meta.pending_oq`)
 ```json
-"pending_oq": {"lobby-audio": {"title": "...?", "options": ["A: ...", "B: ..."], "default": "A (why)",
-  "context": "...", "affects": "av.audio.pack", "blocks": "rr-soundsmith lobby_bed"}}
+"pending_oq": {"station-chime": {"title": "...?", "options": ["A: ...", "B: ..."], "default": "A (why)",
+  "context": "...", "affects": "av.audio.pack", "blocks": "rr-soundsmith station_chime"}}
 ```
-A sound cites it as `"oq": ["pending:lobby-audio"]`. `sound.py oq` prints the `bible.py add-question` command; once it
+A sound cites it as `"oq": ["pending:station-chime"]`. `sound.py oq` prints the `bible.py add-question` command; once it
 is recorded, replace the citation with the printed OQ number and delete the entry.
 
 ## assets.json (script-written)

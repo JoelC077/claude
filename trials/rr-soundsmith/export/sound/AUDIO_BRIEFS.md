@@ -96,7 +96,7 @@ Generated 2026-09-28 from soundmap.json and canon; 29 sounds in phase order; for
 - **Phones:** loses at most 8 dB on a phone speaker: keep energy in 0.5-4 kHz.
 - **Avoid:** music (open question lobby-audio, default A: no music), crowd walla, city traffic, night crickets or wind howl (horror-adjacent).
 - **Canon:** `world.names.lobby`: Depot Lobby · `world.lobby.display_track`: 32 x 6 at (14,70) · `world.lobby.lamps`: (23,28) (37,28) (23,47) (37,47) · `identity.tone.company`: an incompetent train company: under-resourced but still operating; slapstick safety failures, not grim horror
-- **Open:** pending:lobby-audio (Lobby audio: music bed or diegetic depot ambience?) default A: diegetic Depot Lobby bed only (resting loco breathing, lamp buzz, birds), no music, lik
+- **Open:** OQ-044 (Lobby audio: music bed or diegetic depot ambience?) default A: diegetic Depot Lobby bed only (resting loco breathing, lamp buzz, birds), no music, lik
 
 ## whistle · depart · tier 4 · Actions · oneshot · unassigned
 

@@ -77,6 +77,7 @@ Units, avatar and camera, mesh budgets, import/export pitfalls, lighting and mat
 - `tech.security.one_crate` = `each order spawns exactly one crate; double taps must not duplicate` | src: R2A | canon
 - `tech.security.fare_grants` = `anti-exploit on fare grants; server-authoritative gameplay with client-side smoothing` | src: PLAN | canon
 - `tech.security.admin` = `admin commands only for the owner's UserId: skip to mile N, arrive now, force event/route/fail, send everyone home, 4x speed` | turn debug off before launch | src: R2A, LPB | canon
+- `tech.security.receipt_handler` = `MarketplaceService:BindReceiptHandler (per-product filter, Enum.ReceiptDecision) is the newer alternative to ProcessReceipt; bound handlers take precedence` | src: RBXM | platform
 
 ## ui_platform · Roblox UI platform facts
 - `tech.ui_platform.phone` = `844 x 390` | phone landscape, primary, judged at true size | src: PROF, HUDM | canon
@@ -148,3 +149,11 @@ Units, avatar and camera, mesh budgets, import/export pitfalls, lighting and mat
 - `tech.audio.local_playback` = `SoundService.RespectFilteringEnabled defaults to true: Play() from a LocalScript is heard only on that client` | src: RBXAU | platform
 - `tech.audio.ducking_api` = `CompressorSoundEffect.SideChain ducks its group while the linked Sound or SoundGroup plays (Threshold -80..0 dB, Ratio 1..50, Attack, Release)` | src: RBXAU | platform
 - `tech.audio.distance_factor` = `3.33` | SoundService.DistanceFactor default, studs per metre, used only for Doppler; 1/tech.units.stud_m gives 3.57 | src: RBXAU | platform
+
+## analytics · Analytics platform facts
+- `tech.analytics.server_only` = `AnalyticsService events only from the server in published games; never from the client or Studio` | RR_Analytics prints instead of sending in Studio | src: RBXM | platform
+- `tech.analytics.rate_limit` = `120 + 20 x CCU AnalyticsService requests per minute` | limits reset daily; scope (per server or experience) not stated; RR_Analytics spends at most 20 x a server's players, which sums to 20 x CCU | src: RBXM | platform
+- `tech.analytics.limits` = `3 custom fields (8,000 combined values, then Other); 10 funnels x 100 steps; 100 custom event names; 20 transaction types and 100 SKUs (then Other)` | currencies: 10 in the guide, 5 in the API reference: use one (Coins) | src: RBXM | platform
+- `tech.analytics.delay` = `charts populate within about 24 h; events roll off 90 days after the last data` | src: RBXM | platform
+- `tech.analytics.funnel_rules` = `funnels are per player; a step logged without the earlier steps marks them complete; a repeated step counts once; recurring funnels keep a player's 10 most recent funnelSessionIds` | a missing hook reads as 100% pass-through, not as zero (production/analytics/funnel-events.md) | src: RBXM | platform
+- `tech.analytics.experiments` = `Roblox Experiments: in-game A/B tests of Config values read with ConfigService:GetConfigForPlayerAsync; 14-60 days; a control and up to 2 variants; the config key is locked while it runs; results per variant with CIs: D1, D7, playtime, ARPU, ARPPU, payer conversion, session time` | Roblox: games under 1,000 DAU struggle to get useful data (production/experiments.md, configs.md) | src: RBXM | platform

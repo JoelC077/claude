@@ -19,7 +19,7 @@ Robux to money: earned R$ = price x `economy.platform.creator_share`; USD = earn
 per-user purchase history for developer products: save grants in the profile.
 
 ## Value ladder (what a healthy catalogue looks like)
-- Entry item at or under 99 R$ that is identity (a livery, a horn): the first purchase is the hardest.
+- Entry item at or under 99 R$ that is identity (a livery, a horn): the first purchase is the hardest (at launch: OQ-056).
 - One core time item (Double Fare) priced mid-ladder and shown once, at a proud moment (results after the best
   run so far, canon `economy.passes.double_fare`).
 - A status anchor above it (First Class) so the core item reads as the sensible buy.

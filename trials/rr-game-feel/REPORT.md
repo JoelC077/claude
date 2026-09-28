@@ -86,7 +86,7 @@ Inputs were FRICTION.md (17 items) and two independent reviews. All high and med
 
 ## Re-trial (in /home/user/claude/trials/rr-game-feel/retrial)
 - **Old presets, new gates.** Run on the trial's original presets, the new gates flag every issue the reviewers raised: OQ-037, the brake's +1.6 pitch, the invisible crate shake, the lever yaw, the hard brake beating most crises, and unbound canon numbers.
-- **Corrected mission.** The hard brake kick is now −0.7° and cites `OQ-TBD-hard-brake`.
+- **Corrected mission.** The hard brake kick is now −0.7° and cites `OQ-TBD-hard-brake` (recorded as OQ-043 on 2026-09-28; the retrial files now cite OQ-043).
   - `validate --strict` passes.
   - `show` states the truth: the brake is louder than windows_smash and hud_crisis_arrival.
 - **Previews and critic.** One set preview and one critic order of about 3.3k tokens cover all five moments; the trial needed five critic orders.
@@ -108,7 +108,7 @@ Inputs were FRICTION.md (17 items) and two independent reviews. All high and med
 - **rr-soundsmith's cue suggestions (`ui_click`, `ticket_chime`): not applied.** That parity needs both skills to change together.
 
 ## Owner gates
-- **Record the hard-brake question.** Run `bible.py add-question "Hard brake: what fires it and how hard?"` with the options, `--default`, `--src R2A,WR,PLAN,FEEL`, `--affects gameplay.run.brake_formula` and `--dry-run`. Then run it for real, run `lint`, and replace `OQ-TBD-hard-brake` with the new number.
+- **Record the hard-brake question.** Done 2026-09-28 (bible reconcile): OQ-043, default A; the trial and retrial presets cite it.
 - **Studio test** (the list in fidelity.md): pitch and yaw directions as they feel, HUD wiring with the controller's own motion removed, and haptics on a real phone.
 - **Critic pass:** spawn a fresh critic on `retrial/critique-feel-kit/pass-1/critic.md` (handoff route).
 
@@ -116,3 +116,6 @@ Inputs were FRICTION.md (17 items) and two independent reviews. All high and med
 - Skill: `/home/user/claude/rr-game-feel/` (new `scripts/luau_check.py`)
 - Package: `/home/user/claude/dist/rr-game-feel.skill`
 - Re-trial outputs: `/home/user/claude/trials/rr-game-feel/retrial/` (`src/feel/feel.json`, `src/feel/preview/kit/`, `critique-feel-kit/pass-1/critic.md`, `export/feel/`)
+
+## Independent certification after fixes
+Fresh critic on the fixed re-trial: overall 4 ({'G1': 4, 'G2': 6, 'G3': 7, 'G4': 7, 'G5': 7, 'G6': 6}); 9 blocks-8 issues. Verdict saved at /home/user/claude/trials/rr-game-feel/retrial/critique-feel-kit/pass-1/verdict.md.

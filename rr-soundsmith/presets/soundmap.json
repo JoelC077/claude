@@ -10,13 +10,7 @@
     "danger_life_ms": {"v": 7000, "canon": "gameplay.alerts.life_danger_ms"},
     "canon": ["av.audio.priority", "av.audio.slapstick", "av.audio.client_pool", "tech.streaming.sfx_pool", "av.audio.file_standard", "av.audio.licence"],
     "oq": ["OQ-021", "OQ-035", "OQ-036"],
-    "pending_oq": {
-      "lobby-audio": {"title": "Lobby audio: music bed or diegetic depot ambience?",
-        "options": ["A: diegetic Depot Lobby bed only (resting loco breathing, lamp buzz, birds), no music, like OQ-021 A for runs", "B: a light jaunty lobby tune (owner-made or Roblox-licensed) over a quieter bed", "C: decide after the alpha"],
-        "default": "A (zero sourcing or licence work in alpha week; the queue pad bell and guard whistle carry the call to action)",
-        "context": "Canon covers run audio only (av.audio.*; OQ-021 is about runs); the Depot Lobby (world.names.lobby, queue pads gameplay.run.queue_countdown_s) has no audio facts.",
-        "affects": "av.audio.pack", "blocks": "rr-soundsmith lobby_bed"}
-    }
+    "pending_oq": {}
   },
   "platform": {
     "max_mb": {"v": 20, "canon": "tech.audio.import_limits"},
@@ -156,7 +150,7 @@
       "canon": ["av.audio.horn", "release.alpha.sidings"], "oq": ["OQ-021"],
       "brief": {"moment": "the cab Radio button toggles a loop", "must_say": "a crackly, cheerful little station tune", "sounds_like": "a jaunty old-timey jingle through a tinny radio speaker", "layers": ["melody", "bass", "radio band-pass and crackle"], "avoid": "licensed pop songs, anything not owner-made or Roblox-licensed", "len": [8.0, 30.0], "variations": 1}},
     "lobby_bed": {"tier": 6, "group": "Ambient", "class": "loop", "space": "2d", "stage": "alpha", "looped": true,
-      "canon": ["world.names.lobby", "world.lobby.display_track", "world.lobby.lamps", "identity.tone.company"], "oq": ["pending:lobby-audio"],
+      "canon": ["world.names.lobby", "world.lobby.display_track", "world.lobby.lamps", "identity.tone.company"], "oq": ["OQ-044"],
       "brief": {"moment": "while a player is in the Depot Lobby (lobby place; stops before the teleport)", "must_say": "a sleepy, run-down depot where our train is waiting", "sounds_like": "a resting steam loco breathing slow puffs, an iron lantern buzzing, a few distant birds and a creaking sign", "layers": ["slow steam breaths every 3-4 s", "idle rumble 40-200 Hz", "lantern buzz 100/200 Hz", "sparse birds 2-5 kHz"], "avoid": "music (open question lobby-audio, default A: no music), crowd walla, city traffic, night crickets or wind howl (horror-adjacent)", "len": [8.0, 20.0], "variations": 1}},
     "queue_punch": {"tier": 4, "group": "Actions", "class": "oneshot", "space": "2d", "stage": "alpha", "voices": 2, "cooldown": 0.25, "pitch": [0.96, 1.04],
       "canon": ["world.lobby.queue_platform", "gameplay.run.queue_countdown_s"],

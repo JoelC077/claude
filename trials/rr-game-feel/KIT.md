@@ -8,7 +8,7 @@ Everything is "preview", nothing has run in Roblox.
 | moment | events (feel.json) | who | tier | notes |
 |---|---|---|---|---|
 | lever pull | lever drag curve (`lever` section), `lever_detent_tick`, `lever_commit`, `lever_commit_crew`, `lever_snapback` | actor / crew | 3 (commit, signature) | OQ-031 default (drag console), OQ-006 |
-| hard brake | `hard_brake` (new) | all | 3 | assumed (OQ-037 default, sandbox number; see Canon) and OQ-018 A |
+| hard brake | `hard_brake` (new) | all | 3 | assumed (OQ-043 default; sandbox OQ-037 until the 2026-09-28 reconcile) and OQ-018 A |
 | crate landed | `alert_crate_landed` (+ `hud_ticket_enter`) | all | 4 | roof-thump camera kick added |
 | crisis alarm | `hud_crisis_arrival` inside `alert_coal_low`, `alert_pressure_high`, `alert_breakdown`, `alert_passengers_upset` | all | 2 | ticket shake fixed to deliver canon +-5 px |
 | fare banked | `alert_fare_banked` (+ `hud_ticket_enter`) | all | 4 | unchanged |
@@ -48,10 +48,9 @@ Spawn one fresh critic per order, on the strongest model, with only the pass fol
 `src/feel/feel.json` only (the pass-1 JSON is already kept in `critique-feel-<x>/round-1/`), re-run `tools/run_kit.sh --pass 2`.
 
 ## Owner gates
-- Canon: record the hard-brake question in the real rr-bible (the sandbox number OQ-037 is taken there by the
-  release-version question), then replace `OQ-037` in `hard_brake` with the new number:
-  `bible.py add-question "Hard brake: what fires it and how hard is it?"` with the options in
-  `canon-sandbox/open-questions.md` (OQ-037 there). Decide OQ-018 (cord) and OQ-037 together.
+- Canon: done 2026-09-28 (bible reconcile): the hard-brake question is OQ-043 in the real rr-bible (the sandbox
+  number OQ-037 is the release-version question there) and `hard_brake` cites OQ-043. Decide OQ-018 (cord) and
+  OQ-043 together.
 - Studio test (fidelity.md list), plus: install `RR_FeelKit` as a fourth ModuleScript in ReplicatedStorage.RRFeel;
   call `Kit.hardBrake()` when the server starts a hard stop and keep calling `Kit.setSpeed` as Speed falls.
 - Sound: `brake_hiss` is reused for the hard brake; rr-soundsmith has no brake screech yet.

@@ -64,7 +64,8 @@ presets/catalogue.json -> econ.py ladder (value ladder, USD per sale) | guard ->
 
 ## Plugs
 - rr-bible: canon read via bible.py (found by glob or RR_BIBLE_SKILL); gaps become add-question/add-fact commands
-  (proposals for this build: `trials/rr-data-and-money/bible-proposals.sh`, replayed by the orchestrator).
+  (this build's proposals, `trials/rr-data-and-money/bible-proposals.sh`, were applied 2026-09-28: source RBXM,
+  platform facts, OQ-048..OQ-056).
 - rr-exploit-guard: owns ProcessReceipt/price-trust code review; money gate points to it.
 - rr-release-train: no money gate yet; proposed `extra_checks` entry running `econ.py guard --gate`.
 - rr-mission-control: no data kind (mixed = UI + 3D with a critic loop); data/money work runs standalone or uses its

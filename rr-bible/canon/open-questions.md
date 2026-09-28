@@ -528,3 +528,181 @@ Undecided canon. Each has options and a recommended default: skills may proceed 
 - default: A (a restart for an update is the studio's fault, not the crew's; matches the fail rule)
 - affects: tech.data.award_order, gameplay.run.fail_screen
 - blocks: release-train smoke row: restart keeps banked fare
+
+### OQ-043 · Hard brake: what fires it and how hard is it?
+- status: open
+- raised: 2026-09-28
+- src: R2A, WR, PLAN, FEEL
+- context: rr-game-feel ships a hard_brake event (camera and UI lurch only: the train never moves, identity.pillars.stable_train). Canon has the arrival brake (gameplay.run.brake_formula, brake_const 5, about 7 s from Normal), braking at redline (gameplay.crisis.pressure) and the cord (OQ-018, default emergency stop), but no hard-brake trigger or deceleration. Decide with OQ-018.
+- options:
+  - A: one hard_brake event for any stop harder than the station brake: the communication-cord emergency stop (OQ-018 A) and the driver's brake at a pressure redline (gameplay.crisis.pressure); the server fires it as the brake starts; about 2x the arrival brake (BRAKE about 10)
+  - B: only the communication-cord emergency stop fires it
+  - C: no hard brake; every stop uses the station arrival brake and station_arrive feel
+- default: A (both canon brake moments get one readable lurch; no new control; the number stays a knob until tuned in Studio)
+- affects: gameplay.run.brake_formula, gameplay.run.brake_const, gameplay.train.comm_cord, gameplay.crisis.pressure
+- blocks: rr-game-feel hard_brake tuning
+
+### OQ-044 · Lobby audio: music bed or diegetic depot ambience?
+- status: open
+- raised: 2026-09-28
+- src: SND
+- context: Canon covers run audio only (av.audio.*; OQ-021 is about runs); the Depot Lobby (world.names.lobby, queue pads gameplay.run.queue_countdown_s) has no audio facts.
+- options:
+  - A: diegetic Depot Lobby bed only (resting loco breathing, lamp buzz, birds), no music, like OQ-021 A for runs
+  - B: a light jaunty lobby tune (owner-made or Roblox-licensed) over a quieter bed
+  - C: decide after the alpha
+- default: A (zero sourcing or licence work in alpha week; the queue pad bell and guard whistle carry the call to action)
+- affects: av.audio.pack
+- blocks: rr-soundsmith lobby_bed
+
+### OQ-045 · Where do freight wagons appear, and how does the player see them?
+- status: open
+- raised: 2026-09-28
+- src: FDY
+- context: rr-asset-foundry has a wagon family (open coal, box van, flat with crates) but canon has no wagons: the crew train is cab + coach (gameplay.train.layout) and sidings exist only in the yard prefab. Where they are seen decides the critic's player view and detail budget. Related: OQ-030 (whether yard wagons share the coach width).
+- options:
+  - A: yard dressing on the marshalling-yard sidings (world.prefabs.15), seen from the coach at the siding spacing while the world scrolls
+  - B: Depot Lobby yard dressing, seen on foot and close
+  - C: coupled into the crew's train (would change gameplay.train.layout; conflicts with D-013 no tender)
+- default: A (the only canon place for sidings; the train is cab + coach)
+- affects: world.prefabs.15, gameplay.train.layout
+- blocks: rr-asset-foundry wagon POV premise and critic brief
+
+### OQ-046 · Create match: what do the Players chips choose, and how many?
+- status: open
+- raised: 2026-09-28
+- src: DTU, UIF
+- context: ui.lobby.controls draws Players 1/2/3; gameplay.crew.max = 6 (canon) and gameplay.crew.launch_cap = 4 (proposed; OQ-024). The rr-ui-foundry trial 2026-09-28 built A.
+- options:
+  - A: party size 1/2/3 as sketched (DTU); bigger crews join through matchmaking up to gameplay.crew.max 6
+  - B: max crew 1-6 (six chips or a < N > stepper like Difficulty)
+  - C: max crew 1-4 while gameplay.crew.launch_cap 4 applies, 1-6 after
+- default: A (as sketched; the kit renders any chip count, so B or C is a spec edit)
+- affects: ui.lobby.controls, gameplay.crew.max, gameplay.crew.launch_cap
+- blocks: lobby Create match UI
+
+### OQ-047 · HUD: one expanded slot per stack, or newest and newest crisis both full size?
+- status: open
+- raised: 2026-09-28
+- src: UIF, HUDM
+- context: multiuse-critic pass 1 on the rr-ui-foundry trial (B1-2): on the overflow board PRESSURE HIGH! (crisis, top) and CREW LEFT! (newest, bottom) are both expanded, so two same-size tickets compete and the crisis moves slot between states. B is a stack-policy change (uimodel.stack_visible + RR_UIKit Stack:visible, parity-tested), about 20 lines. Related: OQ-034 (stack height on phones).
+- options:
+  - A: canon ui.hud.compact_rule as is: the newest ticket and the newest crisis stay full size (two can be expanded; a sticky crisis keeps its place in time)
+  - B: one expanded slot, always the bottom one: a crisis takes it while present, every other ticket (even the newest routine one) goes compact
+- default: A (canon, critic-approved in mission 260927; B came from one independent critic pass on the rr-ui-foundry trial)
+- affects: ui.hud.compact_rule
+- blocks: none (default in use)
+
+### OQ-048 · Is the crew's fare paid to each member in full, or split?
+- status: open
+- raised: 2026-09-28
+- src: PLAN, DAM
+- context: gameplay.station.bank pays a crew bank; the save data needs a per-player amount. rr-data-and-money's sim assumes A (presets/economy.json fare_split).
+- options:
+  - A: each crew member banks the full crew fare
+  - B: split equally across the crew
+  - C: each member banks their own passengers' share
+- default: A (co-op never costs a player fare; solo is already scaled by gameplay.crew.scaling)
+- affects: gameplay.station.bank
+- blocks: save-data award logic, economy sim
+
+### OQ-049 · Starting coins for a new player (the petty-cash float is superseded)?
+- status: open
+- raised: 2026-09-28
+- src: PLAN, DAM
+- context: economy.currency.float (company petty cash per crew) was superseded by ProfileStore save data (D-018); nothing says what a new profile holds. The sim preset keeps start_coins 0 (assumed) until this is decided.
+- options:
+  - A: 0 (first runs start short of supplies)
+  - B: a welcome grant of about 100 coins, enough for the first run's supply kit, logged as an Onboarding economy source
+  - C: the first trip's Depotron orders are free (a starter kit instead of coins)
+- default: B (rr-data-and-money sim: runs started short of the supply kit fall from about 40% to 2% and the first-upgrade check goes WATCH -> PASS)
+- affects: economy.currency.float, economy.currency.earn
+- blocks: profile defaults, onboarding funnel, economy sim start_coins
+
+### OQ-050 · Base fare per run by difficulty (missing canon)
+- status: open
+- raised: 2026-09-28
+- src: PLAN, DAM
+- context: gameplay.progress.first_unlock implies about 1,250-1,700 per early run; economy.passes.fare_packs implies about 2,000 per run (20,000 = about 10 runs).
+- options:
+  - A: sim-calibrated 1,700 / 2,100 / 2,650 / 3,300 for an arriving crew member (Easy..Insane)
+  - B: derive from the alpha formula (miles minus a penalty per breakdown) once measured
+- default: A until alpha data, then B
+- affects: gameplay.station.alpha_fare, economy.passes.fare_packs
+- blocks: unlock prices, fare pack sizes
+
+### OQ-051 · Largest fare pack vs the 10-runs cap
+- status: open
+- raised: 2026-09-28
+- src: PLAN, DAM
+- context: economy.passes.fare_packs caps a pack at about 10 runs of earnings, but the sim's mean run fare puts 10 runs at about 17,000, under the 20,000 large pack (money gate M07).
+- options:
+  - A: cut the large pack to about 17,000 fare
+  - B: raise late-game fares so 10 runs reach 20,000
+  - C: relax the cap to about 12 runs
+- default: A (smallest change; sim mean run fare 1,702 x 10 = 17,019)
+- affects: economy.passes.fare_packs
+- blocks: money gate M07
+
+### OQ-052 · Locomotive 3-5 and Line 2 prices (missing canon)
+- status: open
+- raised: 2026-09-28
+- src: PLAN, DAM
+- context: gameplay.progress.pacing asks a new locomotive every about 2 h through hour 10 and nothing above about 15 successful runs.
+- options:
+  - A: 10,000 / 12,000 / 14,000 / 16,000 fare (sim: about 2 h apart through hour 8.3)
+  - B: owner-set after alpha pacing data
+- default: A (meets the canon pacing of a locomotive about every 2 h; replace with alpha pacing data)
+- affects: gameplay.progress.ladder, gameplay.progress.pacing
+- blocks: unlock UI, economy sim
+
+### OQ-053 · Auto Stoker (economy.passes.auto_stoker) vs D-007
+- status: open
+- raised: 2026-09-28
+- src: PLAN, DAM
+- context: The plan lists a 449 R$ post-launch Auto Stoker; coal is one of the four crisis systems (D-003), and D-007 says nothing sold changes the odds.
+- options:
+  - A: drop it as a Robux item; if data shows coal is a chore, fix coal for everyone
+  - B: sell it (needs D-007 changed: it automates a crisis system for the whole crew)
+  - C: an unlock earned with fare, for everyone
+- default: A (money gate: sells power and changes the crew's run = co-op pay-to-win)
+- affects: economy.passes.auto_stoker
+- blocks: post-launch monetisation
+
+### OQ-054 · Conductor's Toolbelt: +2 hotbar tool slots vs D-007
+- status: open
+- raised: 2026-09-28
+- src: PLAN, DAM
+- context: The carry-one-thing hand rule (gameplay.supplies.hand) is separate from hotbar tools; the base hotbar slot count is not in canon.
+- options:
+  - A: make it cosmetic (tool skins, belt model) at the same price
+  - B: keep +2 slots after risky-rails-mechanic-reviewer and an owner reading of D-007
+  - C: drop it
+- default: A (+2 hotbar slots = fewer trips per crisis, convenience that acts as survival power under D-007; gameplay.supplies.tools)
+- affects: economy.passes.toolbelt
+- blocks: money gate HOLD
+
+### OQ-055 · Who pays for a crew's supply order?
+- status: open
+- raised: 2026-09-28
+- src: PLAN, DAM
+- context: One Depotron order at a time per train (gameplay.supplies.one_order). The economy sim assumes kit / crew_mean per player (kit_paid split); if every player paid the whole kit, Insane would net below zero.
+- options:
+  - A: the player who orders pays the whole crate (the crew shares the cost over time)
+  - B: the cost is split across the crew automatically
+  - C: the company pays (free supplies)
+- default: A (economy.supplies.server_prices: the server takes the coins from the orderer)
+- affects: economy.supplies.coal, economy.supplies.toolbox
+- blocks: economy sim kit_paid, difficulty rewards
+
+### OQ-056 · Launch entry purchase: bring one identity item (horn or headlamp colour, 49 R$) forward to launch?
+- status: open
+- raised: 2026-09-28
+- src: PLAN, DAM
+- context: rr-data-and-money trial ladder: at launch the cheapest item is a time item (fare pack S, 99 R$); its money rules want an identity entry at or under 99 R$.
+- options:
+  - A: yes, one 49 R$ identity item at launch as the first-purchase step
+  - B: no, liveries stay post-launch; the 99 R$ fare pack is the cheapest launch item
+- default: B (canon economy.passes.liveries says post-launch; the owner decides)
+- affects: economy.passes.liveries
+- blocks: launch catalogue

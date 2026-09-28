@@ -30,7 +30,7 @@ In-game currency, supply prices, passes and products, pacing rules, platform mon
 - `economy.passes.whale_total` = `2,000-3,000 R$` | all passes + liveries; no gacha, no infinite sink | src: PLAN | proposed
 
 ## rules · Monetisation rules
-- `economy.rules.never_sell_odds` = `nothing sold changes the odds at a fork; no revives, no fork rerolls` | D-008 | src: PLAN | canon
+- `economy.rules.never_sell_odds` = `nothing sold changes the odds at a fork; no revives, no fork rerolls` | D-007 | src: PLAN | canon
 - `economy.rules.no_early_prompts` = `no shop pop-ups before the first bank; at most two purchase prompts, both after run 3+` | src: PLAN, LPB | canon
 - `economy.rules.fair_packs` = `fare packs must never be cheaper per fare than playing well` | src: PLAN | canon
 - `economy.rules.daily_line_fair` = `nothing makes the Daily Line pay-to-rank` | src: PLAN | canon
@@ -44,6 +44,13 @@ In-game currency, supply prices, passes and products, pacing rules, platform mon
 - `economy.platform.creator_rewards` = `5 R$ per day per active spender who plays 10+ min` | treat as rounding, not revenue | src: PLAN | platform
 - `economy.platform.ad_credit` = `about 1 USD per ad credit; about 280 R$ per credit` | developer-reported | src: LPB | platform
 - `economy.platform.affiliate` = `Creator Affiliate Program deprecated 24 Jul 2025; no creator codes` | in-game promo codes still work | src: LPB | platform
+- `economy.platform.price_optimization` = `Managed pricing (regional pricing + price optimization); optimization needs about 60,000 transactions in 30 days and prices read in-game with GetProductInfo, not hard-coded` | src: RBXM | platform
+- `economy.platform.paid_random` = `paid random items (Robux or Robux-purchasable currency, incl. luck/pity boosts): all outcomes with % odds summing to 100% before purchase; PolicyService ArePaidRandomItemsRestricted hides them where restricted` | fare packs make coins Robux-purchasable, so a coin-priced random crate counts | src: RBXM | platform
+- `economy.platform.presentation` = `discounts genuine and fair; no false scarcity or restarting countdowns; no pushy purchase copy with minors` | src: RBXM | platform
+- `economy.platform.roblox_plus` = `Roblox Plus: subscribers get 10-20% off passes/products/subscriptions paid by Roblox; up to 750 R$ per Plus sign-up driven; up to 100 R$ per subscriber with 60+ min a month in paid private servers` | src: RBXM | platform
+- `economy.platform.subscriptions` = `experience subscriptions: monthly auto-renew, priced in Robux or local currency, paid in Robux; benefits for the full term; no tiers of the same benefits` | src: RBXM | platform
+- `economy.platform.thumbnail_personalization` = `2+ active thumbnails: Roblox shows each to random users, then gives more Home impressions to the winner per user group; reports impressions, qualified plays, QPTR per thumbnail` | adaptive traffic: read descriptively (abtest.py compare), not as an A/B verdict | src: RBXM | platform
+- `economy.platform.pass_grant` = `game pass purchases never reach ProcessReceipt (developer products only): the server applies the pass on PromptGamePassPurchaseFinished and checks UserOwnsGamePassAsync` | src: RBXM | platform
 
 ## budget · Owner budget (marketing)
 - `economy.budget.total_gbp` = `300` | stretch 500-800 only on evidence | src: RGP, PLAN | canon

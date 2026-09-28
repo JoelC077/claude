@@ -60,6 +60,6 @@ fares or `start_coins` first. They are starting points for a sweep, not decision
 
 ## Limits
 Parametric fares, not a fork-by-fork game model; crews are not simulated together (fare assumed paid to each member
-in full, kit split by `kit_paid`/`crew_mean`: proposed open questions); cosmetic revenue is not modelled; buying odds are guesses. Use it to compare
+in full, kit split by `kit_paid`/`crew_mean`: OQ-048 and OQ-055 defaults); cosmetic revenue is not modelled; buying odds are guesses. Use it to compare
 options and catch structural problems (a pack over the cap, a first unlock nobody reaches on day 0, a dead sink),
 never as a revenue forecast.

@@ -66,7 +66,7 @@ Studio import for the owner is in each variant's README.md: import `<Asset>.fbx`
 - Every recolour group is a bible colour token, resolved at plan time. Recolour with another token: `--group Body=style.brand.teal`. Hex values and superseded tokens are refused; a new colour is first proposed in the bible (`bible.py add-fact ... --status proposed`).
 - Numbers the bible holds are `@key` defaults in the family (`@tech.units.stock_width`, `@tech.units.building_door#0`). Tris target and cap, eye heights, FOV, avatar height and minimum feature pixels are read from the bible too. Nothing in this skill restates a canon value.
 - Open questions label outputs, and plan/facts/README list them: OQ-025 (train exterior livery) on carriages and wagons; OQ-030 (gauge and rolling-stock envelope, proposed values) on rolling stock and track. Present those values as "assumed (OQ-nnn default)". Only the owner decides (`bible.py decide`).
-- Canon a new family needs but the bible lacks: `bible.py add-question` with a default (a question, not a decision), then reference the new key. Never hard-code it. Where wagons appear is not canon: the wagon premises say ASSUMED, and the question is drafted in `design-notes.md` to record when the session may write to rr-bible.
+- Canon a new family needs but the bible lacks: `bible.py add-question` with a default (a question, not a decision), then reference the new key. Never hard-code it. Where wagons appear is not canon yet (OQ-045): the wagon premises say ASSUMED and cite it.
 - Canon numbers a POV needs come through `VIEW["nums"]` (`@key#i`; a value with no number reads its note, e.g. world.prefabs.15 siding spacing).
 - Every `studio_setup.lua` passes `bible check` or the variant fails.
 

@@ -68,7 +68,7 @@ By eye, the side view shows two peaks, the first-person view shows coal above th
 - **C1-6 method:** fixed at the source (the deck gaps), not by extending the end planks.
 - **The review's building door finding is partly wrong:** the signal box and shelter never used `door_w`/`door_h`. The signal box has a fixed lineside upper door and the shelter has an open front. The plan now warns that those params don't apply to them.
 - **Critic size estimates** (×2, ×1.7) were replaced by measured sizes.
-- **The wagon question is not recorded in rr-bible:** both the review and this session's folder limit forbid it. It is drafted in design-notes.md and its dry run works (it would be OQ-042).
+- **The wagon question is not recorded in rr-bible:** both the review and this session's folder limit forbid it. It was drafted in design-notes.md (its dry run said OQ-042, since taken by another lane); the 2026-09-28 bible reconcile recorded it as OQ-045 and wagon.py cites it.
 - **rr-mission-control patch:** written as a proposal only, because the skill may not edit a sibling.
 - **Left for the owner:** OQ-030 (whether yard wagons use the coach width, 17.4 on gauge 8), the Studio import test, and OQ-025 (livery).
 
@@ -89,3 +89,6 @@ Files are in `/home/user/claude/trials/rr-asset-foundry/retrial`:
 - `crit/brief.md`
 - `crit/pass-1/critic.md`
 - `crit/pass-1/contact.png`
+
+## Independent certification after fixes
+Fresh critic on the fixed re-trial: overall 7 ({'A1': 7, 'A2': 7, 'A3': 8, 'A4': 8, 'A5': 7, 'A6': 8, 'A7': 7}); 3 blocks-8 issues. Verdict saved at /home/user/claude/trials/rr-asset-foundry/retrial/crit/pass-1/verdict.md.

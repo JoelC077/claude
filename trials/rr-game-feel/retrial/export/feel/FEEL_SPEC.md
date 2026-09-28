@@ -654,7 +654,7 @@ Tiers: 1 fail, 2 crisis, 3 commit, 4 reward, 5 ui. A lower tier is never louder 
 - **Intent:** the train digs in: everyone lurches forward, the wheels judder through the floor, then the view settles
 - **Trigger:** the server starts a brake harder than the station brake: the communication-cord emergency stop or a redline brake; Feel.setSpeed keeps following Speed down, so the rumble fades as it stops
 - **Canon:** `gameplay.run.brake_formula` = Speed = math.min(Speed, math.sqrt(2 * BRAKE * distanceToStop)); `identity.pillars.stable_train` = the train never moves; the world scrolls, so players stand on it with zero jitter
-- **Open:** OQ-TBD-hard-brake (unrecorded: owner gate); OQ-018 (default in use; label 'assumed (OQ-018 default)')
+- **Open:** OQ-043 (default in use; label 'assumed (OQ-043 default)'); OQ-018 (default in use; label 'assumed (OQ-018 default)')
 
 | start s | end s | channel | target | what |
 |---|---|---|---|---|

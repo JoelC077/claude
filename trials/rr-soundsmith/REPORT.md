@@ -88,7 +88,7 @@
 - References updated: schema, licensing, brief-format, standards, fidelity. `design-notes.md` has a fix-round section.
 
 ## Rejected items
-- **Recording the lobby question in the real bible now.** This run may only touch the skill and trial folders, and siblings are writing the bible in parallel, which is what caused F12. It is carried as `pending:lobby-audio`, with the exact command handed over.
+- **Recording the lobby question in the real bible now.** This run may only touch the skill and trial folders, and siblings are writing the bible in parallel, which is what caused F12. It is carried as `pending:lobby-audio`, with the exact command handed over. Done 2026-09-28 by the bible reconcile: it is OQ-044, and the skill preset and trial soundmap cite it.
 - **Spawning the fresh critic.** This subagent has no Agent tool, and a remote session can't read the local pass folder. It is handed off instead: `critique-sound/pass-1/critic.md` is regenerated and no longer needs the maker's addendum.
 - **"True peak over-reads tones", as stated.** The -5.44 reading comes from a sine that starts abruptly, whose band-limited peak really is about -5.41. The real problem was under-reading, and that is fixed.
 - **Fingerprinting re-exported placeholders in `register` (F8, optional fix, declined).** A re-export changes the bytes, so a match would never fire.
@@ -127,3 +127,6 @@ Files are in /home/user/claude/trials/rr-soundsmith:
 - export/sound/
 - RUN_SOUND_MAP.md
 - analysis/ANALYSIS.txt
+
+## Independent certification after fixes
+Fresh critic on the fixed re-trial: overall 5 ({'S1': 6, 'S2': 7, 'S3': 6, 'S4': 5, 'S5': 7, 'S6': 7}); 10 blocks-8 issues. Verdict saved at /home/user/claude/trials/rr-soundsmith/critique-sound/pass-1/verdict.md.

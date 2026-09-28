@@ -120,7 +120,7 @@ Severity: H = wrong or missing result a real mission would ship, M = wasted work
 23. **L: rule 2 conflicts with no-write sessions, and the synthetic-data generator is hidden.**
     - Rule 2 says to run `bible add-question`, but trial and mission sessions often may not write canon. SKILL never
       mentions `--dry-run` or the proposals-script pattern the build itself used (`../bible-proposals.sh`); this trial
-      used both (`mission/bible-proposals.sh`, dry-run as OQ-042).
+      used both (`mission/bible-proposals.sh`, dry-run as OQ-042; recorded 2026-09-28 as OQ-056).
     - `dash.py demo` (synthetic exports) appears only in `--help`, not in SKILL.md.
 
 ## What worked (for balance)

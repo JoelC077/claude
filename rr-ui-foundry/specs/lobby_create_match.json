@@ -6,9 +6,9 @@
   "design": {"device": "phone"},
   "gui": {"display_order": 30, "insets": "CoreUISafeInsets", "modal": true},
   "canon": ["ui.lobby.controls", "ui.rules.one_accent", "ui.rules.difficulty_never_chrome", "ui.rules.colourblind", "tech.ui_platform.touch_target_px", "gameplay.difficulty.tiers", "gameplay.crew.max"],
-  "oq": ["OQ-001", "OQ-017", "OQ-033"],
+  "oq": ["OQ-001", "OQ-017", "OQ-033", "OQ-046"],
   "data": {
-    "players": {"values": [1, 2, 3], "default": 2, "note": "ui.lobby.controls draws 1/2/3 chips; gameplay.crew.max is 6: an owner question (draft in the trial's oq-drafts.txt); the kit renders any chip count"},
+    "players": {"values": [1, 2, 3], "default": 2, "note": "ui.lobby.controls draws 1/2/3 chips; gameplay.crew.max is 6: owner question OQ-046 (default A: as sketched); the kit renders any chip count"},
     "difficulty": {"values": {"canon": "gameplay.difficulty.tiers", "upper": true}, "default": "MEDIUM"}
   },
   "nodes": [

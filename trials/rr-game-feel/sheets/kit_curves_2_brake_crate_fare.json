@@ -7,7 +7,7 @@
  "tiles": [
   {
    "n": 1,
-   "label": "hard_brake (OQ-037 default)",
+   "label": "hard_brake (OQ-043 default)",
    "src": "/home/user/claude/trials/rr-game-feel/plots/hard_brake.png",
    "box": [
     27,

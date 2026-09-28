@@ -1034,7 +1034,7 @@ return {
 			priority = 3,
 			who = "all",
 			canon = { "gameplay.run.brake_formula", "identity.pillars.stable_train" },
-			oq = { "OQ-037", "OQ-018" },
+			oq = { "OQ-043", "OQ-018" },
 			channels = { {
 					["type"] = "camkick",
 					angles_deg = { 1.6, 0, 0 },
