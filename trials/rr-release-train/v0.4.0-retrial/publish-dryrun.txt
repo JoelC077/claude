@@ -1,0 +1,11 @@
+[dry-run] Trip save: POST https://apis.roblox.com/universes/v1/9990001/places/9990012/versions?versionType=Saved  (12681 B)
+[dry-run] Trip test: POST https://apis.roblox.com/cloud/v2/universes/9990001/places/9990012/versions/<saved>/luau-execution-session-tasks
+[dry-run] Trip publish: POST https://apis.roblox.com/universes/v1/9990001/places/9990012/versions?versionType=Published  (12681 B)
+[dry-run] Lobby save: POST https://apis.roblox.com/universes/v1/9990001/places/9990011/versions?versionType=Saved  (21069 B)
+[dry-run] Lobby test: POST https://apis.roblox.com/cloud/v2/universes/9990001/places/9990011/versions/<saved>/luau-execution-session-tasks
+[dry-run] Lobby publish: POST https://apis.roblox.com/universes/v1/9990001/places/9990011/versions?versionType=Published  (21069 B)
+[dry-run] restart: POST https://apis.roblox.com/cloud/v2/universes/9990001:restartServers  body {"closeAllVersions": false, "bleedOffServers": true, "bleedOffDurationMinutes": 14}
+DRY RUN: nothing was sent. Live publish is blocked by:
+  - approval not approved (and approval needs gate GO: now NO-GO on G5, G6)
+  - $ROBLOX_API_KEY is not set (references/publishing.md: API key)
+  - API host unreachable: Tunnel connection failed: 403 Forbidden (cloud sessions block it; run from the owner's machine or allow the host)

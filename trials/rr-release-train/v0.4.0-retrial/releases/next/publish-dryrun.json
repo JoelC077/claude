@@ -1,0 +1,78 @@
+[
+ {
+  "place": "Trip",
+  "step": "save",
+  "method": "POST",
+  "url": "https://apis.roblox.com/universes/v1/9990001/places/9990012/versions?versionType=Saved",
+  "headers": {
+   "x-api-key": "$ROBLOX_API_KEY",
+   "Content-Type": "application/octet-stream"
+  },
+  "body": "/home/user/claude/trials/rr-release-train/v0.4.0-retrial/releases/next/places/Trip/Trip.rbxl",
+  "bytes": 12681,
+  "curl": "curl -sS -X POST 'https://apis.roblox.com/universes/v1/9990001/places/9990012/versions?versionType=Saved' -H \"x-api-key: $ROBLOX_API_KEY\" -H 'Content-Type: application/octet-stream' --data-binary @'/home/user/claude/trials/rr-release-train/v0.4.0-retrial/releases/next/places/Trip/Trip.rbxl'"
+ },
+ {
+  "place": "Trip",
+  "step": "test",
+  "method": "POST",
+  "url": "https://apis.roblox.com/cloud/v2/universes/9990001/places/9990012/versions/<saved>/luau-execution-session-tasks",
+  "body": "assets/luau/run_tests.lua with EXPECTED=0.4.0; then GET the task until COMPLETE"
+ },
+ {
+  "place": "Trip",
+  "step": "publish",
+  "method": "POST",
+  "url": "https://apis.roblox.com/universes/v1/9990001/places/9990012/versions?versionType=Published",
+  "headers": {
+   "x-api-key": "$ROBLOX_API_KEY",
+   "Content-Type": "application/octet-stream"
+  },
+  "body": "/home/user/claude/trials/rr-release-train/v0.4.0-retrial/releases/next/places/Trip/Trip.rbxl",
+  "bytes": 12681,
+  "curl": "curl -sS -X POST 'https://apis.roblox.com/universes/v1/9990001/places/9990012/versions?versionType=Published' -H \"x-api-key: $ROBLOX_API_KEY\" -H 'Content-Type: application/octet-stream' --data-binary @'/home/user/claude/trials/rr-release-train/v0.4.0-retrial/releases/next/places/Trip/Trip.rbxl'"
+ },
+ {
+  "place": "Lobby",
+  "step": "save",
+  "method": "POST",
+  "url": "https://apis.roblox.com/universes/v1/9990001/places/9990011/versions?versionType=Saved",
+  "headers": {
+   "x-api-key": "$ROBLOX_API_KEY",
+   "Content-Type": "application/octet-stream"
+  },
+  "body": "/home/user/claude/trials/rr-release-train/v0.4.0-retrial/releases/next/places/Lobby/Lobby.rbxl",
+  "bytes": 21069,
+  "curl": "curl -sS -X POST 'https://apis.roblox.com/universes/v1/9990001/places/9990011/versions?versionType=Saved' -H \"x-api-key: $ROBLOX_API_KEY\" -H 'Content-Type: application/octet-stream' --data-binary @'/home/user/claude/trials/rr-release-train/v0.4.0-retrial/releases/next/places/Lobby/Lobby.rbxl'"
+ },
+ {
+  "place": "Lobby",
+  "step": "test",
+  "method": "POST",
+  "url": "https://apis.roblox.com/cloud/v2/universes/9990001/places/9990011/versions/<saved>/luau-execution-session-tasks",
+  "body": "assets/luau/run_tests.lua with EXPECTED=0.4.0; then GET the task until COMPLETE"
+ },
+ {
+  "place": "Lobby",
+  "step": "publish",
+  "method": "POST",
+  "url": "https://apis.roblox.com/universes/v1/9990001/places/9990011/versions?versionType=Published",
+  "headers": {
+   "x-api-key": "$ROBLOX_API_KEY",
+   "Content-Type": "application/octet-stream"
+  },
+  "body": "/home/user/claude/trials/rr-release-train/v0.4.0-retrial/releases/next/places/Lobby/Lobby.rbxl",
+  "bytes": 21069,
+  "curl": "curl -sS -X POST 'https://apis.roblox.com/universes/v1/9990001/places/9990011/versions?versionType=Published' -H \"x-api-key: $ROBLOX_API_KEY\" -H 'Content-Type: application/octet-stream' --data-binary @'/home/user/claude/trials/rr-release-train/v0.4.0-retrial/releases/next/places/Lobby/Lobby.rbxl'"
+ },
+ {
+  "step": "restart",
+  "method": "POST",
+  "url": "https://apis.roblox.com/cloud/v2/universes/9990001:restartServers",
+  "body": {
+   "closeAllVersions": false,
+   "bleedOffServers": true,
+   "bleedOffDurationMinutes": 14
+  }
+ }
+]

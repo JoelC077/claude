@@ -1,0 +1,4 @@
+# place files stay in the owner's storage; commit history.json, CHANGELOG.md and the notes
+*.rbxl
+*.rbxlx
+.notes-check/

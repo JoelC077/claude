@@ -31,9 +31,12 @@ rollback    re-publish the previous release's archived files (dry-run default) o
 ## Decisions (with why)
 1. **One release in flight, state in JSON.** `next/release.json` is the only state; `status` prints the next step,
    so a resumed session costs one call, not a re-read of everything.
-2. **Evidence-bound approval.** Approval stores the version, every place sha256 and the gate-report hash; any change
-   voids it. Live publish also needs `ROBLOX_API_KEY`, a reachable host and `--confirm <version>`. Waivers,
-   approvals, evidence and live rollback accept `--by owner` only (rr-bible's decide rule).
+2. **Evidence-bound approval.** Approval stores the version, every place sha256, the gate-report hash, the notes,
+   the route and the Luau-tests setting; any change voids it, and `publish --live` / `record` re-run the gates and
+   compare (so a verdict that turns FAIL after approval stops the publish). Live publish also needs
+   `ROBLOX_API_KEY` (introspected: enabled, not expired, scopes), a reachable host and `--confirm <version>`.
+   Waivers, approvals, owner evidence, a security result without a verdict file and live rollback accept
+   `--by owner` only (rr-bible's decide rule). In-build confirmation of missions carries the owner's `--via`.
 3. **Save, test, then publish.** Open Cloud supports `versionType=Saved`; the Luau Execution API runs
    `assets/luau/run_tests.lua` on that exact saved version (specs + RR_Version check); only then Published.
    Every place is saved and tested before any is published.
@@ -43,13 +46,19 @@ rollback    re-publish the previous release's archived files (dry-run default) o
    stdlib; it measures what the file holds, never runtime performance.
 6. **Perf = regression + device evidence.** Canon has no place-level budget (OQ recorded): G7 diffs the audit with
    the previous release, runs `vfx budget --tier phone`, and wants the owner's live check for live releases.
-7. **Traceable notes.** Every bullet carries [C-n] tags in the source; notes-check strips them; nothing is claimed
-   that no in-build change backs; D-007 (never sell odds) and store metadata rules are enforced.
-8. **Security is a contract.** rr-exploit-guard's `SECURITY_GATE.json` (`verdict` PASS/HOLD/FAIL, `scanned_at`)
-   must be newer than the attached places; release-train extracts the scripts for it and only checks release
-   hygiene itself (debug flags, data-store name, placeholders).
-9. **Visual judgement stays with multiuse-critic.** G8 reads critic ledgers of shipped missions; self-reviewed work
-   is uncertified (WARN in alpha/beta, FAIL in live). Release-train never scores.
+7. **Traceable notes.** Every line traces: bullets by [C-n] tags, other lines are lexicon verbatim or tagged; no
+   promises, untraced numbers or parked sidings; D-007 (never sell odds) and store metadata rules on every line.
+   Clean outputs exist only after a PASS. The changelog stays [Unreleased] until the release ships.
+8. **Security is a contract.** rr-exploit-guard's `SECURITY_GATE.json` must pin the attached files' sha256 and the
+   channel's stage; release-train extracts the scripts for it and only checks release hygiene itself (debug flags,
+   blank asset ids, demo scripts, modules nothing calls, data-store name, placeholders).
+9. **Visual judgement stays with multiuse-critic.** G8 re-reads critic ledgers of shipped missions every run and
+   applies the critic's done rule (independent, at the bar, final pass agrees); self-reviewed work is uncertified
+   (WARN in alpha/beta, FAIL in live). Release-train never scores.
+11. **What is live decides.** Baselines, the script diff and ROLLBACK.md use the release whose content is live now
+   (after a rollback, the one restored); a rolled-back release's changes come back; a second rollback needs the
+   owner's `--to`. The restart bleed-off is derived from canon trip length; sibling library checks are advisory
+   unless they take the build's audits.
 10. **Canon at run time.** Tone, lexicon, banned names, sidings, bug bash, live check, funnel, store rules,
     data-store name, D-007 and Open Cloud limits are read through bible.py; gaps went in as OQs.
 

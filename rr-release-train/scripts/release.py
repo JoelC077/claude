@@ -109,7 +109,7 @@ def bleed(ctx):
     """(minutes, why): config --bleed, else one measured trip + results + boarding from canon, rounded up."""
     b = ctx.presets.get("bleed") or {}
     cap = b.get("max", 60)
-    if ctx.cfg.get("bleed_minutes"):
+    if ctx.cfg.get("bleed_minutes") and ctx.cfg.get("bleed_set"):  # a stored 10 without bleed_set = old default
         return max(1, min(cap, int(ctx.cfg["bleed_minutes"]))), "config --bleed"
     try:
         trip = float(ctx.bible.value(b.get("trip_min", "gameplay.run.length_min")) or "x")
@@ -188,7 +188,7 @@ def cmd_config(ctx):
     if a.bleed is not None:
         if not 1 <= a.bleed <= 60:
             die("--bleed is 1-60 minutes (restartServers bleedOffDurationMinutes); 0 would kick crews mid-trip")
-        cfg["bleed_minutes"] = a.bleed
+        cfg["bleed_minutes"], cfg["bleed_set"] = a.bleed, True
     if a.channel:
         cfg["channel"] = a.channel
     ctx.save_cfg()
@@ -805,7 +805,7 @@ def smoke_items(ctx):
         rows.append(("P1", "Mixed versions: during the bleed-off an old Lobby sends a crew to the new Trip and back; "
                            "crew, train type and coins intact (TeleportData contract)"))
     rows.append(("P1", "Server restart for the update: a crew mid-trip when its old server closes keeps its banked "
-                       "fare (gameplay.run.fail_screen: banked fare is kept; needs a BindToClose save)"))
+                       "fare (OQ-042 default A: awarded in BindToClose, like a fail)"))
     rows.append(("P2", "Old servers drained: every server you join shows the new version (S1 check)"))
     return items + [(f"S{len(items) + i}", p, t) for i, (p, t) in enumerate(rows, 1)]
 
@@ -1239,7 +1239,7 @@ def cmd_status(ctx):
         return 0
     ch = rel["changes"]
     cnt = lambda k, v: sum(1 for c in ch if c.get(k) == v)
-    print(f"next/: {rel.get('version') or 'no version'}" + (f" ({rel.get('version_by')})" if rel.get("version") else "")
+    print(f"next/: {rel.get('version') or 'no version'}" + (f" ({rel['version_by']})" if rel.get("version_by") else "")
           + f" · channel {rel['channel']} · status {rel['status']} · opened {rel.get('created', '?')}")
     print(f"changes {len(ch)}: in-build {cnt('in_build', 'yes')}, unknown {cnt('in_build', 'unknown')}, "
           f"out {cnt('in_build', 'no')} · player {sum(1 for c in ctx.included() if c['audience'] == 'player')}")

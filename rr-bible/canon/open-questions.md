@@ -516,3 +516,15 @@ Undecided canon. Each has options and a recommended default: skills may proceed 
   - C: Log and flag to the owner (analytics or webhook), no kick
 - default: A (lag and double taps also trip guards; a wrong kick costs a real player, a rejected call gains an exploiter nothing)
 - blocks: none
+
+### OQ-042 · Server shutdown mid-trip (update restart): what does the crew keep?
+- status: open
+- raised: 2026-09-28
+- src: RT
+- context: Update restarts (release-train --restart, Creator Hub Restart Servers for Updates) close old servers after a bleed-off; a trip is 12 min plus results and boarding, so a crew can still be mid-trip. Coins are awarded only at results (tech.data.award_order).
+- options:
+  - A: award the trip's banked fare in BindToClose, the same as a fail (gameplay.run.fail_screen), then let the server close
+  - B: nothing: an interrupted trip is lost
+- default: A (a restart for an update is the studio's fault, not the crew's; matches the fail rule)
+- affects: tech.data.award_order, gameplay.run.fail_screen
+- blocks: release-train smoke row: restart keeps banked fare

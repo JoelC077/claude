@@ -1,0 +1,22 @@
+G1   version         WARN     0.4.0 · 0.4.0 does not carry channel alpha's tag 'alpha'
+G2   changes         WARN     2 in build (2 player) · bump minor · in build on the agent's word, no owner citation: C-1, C-2
+G3   patch notes     PASS     every line traced · 0 warnings
+G4   canon           WARN     2 off-palette colours/fonts · scripts: no banned name; numbers compared only where canon has a check pattern · 2 possible number drifts (heuristic)
+G5   security        PENDING  no security verdict
+G6   tests           PENDING  tests deferred · bug bash needed (minor or bigger release)
+G7   performance     WARN     no baseline: owner phone evidence needed · Lobby: no baseline to compare (first audited release): 820 instances, 801 parts (771 MeshParts, 3 (budgets: OQ-039 default A)
+G8   visuals         WARN     0/2 visual changes certified (independent, at the bar, final pass agrees)
+G9   hygiene         WARN     8 findings · Lobby ReplicatedStorage.RR_Notifications.NotificationHud:17: blank asset id rbxassetid://0 (upload the asset, set the id)
+G10  open questions  WARN     6 touch in-build changes · 13 open questions in play
+verdict: NO-GO  -> /home/user/claude/trials/rr-release-train/v0.4.0-retrial/releases/next/GATES.md
+fix first:
+  G2: ask the owner what is in Studio, then release.py mark C-1 C-2 --in-build yes --via "chat DATE"
+  G4: fix the script to canon, or record the change with bible add-fact / decide (owner)
+  G5: rr-exploit-guard (/home/user/claude/rr-exploit-guard): scan /home/user/claude/trials/rr-release-train/v0.4.0-retrial/releases/next/places/Lobby/audit/scripts /home/user/claude/trials/rr-release-train/v0.4.0-retrial/releases/next/places/Trip/audit/scripts, gate --stage alpha --out /home/user/claude/trials/rr-release-train/v0.4.0-retrial/releases/next/security
+  G6: owner runs the bug bash and records `evidence bugbash --result pass --by owner --note ...`
+  G7: owner: play the new content on a phone (F9 memory, FPS) and record `evidence perf --result pass --by owner --note "phone, FPS, MB"`
+  G8: C-1: at the bar on self-review only: one independent --kind final multiuse-critic pass (/home/user/claude/missions/260927-depot-buildings/critique-buildings)
+  G8: C-2: standing 6/8: finish the fix loop in rr-mission-control (fix the open blocks-8 issues), then one independent --kind final pass (/home/user/claude/missions/260927-ticket-hud/critique-hud)
+  G9: owner uploads the assets (Asset Manager) and sets the ids, then re-attach
+  G9: owner deletes demo/test scripts from the place, saves, re-attaches
+  G10: owner: `bible decide OQ-nnn X --by owner` (or waive G10 with a reason) when ready

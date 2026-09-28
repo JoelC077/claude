@@ -258,8 +258,7 @@
     "{skill}/scripts/sound.py",
     "validate",
     "--release"
-   ],
-   "_about": "advisory: judges the sibling's library, not this build (outside the gate hash); a cmd with {audits} gets the build's audit folders and counts in the gate"
+   ]
   },
   {
    "gate": "G7",
@@ -271,8 +270,7 @@
     "budget",
     "--tier",
     "phone"
-   ],
-   "_about": "advisory: judges the sibling's library, not this build (outside the gate hash); a cmd with {audits} gets the build's audit folders and counts in the gate"
+   ]
   }
  ],
  "gate_names": {
@@ -348,5 +346,6 @@
    "_studs",
    "_deg"
   ]
- }
+ },
+ "_extra_checks_about": "advisory: a sibling check judges its own library, not this build, so it is listed apart from the verdict and the approval hash; a cmd containing {audits} receives the build's audit folders and then counts in its gate"
 }

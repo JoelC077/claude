@@ -1,0 +1,1 @@
+New in 0.4.0: two new buildings in the Depot Lobby, and every alert now arrives as a railway ticket.

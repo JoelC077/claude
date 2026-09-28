@@ -1,0 +1,312 @@
+{
+ "file": "/home/user/claude/trials/rr-release-train/v0.4.0-retrial/releases/next/places/Lobby/Lobby.rbxl",
+ "format": "binary",
+ "bytes": 21069,
+ "sha256": "0e129e9e9bcf8fe879d432b6a5fccfb4912ec4c09fb5a92291056a80702137d6",
+ "compression": {
+  "raw": 2,
+  "lz4": 38
+ },
+ "instances": 820,
+ "classes": {
+  "MeshPart": 771,
+  "Part": 30,
+  "ModuleScript": 5,
+  "Model": 3,
+  "Folder": 2,
+  "Lighting": 1,
+  "LocalScript": 1,
+  "RemoteEvent": 1,
+  "ReplicatedStorage": 1,
+  "Script": 1,
+  "ServerScriptService": 1,
+  "StarterPlayer": 1,
+  "StarterPlayerScripts": 1,
+  "Workspace": 1
+ },
+ "counts": {
+  "parts": 801,
+  "meshparts": 771,
+  "unanchored_parts": 3,
+  "scripts": 7,
+  "script_bytes": 21827,
+  "effects": {}
+ },
+ "streaming_enabled": true,
+ "oc_unsupported": {},
+ "stamp_version": "0.4.0",
+ "placeholders": [],
+ "blank_assets": [],
+ "colours": [
+  {
+   "hex": "#7D776B",
+   "count": 179,
+   "example": "Workspace.Depot.Depot_AshlarE_Stonedark_02",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#2B2F36",
+   "count": 72,
+   "example": "Workspace.Depot.Depot_Bay1RidgeCap_Iron_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#6D7D43",
+   "count": 67,
+   "example": "Workspace.Depot.Depot_Ivy1_Moss_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#15171C",
+   "count": 65,
+   "example": "Workspace.Depot.Depot_BargeEN_Ink_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#2E7D7A",
+   "count": 57,
+   "example": "Workspace.Depot.Depot_Bay1Finial_Teal_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#EFE2BD",
+   "count": 57,
+   "example": "Workspace.Depot.Depot_BellCoteLintel_Cream_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#F2C230",
+   "count": 55,
+   "example": "Workspace.Depot.Depot_CanopyValance_Hazard_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#3A3F48",
+   "count": 44,
+   "example": "Workspace.Depot.Depot_Chimney1Pot_Soot_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#ACA595",
+   "count": 36,
+   "example": "Workspace.Depot.Depot_AshlarE_Stonelt_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#2A6040",
+   "count": 30,
+   "example": "Workspace.Train.Coach0",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#1F2A33",
+   "count": 26,
+   "example": "Workspace.Depot.Depot_Bay1Vent_Dark_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#9A9384",
+   "count": 20,
+   "example": "Workspace.MainHall.Hall_Dormer1Cheek_Stone_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#B08A3E",
+   "count": 15,
+   "example": "Workspace.Depot.Depot_BellCoteBell_Brass_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#CABB8A",
+   "count": 14,
+   "example": "Workspace.Depot.Depot_StringCourseS_Mortar_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#B6AB90",
+   "count": 13,
+   "example": "Workspace.Depot.Depot_Bay1_Stonewm_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#2F333A",
+   "count": 11,
+   "example": "Workspace.Depot.Depot_Bay1RoofA_Slatedk_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#4A4F57",
+   "count": 11,
+   "example": "Workspace.MainHall.Hall_CupolaRoof_Slate_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#8F5A2A",
+   "count": 9,
+   "example": "Workspace.Depot.Depot_CartHandle_Timber_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#E8C46A",
+   "count": 6,
+   "example": "Workspace.Depot.Depot_Lamp01Glass_Glow_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#B87A3D",
+   "count": 4,
+   "example": "Workspace.Depot.Depot_CartBed_Timberlt_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#8A4B36",
+   "count": 4,
+   "example": "Workspace.Depot.Depot_Chimney1_Brick_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#B7A17A",
+   "count": 1,
+   "example": "Workspace.Depot.Depot_Ballast_Gravel_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#B1502B",
+   "count": 1,
+   "example": "Workspace.Depot.Depot_Drum01_Door_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#CFC9B9",
+   "count": 1,
+   "example": "Workspace.Depot.Depot_Ground_Pavingdk_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#D2C290",
+   "count": 1,
+   "example": "Workspace.Depot.Depot_NameBoardField_Creamdk_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#B3312A",
+   "count": 1,
+   "example": "Workspace.MainHall.Hall_DoorLintel_Red_01",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#F7F3E6",
+   "count": 1,
+   "example": "Workspace.MainHall.Hall_Ground_Paving_01",
+   "props": [
+    "Color"
+   ]
+  }
+ ],
+ "colour_total": 27,
+ "fonts": [],
+ "scripts": [
+  {
+   "path": "StarterPlayer.StarterPlayerScripts.NotificationDemo",
+   "class": "LocalScript",
+   "bytes": 883,
+   "lines": 26,
+   "disabled": false
+  },
+  {
+   "path": "ReplicatedStorage.RR_Version",
+   "class": "ModuleScript",
+   "bytes": 278,
+   "lines": 8,
+   "disabled": false
+  },
+  {
+   "path": "ServerScriptService.CrisisManager",
+   "class": "ModuleScript",
+   "bytes": 355,
+   "lines": 10,
+   "disabled": false
+  },
+  {
+   "path": "ServerScriptService.Crisis.spec",
+   "class": "ModuleScript",
+   "bytes": 72,
+   "lines": 4,
+   "disabled": false
+  },
+  {
+   "path": "ReplicatedStorage.RR_Notifications.NotificationHud",
+   "class": "ModuleScript",
+   "bytes": 13525,
+   "lines": 244,
+   "disabled": false
+  },
+  {
+   "path": "ReplicatedStorage.RR_Notifications.NotificationController",
+   "class": "ModuleScript",
+   "bytes": 6462,
+   "lines": 193,
+   "disabled": false
+  },
+  {
+   "path": "ServerScriptService.Lever",
+   "class": "Script",
+   "bytes": 252,
+   "lines": 6,
+   "disabled": false
+  }
+ ],
+ "extracted": 7
+}

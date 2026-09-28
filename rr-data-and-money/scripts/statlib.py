@@ -187,7 +187,9 @@ def _lchoose(n, k):
 
 
 def fisher_exact(x1, n1, x2, n2):
-    """Two-sided Fisher exact p for [[x1, n1-x1], [x2, n2-x2]] (sum of tables no more likely than observed)."""
+    """Two-sided Fisher exact p for [[x1, n1-x1], [x2, n2-x2]] (sum of tables no more likely than observed).
+    Counts are rounded to integers (CSV readers hand floats)."""
+    x1, n1, x2, n2 = (int(round(v)) for v in (x1, n1, x2, n2))
     k, N = x1 + x2, n1 + n2
     lo, hi = max(0, k - n2), min(k, n1)
     base = _lchoose(N, k)

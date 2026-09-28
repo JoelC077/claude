@@ -635,7 +635,7 @@ def g7(ctx):
             fresh.append(n)
             det.append(f"{n}: no baseline to compare (first audited release): {cur['instances']} instances, "
                        f"{cur['parts']} parts ({cur['meshparts']} MeshParts, {cur['unanchored_parts']} unanchored), "
-                       f"{cur['scripts']} scripts, {cur['effects']} effects, {cur['bytes'] / 1e6:.1f} MB")
+                       f"{cur['scripts']} scripts, {cur['effects']} effects, {cur['bytes'] // 1024} KB file")
             continue
         old = audit_metrics(prev_a)
         grew = [f"{m} {old[m]}->{cur[m]} (+{(cur[m] - old[m]) * 100 // max(old[m], 1)}%)" for m in p["metrics"]

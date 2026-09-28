@@ -1,0 +1,85 @@
+{
+ "version": "0.4.0",
+ "channel": "alpha",
+ "created": "2026-09-28T04:08Z",
+ "changes": [
+  {
+   "id": "C-1",
+   "section": "Added",
+   "audience": "player",
+   "bump": "minor",
+   "in_build": "yes",
+   "note": "Depot: two-gable stone station house, front faces the yard. Main Hall: the big hall of the lobby (placement not final, OQ-015: do not say where)",
+   "src": "mission:260927-depot-buildings",
+   "title": "New buildings in the Depot Lobby: the stone station house and the Main Hall",
+   "title_auto": "Build the Depot (station house) and the Main Hall for the Depot Lobby in Blender",
+   "mission": {
+    "dir": "/home/user/claude/missions/260927-depot-buildings",
+    "kind": "3d",
+    "bar": 8
+   },
+   "memo": "TRIAL ASSUMPTION: owner not asked"
+  },
+  {
+   "id": "C-2",
+   "section": "Changed",
+   "audience": "player",
+   "bump": "minor",
+   "in_build": "yes",
+   "note": "Same alerts as before (crises, junctions, fares, crates, crew) with a new look: railway-ticket card with a stub, punch notches and a rubber stamp; they stack bottom-right, clear of the jump button on phones",
+   "src": "mission:260927-ticket-hud",
+   "title": "Alerts got a makeover: every alert now arrives as a railway ticket",
+   "title_auto": "Remake the Risky Rails notification HUD in a style more fitting for the game",
+   "mission": {
+    "dir": "/home/user/claude/missions/260927-ticket-hud",
+    "kind": "ui",
+    "bar": 8
+   }
+  }
+ ],
+ "next_id": 3,
+ "places": {
+  "Lobby": {
+   "file": "places/Lobby/Lobby.rbxl",
+   "src": "/home/user/claude/trials/rr-release-train/v0.4.0/places/Lobby.rbxl",
+   "sha256": "0e129e9e9bcf8fe879d432b6a5fccfb4912ec4c09fb5a92291056a80702137d6",
+   "bytes": 21069,
+   "format": "binary",
+   "attached_at": "2026-09-28T04:08Z",
+   "stamp": "0.4.0",
+   "instances": 820,
+   "audit": "places/Lobby/audit/audit.json"
+  },
+  "Trip": {
+   "file": "places/Trip/Trip.rbxl",
+   "src": "/home/user/claude/trials/rr-release-train/v0.4.0/places/Trip.rbxl",
+   "sha256": "efbb8e45d9339049114072e4ca67fccdef3f952f08bd27df69f7a31eab12a285",
+   "bytes": 12681,
+   "format": "binary",
+   "attached_at": "2026-09-28T04:08Z",
+   "stamp": "0.4.0",
+   "instances": 46,
+   "audit": "places/Trip/audit/audit.json"
+  }
+ },
+ "repos": {
+  "/home/user/claude": "c0f2c0d903089d2dc1ecb21ba47e8236ff7c0f29"
+ },
+ "evidence": {},
+ "waivers": {},
+ "approval": null,
+ "gate": {
+  "verdict": "NO-GO",
+  "at": "2026-09-28T04:14Z",
+  "hash": "3e6efde64fd24fd28fe821d53539bb4d1f3d6ba5ef3a3bb60a3a2853f6c628ce",
+  "blockers": [
+   "G5",
+   "G6"
+  ]
+ },
+ "status": "draft",
+ "updated": "2026-09-28T04:14Z",
+ "version_by": "owner",
+ "bump": "minor",
+ "changelog": "/home/user/claude/trials/rr-release-train/v0.4.0-retrial/releases/CHANGELOG.md"
+}

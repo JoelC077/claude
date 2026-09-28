@@ -1,6 +1,6 @@
 ---
 name: rr-release-train
-description: "Risky Rails (Roblox) release manager: turns 'ship it' into a gated, reversible release. Collects changes from git log (conventional commits, Player-Note trailers), finished rr-mission-control missions and a script diff of the place file; bumps semver (0.x, -alpha.N / -beta.N channels); writes a Keep a Changelog entry and player patch notes in the house voice read from rr-bible, every line traced to a change; runs pre-release gates (version stamp, canon, rr-exploit-guard verdict, Luau tests, perf regression, multiuse-critic certification, debug flags, open questions); plans the publish through Roblox Open Cloud place publishing (dry-run by default; live only with the owner's approval, an API key secret and a typed confirm), then a smoke checklist and rollback plan. Use whenever Joel wants to release, publish, ship or push an update, bump the version, write patch notes or a changelog, check if a build is ready, set up the Open Cloud API key, or roll back a bad update. Not for designing features."
+description: "Risky Rails (Roblox) release manager: turns 'ship it' into a gated, reversible release. Collects changes from git log (conventional commits, Player-Note trailers), finished rr-mission-control missions and a script diff of the place file; bumps semver (0.x, -alpha.N / -beta.N channels); writes a Keep a Changelog entry and player patch notes in the house voice read from rr-bible, every line traced; runs pre-release gates (version stamp, canon, rr-exploit-guard verdict, Luau tests, perf, multiuse-critic certification, debug flags, blank assets, demo scripts, open questions); plans the publish through Roblox Open Cloud place publishing (dry-run by default; live only with the owner's approval, an API key secret and a typed confirm), then a smoke checklist and rollback plan. Use whenever Joel wants to release, publish, ship or push an update, bump the version, write patch notes or a changelog, check if a build is ready, set up the Open Cloud API key, or roll back a bad update. Not for designing features."
 ---
 
 # RR Release Train
@@ -9,24 +9,32 @@ One release in flight at `<R>/next/`, driven by one CLI. Scripts decide what is 
 security, multiuse-critic judges visuals, the owner approves and holds the key. Nothing goes live from a dry run.
 
 Paths: `<rt>` = `dirname "$(find ~/.claude/skills /home/user -maxdepth 5 -path '*rr-release-train/SKILL.md' 2>/dev/null | head -1)"`.
-`rel` below = `python3 <rt>/scripts/release.py`. `<R>` = `--root`, `$RR_RELEASES_ROOT`, or `<git top of cwd>/releases`.
-Canon comes from rr-bible (`bible` = its `scripts/bible.py`, found by glob or `$RR_BIBLE_SKILL`).
+`rel` below = `python3 <rt>/scripts/release.py`. Canon comes from rr-bible (`bible` = its `scripts/bible.py`, found by
+glob or `$RR_BIBLE_SKILL`).
+**Releases root `<R>`** (`--root`, else `$RR_RELEASES_ROOT`, else `<git top of cwd>/releases`) holds history.json (every
+version ever used) and the archived place files (the rollback source). It must outlive the session: set
+`$RR_RELEASES_ROOT` once to a folder the owner names (Cowork and the owner's machine: `~/rr-releases`; never the
+scratchpad). In a cloud session commit `history.json`, `CHANGELOG.md` and the notes; place files stay out of git
+(`init` writes the .gitignore) and in the owner's storage. `status` warns when `<R>` is a temp path.
 
 ## Start every session with `rel status`
-It prints the release, what is attached, notes/gate/approval state and the **next step**. Do that step; do not
-re-read files the status already summarises.
+It prints the release, what is attached, notes/gate/approval state and the **next step** (after a publish: the open
+smoke checks). Do that step; do not re-read files the status already summarises.
 
 ## Hard rules
-- **Dry run by default.** `publish` and `rollback` send nothing without `--live`, a valid owner approval,
-  `$ROBLOX_API_KEY`, a reachable API host and `--confirm <version>`. Never pass `--live` unless the owner asked
-  for the live publish in this conversation.
-- **Owner-only records:** `approve`, `waive`, `record`, `smoke --result`, `evidence tests|bugbash|livecheck|perf`
-  and a live `rollback` take `--by owner`. Pass it only when the owner said so in chat, and cite it
-  (`--via "chat DATE"` on approve, `--note` / `--reason` elsewhere).
-- **Never self-score.** Visual quality is multiuse-critic's (G8 reads its ledgers); security is rr-exploit-guard's
-  (G5 reads its verdict). If a gate needs them, run or request them; never write their files yourself.
-- **Canon, not memory.** Voice, lexicon, banned names, data-store name, bug bash, live check and Open Cloud limits
-  are read from rr-bible at run time. A gap is an open question (`bible add-question`), not a guess.
+- **Dry run by default.** `publish` sends nothing without `--live`, a valid owner approval, `$ROBLOX_API_KEY` (checked
+  by introspection: enabled, not expired, scopes), a reachable API host and `--confirm <version>`; `--live` re-runs
+  the gates and refuses unless they still match the approval. A live `rollback` needs `--by owner`, the key and
+  `--confirm <target>`. Never pass `--live` unless the owner asked for the live publish in this conversation.
+- **Owner-only records:** `approve`, `waive`, `record`, `smoke --result`, `evidence tests|bugbash|livecheck|perf`, a
+  security result without an rr-exploit-guard file, and a live `rollback` take `--by owner`. Pass it only when the
+  owner said so in chat, and cite it (`--via "chat DATE"` on approve, `--note` / `--reason` elsewhere). The same goes
+  for `mark --in-build yes --via "chat DATE"`: without `--via`, G2 says "on the agent's word".
+- **Never self-score.** Visual quality is multiuse-critic's (G8 re-reads its ledgers every run); security is
+  rr-exploit-guard's (G5 reads its verdict, bound to the attached files' sha256 and the channel). If a gate needs
+  them, run or request them; never write their files yourself.
+- **Canon, not memory.** Voice, lexicon, banned names, data-store name, trip length (bleed-off), bug bash, live check
+  and Open Cloud limits are read from rr-bible at run time. A gap is an open question (`bible add-question`).
 - Never spend money, message players, post to Discord or change the owner's Claude config: write the post, the
   owner posts it.
 
@@ -35,96 +43,83 @@ re-read files the status already summarises.
    --start`, `rel config --place Trip ...`, optional `--repo PATH` for a Rojo repo, `--missions DIR`).
 2. **Attach the build:** the owner saves each place from Studio (File > Save to File As .rbxl) and gives the paths;
    Rojo users `rojo build -o Place.rbxl`. `rel attach Lobby path.rbxl` pins sha256, audits the file (instances,
-   scripts, colours, fonts, stamp, API-unsupported classes) and extracts every script to
+   scripts, colours, fonts, stamp, blank asset ids, API-unsupported classes) and extracts every script to
    `next/places/<name>/audit/scripts/`.
 3. **Collect:** `rel collect`. Game-repo commits become changes (feat -> Added/minor, fix -> Fixed/patch, `!` or
    BREAKING -> major, refactor/chore -> internal; `Player-Note:` gives wording, `Release-Note: skip` hides one).
-   Tooling repos (this JARVIS repo) are summarised, not listed. Done missions come in as **unknown**: ask the
-   owner which are really in Studio, then `rel mark C-6 --in-build yes|no`; retitle missions in player words
-   (`--title`, `--note`). Studio-only work has no trail: `rel add "Coal lasts longer on Easy" --section Changed`.
-   A script diff against the last release lists what changed so nothing ships undescribed.
-4. **Version:** `rel version` (history + biggest in-build bump; 0.x: breaking -> minor; channel tag). `--set` only
-   when the owner names one (1.0.0 at soft launch per OQ-037 default).
-5. **Changelog:** `rel changelog --apply` (Keep a Changelog section; prepends to `<R>/CHANGELOG.md`, idempotent).
-6. **Patch notes:** `rel notes` writes `NOTES_BRIEF.md` (player changes + the voice slice from rr-bible). Read only
-   the brief, then write `next/PATCH_NOTES.src.md` and `next/STORE_UPDATE.src.txt` (format:
-   `references/notes.md`). `rel notes-check` must PASS: every bullet tagged `[C-n]` to an in-build player change,
-   every player change covered, D-007 and store rules, jargon, parked sidings, limits, `bible check`. It writes the
-   clean `PATCH_NOTES.md` and `STORE_UPDATE.txt`.
+   Tooling repos (this JARVIS repo) are summarised. Done missions (found in `$RR_MISSIONS_ROOT`, `~/.rr-missions`,
+   `<project>/.rr-missions` or `--missions`) come in as **unknown**: ask the owner which are really in Studio, then
+   `rel mark C-6 --in-build yes --via "chat DATE"`; retitle them in player words (`--title`; `--note` = wording hint
+   the notes writer sees, `--memo` = internal). Studio-only work: `rel add "Coal lasts longer on Easy" --section
+   Changed --via "chat DATE"`. The script diff against the live release lists what changed, flags teleport code.
+4. **Version:** `rel version` sets the proposal when none is set (history + biggest in-build bump; 0.x: breaking ->
+   minor; channel tag), later only proposes (`--apply` takes it). `--set X` only when the owner names one. If that
+   name clashes with the scheme (OQ-037 default A: closed alpha = 0.1.0-alpha.N, 1.0.0 at soft launch), ask once:
+   the scheme's number, or the owner records theirs with `bible decide OQ-037`. Versions shipped before the train:
+   `rel version --after 0.3.2` seeds history so numbering continues above them.
+5. **Changelog:** `rel changelog --apply` writes the `[Unreleased]` section of `<R>/CHANGELOG.md`; publish/record
+   dates it, abandon removes it.
+6. **Patch notes:** `rel notes` writes `NOTES_BRIEF.md` (format, examples, player changes, voice slice from rr-bible).
+   Read only the brief, then write `next/PATCH_NOTES.src.md` and `next/STORE_UPDATE.src.txt`. `rel notes-check`
+   must PASS: every bullet tagged `[C-n]`, every non-bullet line a lexicon string verbatim or tagged, no promises,
+   numbers traced, sidings, D-007, store rules, jargon, `bible check`. Only a PASS writes the clean `PATCH_NOTES.md`
+   and `STORE_UPDATE.txt` (edge cases: `references/notes.md`).
 7. **Stamp:** `rel stamp` -> `RR_Version.lua`; the owner pastes it as ModuleScript `ReplicatedStorage.RR_Version`,
-   saves and re-exports; re-attach. G1 checks the stamp inside the file; the Luau tests and smoke S1 read it.
-8. **Security:** hand `next/places/*/audit/scripts/` to rr-exploit-guard; it writes
-   `next/security/SECURITY_GATE.json` (contract: `references/gates.md`). Missing or older than the attached files =
-   G5 PENDING.
-9. **Gate:** `rel gate` -> `GATES.md`, verdict GO / GO-WITH-WARNINGS / NO-GO. Fix what it lists; ask the owner for
-   evidence it needs (bug bash for minor+ releases: `release.alpha.bug_bash`; live check for live minor+).
-   Only the owner waives: `rel waive G8 --by owner --reason "..."`.
-10. **Approve (owner):** show the owner GATES.md verdict, the notes and the version; on a yes:
-    `rel approve --by owner --via "chat 2026-10-12"`. It binds version + place hashes + gate report + notes;
-    any change voids it (`status` says so).
-11. **Plan:** `rel plan` -> `PUBLISH_PLAN.md` (route per release: API, or Studio when a place holds classes the
-    API does not update or exceeds its size limit), `SMOKE.md`, `ROLLBACK.md`.
-12. **Publish:** `rel publish` (dry run: every request printed, blockers listed). Live, from a machine that reaches
-    apis.roblox.com with the key: `rel publish --live --confirm 0.1.0-alpha.2 [--restart]` uploads each place as
-    Saved, runs `assets/luau/run_tests.lua` on each saved version (specs + stamp), and only if all pass
-    publishes, start place last; `--restart` bleeds old servers off. Studio route: the owner publishes from
-    Studio, then `rel record --place Lobby=57 --place Trip=31 --by owner`. Either way next/ is archived to
+   saves and re-exports; re-attach. A missing or wrong stamp fails G1 (the Luau tests and smoke S1 read it).
+8. **Security:** rr-exploit-guard scans `next/places/*/audit/scripts/` and gates with `--stage <channel> --out
+   next/security` (G5 prints the exact command). A verdict for other files or another stage is PENDING.
+9. **Gate:** `rel gate` -> `GATES.md`, verdict GO / GO-WITH-WARNINGS / NO-GO, each gate with its fix. Ask the owner
+   for the evidence it needs (bug bash for minor+ releases, phone perf for new content, live check for live minor+).
+   Only the owner waives: `rel waive G8 --by owner --reason "..."`. Gate table and contracts: `references/gates.md`.
+10. **Approve (owner):** show GATES.md, the notes and the version; on a yes: `rel approve --by owner --via "chat
+    2026-10-12"`. It binds version, place hashes, gate report, notes, route and the Luau-tests setting; any change
+    voids it (`status` says so).
+11. **Plan:** `rel plan` -> `PUBLISH_PLAN.md` (route: API, or Studio when a place holds classes the API does not
+    update or exceeds its size limit; bleed-off from canon trip length), `SMOKE.md` (with each mission's watch
+    items), `ROLLBACK.md`. No archived release yet: `rel baseline --place Lobby=56 --place Trip=31` records the live
+    version numbers the rollback would restore.
+12. **Publish:** `rel publish [--restart]` (dry run: every request, blockers incl. the gate verdict). Live, from a
+    machine that reaches apis.roblox.com: `rel publish --live --confirm 0.1.0-alpha.2 [--restart]` saves each place,
+    runs `assets/luau/run_tests.lua` on each saved version, then publishes, start place last. Studio route: the owner
+    publishes, then `rel record --place Lobby=57 --place Trip=31 --by owner`. Either way next/ is archived to
     `<R>/<version>/` and history.json updated.
-13. **Smoke:** within the first hour the owner runs `SMOKE.md` (join + stamp, full trip through the funnel,
-    coins survive teleport and rejoin, error report, each changed item); `rel smoke --result S1=pass,S2=fail
-    --by owner`. Any P0 fail -> rollback recommended.
-14. **Rollback:** `rel rollback` (dry run: re-publish the previous release's archived files), then
-    `rel rollback --live --confirm <prev> --by owner --restart`, or Creator Hub version history (ROLLBACK.md).
-    DataStore writes do not roll back: a release that changes the saved profile shape must stay readable by the
-    previous build.
+13. **Smoke:** within the first hour the owner runs `SMOKE.md`; `rel smoke --result S1=pass,S2=fail,S6=skip --by
+    owner`. Any P0 fail -> rollback recommended.
+14. **Rollback:** `rel rollback` (dry run: re-publish the archive of the release before the live one), then `rel
+    rollback --live --confirm <target> --by owner --restart`, or Creator Hub version history (ROLLBACK.md; always so
+    for places holding unions). A second rollback needs the owner to name `--to VERSION`. DataStore writes do not
+    roll back: a release that changes the saved profile shape must stay readable by the previous build.
 
-Details only when needed: gates and evidence contracts `references/gates.md`; Open Cloud, the API key secret, live
-publish and rollback `references/publishing.md`; patch-notes format and voice `references/notes.md`.
-
-## Gates at a glance
-| gate | checks | typical fix |
-|---|---|---|
-| G1 version | semver, above history, channel tag, RR_Version stamp in every place | `stamp`, re-attach |
-| G2 changes | confirmed in-build changes, bump matches version | `mark`, `version` |
-| G3 notes | notes-check passed and not stale | rewrite .src, `notes-check` |
-| G4 canon | `bible check`: script names/numbers (FAIL), place colours/fonts (WARN) | fix to canon or record a decision |
-| G5 security | rr-exploit-guard verdict, fresh | run exploit-guard |
-| G6 tests | Luau specs (deferred to publish on the API route) or owner result; bug bash for minor+ | owner evidence |
-| G7 perf | audit growth vs last release, `vfx budget --tier phone`, live check (live) | owner phone evidence |
-| G8 visuals | multiuse-critic ledgers of shipped missions, independent and at bar | independent final pass |
-| G9 hygiene | debug flags, data-store name vs canon, placeholders, `sound validate --release` | turn flags off |
-| G10 open questions | OQs blocking release or launch, defaults in use | owner decides |
-
-Alpha/beta: G7, G8 and G9 problems warn; live: they block. Blocking sets live in `presets/gates.json`.
-
-## API key (the secret), in short
-Creator Dashboard > API Keys (create.roblox.com/dashboard/credentials): **universe-places: Write** on Risky Rails only
-(+ `universe.place.luau-execution-session: Write` for the tests, + `universe: Write` for `--restart`), expiry set.
-Store it as the environment variable `ROBLOX_API_KEY`: on the owner's machine from a password manager
-(`export ROBLOX_API_KEY=...` in that shell only), or in a cloud environment's settings (environment variables;
-also allow `apis.roblox.com` under network access). Never in a file in the repo, never pasted into chat.
-Full steps and risks: `references/publishing.md`.
+## API key (the secret)
+Scopes, creation steps, storage and risks: `references/publishing.md` (read it when setting the key up). In short:
+universe-places Write on Risky Rails only (+ luau-execution-session Write, + universe Write), an expiry, and a key
+unused for 60 days auto-expires. It lives only in `$ROBLOX_API_KEY`: owner's machine `export
+ROBLOX_API_KEY="$(pbpaste)"` in the publishing shell (or the password manager's CLI); cloud environment settings >
+environment variables (a new session picks it up) plus `apis.roblox.com` allowed; Cowork: the owner's own terminal.
+Never in a repo file, never in chat. `python3 <rt>/scripts/opencloud.py probe` checks it without printing it.
 
 ## Plugs
 - rr-bible: canon reads; `check` on notes and scripts; gaps as OQs (OQ-037 version scheme, OQ-038 notes voice,
-  OQ-039 place perf budgets, OQ-040 staging place; defaults in use until the owner decides).
-- rr-mission-control: `missions/*/state.json` done + `mission.md` Objective + `critique-*/ledger.json`.
-- multiuse-critic: G8 uses its standing rule (latest score per criterion, overall = lowest; self-review is not
-  certification). Store art goes through risky-rails-thumbnail-ideas + the critic, never scored here.
+  OQ-039 place perf budgets, OQ-040 staging place, OQ-042 shutdown mid-trip).
+- rr-mission-control: `state.json` done + `mission.md` Objective + `critique-*/ledger.json` + export notes
+  ("Watch:", "delete for release").
+- multiuse-critic: G8 applies its done rule (standing = latest score per criterion, overall = lowest, independent,
+  at the bar, and a final pass that agrees). Store art goes through risky-rails-thumbnail-ideas + the critic.
 - rr-exploit-guard: scans the extracted scripts, writes SECURITY_GATE.json. Not installed = G5 PENDING, said so.
-- rr-soundsmith / rr-vfx-lighting: `presets/gates.json` extra checks, skipped (and reported) when absent.
+- rr-soundsmith / rr-vfx-lighting: `presets/gates.json` extra checks; advisory (they judge their libraries) unless
+  their cmd takes `{audits}`.
 
 ## Honest limits
 - Cloud sessions: apis.roblox.com is blocked by the egress proxy and there is no Studio, so live publish, Luau tests
-  and restarts run where the host is reachable (the owner's machine, or an environment that allows it). The Open
-  Cloud client is tested against a local mock of the documented endpoints (selftest), never against Roblox.
-- The audit reads what a place file holds; it cannot see runtime FPS or memory (owner evidence), mesh triangles
-  (remote assets) or edits inside unions (why unions force the Studio route unless the owner overrides with
-  `config --place NAME --route api`).
+  and restarts run where the host is reachable. The Open Cloud client is tested against a local mock of the
+  documented endpoints (selftest), never against Roblox.
+- The audit reads what a place file holds: not runtime FPS or memory (owner evidence), mesh triangles, or edits
+  inside unions (why unions force the Studio route unless the owner sets `config --place NAME --route api`). The
+  no-caller and number-drift checks are heuristics (WARN only).
 - placefile.py reads binary (LZ4; ZSTD needs `pip install --target ~/.cache/rr-tools/py zstandard`) and XML
   places; checked on rojo-rbx/rbx-test-files, not yet on a real Risky Rails place.
 
 ## Maintain
 `python3 <rt>/scripts/selftest.py` (temp root, mock Open Cloud, Lua 5.1 run of run_tests.lua via optional lupa)
 must print `all N passed`. Remove `__pycache__` after running scripts. Release-process numbers (limits, growth
-threshold, strictness) live in `presets/gates.json`; game facts never do.
+threshold, strictness, patterns) live in `presets/gates.json`; game facts never do.

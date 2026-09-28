@@ -2,8 +2,11 @@
 """Shared helpers for rr-data-and-money: sibling lookup, rr-bible canon, canon-referenced presets, IO, numbers.
 
 Not a CLI: `python3 rrlib.py --help` prints this text. Stdlib only.
-Canon refs in presets:  {"v": 40, "canon": "economy.supplies.coal"}  -> value checked against rr-bible text
+Canon refs in presets:  {"v": 40, "canon": "economy.supplies.coal"}  -> number must appear in that canon VALUE
+                        {"v": 10, "canon": "k", "in": "note"}         -> ... or in its note (caps stated there)
                         {"v": 0.6, "assumed": "why"}                   -> no canon; listed in every report
+A path that is canon in the skill's preset but 'assumed' in a mission copy is reported as an override of canon.
+Presets: rrlib.preset(name) = --flag, $ENV, <data root>/presets/NAME (mission copy), else the skill's preset.
 """
 import json, os, re, subprocess, sys
 from pathlib import Path
@@ -15,9 +18,33 @@ NUM_RE = re.compile(r"(?<![\w.])-?\d[\d,]*(?:\.\d+)?%?")
 CMP_RE = re.compile(r"(>=|<=|≥|≤|<|>)\s*(-?\d[\d,]*(?:\.\d+)?)\s*(%?)")
 
 
+def project_root(start=None):
+    """The git repo holding the current directory (the owner's project), else None."""
+    cur = Path(start or os.getcwd()).resolve()
+    for d in [cur, *cur.parents]:
+        if (d / ".git").exists():
+            return d
+    return None
+
+
 def data_root():
-    """$RR_DATA_ROOT, else ~/.rr-data (never a session scratchpad: a new session must find it)."""
-    return Path(os.environ.get("RR_DATA_ROOT", Path.home() / ".rr-data")).expanduser()
+    """$RR_DATA_ROOT, else <project>/.rr-data when a git project is open (survives a fresh cloud machine once
+    committed), else ~/.rr-data. Never a session scratchpad: a new session must find plans, history and memos."""
+    if os.environ.get("RR_DATA_ROOT"):
+        return Path(os.environ["RR_DATA_ROOT"]).expanduser()
+    proj = project_root()
+    return proj / ".rr-data" if proj and proj != Path.home() else Path.home() / ".rr-data"
+
+
+def preset(name, given=None, env=None):
+    """Preset to use: --flag, else $ENV, else <R>/presets/NAME (a mission's own copy), else the skill's preset.
+    Missions copy presets to <R>/presets/ and edit them there; the skill's own presets stay the canon baseline."""
+    if given:
+        return Path(given)
+    if env and os.environ.get(env):
+        return Path(os.environ[env])
+    own = data_root() / "presets" / name
+    return own if own.is_file() else PRESETS / name
 
 
 def _walk_find(root, name, maxdepth=5):
@@ -116,12 +143,35 @@ def close(a, b, rel=1e-6):
     return abs(a - b) <= rel * max(1.0, abs(a), abs(b))
 
 
-class Refs:
-    """Resolve {"v", "canon"|"assumed"} nodes in a preset; collect canon problems and the assumed list."""
+def canon_paths(node, where=""):
+    """{path: canon key} for every {v, canon} node (paths as Refs prints them)."""
+    out = {}
+    if isinstance(node, dict) and "v" in node and "canon" in node:
+        out[where] = node["canon"]
+    elif isinstance(node, dict):
+        for k, v in node.items():
+            if not k.startswith("_"):
+                out.update(canon_paths(v, f"{where}.{k}" if where else k))
+    elif isinstance(node, list):
+        for i, v in enumerate(node):
+            out.update(canon_paths(v, f"{where}[{_tag(v, i)}]"))
+    return out
 
-    def __init__(self, bible=None):
+
+def _tag(v, i):
+    """List items with an id/sku are addressed by it (products[toolbelt]) so reordering cannot hide a change."""
+    return v.get("id") or v.get("sku") or i if isinstance(v, dict) else i
+
+
+class Refs:
+    """Resolve {"v", "canon"|"assumed"} nodes in a preset; collect canon problems and the assumed list.
+    base = {path: canon key} of the skill's own preset: a path that was canon there and is 'assumed' here is an
+    override of canon and is reported (self.overrides + a warning), never silent."""
+
+    def __init__(self, bible=None, base=None):
         self.bible = bible or Bible()
-        self.errors, self.warnings, self.assumed, self.canon = [], [], [], []
+        self.base = base or {}
+        self.errors, self.warnings, self.assumed, self.canon, self.overrides = [], [], [], [], []
 
     def is_ref(self, node):
         return isinstance(node, dict) and "v" in node and ("canon" in node or "assumed" in node)
@@ -133,12 +183,18 @@ class Refs:
         if isinstance(node, dict):
             return {k: self.resolve(v, f"{where}.{k}" if where else k) for k, v in node.items() if not k.startswith("_")}
         if isinstance(node, list):
-            return [self.resolve(v, f"{where}[{i}]") for i, v in enumerate(node)]
+            return [self.resolve(v, f"{where}[{_tag(v, i)}]") for i, v in enumerate(node)]
         return node
 
     def _check(self, node, where):
         if "assumed" in node:
             self.assumed.append((where, node["v"], node["assumed"]))
+            key = self.base.get(where)
+            if key:
+                f = self.bible.fact(key) if self.bible.ok() else None
+                cv = f.get("value") if f else "?"
+                self.overrides.append((where, node["v"], key, cv))
+                self.warnings.append(f"{where} = {node['v']} overrides canon {key} = \"{cv}\" (labelled assumed)")
             return
         key = node["canon"]
         if not self.bible.ok():
@@ -155,12 +211,16 @@ class Refs:
         elif st == "conflict":
             self.warnings.append(f"{where}: {key} is a canon conflict; label output 'assumed (OQ default)'")
         vals = node["v"] if isinstance(node["v"], list) else [node["v"]]
-        have = numbers_in(f.get("value", "") + " | " + (f.get("note") or ""))
+        # numbers must come from the canon value itself; "in": "note" opts into the note (e.g. a cap stated there).
+        # Matching the whole text let placeholders in a note ("10 R$ placeholder") pass for a coin price.
+        text = f.get("note") or "" if node.get("in") == "note" else f.get("value", "")
+        have = numbers_in(text)
         for v in vals:
             if isinstance(v, bool) or not isinstance(v, (int, float)):
                 continue
             if not any(close(v, h) for h in have):
-                self.errors.append(f"{where}: {v} not found in canon {key} = \"{f.get('value')}\"")
+                self.errors.append(f"{where}: {v} not found in canon {key} {'note' if node.get('in') == 'note' else 'value'}"
+                                   f" = \"{text}\"")
 
 
 def load_json(path):
@@ -172,27 +232,44 @@ def save_json(path, obj):
     Path(path).write_text(json.dumps(obj, indent=1, sort_keys=False) + "\n", encoding="utf-8")
 
 
+class PathError(ValueError):
+    pass
+
+
+def _step(cur, p, dotted):
+    if isinstance(cur, list):
+        if p.isdigit() and int(p) < len(cur):
+            return int(p)
+        ids = [_tag(x, i) for i, x in enumerate(cur)]
+        if p in ids:
+            return ids.index(p)
+        raise PathError(f"--set/--sweep path {dotted}: no list item '{p}' (have {ids})")
+    if isinstance(cur, dict) and p in cur:
+        return p
+    keys = sorted(k for k in cur if not str(k).startswith("_")) if isinstance(cur, dict) else []
+    raise PathError(f"--set/--sweep path {dotted}: no key '{p}'" + (f" (have {', '.join(keys)})" if keys else ""))
+
+
 def set_path(obj, dotted, value):
-    """--set a.b.0.c=value on a nested dict/list; value parsed as JSON when possible. Canon refs keep their tag."""
+    """--set a.b.0.c=value on a nested dict/list (list items also by id: unlocks.loco_2.price); value parsed as
+    JSON when possible. Every key must already exist (a typo raises PathError instead of adding an unused key).
+    A canon ref keeps its node and becomes {v, assumed: override ...}."""
     parts = dotted.split(".")
     cur = obj
     for p in parts[:-1]:
-        cur = cur[int(p)] if isinstance(cur, list) else cur[p]
-    last = parts[-1]
+        cur = cur[_step(cur, p, dotted)]
+    k = _step(cur, parts[-1], dotted)
     try:
         val = json.loads(value)
     except ValueError:
         val = value
-    tgt = cur[int(last)] if isinstance(cur, list) else cur.get(last)
+    tgt = cur[k]
     if isinstance(tgt, dict) and "v" in tgt and not isinstance(val, dict):
         new = dict(tgt, v=val)
         new.pop("canon", None)
         new["assumed"] = f"override --set {dotted}={value}"
         val = new
-    if isinstance(cur, list):
-        cur[int(last)] = val
-    else:
-        cur[last] = val
+    cur[k] = val
 
 
 def pct(x, d=1):

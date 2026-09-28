@@ -1,0 +1,26 @@
+{
+ "places": [
+  {
+   "name": "Lobby",
+   "universe_id": 9990001,
+   "place_id": 9990011,
+   "start": true
+  },
+  {
+   "name": "Trip",
+   "universe_id": 9990001,
+   "place_id": 9990012
+  }
+ ],
+ "repos": [
+  {
+   "path": "/home/user/claude",
+   "kind": "auto"
+  }
+ ],
+ "missions": [
+  "/home/user/claude/missions"
+ ],
+ "luau_tests": true,
+ "bleed_minutes": null
+}

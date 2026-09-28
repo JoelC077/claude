@@ -1,0 +1,95 @@
+{
+ "file": "/home/user/claude/trials/rr-release-train/v0.4.0-retrial/releases/next/places/Trip/Trip.rbxl",
+ "format": "binary",
+ "bytes": 12681,
+ "sha256": "efbb8e45d9339049114072e4ca67fccdef3f952f08bd27df69f7a31eab12a285",
+ "compression": {
+  "raw": 2,
+  "lz4": 30
+ },
+ "instances": 46,
+ "classes": {
+  "Part": 30,
+  "ModuleScript": 5,
+  "Folder": 2,
+  "Lighting": 1,
+  "Model": 1,
+  "RemoteEvent": 1,
+  "ReplicatedStorage": 1,
+  "Script": 1,
+  "ServerScriptService": 1,
+  "StarterPlayer": 1,
+  "StarterPlayerScripts": 1,
+  "Workspace": 1
+ },
+ "counts": {
+  "parts": 30,
+  "meshparts": 0,
+  "unanchored_parts": 3,
+  "scripts": 6,
+  "script_bytes": 20944,
+  "effects": {}
+ },
+ "streaming_enabled": true,
+ "oc_unsupported": {},
+ "stamp_version": "0.4.0",
+ "placeholders": [],
+ "blank_assets": [],
+ "colours": [
+  {
+   "hex": "#2A6040",
+   "count": 30,
+   "example": "Workspace.Train.Coach0",
+   "props": [
+    "Color"
+   ]
+  }
+ ],
+ "colour_total": 1,
+ "fonts": [],
+ "scripts": [
+  {
+   "path": "ReplicatedStorage.RR_Version",
+   "class": "ModuleScript",
+   "bytes": 278,
+   "lines": 8,
+   "disabled": false
+  },
+  {
+   "path": "ServerScriptService.CrisisManager",
+   "class": "ModuleScript",
+   "bytes": 355,
+   "lines": 10,
+   "disabled": false
+  },
+  {
+   "path": "ServerScriptService.Crisis.spec",
+   "class": "ModuleScript",
+   "bytes": 72,
+   "lines": 4,
+   "disabled": false
+  },
+  {
+   "path": "ReplicatedStorage.RR_Notifications.NotificationHud",
+   "class": "ModuleScript",
+   "bytes": 13525,
+   "lines": 244,
+   "disabled": false
+  },
+  {
+   "path": "ReplicatedStorage.RR_Notifications.NotificationController",
+   "class": "ModuleScript",
+   "bytes": 6462,
+   "lines": 193,
+   "disabled": false
+  },
+  {
+   "path": "ServerScriptService.Lever",
+   "class": "Script",
+   "bytes": 252,
+   "lines": 6,
+   "disabled": false
+  }
+ ],
+ "extracted": 6
+}

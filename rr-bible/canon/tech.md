@@ -117,6 +117,7 @@ Units, avatar and camera, mesh budgets, import/export pitfalls, lighting and mat
 - `tech.publish.oc_key_scopes` = `universe-places:write (publish); universe.place.luau-execution-session:write (Luau tests on a saved version); universe:write (restart servers)` | Creator Dashboard API key limited to the one experience; IP restriction optional (leave off for changing IPs); an expiry date needs a rotation habit | src: RBXOC | platform
 - `tech.publish.oc_luau_tasks` = `POST /cloud/v2/universes/{u}/places/{p}/versions/{v}/luau-execution-session-tasks {script, timeout}` | runs Luau in a headless server of that place version; poll GET cloud/v2/{task path} until COMPLETE or FAILED; output.results = the script's return values; default timeout 5 min | src: RBXOC | platform
 - `tech.publish.oc_restart` = `POST /cloud/v2/universes/{u}:restartServers {placeIds, closeAllVersions, bleedOffServers, bleedOffDurationMinutes 1-60}` | defaults to restarting only servers on older versions; bleed-off stops matchmaking and lets old servers finish | src: RBXOC | platform
+- `tech.publish.oc_key_autoexpire` = `60` | days: an API key nobody uses or updates for 60 days auto-expires even without an expiry date (Creator Docs, api-keys); publish or touch the key at least every 60 days; POST api-keys/v1/introspect reports enabled, expired and scopes | src: RBXOC | platform
 
 ## cloud · What the cloud session can and cannot do (measured 2026-09-27)
 - `tech.cloud.blender` = `headless bpy 5.0 (Cycles only, no viewport)` | src: DEPM, REX | measured

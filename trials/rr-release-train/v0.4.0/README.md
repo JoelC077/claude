@@ -15,9 +15,14 @@ Deliverables (`releases/`)
 - `CHANGELOG.md` (Keep a Changelog, 0.4.0) · `next/PATCH_NOTES.md` + `next/STORE_UPDATE.txt` (notes-check PASS)
 - `next/GATES.md`: NO-GO (G5 no security verdict, G6 bug bash); warnings G1 tag, G4, G8 0/2 certified, G9, G10
 - `next/PUBLISH_PLAN.md` (API route, Trip then Lobby) · `next/SMOKE.md` · `next/ROLLBACK.md` · `next/RR_Version.lua`
-- `publish-dryrun.txt` + `next/publish-dryrun.json` (every request with curl, blockers: approval, key, host)
+- `publish-dryrun.txt` + `next/publish-dryrun.json` (every request; the save/publish uploads carry a curl line, the
+  Luau test and restart steps do not; blockers: approval, key, host)
 
 Found beyond the gates (owner, before any publish): HUD icon ids are `rbxassetid://0` (upload icons first);
 NotificationDemo LocalScript must be deleted; OQ-001 (HUD skin, blocks final HUD export; default C, build ships
 A) and OQ-015 (Main Hall placement) are open; HUD standing 6/8 on multiuse-critic with its last fix pending;
 0.4.0 vs the alpha tag (OQ-037) needs the owner's call.
+
+Corrections after independent review: the notes check was not strong (the untagged notice line, which reused the
+TSR sign gag on the Main Hall of open question OQ-015, passed untraced), and the headline HUD has no caller in
+Trip and only the demo in Lobby. Both are now caught by the skill; see `../v0.4.0-retrial/`.
