@@ -25,7 +25,8 @@ bible get (canon slice) -> presets/*.json (source of truth)
 - `presets/lighting.json` base + 4 times (day, golden, night, storm) + 5 biomes (grassland, cutting, viaduct,
   yard, depot) + 2 overrides (tunnel_under canon, overbridge_flash proposed).
 - `presets/budgets.json` phone and PC tiers, per-priority rate scale, concurrency sets. Default of OQ-029.
-- `scripts/vfx.py` (stdlib), `fxsim.py` (Pillow), `lookdev_bpy.py` (bpy + numpy), `selftest.py`.
+- `scripts/vfx.py` (stdlib CLI), `preview.py` (orchestration for preview and crit), `fxsim.py` (Pillow),
+  `lookdev_bpy.py` (bpy + numpy), `selftest.py`.
 - `assets/luau/` hand-written runtime modules; `references/` presets.md, fidelity.md, rubric-fx.md.
 
 ## Decisions (with why)

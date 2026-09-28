@@ -1,0 +1,50 @@
+{
+  "screen": "LobbyCreateMatch",
+  "title": "Create match (lobby modal)",
+  "purpose": "Pick crew size and difficulty, then join the queue; one obvious primary action.",
+  "source": "DTU Create match sketch; canon ui.lobby.*, ui.difficulty.*, gameplay.difficulty.tiers",
+  "design": {"device": "phone"},
+  "gui": {"display_order": 30, "insets": "CoreUISafeInsets", "modal": true},
+  "canon": ["ui.lobby.controls", "ui.rules.one_accent", "ui.rules.difficulty_never_chrome", "tech.ui_platform.touch_target_px"],
+  "oq": ["OQ-001", "OQ-017", "OQ-033"],
+  "data": {
+    "players": {"values": [1, 2, 3], "default": 2, "note": "ui.lobby.controls draws 1/2/3 chips; gameplay.crew.max is 6"},
+    "difficulty": {"values": {"canon": "gameplay.difficulty.tiers", "upper": true}, "default": "MEDIUM"}
+  },
+  "nodes": [
+    {"id": "scrim", "type": "frame", "layer": "backdrop", "rect": [0, 0, 844, 390], "stretch": "xy", "fill": "scrim", "alpha": 0.55},
+    {"id": "panel", "use": "panel", "rect": [242, 64, 360, 304], "pin": "cc", "slots": {"title": "CREATE MATCH", "closable": true}, "children": [
+      {"id": "lbl_players", "type": "text", "rect": [20, 62, 150, 18], "text": "PLAYERS", "style": "label", "color": "text"},
+      {"id": "p1", "use": "chip", "rect": [20, 84, 44, 44], "slots": {"text": "1"}, "on": "players=1", "action": {"set": {"players": 1}}},
+      {"id": "p2", "use": "chip", "rect": [72, 84, 44, 44], "slots": {"text": "2"}, "on": "players=2", "action": {"set": {"players": 2}}},
+      {"id": "p3", "use": "chip", "rect": [124, 84, 44, 44], "slots": {"text": "3"}, "on": "players=3", "action": {"set": {"players": 3}}},
+      {"id": "lbl_diff", "type": "text", "rect": [20, 140, 150, 18], "text": "DIFFICULTY", "style": "label", "color": "text"},
+      {"id": "diff_prev", "use": "button", "variant": "icon", "rect": [20, 162, 44, 48], "slots": {"text": "<"}, "action": {"cycle": {"difficulty": -1}}},
+      {"id": "diff_plate", "type": "text", "rect": [72, 162, 216, 44], "fill": "diff.{difficulty|lower}", "stroke": ["ink", 2], "radius": 10, "text": "{difficulty}", "style": "value", "color": "on_diff.{difficulty|lower}", "align": "center"},
+      {"id": "diff_next", "use": "button", "variant": "icon", "rect": [296, 162, 44, 48], "slots": {"text": ">"}, "action": {"cycle": {"difficulty": 1}}},
+      {"id": "join", "use": "button", "variant": "primary", "rect": [20, 226, 320, 56], "slots": {"text": "JOIN", "hint": "ButtonA"}, "action": "join"}
+    ]}
+  ],
+  "nav": {"grid": [["close"], ["p1", "p2", "p3"], ["diff_prev", "diff_next"], ["join"]], "default": "join", "back": "close", "modal": "panel"},
+  "machine": {
+    "initial": "closed",
+    "states": {
+      "closed":  {"hide": ["scrim", "panel"]},
+      "open":    {},
+      "joining": {"disable": ["join", "p1", "p2", "p3", "diff_prev", "diff_next"], "text": {"join.label": "JOINING..."}}
+    },
+    "transitions": [
+      ["closed", "open", "open", "ui_panel_open"],
+      ["open", "close", "closed", "ui_panel_close"],
+      ["open", "join", "joining", "ui_button_press"],
+      ["joining", "cancel", "open", null],
+      ["joining", "joined", "closed", "ui_panel_close"],
+      ["joining", "close", "closed", "ui_panel_close"]
+    ]
+  },
+  "boards": [
+    {"name": "open", "state": "open", "data": {"players": 2, "difficulty": "MEDIUM"}},
+    {"name": "insane", "state": "open", "data": {"players": 3, "difficulty": "INSANE"}, "select": "join", "comp_states": {"diff_next": "pressed"}},
+    {"name": "joining", "state": "joining", "data": {"players": 1, "difficulty": "EASY"}}
+  ]
+}

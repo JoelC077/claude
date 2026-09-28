@@ -36,6 +36,10 @@ Every fact's `src:` field cites one or more IDs below (or `owner YYYY-MM-DD` for
 - `REX` — rr-mission-control Roblox export notes (roblox-export.md) | 2026-09-27 | repo:rr-mission-control/references/roblox-export.md
 - `RMC` — rr-mission-control SKILL.md (comms rules) | 2026-09-27 | repo:rr-mission-control/SKILL.md
 - `VFXL` — rr-vfx-lighting presets, budgets and preview measurements (Claude-authored look-dev, proposed) | 2026-09-28 | repo:rr-vfx-lighting/presets
+- `FDY` — rr-asset-foundry design notes: derived proposals for track gauge and the rolling-stock envelope (Claude-authored, proposed) | 2026-09-28 | repo:rr-asset-foundry/design-notes.md
+- `FEEL` — rr-game-feel presets, feel specs and preview measurements (Claude-authored juice presets, proposed) | 2026-09-28 | repo:rr-game-feel/presets/feel.json
+- `UIF` — rr-ui-foundry kit: device frames, skins (role -> token maps for the OQ-001 options), component templates, layout rule (Claude-authored, proposed) | 2026-09-28 | repo:rr-ui-foundry/design-notes.md
+- `SND` — rr-soundsmith design notes, soundmap and file standard (Claude-authored audio proposals, proposed) | 2026-09-28 | repo:rr-soundsmith/design-notes.md
 
 ## missions · past real missions (renders, ledgers, friction logs)
 - `DEPM` — mission 260927-depot-buildings (Depot + Main Hall, self-assessed 8/10) | 2026-09-27 | repo:missions/260927-depot-buildings
@@ -44,6 +48,11 @@ Every fact's `src:` field cites one or more IDs below (or `owner YYYY-MM-DD` for
 
 ## platform · external platform documentation
 - `RBXD` — Roblox Creator Docs engine API reference (ParticleEmitter, Beam, Trail, lights, Lighting, Atmosphere, post effects, Workspace.GlobalWind), read from the GitHub mirror Roblox/creator-docs | fetched 2026-09-28 | github:Roblox/creator-docs/content/en-us/reference/engine/classes
+- `RBXA` — Roblox Creator Docs: HapticEffect, HapticEffectType, HapticService, VibrationMotor, GuiService (ReducedMotionEnabled, PreferredTransparency), TweenService:GetValue, EasingStyle, ParticleEmitter.TimeScale, accessibility guide, read from the GitHub mirror Roblox/creator-docs | fetched 2026-09-28 | github:Roblox/creator-docs/content/en-us (reference/engine, production/publishing/accessibility.md)
+- `RBXAU` — Roblox Creator Docs audio: audio/assets.md (import rules and limits), sound/groups.md, sound/objects.md, sound/dynamic-effects.md, classes Sound, SoundGroup, SoundService, CompressorSoundEffect, EqualizerSoundEffect, enum RollOffMode, read from the GitHub mirror Roblox/creator-docs | fetched 2026-09-28 | github:Roblox/creator-docs/content/en-us (audio, sound, reference/engine)
+- `RBXU` — Roblox Creator Docs UI reference: ScreenGui (ScreenInsets, SafeAreaCompatibility, IgnoreGuiInset), Enum.ScreenInsets, GuiService (GetGuiInset, GetInsetArea, TopbarInset, SelectedObject, AutoSelectGuiEnabled, ViewportDisplaySize, PreferredTextSize, IsTenFootInterface), GuiObject/GuiBase2d selection (Selectable, NextSelection*, SelectionImageObject, SelectionGroup, SelectionBehavior), UIAspectRatioConstraint, AspectType, DominantAxis, UserInputService (PreferredInput, GetImageForKeyCode), Enum.DisplaySize, on-screen containers guide, read from the GitHub mirror Roblox/creator-docs | fetched 2026-09-28 | github:Roblox/creator-docs/content/en-us (reference/engine, ui/on-screen-containers.md)
+- `RBXP` — Roblox PlayerModule touch controls source (ControlModule.lua, TouchJump.lua, DynamicThumbstick.lua), client 0.740.19, read from the Roblox-Client-Tracker mirror | fetched 2026-09-28 | github:MaximumADHD/Roblox-Client-Tracker/roblox/scripts/PlayerScripts/StarterPlayerScripts/PlayerModule.module/ControlModule
+- `WCAG` — W3C WCAG 2.2 success criterion 2.3.1 Three Flashes or Below Threshold | 2023-10-05 | https://www.w3.org/TR/WCAG22/#three-flashes-or-below-threshold
 
 ## unreachable · known canon the cloud session could not read (see OQ-020)
 - `VID` — Visual Identity doc (palette, materials, patched palisade fence, depot dressing checklist) | 2026-09-09 | claude.ai project Risky Rails (not reachable from cloud)

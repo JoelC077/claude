@@ -7,7 +7,9 @@ Writes into plan["out"]: <Asset>.blend, <Asset>.fbx (plain, a material per recol
 palette.png, <Asset>_LOD1.fbx (option), parts.csv, studio_setup.lua, renders/*.png and result.json (every measured
 check). foundry.py turns result.json into manifest.json, facts.md and README.md; call foundry.py, not this.
 """
-import argparse, csv, json, math, os, sys, time
+import argparse, csv, json, math, os, re, sys, time
+
+sys.dont_write_bytecode = True       # never leave __pycache__ in this or a sibling skill
 
 RENDERS = {  # name: (camera, resolution, samples)
     "thumb": ("Cam_34", (320, 180), 10), "game": ("Cam_34", (400, 225), 16),
@@ -33,6 +35,8 @@ def lin(hx):
 
 def load_family(path):
     import importlib.util
+    if os.path.dirname(path) not in sys.path:
+        sys.path.insert(0, os.path.dirname(path))       # families share helpers (_rolling.py)
     spec = importlib.util.spec_from_file_location("family", path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -109,7 +113,7 @@ def main():
     stage(bpy, bk, plan, fam, parts, lo, hi, Vector)
     res["backfaces"] = {}
     for cam in ("Cam_34", "Cam_POV_3P"):
-        bf = bk.backfaces(bpy.data.objects[cam], parts, res=(200, 112))
+        bf = fkit.backfaces(bpy.data.objects[cam], parts, res=(200, 112))
         res["backfaces"][cam] = sum(bf.values())
         if bf:
             res.setdefault("backface_parts", {}).update(bf)
@@ -211,17 +215,21 @@ def stage(bpy, bk, plan, fam, parts, lo, hi, Vector):
             _stage_box(bpy, f"Stage_Rail_{s}", (cx, s * g / 2, -0.6), (L, 0.8, 1.2), rail, coll)
         _stage_box(bpy, "Stage_Ballast", (cx, 0, -1.7), (L, 20, 1.0), bal, coll)
         gz = -2.2
+    gz -= 0.02                       # the stage ground never shares a plane with the asset's underside
     ground = _stage_box(bpy, "Stage_Ground", (cx, cy, gz - 0.5), (ext * 12, ext * 12, 1.0),
                         _flat_mat(bpy, "Stage_Ground", st["ground"]), coll)
-    for i in range(1, int(view.get("tile_x", 0)) + 1):      # tiling pieces: show the seams
-        for s in (-1, 1):
-            for o in parts:
-                c = o.copy()
-                c.name = f"Stage_Tile{i}{'ab'[s > 0]}_{o.name}"
-                c.location.x += s * i * plan["params"]["length"]
-                coll.objects.link(c)
+    n = int(view.get("tile_x", 0))                       # tiling pieces: copies show the seams
+    offs = fam.tile_offsets(plan["params"]) if hasattr(fam, "tile_offsets") else \
+        [s * i * plan["params"].get("length", 0) for i in range(1, n + 1) for s in (-1, 1)]
+    for j, dx in enumerate(offs):
+        for o in parts:
+            c = o.copy()
+            c.name = f"Stage_Tile{j}_{o.name}"
+            c.location.x += dx
+            coll.objects.link(c)
     # 5-stud stand-in avatar (legs, hazard vest, head) for scale
-    av = fam.avatar(plan["params"], lo, hi) if hasattr(fam, "avatar") else (hi[0] + 2.5, lo[1] - 2.5, gz)
+    # off the +x, +y corner: right of the asset in the 3/4, POV, side and end views, never in front of it
+    av = fam.avatar(plan["params"], lo, hi) if hasattr(fam, "avatar") else (hi[0] + 2.5, hi[1] + 1.5, gz)
     ah = plan["canon"]["avatar_h"]
     for nm, c, s, key in (("Legs", (0, 0, 0.2 * ah), (2, 1, 0.4 * ah), "dark"),
                           ("Torso", (0, 0, 0.6 * ah), (2, 1, 0.4 * ah), "vest"),
@@ -235,14 +243,15 @@ def stage(bpy, bk, plan, fam, parts, lo, hi, Vector):
     corners = [Vector((x, y, z)) for x in (focus[0][0], focus[1][0]) for y in (focus[0][1], focus[1][1])
                for z in (focus[0][2], focus[1][2])]
     d = Vector(view.get("dir34", (1.0, -1.3, 0.75))).normalized()
-    cam34 = _cam(bpy, "Cam_34", c3 + d * 10, c3, fov=30)
+    cam34 = _cam(bpy, "Cam_34", c3 + d * 10, c3, view_deg=30)       # construction lens, not the player camera
     _fit(bpy, cam34, corners, c3, d)
     size = [hi[i] - lo[i] for i in range(3)]
     mid = Vector([(lo[i] + hi[i]) / 2 for i in range(3)])
     far = 10 * max(size) + 50
     _cam(bpy, "Cam_Side", mid + Vector((0, -far, 0)), mid, ortho=max(size[0], size[2] * 16 / 9) * 1.12)
     _cam(bpy, "Cam_End", mid + Vector((far, 0, 0)), mid, ortho=max(size[1], size[2] * 16 / 9) * 1.12)
-    _cam(bpy, "Cam_Top", mid + Vector((0, 0, far)), mid, ortho=max(size[0], size[1] * 16 / 9) * 1.12, up="Y")
+    top = _cam(bpy, "Cam_Top", mid + Vector((0, 0, far)), mid, ortho=max(size[0], size[1] * 16 / 9) * 1.12)
+    top.rotation_euler = (0, 0, 0)          # straight down, +y up in the frame
     if hasattr(fam, "pov"):
         stand, look = fam.pov(plan["params"], lo, hi)
     else:
@@ -277,7 +286,7 @@ def _fit(bpy, cam, pts, center, d, margin=0.06):
     fits(hi)
 
 
-def _cam(bpy, name, loc, look, fov=30, ortho=None, up="Z"):
+def _cam(bpy, name, loc, look, view_deg=30, ortho=None, up="Y"):
     from mathutils import Vector
     cam = bpy.data.objects.new(name, bpy.data.cameras.new(name))
     bpy.context.scene.collection.objects.link(cam)
@@ -286,7 +295,7 @@ def _cam(bpy, name, loc, look, fov=30, ortho=None, up="Z"):
     if ortho:
         cam.data.type, cam.data.ortho_scale = "ORTHO", ortho
     else:
-        cam.data.angle_y = math.radians(fov)
+        cam.data.angle_y = math.radians(view_deg)
     cam.location = loc
     cam.rotation_euler = (Vector(look) - Vector(loc)).to_track_quat("-Z", up).to_euler()
     return cam
@@ -338,26 +347,41 @@ def export(bpy, plan, out, asset, parts, proxies, atlas_mat, tri_of):
     if plan["options"]["atlas"]:
         export_fbx(bpy, parts, proxies, os.path.join(out, f"{asset}_atlas.fbx"), plan, atlas_mat, plain=False)
         files += [f"{asset}_atlas.fbx", "palette.png"]
-    collide = plan["options"]["collide"] and not proxies
+    default, rules = collision(plan, bool(proxies))
+
+    def collides(name):              # the same rules studio_setup.lua applies (plain Lua patterns)
+        c = default
+        for pat, props in rules:
+            if "CanCollide" in props and re.search(pat.replace("%", "\\"), name):
+                c = props["CanCollide"]
+        return c
     with open(os.path.join(out, "parts.csv"), "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["name", "group", "token", "hex", "material", "palette_cell", "tris", "cancollide"])
         for o in sorted(parts, key=lambda o: o.name):
             g = plan["groups"][o["rr_group"]]
             w.writerow([o.name, o["rr_group"], g["token"], g["hex"], g["material"], plan["cells"][o["rr_group"]],
-                        tri_of.get(o.name, ""), str(collide).lower()])
+                        tri_of.get(o.name, ""), str(collides(o.name)).lower()])
         for o in proxies:
             w.writerow([o.name, "Proxy", "", "", "", "", 12, "true"])
     files.append("parts.csv")
     return files
 
 
-def setup_lua(bk, plan, asset, has_proxies):
+def collision(plan, has_proxies):
+    """(default CanCollide for visual parts, ordered rules): proxies collide and hide; LOD1 never collides;
+    family rules last (e.g. climbable ladder rungs). A family with collide False collides nowhere."""
     collide = plan["options"]["collide"] and not has_proxies
     rules = [("_Collider_Proxy_", {"Transparency": 1, "CanCollide": True, "CastShadow": False,
                                    "CollisionFidelity": "Enum.CollisionFidelity.Box"}),
              ("_Lod1_", {"CanCollide": False, "CastShadow": False})]
-    rules += [(pat, props) for pat, props in plan["view"].get("rules", [])]
+    if plan["options"]["collide"]:
+        rules += [(pat, props) for pat, props in plan["view"].get("rules", [])]
+    return collide, rules
+
+
+def setup_lua(bk, plan, asset, has_proxies):
+    collide, rules = collision(plan, has_proxies)
     head = [f"-- {asset} (rr-asset-foundry {plan['family']}, preset {plan['preset']}). Studio command bar, model selected.",
             f"-- Collision: {'box proxies (Collider_Proxy parts) collide; visual parts do not' if has_proxies else ('visual parts collide' if collide else 'nothing collides (visual only)')}.",
             "-- Recolour: edit one GROUPS line and re-run. KEEP_ATLAS = true keeps the _atlas.fbx texture (Color is then hidden)."]

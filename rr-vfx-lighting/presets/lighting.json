@@ -1,0 +1,110 @@
+{
+ "version": 1,
+ "about": "rr-vfx-lighting looks. A look is biome.time[+override]; it resolves base -> times[time] -> biomes[biome] -> overrides in order. Plain values set; {add}, {mul}, {lerp: [colour, t]} adjust. Light levels ([r,g,b] on Ambient, OutdoorAmbient, ColorShift_*, TintColor) are intensities, exempt from the palette gate but band-checked. Schema: references/presets.md.",
+ "fx_colours": {
+  "haze_grassland": {"hex": "#C2CAB0", "why": "canon asks a grey-green haze (tech.lighting.atmosphere); no token is a light grey-green"},
+  "decay_day": {"hex": "#9FB0A8", "why": "zenith kept grey-green so the sky desaturates with the ground (style.material.sky), away from the blue-sky band"},
+  "decay_golden": {"hex": "#93A6A2", "why": "cool zenith against the cream horizon keeps golden hour out of the sepia band (style.dont.dead_rails)"}
+ },
+ "studio": {
+  "about": "Studio-only settings, applied by studio_lighting_setup.lua in the command bar (not scriptable at runtime or set once per place)",
+  "LightingStyle": "Enum.LightingStyle.Realistic",
+  "PrioritizeLightingQuality": true,
+  "Use2022Materials": {"v": false, "canon": "tech.lighting.materials_2022"},
+  "canon_note": "tech.lighting.technology (Future) maps to LightingStyle Realistic + PrioritizeLightingQuality (tech.lighting.technology_api)"
+ },
+ "base": {
+  "Lighting": {
+   "ClockTime": 14.2, "GeographicLatitude": 41.7,
+   "Brightness": 2.4, "ExposureCompensation": 0,
+   "OutdoorAmbient": {"v": [70, 80, 70], "canon": "tech.lighting.outdoor_ambient"},
+   "Ambient": [44, 50, 48],
+   "EnvironmentDiffuseScale": 0.35, "EnvironmentSpecularScale": 0.25,
+   "ColorShift_Top": [24, 22, 14], "ColorShift_Bottom": [0, 6, 4],
+   "ShadowSoftness": 0.2
+  },
+  "Atmosphere": {
+   "Density": {"v": 0.3, "canon": "tech.lighting.atmosphere"},
+   "Offset": 0.12, "Color": "$haze_grassland", "Decay": "$decay_day", "Glare": 0.2, "Haze": 1.4
+  },
+  "ColorCorrectionEffect": {
+   "Enabled": true,
+   "Saturation": {"v": 0.12, "canon": "tech.lighting.color_correction"},
+   "Contrast": {"v": 0.05, "canon": "tech.lighting.color_correction"},
+   "Brightness": 0, "TintColor": [255, 252, 244]
+  },
+  "BloomEffect": {"Enabled": true, "Intensity": 0.35, "Size": 22, "Threshold": 1.4},
+  "SunRaysEffect": {"Enabled": true, "Intensity": 0.035, "Spread": 0.55},
+  "fx_on": []
+ },
+ "times": {
+  "day": {"use": "default running look"},
+  "golden": {
+   "use": "late sun; OQ-026 default keeps it for the Depot lobby and results",
+   "Lighting": {"ClockTime": 17.3, "Brightness": 1.9, "ExposureCompensation": 0.1, "ColorShift_Top": [70, 42, 12], "OutdoorAmbient": [78, 76, 70]},
+   "Atmosphere": {"Density": 0.32, "Color": "@style.brand.cream", "Decay": "$decay_golden", "Haze": 1.8, "Glare": 0.8},
+   "ColorCorrectionEffect": {"Saturation": 0.1, "TintColor": [255, 246, 232]},
+   "BloomEffect": {"Intensity": 0.55, "Threshold": 1.2},
+   "SunRaysEffect": {"Intensity": 0.1, "Spread": 0.7}
+  },
+  "night": {
+   "use": "Night Running modifier look (gameplay.modifiers.hard_pool, proposed); headlamp on",
+   "Lighting": {"ClockTime": 0.5, "Brightness": 1.4, "ExposureCompensation": 0.9, "OutdoorAmbient": [56, 62, 78], "Ambient": [30, 34, 42],
+    "ColorShift_Top": [10, 14, 24], "ColorShift_Bottom": [0, 0, 0], "EnvironmentDiffuseScale": 0.2},
+   "Atmosphere": {"Density": 0.34, "Color": "@style.brand.night_bg_top", "Decay": "@style.brand.night_bg_bottom", "Haze": 0.8, "Glare": 0},
+   "ColorCorrectionEffect": {"Saturation": 0, "Contrast": 0.1, "TintColor": [236, 242, 255]},
+   "BloomEffect": {"Intensity": 0.8, "Size": 28, "Threshold": 0.95},
+   "SunRaysEffect": {"Intensity": 0},
+   "fx_on": ["headlamp"]
+  },
+  "storm": {
+   "use": "overcast rain look; shelved with the rain preset until OQ-027",
+   "oq": "OQ-027",
+   "Lighting": {"ClockTime": 13.5, "Brightness": 1.1, "OutdoorAmbient": [74, 80, 82], "Ambient": [40, 44, 46], "ColorShift_Top": [0, 0, 0], "ShadowSoftness": 0.6},
+   "Atmosphere": {"Density": 0.42, "Color": "@style.world.diamond_plate", "Decay": "@style.world.ironwork", "Haze": 2.6, "Glare": 0},
+   "ColorCorrectionEffect": {"Saturation": {"add": -0.12}, "Contrast": 0.08, "TintColor": [240, 246, 248]},
+   "BloomEffect": {"Intensity": 0.2},
+   "SunRaysEffect": {"Intensity": 0},
+   "fx_on": ["rain"]
+  }
+ },
+ "biomes": {
+  "grassland": {"use": "Line 1 base biome (world.biomes.base)", "times": ["day", "golden", "night", "storm"], "scene": "grassland"},
+  "cutting": {"use": "tunnel and deep cutting fork biome (world.biomes.mvp_forks)", "times": ["day", "golden", "night", "storm"], "scene": "cutting",
+   "Lighting": {"OutdoorAmbient": {"mul": 0.9}, "EnvironmentDiffuseScale": {"mul": 0.8}},
+   "Atmosphere": {"Density": {"add": -0.04}}},
+  "viaduct": {"use": "viaduct fork biome; bridges get haze so players cannot see track still spawning (av.vfx.bridge_haze)", "times": ["day", "golden", "night", "storm"], "scene": "viaduct",
+   "Atmosphere": {"Density": {"add": 0.1}, "Haze": {"add": 1.2}}},
+  "yard": {"use": "marshalling yard fork biome (world.biomes.mvp_forks)", "times": ["day", "golden", "night", "storm"], "scene": "yard",
+   "Atmosphere": {"Density": {"add": 0.05}, "Color": {"lerp": ["@style.world.diamond_plate", 0.35]}},
+   "ColorCorrectionEffect": {"Saturation": {"add": -0.05}}},
+  "depot": {"use": "Depot lobby (preview uses the Line 1 test stand; lobby geometry not modelled)", "times": ["day", "golden"], "scene": "grassland",
+   "Atmosphere": {"Density": {"add": -0.08}},
+   "ColorCorrectionEffect": {"Contrast": {"add": 0.03}}}
+ },
+ "overrides": {
+  "tunnel_under": {
+   "use": "while a tunnel segment is under the train (av.vfx.tunnel)",
+   "canon": ["av.vfx.tunnel"],
+   "tween_in": 0.35, "tween_out": 0.8,
+   "Lighting": {"Brightness": {"mul": 0.2}, "OutdoorAmbient": {"mul": 1.0}, "Ambient": {"mul": 1.3}, "EnvironmentDiffuseScale": {"mul": 0.2}, "ExposureCompensation": {"add": 0.8}},
+   "Atmosphere": {"Density": {"mul": 0.4}, "Color": {"lerp": ["@style.world.soot_black", 0.8]}, "Decay": {"lerp": ["@style.world.soot_black", 0.8]}},
+   "BloomEffect": {"Threshold": {"mul": 0.7}},
+   "SunRaysEffect": {"Intensity": 0},
+   "fx_on": ["headlamp"]
+  },
+  "overbridge_flash": {
+   "use": "an overbridge briefly darkens the cab (av.vfx.overbridge_flash, proposed)",
+   "canon": ["av.vfx.overbridge_flash"],
+   "tween_in": 0.08, "tween_out": 0.35, "duration": 0.6,
+   "Lighting": {"Brightness": {"mul": 0.5}, "OutdoorAmbient": {"mul": 0.6}, "Ambient": {"mul": 0.6}}
+  }
+ },
+ "preview": {
+  "east_axis": "+Z",
+  "east_note": "preview puts east at Roblox +Z, so the train (forward +X) heads north and the key light comes over the camera's shoulder. The train never turns, so the heading is a look-dev choice; compare the printed sun direction with Lighting:GetSunDirection() in Studio",
+  "default_set": ["grassland.day", "grassland.golden", "grassland.night", "grassland.storm", "cutting.day+tunnel_under@door1p", "viaduct.day", "yard.day", "depot.golden"],
+  "phone_set": ["grassland.day", "grassland.night"],
+  "hero": "grassland.day"
+ }
+}

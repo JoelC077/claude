@@ -21,7 +21,7 @@ Recurring Risky Rails asset families (carriages, wagons, buildings, props, track
 - **Critic hand-off**: `crit` renders the Profile A set (POV 3P/1P at canon eye heights, 400 px game view, 3/4, side, end) into `CRIT/pass-N/`, builds `contact.png` + `facts.md`, writes a brief skeleton (never claims step 2 answered) and prints the `critic_kit.py build` command.
 
 ## Plugs
-- rr-bible: tokens, `@key` params, tris/camera/avatar numbers, `check` gate; missing canon recorded with `add-question` / proposed `add-fact` (OQ-026: gauge and rolling-stock envelope). OQ-025 (livery) labels every carriage/wagon livery as assumed.
+- rr-bible: tokens, `@key` params, tris/camera/avatar numbers, `check` gate; missing canon recorded with `add-question` / proposed `add-fact` (OQ-030: gauge and rolling-stock envelope). OQ-025 (livery) labels every carriage/wagon livery as assumed.
 - rr-mission-control: step 4 `list --match` finds a family; step 5 maker runs `make` instead of writing build.py; step 6 = the variant's checks; step 7 `crit`; step 9 the variant folder is the export (`verify`).
 - multiuse-critic: `blender_kit.py`, `contact_sheet.py`, `critic_kit.py` found by glob, never copied.
 

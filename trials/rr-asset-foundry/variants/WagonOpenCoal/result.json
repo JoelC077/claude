@@ -1,0 +1,118 @@
+{
+ "asset": "WagonOpenCoal",
+ "timing": {
+  "build_s": 0.1,
+  "checks_s": 0.2,
+  "renders_s": 18.2,
+  "export_s": 18.4,
+  "total_s": 18.4
+ },
+ "parts": 51,
+ "proxies": 5,
+ "size": [
+  32.8,
+  18.04,
+  10.54
+ ],
+ "lo": [
+  -16.4,
+  -9.02,
+  0.0
+ ],
+ "hi": [
+  16.4,
+  9.02,
+  10.54
+ ],
+ "measures": {
+  "deck top above rail": "5 studs",
+  "open wagon inside": "29 x 16.4 x 4 studs"
+ },
+ "dropped_details": 0,
+ "groups": {
+  "Chassis": 16,
+  "Buffer": 2,
+  "Steel": 10,
+  "Iron": 12,
+  "Timber": 5,
+  "Door": 2,
+  "Load": 2,
+  "Patch": 2
+ },
+ "tris": {
+  "total": 1708,
+  "max_part": 288,
+  "max_name": "WagonOpenCoal_Lump_Load_01",
+  "over_target": [],
+  "over_cap": []
+ },
+ "palette": {
+  "cells_exact": true,
+  "bad_cells": 0,
+  "faces": 730,
+  "spanning": 0,
+  "near_edge": 0,
+  "off_palette": 0,
+  "ok": true
+ },
+ "names_bad": [],
+ "coplanar": [],
+ "floating": [],
+ "backfaces": {
+  "Cam_34": 0,
+  "Cam_POV_3P": 0
+ },
+ "features": {
+  "BufferHead": [
+   10.1,
+   "WagonOpenCoal_BufferHead_Steel_02"
+  ],
+  "Door": [
+   27.5,
+   "WagonOpenCoal_Door_Door_02"
+  ],
+  "Strap": [
+   102.2,
+   "WagonOpenCoal_Strap_Iron_02"
+  ]
+ },
+ "renders": {
+  "thumb": "renders/thumb.png",
+  "game": "renders/game.png",
+  "pov3p": "renders/pov3p.png",
+  "pov1p": "renders/pov1p.png",
+  "34": "renders/34.png",
+  "side": "renders/side.png",
+  "end": "renders/end.png"
+ },
+ "reimport": {
+  "meshes": 56,
+  "size": [
+   32.8,
+   18.04,
+   10.54
+  ],
+  "tris": 1768,
+  "ratio": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "unit_warning": null,
+  "no_uv": [
+   "WagonOpenCoal_Collider_Proxy_01.001",
+   "WagonOpenCoal_Collider_Proxy_02.001",
+   "WagonOpenCoal_Collider_Proxy_03.001",
+   "WagonOpenCoal_Collider_Proxy_04.001",
+   "WagonOpenCoal_Collider_Proxy_05.001"
+  ]
+ },
+ "files": [
+  "WagonOpenCoal.fbx",
+  "WagonOpenCoal_atlas.fbx",
+  "palette.png",
+  "parts.csv",
+  "WagonOpenCoal.blend",
+  "studio_setup.lua"
+ ]
+}

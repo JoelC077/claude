@@ -15,6 +15,10 @@ Units, avatar and camera, mesh budgets, import/export pitfalls, lighting and mat
 - `tech.units.corridor_clear` = `15` | no props within 15 studs of any track centreline | src: DS, LBJ | canon
 - `tech.units.train_len` = `165` | train length in studs (drawing) | src: DS | proposed
 - `tech.units.cab_inside` = `16.35 W x 14 D x 8 H` | cab interior; heights from cab floor 0; rail at 3 | src: CB | measured
+- `tech.units.gauge` = `8` | track gauge, rail centre to centre; stock width 17.4 over the real body-to-gauge ratio (about 1.95) gives 8.9, rounded down so wheelsets sit well inside a 24-stud ballast bed; OQ-030 | src: FDY, DS | proposed
+- `tech.units.stock_width` = `17.4` | rolling-stock body width over the sides; cab inside 16.35 plus two 0.5 walls; OQ-030 | src: FDY, CB | proposed
+- `tech.units.stock_roof` = `14` | roof top above rail top; tunnel bore 18 with 4 studs above the carriage roof (prefab 10/11); OQ-030 | src: FDY, DS | proposed
+- `tech.units.stock_floor` = `5` | coach and wagon floor top above rail top; roof 14 minus cab inside height 8 minus about 1 of roof; OQ-030 | src: FDY, CB | proposed
 
 ## camera · Avatar camera
 - `tech.camera.eye_3p` = `9.5` | third-person camera about 9.5 studs above the floor | src: PROF, CRIT | platform
@@ -81,6 +85,26 @@ Units, avatar and camera, mesh budgets, import/export pitfalls, lighting and mat
 - `tech.ui_platform.no_go` = `top bar strip (GuiService:GetGuiInset), thumbstick bottom-left, jump button bottom-right, hotbar` | src: PROF, CRIT, R2A | platform
 - `tech.ui_platform.touch_target_px` = `44` | minimum; drag frames Active | src: R2A, DTU | canon
 - `tech.ui_platform.fonts` = `Font.fromEnum(Enum.Font.LuckiestGuy); Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.Bold)` | as exported by the HUD package | src: HUDM, REX | measured
+- `tech.ui_platform.topbar_inset` = `58` | px; the CoreUISafeInsets top on the docs' mobile example (GetInsetArea(None) = -59, -58, 792, 334); the old 36 px top bar is stale; measure GuiService:GetGuiInset in Studio before launch | src: RBXU | platform
+- `tech.ui_platform.notch_inset` = `59` | px left and right on the docs' notched-phone example (landscape); device-dependent, 0 on phones without a cutout | src: RBXU | platform
+- `tech.ui_platform.home_inset` = `21` | px bottom (home indicator) on notched phones; not in the Roblox docs; used only for the phone_notch worst-case board | src: UIF | assumed
+- `tech.ui_platform.screen_insets` = `CoreUISafeInsets` | ScreenGui.ScreenInsets default (IgnoreGuiInset false): clear of the top bar and device cutouts; use it for anything interactive or important; DeviceSafeInsets ignores the top bar; None only for non-interactive backgrounds; TopbarSafeInsets = the free strip beside the top bar buttons (GuiService.TopbarInset) | src: RBXU | platform
+- `tech.ui_platform.safe_area_compat` = `None` | ScreenGui.SafeAreaCompatibility: the default FullscreenExtension is a legacy patch for old UI; new work sets None and chooses ScreenInsets per ScreenGui | src: RBXU | platform
+- `tech.ui_platform.display_size` = `GuiService.ViewportDisplaySize` | Enum.DisplaySize Small (most phones and tablets), Medium (laptops, monitors), Large (TVs); GuiService:IsTenFootInterface is superseded and true on every console | src: RBXU | platform
+- `tech.ui_platform.preferred_input` = `UserInputService.PreferredInput` | Enum.PreferredInput KeyboardAndMouse, Gamepad, Touch, MicroGamepad; replaces guessing from TouchEnabled/GamepadEnabled | src: RBXU | platform
+- `tech.ui_platform.preferred_text_size` = `GuiService.PreferredTextSize` | Medium (default), Large, Larger, Largest; scales TextSize text, not TextScaled text; UITextSizeConstraint caps it; TextWrapped and AutomaticSize absorb it | src: RBXU | platform
+- `tech.ui_platform.gamepad_nav` = `Selectable + NextSelectionUp/Down/Left/Right + SelectionGroup` | GuiObject.SelectionImageObject draws the focus; SelectionOrder breaks ties; GuiBase2d.SelectionGroup with SelectionBehavior Stop keeps focus in a modal (Escape lets it leave); GuiService.SelectedObject starts navigation; GuiService.AutoSelectGuiEnabled lets Select or Backslash pick a start | src: RBXU | platform
+- `tech.ui_platform.key_glyphs` = `UserInputService:GetImageForKeyCode` | returns the connected gamepad's glyph (Xbox, PlayStation, Windows) for a KeyCode, e.g. ButtonA; InputActionLabel is the no-script alternative | src: RBXU | platform
+- `tech.ui_platform.aspect_fit` = `UIAspectRatioConstraint AspectType FitWithinMaxSize` | default AspectType: the element becomes the largest box of that ratio inside its own Scale size; the constraint overrides a UIListLayout's sizing | src: RBXU | platform
+- `tech.ui_platform.touch_small_screen` = `500` | px; min(width, height) <= 500 gets the small touch controls (phones in landscape); larger screens (tablets) get the large ones | src: RBXP | platform
+- `tech.ui_platform.jump_zone_small` = `136 x 136` | px box in the bottom-right corner of the CoreUISafeInsets area: union of the classic 70 px jump button at (W-95, H-90) and the ability-controls 72 px button at (W-136, H-136) | src: RBXP | platform
+- `tech.ui_platform.jump_zone_large` = `220 x 232` | px, bottom-right, screens with min side > 500: union of 120 px at (W-170, H-210) and 120 px at (W-220, H-232) | src: RBXP | platform
+- `tech.ui_platform.stick_zone_small` = `138 x 138` | px box in the bottom-left corner: the DynamicThumbstick idle ring (74 px) at centre (66, H-56) or, with ability controls, (101, H-101) | src: RBXP | platform
+- `tech.ui_platform.stick_zone_large` = `248 x 260` | px, bottom-left, screens with min side > 500 (148 px ring) | src: RBXP | platform
+- `tech.ui_platform.stick_area` = `left 40% x bottom 2/3` | the DynamicThumbstick touch area in landscape: an Active GUI object there takes the touch that would start walking; plain labels do not | src: RBXP | platform
+- `tech.ui_platform.tablet` = `1180 x 820` | tablet landscape board (1.44:1) that catches width-limited layouts; large touch controls | src: UIF | proposed
+- `tech.ui_platform.console` = `1920 x 1080` | TV board for gamepad navigation and the Large display size; console support is OQ-033 | src: UIF | proposed
+- `tech.ui_platform.stroke_position` = `UIStroke.BorderStrokePosition Inner` | Enum.BorderStrokePosition Outer, Center or Inner; rr-ui-foundry sets Inner so a 3 px frame stays inside its design rect (as on the boards); ApplyStrokeMode Border, or a TextLabel strokes its glyphs instead | src: RBXU | platform
 
 ## publish · Publishing and platform gates (Sep 2026; recheck in Creator Hub before launch)
 - `tech.publish.under16_gate` = `250 unique plays by highly engaged age-checked users within 60 days` | PLAN's 500 is stale | src: LPB | platform
@@ -95,3 +119,25 @@ Units, avatar and camera, mesh budgets, import/export pitfalls, lighting and mat
 - `tech.cloud.no_ffmpeg` = `no ffmpeg: build-up animations as GIF via Pillow` | src: DEPM | measured
 - `tech.cloud.lua_check` = `npm luaparse works (Lua 5.3 grammar); luau-analyze and selene not installed` | src: HUDM | measured
 - `tech.cloud.fonts` = `Google Fonts blocked in the sandbox; fonts via npm @fontsource` | src: THS | measured
+
+## feel · Feel and accessibility APIs
+- `tech.feel.haptics_api` = `HapticEffect` | Instance.new('HapticEffect') parented to Workspace on the client; Type = a HapticEffectType preset or Custom with SetWaveformKeys({FloatCurveKey.new(ms, 0..1, KeyInterpolationMode)}); :Play() / :Stop(); Looped; supports iOS and Android phones with haptics, PlayStation and Xbox gamepads, Quest controllers | src: RBXA | platform
+- `tech.feel.haptic_types` = `Custom, UIHover, UIClick, UINotification, GameplayExplosion, GameplayCollision` | Enum.HapticEffectType | src: RBXA | platform
+- `tech.feel.haptics_legacy` = `HapticService:SetMotor(Enum.UserInputType.Gamepad1, Enum.VibrationMotor.Large or Small, 0..1)` | deprecated, superseded by HapticEffect; phones implement only the Large motor; output is scaled by the player's haptic intensity setting | src: RBXA | platform
+- `tech.feel.reduced_motion` = `GuiService.ReducedMotionEnabled` | read-only bool mapped to the Reduce Motion toggle in the Roblox and in-experience Settings menus; Roblox recommends snapping tweens (Time 0) or fading instead of moving | src: RBXA | platform
+- `tech.feel.preferred_transparency` = `GuiService.PreferredTransparency` | 0..1 from the Background Transparency setting; multiply BackgroundTransparency by it so backgrounds get more opaque | src: RBXA | platform
+- `tech.feel.tween_getvalue` = `TweenService:GetValue(alpha, EasingStyle, EasingDirection)` | the engine's eased alpha, alpha clamped to 0..1; use it to dump curves for comparison | src: RBXA | platform
+- `tech.feel.easing_styles` = `Linear, Sine, Back, Quad, Quart, Quint, Bounce, Elastic, Exponential, Circular, Cubic` | EasingDirection In, Out, InOut | src: RBXA | platform
+- `tech.feel.particle_timescale` = `ParticleEmitter.TimeScale` | 0..1; 0 freezes the emitter in time (used by hit-stop) | src: RBXA | platform
+
+## audio · Audio platform facts (Sep 2026; recheck before launch)
+- `tech.audio.import_formats` = `mp3, ogg, wav, flac` | a single track or stream; Studio transcodes on import and rejects corrupt headers or frames | src: RBXAU | platform
+- `tech.audio.import_limits` = `under 20 MB and 7 minutes; sample rate at most 48 kHz; mono, stereo 2.0, 3.0 or 5.1` | src: RBXAU | platform
+- `tech.audio.import_quota` = `2,000 audio imports per 30 days ID-verified, 100 unverified` | imports pass moderation before use; private by default, shared through asset privacy | src: RBXAU | platform
+- `tech.audio.rights` = `import only audio you have the legal rights to; the Creator Store holds free-to-use audio, including over 100,000 tracks and effects from Roblox's audio and music partners` | src: RBXAU | platform
+- `tech.audio.volume` = `Sound.Volume 0-10, default 0.5; SoundGroup.Volume is a 0-10 multiplier on its sounds` | a Sound joins a group through its SoundGroup property, not by parenting; groups nest | src: RBXAU | platform
+- `tech.audio.soundgroup_status` = `SoundGroup and Sound are legacy but supported; Roblox now recommends the Audio API (AudioPlayer, AudioEmitter, wires)` | src: RBXAU | platform
+- `tech.audio.positional` = `a Sound under a BasePart or Attachment is positional (RollOffMode Inverse by default, RollOffMin/MaxDistance in studs); under SoundService or Workspace it is global with fixed volume and pan` | src: RBXAU | platform
+- `tech.audio.local_playback` = `SoundService.RespectFilteringEnabled defaults to true: Play() from a LocalScript is heard only on that client` | src: RBXAU | platform
+- `tech.audio.ducking_api` = `CompressorSoundEffect.SideChain ducks its group while the linked Sound or SoundGroup plays (Threshold -80..0 dB, Ratio 1..50, Attack, Release)` | src: RBXAU | platform
+- `tech.audio.distance_factor` = `3.33` | SoundService.DistanceFactor default, studs per metre, used only for Doppler; 1/tech.units.stud_m gives 3.57 | src: RBXAU | platform

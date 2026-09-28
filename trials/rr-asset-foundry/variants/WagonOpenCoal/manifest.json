@@ -1,0 +1,90 @@
+{
+ "asset": "WagonOpenCoal",
+ "family": "wagon",
+ "preset": "open_coal",
+ "hash": "e2664198ff7a",
+ "status": "ok",
+ "made": "2026-09-28T03:00:08",
+ "seconds": 19.2,
+ "params": {
+  "kind": "open",
+  "length": 30.0,
+  "width": 17.4,
+  "gauge": 8.0,
+  "deck": 5.0,
+  "running": "auto",
+  "wheel_r": 1.6,
+  "side_h": 4.0,
+  "body_h": 7.0,
+  "planks": 4,
+  "load": "coal",
+  "weathering": 0.3,
+  "door": true
+ },
+ "size_studs": [
+  32.8,
+  18.04,
+  10.54
+ ],
+ "parts": 51,
+ "proxies": 5,
+ "tris": {
+  "total": 1708,
+  "max_part": 288,
+  "max_name": "WagonOpenCoal_Lump_Load_01",
+  "over_target": [],
+  "over_cap": []
+ },
+ "groups": {
+  "Chassis": 16,
+  "Buffer": 2,
+  "Steel": 10,
+  "Iron": 12,
+  "Timber": 5,
+  "Door": 2,
+  "Load": 2,
+  "Patch": 2
+ },
+ "features": {
+  "BufferHead": [
+   10.1,
+   "WagonOpenCoal_BufferHead_Steel_02"
+  ],
+  "Door": [
+   27.5,
+   "WagonOpenCoal_Door_Door_02"
+  ],
+  "Strap": [
+   102.2,
+   "WagonOpenCoal_Strap_Iron_02"
+  ]
+ },
+ "lod1": null,
+ "renders": {
+  "thumb": "renders/thumb.png",
+  "game": "renders/game.png",
+  "pov3p": "renders/pov3p.png",
+  "pov1p": "renders/pov1p.png",
+  "34": "renders/34.png",
+  "side": "renders/side.png",
+  "end": "renders/end.png"
+ },
+ "files": [
+  "WagonOpenCoal.fbx",
+  "WagonOpenCoal_atlas.fbx",
+  "palette.png",
+  "parts.csv",
+  "WagonOpenCoal.blend",
+  "studio_setup.lua"
+ ],
+ "checks": {
+  "lua": "ok (luaparse: ok)",
+  "bible_check": "PASS"
+ },
+ "fails": [],
+ "warnings": [],
+ "open": [
+  "OQ-025",
+  "OQ-030"
+ ]
+}

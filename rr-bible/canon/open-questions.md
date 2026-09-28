@@ -365,3 +365,93 @@ Undecided canon. Each has options and a recommended default: skills may proceed 
 - default: A (usable now; revisit with B's numbers at the live check)
 - affects: identity.audience.devices, tech.lighting.post_low_quality
 - blocks: none (defaults used)
+
+### OQ-030 · Track gauge and rolling-stock envelope (missing canon)
+- status: open
+- raised: 2026-09-28
+- src: FDY, CB, DS
+- context: No gauge, coach width, floor or roof height is recorded. Evidence: cab inside 16.35 W x 8 H (CB); tunnel bore 18 with 4 studs above the carriage roof (DS prefab 10/11) gives roof 14; ballast bed 24 (DS). The as-built train and track exist in Studio but were never measured.
+- options:
+  - A: adopt the rr-asset-foundry proposals: gauge 8 (rail centre to centre), stock width 17.4, roof top 14 and floor 5 above rail top (derived from the cab and tunnel numbers)
+  - B: measure the as-built track and train in Studio (a rail's Position, the coach body Size, floor and roof heights) and record them as measured
+- default: A until B is done (B takes about 10 minutes in Studio and makes generated stock match the real train)
+- affects: tech.units.gauge, tech.units.stock_width, tech.units.stock_roof, tech.units.stock_floor
+- blocks: rr-asset-foundry carriages, wagons and track that must match the existing train
+
+### OQ-031 · Lever input: how does a player pull the lever?
+- status: open
+- raised: 2026-09-28
+- src: JLP, PLAN, FEEL
+- context: The fork is a physical lever (D-004, never a UI vote) and the lever console is a proposed UI; nothing says which input pulls it. The drag curve, detent tick and snapback in rr-game-feel exist only for a drag. Related: OQ-006 (who may pull; its option C is a hold-to-commit).
+- options:
+  - A: walk up to the lever; a ProximityPrompt opens the lever console; drag the knob past the detent (the JLP sketch's DRAG THE LEVER); the world lever animates in sync
+  - B: hold the ProximityPrompt (HoldDuration about 0.6 s); no console drag; the world lever animates
+  - C: A on touch, B on PC and gamepad
+- default: A (matches the lever console sketch and gives the drag feel; rr-game-feel's lever curve assumes it)
+- affects: gameplay.fork.lever, ui.lever.hint
+- blocks: lever feel tuning, lever console UI
+
+### OQ-032 · Feel accessibility settings: where do players turn down shake, flashes and haptics?
+- status: open
+- raised: 2026-09-28
+- src: RBXA, WCAG, FEEL
+- context: Camera shake, flashes and hit-stop can cause motion sickness or photosensitive discomfort; Roblox exposes a Reduce Motion toggle but no shake or flash toggle. There is no settings menu in canon.
+- options:
+  - A: alpha follows Roblox's own settings only (Reduce Motion via GuiService.ReducedMotionEnabled, the haptic intensity setting); an in-game Settings panel (shake slider, flashes, haptics, reduce motion) comes at launch
+  - B: in-game Settings panel for the alpha
+  - C: no feel settings
+- default: A (zero UI work in alpha week; RR_Feel already exposes Feel.setSetting for the panel)
+- affects: av.feel.reduce_motion, av.feel.flash_limit
+- blocks: settings UI
+
+### OQ-033 · UI platforms: which devices must every screen support, and how big is UI on a TV?
+- status: open
+- raised: 2026-09-28
+- src: UIF, RBXU, PROF
+- context: Canon names phone 844x390 and PC 1280x720 only. Roblox reports Small/Medium/Large display sizes (GuiService.ViewportDisplaySize) and PreferredInput Gamepad; tablets (Small, large touch controls) and TVs (Large) are not in canon. rr-ui-foundry derives UIScale density per display size from tech.ui_platform.layout (phone 1.0, PC 1.16) but has no canon for Large.
+- options:
+  - A: alpha = phone + PC; every screen is still gamepad-navigable from day one (cheap now, costly to retrofit); console/TV boards are rendered as a check, not a gate; TV UI density 1.0 (same share of the screen as the phone)
+  - B: phone + PC only; no gamepad navigation until console is planned
+  - C: phone, PC and console all gated from the alpha; TV density decided by a Studio test on a TV
+- default: A (no extra alpha work beyond the nav graph the kit builds anyway; keeps console open)
+- affects: tech.ui_platform.console, tech.ui_platform.tablet, tech.ui_platform.layout
+- blocks: console sign-off, TV density
+
+### OQ-034 · HUD stack bottom offset vs the newer jump button
+- status: open
+- raised: 2026-09-28
+- src: RBXP, TN, HUDM
+- context: ui.hud.anchor puts the stack 112 px above the bottom on phones, which clears the classic 70 px jump button (top edge 90 px up) but overlaps the ability-controls jump button (72 px, top edge 136 px up) by 24 px (tech.ui_platform.jump_zone_small). Four tickets (newest full, older compact) fill the 332 px safe height exactly, so any lift pushes the top ticket into the top bar; with the newest ticket and the newest crisis both full the stack is 20 px taller than the space. rr-ui-foundry measures this on its phone boards.
+- options:
+  - A: keep the 112 px design offset; the kit lifts the stack above the real JumpButton at run time (avoid rule) and shows at most 3 tickets while lifted (+N MORE covers the rest)
+  - B: raise the design offset to 146 px (clears the 136 px zone plus 10 px) and cap the stack at 3 on phones
+  - C: keep 112 px and accept the overlap with the ability-controls layout
+- default: A (the classic jump layout keeps canon's 4-ticket stack; the ability-controls layout is detected, not guessed)
+- affects: ui.hud.anchor
+- blocks: none (default in use)
+
+### OQ-035 · Crisis alarms: heard train-wide or at the source?
+- status: open
+- raised: 2026-09-28
+- src: R2A, SND
+- context: av.audio.priority says crisis alarms tell someone in the other carriage what is wrong; nothing says where the sound sits. rr-soundsmith's soundmap uses space 2d plus layer3d for alarms.
+- options:
+  - A: 2D train-wide at full level plus a quieter positional layer at the source (boiler, power box, window), so the other carriage hears it and the nearest player can find it
+  - B: positional at the source only, with a long roll-off across the 165-stud train
+  - C: 2D only, no positional cue
+- default: A (av.audio.priority: alarms must tell the other carriage what is wrong; the layer adds where)
+- affects: av.audio.priority
+- blocks: rr-soundsmith alarm spatial settings
+
+### OQ-036 · Creator Store audio uploaded by the community: allowed?
+- status: open
+- raised: 2026-09-28
+- src: RBXAU, SND
+- context: Roblox calls Creator Store audio free-to-use, but community uploads carry only the uploader's claim of rights; the licence rule (av.audio.licence) names owner uploads and Roblox-licensed audio only.
+- options:
+  - A: no; only owner uploads and Creator Store audio published by Roblox or its licensed partners
+  - B: yes, after a recorded check of the uploader and a takedown fallback
+  - C: yes, freely
+- default: A (rights cannot be verified and a takedown silences the sound in live servers)
+- affects: av.audio.licence
+- blocks: rr-soundsmith licence gate

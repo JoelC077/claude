@@ -1,0 +1,48 @@
+{
+  "screen": "HudTickets",
+  "title": "HUD notification stack (ticket frame)",
+  "purpose": "Tell the crew what just happened and what to do next without covering the game; crises read first.",
+  "source": "TN prototype + HUDM remake; canon ui.hud.*, gameplay.alerts.*",
+  "design": {"device": "phone"},
+  "gui": {"display_order": 20, "insets": "CoreUISafeInsets"},
+  "canon": ["ui.hud.anchor", "ui.hud.max_visible", "ui.hud.gap_px", "ui.hud.compact_rule", "ui.hud.crisis_extra", "ui.hud.motion", "gameplay.alerts.transport"],
+  "oq": ["OQ-001", "OQ-003", "OQ-012", "OQ-034"],
+  "icons": "../assets/icons",
+  "nodes": [
+    {"id": "stack", "type": "stack", "rect": [540, 58, 290, 220], "pin": "br", "avoid": ["jump"],
+     "note": "anchor from ui.hud.anchor: 14 px right, 112 px bottom on the phone",
+     "stack": {
+       "template": "ticket", "compact": "ticket_compact", "dir": "up",
+       "gap": {"v": 8, "canon": "ui.hud.gap_px"},
+       "max": {"v": 4, "canon": "ui.hud.max_visible"},
+       "max_lifted": 3,
+       "full": ["newest", "newest_crisis"],
+       "crisis": "kind=danger", "sticky": "kind=danger", "merge": "type",
+       "life_s": {
+         "danger": {"v": 7000, "canon": "gameplay.alerts.life_danger_ms", "scale": 0.001},
+         "risk":   {"v": 6000, "canon": "gameplay.alerts.life_risk_ms", "scale": 0.001},
+         "cash":   {"v": 4500, "canon": "gameplay.alerts.life_cash_ms", "scale": 0.001},
+         "info":   {"v": 5000, "canon": "gameplay.alerts.life_info_ms", "scale": 0.001}
+       },
+       "overflow": "more_chip",
+       "feel": {"enter": "hud_ticket_enter", "leave": "hud_ticket_leave", "merge": "hud_merge_bump", "crisis": "hud_crisis_arrival"}
+     }}
+  ],
+  "types": {
+    "CoalLow":         {"kind": "danger", "icon": "coal",       "text": {"canon": "gameplay.alerts.coal_low"}},
+    "PressureHigh":    {"kind": "danger", "icon": "gauge",      "text": {"canon": "gameplay.alerts.pressure_high"}},
+    "Breakdown":       {"kind": "danger", "icon": "wrench",     "text": {"canon": "gameplay.alerts.breakdown"}},
+    "PassengersUpset": {"kind": "danger", "icon": "passenger",  "text": {"canon": "gameplay.alerts.passengers_upset"}},
+    "JunctionAhead":   {"kind": "risk",   "icon": "lever",      "text": {"canon": "gameplay.alerts.junction_ahead"}},
+    "RiskyRoute":      {"kind": "risk",   "icon": "fork",       "text": {"canon": "gameplay.alerts.risky_route"}},
+    "FareBanked":      {"kind": "cash",   "icon": "coin",       "text": {"canon": "gameplay.alerts.fare_banked"}},
+    "CrateLanded":     {"kind": "info",   "icon": "crate",      "text": {"canon": "gameplay.alerts.crate_landed"}},
+    "CrewJoined":      {"kind": "info",   "icon": "crew_join",  "text": {"canon": "gameplay.alerts.crew_joined"}},
+    "CrewLeft":        {"kind": "info",   "icon": "crew_leave", "text": {"canon": "gameplay.alerts.crew_left"}}
+  },
+  "boards": [
+    {"name": "routine",  "push": [["CrewJoined", {"name": "Joel"}], ["CrateLanded"], ["FareBanked"]], "life": [0.35, 0.6, 0.9]},
+    {"name": "crisis",   "push": [["JunctionAhead"], ["Breakdown"], ["FareBanked"], ["CoalLow"]], "life": [0.4, 1, 0.7, 1]},
+    {"name": "overflow", "push": [["CrewJoined", {"name": "Sam"}], ["CrateLanded"], ["PressureHigh"], ["RiskyRoute"], ["FareBanked"], ["FareBanked"], ["CrewLeft", {"name": "Ava"}]], "life": [0.2, 0.3, 1, 0.5, 0.8, 0.8, 0.95]}
+  ]
+}
