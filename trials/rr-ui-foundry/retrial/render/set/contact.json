@@ -1,0 +1,57 @@
+{
+ "sheet": [
+  856,
+  1083
+ ],
+ "megapixels": 0.93,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "Hud phone 844x390 routine (C)",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/HudTickets/HudTickets__routine__phone__C.png",
+   "box": [
+    6,
+    24,
+    844,
+    390
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "Lobby phone 844x390 open (C)",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/LobbyCreateMatch/LobbyCreateMatch__open__phone__C.png",
+   "box": [
+    6,
+    438,
+    844,
+    390
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 3,
+   "label": "Hud PC 1280x720 routine, crop",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/HudTickets/HudTickets__pc_crop.png",
+   "box": [
+    62,
+    852,
+    288,
+    225
+   ],
+   "scale": "fit x0.78"
+  },
+  {
+   "n": 4,
+   "label": "Lobby PC 1280x720 open, crop",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/LobbyCreateMatch/LobbyCreateMatch__pc_crop.png",
+   "box": [
+    446,
+    852,
+    331,
+    225
+   ],
+   "scale": "fit x0.61"
+  }
+ ]
+}

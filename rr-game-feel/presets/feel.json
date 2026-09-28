@@ -98,7 +98,7 @@
     "fail_s_max": {"v": 3, "canon": "gameplay.crisis.fail_cinematic"},
     "loudness_weights": {"shake": 1.0, "camkick": 0.5, "hitstop": 0.8, "flash": 0.6, "fovkick": 0.4, "haptic": 0.4,
                          "punch": 0.3, "hud": 0.6},
-    "hud_px_ref": 10
+    "hud_px_ref": 5
   },
   "preview": {
     "about": "mock phone plate for previews only (not a game asset)",

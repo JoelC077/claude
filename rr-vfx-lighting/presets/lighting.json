@@ -577,7 +577,7 @@
      "glass_burst"
     ],
     "look": "hero",
-    "camera": "roof3p",
+    "camera": "door1p",
     "t": 0.25
    },
    {

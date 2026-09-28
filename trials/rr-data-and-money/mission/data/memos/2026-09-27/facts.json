@@ -1,0 +1,231 @@
+{
+ "week_ending": "2026-09-27",
+ "this_week": {
+  "dau": 261.85714285714283,
+  "new_users": 929.0,
+  "revenue": 2125.0,
+  "visits": 2580.0,
+  "arpdau": 1.1593016912165848,
+  "payer_conversion": 0.0070921985815602835,
+  "_payer_conversion_n": 1833.0,
+  "arppu": 163.46153846153845,
+  "robux_per_visit": 0.8236434108527132,
+  "avg_session_min": 11.014057101291144,
+  "qptr": 0.03037637752318603,
+  "impressions": 5232.519912711402,
+  "_d1_cohorts": "2026-09-20..2026-09-26",
+  "d1": 0.12158727097396337,
+  "_d1_n": 1037.0,
+  "_d7_cohorts": "2026-09-14..2026-09-20",
+  "d7": 0.01895271867612293,
+  "_d7_n": 846.0
+ },
+ "last_week": {
+  "dau": 232.57142857142858,
+  "new_users": 846.0,
+  "revenue": 3311.0,
+  "visits": 2332.0,
+  "arpdau": 2.0337837837837838,
+  "payer_conversion": 0.012285012285012284,
+  "_payer_conversion_n": 1628.0,
+  "arppu": 165.55,
+  "robux_per_visit": 1.419811320754717,
+  "avg_session_min": 11.52412981162981,
+  "qptr": 0.03181167076167076,
+  "impressions": 5336.111179361179,
+  "_d1_cohorts": "2026-09-13..2026-09-19",
+  "d1": 0.11895518207282912,
+  "_d1_n": 714.0,
+  "_d7_cohorts": "2026-09-07..2026-09-13",
+  "d7": 0.023453020134228186,
+  "_d7_n": 596.0
+ },
+ "kpis": [
+  [
+   "DAU (daily avg)",
+   "262",
+   "233",
+   "+13%",
+   "-",
+   "-",
+   "-"
+  ],
+  [
+   "New users",
+   "929",
+   "846",
+   "+10%",
+   "-",
+   "-",
+   "-"
+  ],
+  [
+   "Session length",
+   "11.0 min",
+   "11.5 min",
+   "-4%",
+   "-",
+   ">= 10.0 min `release.kpi.session_min`",
+   "PASS"
+  ],
+  [
+   "D1 retention",
+   "12.2%",
+   "11.9%",
+   "+0.3 pts",
+   "10.3%-14.3% (n 1,037)",
+   ">= 10.0% `release.kpi.d1`",
+   "PASS"
+  ],
+  [
+   "D7 retention",
+   "1.90%",
+   "2.35%",
+   "-0.5 pts",
+   "1.2%-3.0% (n 846)",
+   ">= 2.00% `release.kpi.d7`",
+   "UNCLEAR"
+  ],
+  [
+   "Revenue",
+   "2,125 R$",
+   "3,311 R$",
+   "-36%",
+   "-",
+   "-",
+   "-"
+  ],
+  [
+   "ARPDAU",
+   "1.16 R$",
+   "2.03 R$",
+   "-43%",
+   "-",
+   "-",
+   "-"
+  ],
+  [
+   "Payer conversion",
+   "0.71%",
+   "1.23%",
+   "-0.5 pts",
+   "0.4%-1.2% (n 1,833)",
+   ">= 1.50% `release.kpi.conversion`",
+   "MISS"
+  ],
+  [
+   "ARPPU",
+   "163.46 R$",
+   "165.55 R$",
+   "-1%",
+   "-",
+   "-",
+   "-"
+  ],
+  [
+   "R$ per visit",
+   "0.82 R$",
+   "1.42 R$",
+   "-42%",
+   "-",
+   "-",
+   "-"
+  ],
+  [
+   "Qualified play-through",
+   "3.04%",
+   "3.18%",
+   "-0.1 pts",
+   "-",
+   "-",
+   "-"
+  ]
+ ],
+ "gates": [
+  [
+   "scale",
+   "D1 before scaling spend",
+   "12.2%",
+   ">= 13.0%",
+   "UNCLEAR",
+   "`release.kpi.d1`"
+  ],
+  [
+   "spend",
+   "D1 before any ad spend",
+   "12.2%",
+   ">= 10.0%",
+   "PASS",
+   "`release.gates.spend`"
+  ],
+  [
+   "spend",
+   "bounce before any ad spend",
+   "n/a",
+   "< 25.0%",
+   "NO DATA",
+   "`release.gates.spend`"
+  ],
+  [
+   "continue",
+   "DAU",
+   "262",
+   ">= 100",
+   "PASS",
+   "`release.gates.continue`"
+  ],
+  [
+   "continue",
+   "payer conversion",
+   "0.71%",
+   ">= 1.50%",
+   "MISS",
+   "`release.gates.continue`"
+  ],
+  [
+   "continue",
+   "R$ per visit",
+   "0.82 R$",
+   ">= 0.40 R$",
+   "PASS",
+   "`release.gates.continue`"
+  ],
+  [
+   "abandon",
+   "stop-spending trigger",
+   "12.2%",
+   "< 8.00%",
+   "OK",
+   "`release.gates.abandon`"
+  ],
+  [
+   "closed_test",
+   "session (mean; canon says median)",
+   "11.0 min",
+   ">= 10.0 min",
+   "PASS",
+   "`release.gates.closed_test`"
+  ],
+  [
+   "spend",
+   "weekly D1 cohorts at/above the gate (need 2; point estimates)",
+   "3 of last 4",
+   ">= 10.0%",
+   "PASS",
+   "`release.gates.spend`"
+  ]
+ ],
+ "flags": [],
+ "funnels": [],
+ "economy": [],
+ "experiments": [
+  "thumb_lever_vs_crash (thumbnail): running, day 14 of 14, readout 2026-09-28"
+ ],
+ "notes": [
+  "D1 = mature cohorts 2026-09-20..2026-09-26",
+  "D7 = mature cohorts 2026-09-14..2026-09-20",
+  "revenue treated as earned (net) Robux",
+  "payer conversion CI treats each DAU-day as one trial (approximate)",
+  "SYNTHETIC_dashboard_30d.csv: avg_session_min: seconds -> minutes"
+ ]
+}

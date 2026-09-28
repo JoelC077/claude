@@ -88,7 +88,7 @@ def check(files, strict=(), quiet=False):
         lines.append(f"  {st} syntax {Path(f).name}: {msg}")
         fail |= st == "FAIL"
         skipped |= st == "SKIP"
-    res = analyze(list(strict) + [f for f in files if f not in strict], files)
+    res = analyze(list(strict) + ([] if quiet else [f for f in files if f not in strict]), files)
     if res is None:
         lines.append("  SKIP typecheck: luau-lsp or Roblox types not installed (luau_check.py --install)")
         skipped = True

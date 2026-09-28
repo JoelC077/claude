@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="c" viewBox="0 0 640 250" width="640" height="250" role="img" aria-label="Daily active users, last 28 days">
+<style>.c{--s:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--mut:#898781;--grid:#e1e0d9;--base:#c3c2b7;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a}@media (prefers-color-scheme: dark){:root:where(:not([data-theme="light"])) .c{--s:#1a1a19;--ink:#ffffff;--ink2:#c3c2b7;--mut:#898781;--grid:#2c2c2a;--base:#383835;--s1:#3987e5;--s2:#d95926;--s3:#199e70}}:root[data-theme="dark"] .c{--s:#1a1a19;--ink:#ffffff;--ink2:#c3c2b7;--mut:#898781;--grid:#2c2c2a;--base:#383835;--s1:#3987e5;--s2:#d95926;--s3:#199e70}.c text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:11px;fill:var(--ink2)}.c .t{fill:var(--ink);font-size:13px;font-weight:600}.c .st{fill:var(--mut)}.c .ax{fill:var(--mut);font-variant-numeric:tabular-nums}.c .v{fill:var(--ink)}.c .hit{fill:transparent}</style>
+<rect width="640" height="250" fill="var(--s)" rx="8"/>
+<text class="t" x="16" y="22">Daily active users, last 28 days</text>
+<text class="st" x="16" y="38">Creator Dashboard export</text>
+<line x1="56" x2="570" y1="220.0" y2="220.0" stroke="var(--grid)" stroke-width="1"/>
+<text class="ax" x="50" y="223.5" text-anchor="end">0</text>
+<line x1="56" x2="570" y1="166.0" y2="166.0" stroke="var(--grid)" stroke-width="1"/>
+<text class="ax" x="50" y="169.5" text-anchor="end">200</text>
+<line x1="56" x2="570" y1="112.0" y2="112.0" stroke="var(--grid)" stroke-width="1"/>
+<text class="ax" x="50" y="115.5" text-anchor="end">400</text>
+<line x1="56" x2="570" y1="58.0" y2="58.0" stroke="var(--grid)" stroke-width="1"/>
+<text class="ax" x="50" y="61.5" text-anchor="end">600</text>
+<line x1="56" x2="570" y1="220" y2="220" stroke="var(--base)" stroke-width="1"/>
+<text class="ax" x="94.1" y="235" text-anchor="middle">09-02</text>
+<text class="ax" x="189.3" y="235" text-anchor="middle">09-07</text>
+<text class="ax" x="284.4" y="235" text-anchor="middle">09-12</text>
+<text class="ax" x="379.6" y="235" text-anchor="middle">09-17</text>
+<text class="ax" x="474.8" y="235" text-anchor="middle">09-22</text>
+<text class="ax" x="570.0" y="235" text-anchor="middle">09-27</text>
+<line x1="56" x2="570" y1="193.0" y2="193.0" stroke="var(--ink2)" stroke-width="1"/>
+<text x="60" y="189.0" stroke="var(--s)" stroke-width="3" paint-order="stroke">gate &gt;= 100</text>
+<path d="M56.0,182.7 L75.0,182.5 L94.1,185.4 L113.1,181.7 L132.1,180.3 L151.2,171.9 L170.2,175.4 L189.3,175.4 L208.3,176.0 L227.3,173.8 L246.4,200.8 L265.4,170.1 L284.4,169.8 L303.5,167.1 L322.5,169.5 L341.6,167.6 L360.6,169.8 L379.6,169.5 L398.7,163.6 L417.7,150.3 L436.7,110.1 L455.8,115.2 L474.8,157.1 L493.9,158.7 L512.9,155.2 L531.9,158.2 L551.0,150.6 L570.0,150.1" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle class="hit" cx="56.0" cy="182.7" r="7"><title>DAU 08-31: 138</title></circle>
+<circle class="hit" cx="75.0" cy="182.5" r="7"><title>DAU 09-01: 139</title></circle>
+<circle class="hit" cx="94.1" cy="185.4" r="7"><title>DAU 09-02: 128</title></circle>
+<circle class="hit" cx="113.1" cy="181.7" r="7"><title>DAU 09-03: 142</title></circle>
+<circle class="hit" cx="132.1" cy="180.3" r="7"><title>DAU 09-04: 147</title></circle>
+<circle class="hit" cx="151.2" cy="171.9" r="7"><title>DAU 09-05: 178</title></circle>
+<circle class="hit" cx="170.2" cy="175.4" r="7"><title>DAU 09-06: 165</title></circle>
+<circle class="hit" cx="189.3" cy="175.4" r="7"><title>DAU 09-07: 165</title></circle>
+<circle class="hit" cx="208.3" cy="176.0" r="7"><title>DAU 09-08: 163</title></circle>
+<circle class="hit" cx="227.3" cy="173.8" r="7"><title>DAU 09-09: 171</title></circle>
+<circle class="hit" cx="246.4" cy="200.8" r="7"><title>DAU 09-10: 71</title></circle>
+<circle class="hit" cx="265.4" cy="170.1" r="7"><title>DAU 09-11: 185</title></circle>
+<circle class="hit" cx="284.4" cy="169.8" r="7"><title>DAU 09-12: 186</title></circle>
+<circle class="hit" cx="303.5" cy="167.1" r="7"><title>DAU 09-13: 196</title></circle>
+<circle class="hit" cx="322.5" cy="169.5" r="7"><title>DAU 09-14: 187</title></circle>
+<circle class="hit" cx="341.6" cy="167.6" r="7"><title>DAU 09-15: 194</title></circle>
+<circle class="hit" cx="360.6" cy="169.8" r="7"><title>DAU 09-16: 186</title></circle>
+<circle class="hit" cx="379.6" cy="169.5" r="7"><title>DAU 09-17: 187</title></circle>
+<circle class="hit" cx="398.7" cy="163.6" r="7"><title>DAU 09-18: 209</title></circle>
+<circle class="hit" cx="417.7" cy="150.3" r="7"><title>DAU 09-19: 258</title></circle>
+<circle class="hit" cx="436.7" cy="110.1" r="7"><title>DAU 09-20: 407</title></circle>
+<circle class="hit" cx="455.8" cy="115.2" r="7"><title>DAU 09-21: 388</title></circle>
+<circle class="hit" cx="474.8" cy="157.1" r="7"><title>DAU 09-22: 233</title></circle>
+<circle class="hit" cx="493.9" cy="158.7" r="7"><title>DAU 09-23: 227</title></circle>
+<circle class="hit" cx="512.9" cy="155.2" r="7"><title>DAU 09-24: 240</title></circle>
+<circle class="hit" cx="531.9" cy="158.2" r="7"><title>DAU 09-25: 229</title></circle>
+<circle class="hit" cx="551.0" cy="150.6" r="7"><title>DAU 09-26: 257</title></circle>
+<circle class="hit" cx="570.0" cy="150.1" r="7"><title>DAU 09-27: 259</title></circle>
+<circle cx="570.0" cy="150.1" r="4" fill="var(--s1)" stroke="var(--s)" stroke-width="2"/>
+<text class="v" x="578.0" y="154.1">259</text>
+</svg>

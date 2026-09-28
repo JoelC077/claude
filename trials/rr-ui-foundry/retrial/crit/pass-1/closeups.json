@@ -1,0 +1,225 @@
+{
+ "sheet": [
+  984,
+  1038
+ ],
+ "megapixels": 1.02,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "Hud crisis phone",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/HudTickets/HudTickets__crisis__phone__C.png",
+   "box": [
+    6,
+    24,
+    320,
+    148
+   ],
+   "scale": "fit x0.38"
+  },
+  {
+   "n": 2,
+   "label": "Hud overflow phone",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/HudTickets/HudTickets__overflow__phone__C.png",
+   "box": [
+    332,
+    24,
+    320,
+    148
+   ],
+   "scale": "fit x0.38"
+  },
+  {
+   "n": 3,
+   "label": "Hud routine phone_notch",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/HudTickets/HudTickets__routine__phone_notch__C.png",
+   "box": [
+    658,
+    24,
+    320,
+    148
+   ],
+   "scale": "fit x0.38"
+  },
+  {
+   "n": 4,
+   "label": "Lobby insane phone",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/LobbyCreateMatch/LobbyCreateMatch__insane__phone__C.png",
+   "box": [
+    6,
+    196,
+    320,
+    148
+   ],
+   "scale": "fit x0.38"
+  },
+  {
+   "n": 5,
+   "label": "Lobby joining phone",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/LobbyCreateMatch/LobbyCreateMatch__joining__phone__C.png",
+   "box": [
+    332,
+    196,
+    320,
+    148
+   ],
+   "scale": "fit x0.38"
+  },
+  {
+   "n": 6,
+   "label": "Lobby open phone_notch",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/LobbyCreateMatch/LobbyCreateMatch__open__phone_notch__C.png",
+   "box": [
+    658,
+    196,
+    320,
+    148
+   ],
+   "scale": "fit x0.38"
+  },
+  {
+   "n": 7,
+   "label": "Hud routine tablet",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/HudTickets/HudTickets__routine__tablet__C.png",
+   "box": [
+    59,
+    368,
+    213,
+    148
+   ],
+   "scale": "fit x0.18"
+  },
+  {
+   "n": 8,
+   "label": "Hud routine pc",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/HudTickets/HudTickets__routine__pc__C.png",
+   "box": [
+    360,
+    368,
+    263,
+    148
+   ],
+   "scale": "fit x0.21"
+  },
+  {
+   "n": 9,
+   "label": "Hud routine console",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/HudTickets/HudTickets__routine__console__C.png",
+   "box": [
+    686,
+    368,
+    263,
+    148
+   ],
+   "scale": "fit x0.14"
+  },
+  {
+   "n": 10,
+   "label": "Hud zones phone",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/HudTickets/HudTickets__routine__phone__C__zones.png",
+   "box": [
+    6,
+    540,
+    320,
+    148
+   ],
+   "scale": "fit x0.38"
+  },
+  {
+   "n": 11,
+   "label": "Hud skin A routine",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/HudTickets/HudTickets__routine__phone__A.png",
+   "box": [
+    332,
+    540,
+    320,
+    148
+   ],
+   "scale": "fit x0.38"
+  },
+  {
+   "n": 12,
+   "label": "Hud skin B routine",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/HudTickets/HudTickets__routine__phone__B.png",
+   "box": [
+    658,
+    540,
+    320,
+    148
+   ],
+   "scale": "fit x0.38"
+  },
+  {
+   "n": 13,
+   "label": "Lobby open tablet",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/LobbyCreateMatch/LobbyCreateMatch__open__tablet__C.png",
+   "box": [
+    59,
+    712,
+    213,
+    148
+   ],
+   "scale": "fit x0.18"
+  },
+  {
+   "n": 14,
+   "label": "Lobby open pc",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/LobbyCreateMatch/LobbyCreateMatch__open__pc__C.png",
+   "box": [
+    360,
+    712,
+    263,
+    148
+   ],
+   "scale": "fit x0.21"
+  },
+  {
+   "n": 15,
+   "label": "Lobby open console",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/LobbyCreateMatch/LobbyCreateMatch__open__console__C.png",
+   "box": [
+    686,
+    712,
+    263,
+    148
+   ],
+   "scale": "fit x0.14"
+  },
+  {
+   "n": 16,
+   "label": "Lobby zones phone",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/LobbyCreateMatch/LobbyCreateMatch__open__phone__C__zones.png",
+   "box": [
+    6,
+    884,
+    320,
+    148
+   ],
+   "scale": "fit x0.38"
+  },
+  {
+   "n": 17,
+   "label": "Lobby skin A open",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/LobbyCreateMatch/LobbyCreateMatch__open__phone__A.png",
+   "box": [
+    332,
+    884,
+    320,
+    148
+   ],
+   "scale": "fit x0.38"
+  },
+  {
+   "n": 18,
+   "label": "Lobby skin B open",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/set/LobbyCreateMatch/LobbyCreateMatch__open__phone__B.png",
+   "box": [
+    658,
+    884,
+    320,
+    148
+   ],
+   "scale": "fit x0.38"
+  }
+ ]
+}

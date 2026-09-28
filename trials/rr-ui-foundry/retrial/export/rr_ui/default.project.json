@@ -1,0 +1,11 @@
+{
+  "name": "RR_UI",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "RR_UI": {
+        "$path": "src/shared/RR_UI"
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+descriptive only: traffic was adaptive (personalization), so there is no SRM check and no winner call;
+each rate is conditional on the players Roblox chose to show it to. qualified_plays / impressions:
+  B_boiler_blast       3.66%  95% CI 3.46%-3.88%  n 31,092
+  A_lever_calm         3.06%  95% CI 2.85%-3.28%  n 24,870  <- clearly below the best: a candidate to replace at the next update
+Roblox advice: keep several thumbnails active; swap losers at the next major update, not mid-week.

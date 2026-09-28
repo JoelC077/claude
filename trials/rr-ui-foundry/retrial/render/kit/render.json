@@ -1,0 +1,196 @@
+{
+ "spec": "render/kit/kit_board.json",
+ "files": [
+  {
+   "name": "KitBoard__controls__phone__C",
+   "board": "controls",
+   "device": "phone",
+   "skin": "C",
+   "zones": false,
+   "screen": "KitBoard",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null,
+   "tops": [
+    [
+     0.0,
+     58.0,
+     844.0,
+     332.0
+    ]
+   ],
+   "png": "render/kit/KitBoard__controls__phone__C.png"
+  },
+  {
+   "name": "KitBoard__panels__phone__C",
+   "board": "panels",
+   "device": "phone",
+   "skin": "C",
+   "zones": false,
+   "screen": "KitBoard",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null,
+   "tops": [
+    [
+     0.0,
+     58.0,
+     844.0,
+     332.0
+    ]
+   ],
+   "png": "render/kit/KitBoard__panels__phone__C.png"
+  },
+  {
+   "name": "KitBoard__tickets__phone__C",
+   "board": "tickets",
+   "device": "phone",
+   "skin": "C",
+   "zones": false,
+   "screen": "KitBoard",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null,
+   "tops": [
+    [
+     0.0,
+     58.0,
+     844.0,
+     332.0
+    ]
+   ],
+   "png": "render/kit/KitBoard__tickets__phone__C.png"
+  },
+  {
+   "name": "KitBoard__controls__pc__C",
+   "board": "controls",
+   "device": "pc",
+   "skin": "C",
+   "zones": false,
+   "screen": "KitBoard",
+   "size": [
+    1280.0,
+    720.0
+   ],
+   "stack": null,
+   "tops": [
+    [
+     150.46400000000006,
+     196.43370616113745,
+     979.0719999999999,
+     385.1325876777251
+    ]
+   ],
+   "png": "render/kit/KitBoard__controls__pc__C.png"
+  },
+  {
+   "name": "KitBoard__controls__phone__A",
+   "board": "controls",
+   "device": "phone",
+   "skin": "A",
+   "zones": false,
+   "screen": "KitBoard",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null,
+   "tops": [
+    [
+     0.0,
+     58.0,
+     844.0,
+     332.0
+    ]
+   ],
+   "png": "render/kit/KitBoard__controls__phone__A.png"
+  },
+  {
+   "name": "KitBoard__controls__phone__B",
+   "board": "controls",
+   "device": "phone",
+   "skin": "B",
+   "zones": false,
+   "screen": "KitBoard",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null,
+   "tops": [
+    [
+     0.0,
+     58.0,
+     844.0,
+     332.0
+    ]
+   ],
+   "png": "render/kit/KitBoard__controls__phone__B.png"
+  },
+  {
+   "name": "KitBoard__controls__phone__C__zones",
+   "board": "controls",
+   "device": "phone",
+   "skin": "C",
+   "zones": true,
+   "screen": "KitBoard",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null,
+   "tops": [
+    [
+     0.0,
+     58.0,
+     844.0,
+     332.0
+    ]
+   ],
+   "png": "render/kit/KitBoard__controls__phone__C__zones.png"
+  }
+ ],
+ "measures": {
+  "KitBoard__controls__phone__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "KitBoard__panels__phone__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "KitBoard__tickets__phone__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "KitBoard__controls__pc__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "KitBoard__controls__phone__A": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "KitBoard__controls__phone__B": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "KitBoard__controls__phone__C__zones": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  }
+ }
+}

@@ -285,17 +285,24 @@ def caption(model, r, long=False):
     unseen = [n for n in r["presets"] if seen(model, r, n) is False]
     look = r["look"] if long else r["look"].split(".", 1)[-1]
     if r["tier"] == "phone":
-        tier = " PHONE phone rates, no shadows/Bloom/SunRays" if long else " PHONE"
+        tier = " PHONE (phone rates; no shadows, Bloom, SunRays)" if long else " PHONE"
     else:
         tier = ""
-    txt = f"{look} {cam}{tier}: " + (", ".join(shown) or "no effect")
+    sh = (lambda n: n) if long else short_name(r["presets"])
+    txt = f"{look} {cam}{tier}: " + (", ".join(sh(n) for n in shown) or "no effect")
     if lights:
-        txt += f" +{','.join(lights)}"
+        txt += f" +{','.join(sh(n) for n in lights)}"
     if unseen:
-        txt += f"; hidden: {','.join(unseen)}"
-    if long:
-        txt += " · stand-in train"
-    return txt if long or len(txt) <= 60 else txt[:58] + ".."
+        txt += f"; hidden {','.join(sh(n) for n in unseen)}"
+    return txt if long or len(txt) <= 46 else txt[:45] + "."   # grid captions must fit a 384 px tile
+
+
+def short_name(names):
+    """Within one tile: steam_chimney -> steam unless another preset in the tile shares that first word."""
+    first = {}
+    for n in names:
+        first.setdefault(n.split("_")[0], []).append(n)
+    return lambda n: n.split("_")[0] if len(first.get(n.split("_")[0], [])) == 1 else n
 
 
 def strip_caption(model, n, st):

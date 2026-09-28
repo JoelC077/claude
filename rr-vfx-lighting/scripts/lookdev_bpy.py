@@ -526,7 +526,7 @@ CAMERAS = {
     "door1p": lambda c: ((-20, c.floor, c.half_w + 1.2), (160, 2, c.half_w + 16), c.eye_1p),  # leaning out of A's door,
                                                                                                # looking along the train
     "cab1p": lambda c: ((29, 0, -1.5), (36, 6.5, 0.3), c.cab_eye),                         # loco cab, facing the firebox
-    "coach1p": lambda c: ((-26, c.floor, -2), (8, c.floor + 3, c.half_w - 1), c.eye_1p),  # inside A, power box end
+    "coach1p": lambda c: ((-14, c.floor, -2), (8, c.floor + 3, c.half_w - 1), c.eye_1p),  # inside A, power box end
 }
 
 

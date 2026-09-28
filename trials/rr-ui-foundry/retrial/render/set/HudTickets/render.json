@@ -1,0 +1,278 @@
+{
+ "spec": "src/hud/spec.json",
+ "files": [
+  {
+   "name": "HudTickets__routine__phone__C",
+   "board": "routine",
+   "device": "phone",
+   "skin": "C",
+   "zones": false,
+   "screen": "HudTickets",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": 0,
+   "tops": [
+    [
+     540.0,
+     34.0,
+     290.0,
+     220.0
+    ]
+   ],
+   "png": "render/set/HudTickets/HudTickets__routine__phone__C.png"
+  },
+  {
+   "name": "HudTickets__crisis__phone__C",
+   "board": "crisis",
+   "device": "phone",
+   "skin": "C",
+   "zones": false,
+   "screen": "HudTickets",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": 1,
+   "tops": [
+    [
+     540.0,
+     34.0,
+     290.0,
+     220.0
+    ]
+   ],
+   "png": "render/set/HudTickets/HudTickets__crisis__phone__C.png"
+  },
+  {
+   "name": "HudTickets__overflow__phone__C",
+   "board": "overflow",
+   "device": "phone",
+   "skin": "C",
+   "zones": false,
+   "screen": "HudTickets",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": 3,
+   "tops": [
+    [
+     540.0,
+     34.0,
+     290.0,
+     220.0
+    ]
+   ],
+   "png": "render/set/HudTickets/HudTickets__overflow__phone__C.png"
+  },
+  {
+   "name": "HudTickets__routine__phone_notch__C",
+   "board": "routine",
+   "device": "phone_notch",
+   "skin": "C",
+   "zones": false,
+   "screen": "HudTickets",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": 0,
+   "tops": [
+    [
+     500.22891566265054,
+     26.9156626506024,
+     271.6566265060241,
+     206.0843373493976
+    ]
+   ],
+   "png": "render/set/HudTickets/HudTickets__routine__phone_notch__C.png"
+  },
+  {
+   "name": "HudTickets__routine__tablet__C",
+   "board": "routine",
+   "device": "tablet",
+   "skin": "C",
+   "zones": false,
+   "screen": "HudTickets",
+   "size": [
+    1180.0,
+    820.0
+   ],
+   "stack": 0,
+   "tops": [
+    [
+     754.9763033175357,
+     280.41706161137444,
+     405.4502369668246,
+     307.58293838862556
+    ]
+   ],
+   "png": "render/set/HudTickets/HudTickets__routine__tablet__C.png"
+  },
+  {
+   "name": "HudTickets__routine__pc__C",
+   "board": "routine",
+   "device": "pc",
+   "skin": "C",
+   "zones": false,
+   "screen": "HudTickets",
+   "size": [
+    1280.0,
+    720.0
+   ],
+   "stack": 0,
+   "tops": [
+    [
+     927.3484739336493,
+     334.86741232227496,
+     336.41099526066347,
+     255.20834123222747
+    ]
+   ],
+   "png": "render/set/HudTickets/HudTickets__routine__pc__C.png",
+   "crop": "render/set/HudTickets/HudTickets__pc_crop.png"
+  },
+  {
+   "name": "HudTickets__routine__console__C",
+   "board": "routine",
+   "device": "console",
+   "skin": "C",
+   "zones": false,
+   "screen": "HudTickets",
+   "size": [
+    1920.0,
+    1080.0
+   ],
+   "stack": 0,
+   "tops": [
+    [
+     1228.4360189573458,
+     324.739336492891,
+     659.7156398104265,
+     500.4739336492891
+    ]
+   ],
+   "png": "render/set/HudTickets/HudTickets__routine__console__C.png"
+  },
+  {
+   "name": "HudTickets__routine__phone__A",
+   "board": "routine",
+   "device": "phone",
+   "skin": "A",
+   "zones": false,
+   "screen": "HudTickets",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": 0,
+   "tops": [
+    [
+     540.0,
+     34.0,
+     290.0,
+     220.0
+    ]
+   ],
+   "png": "render/set/HudTickets/HudTickets__routine__phone__A.png"
+  },
+  {
+   "name": "HudTickets__routine__phone__B",
+   "board": "routine",
+   "device": "phone",
+   "skin": "B",
+   "zones": false,
+   "screen": "HudTickets",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": 0,
+   "tops": [
+    [
+     540.0,
+     34.0,
+     290.0,
+     220.0
+    ]
+   ],
+   "png": "render/set/HudTickets/HudTickets__routine__phone__B.png"
+  },
+  {
+   "name": "HudTickets__routine__phone__C__zones",
+   "board": "routine",
+   "device": "phone",
+   "skin": "C",
+   "zones": true,
+   "screen": "HudTickets",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": 0,
+   "tops": [
+    [
+     540.0,
+     34.0,
+     290.0,
+     220.0
+    ]
+   ],
+   "png": "render/set/HudTickets/HudTickets__routine__phone__C__zones.png"
+  }
+ ],
+ "measures": {
+  "HudTickets__routine__phone__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "HudTickets__crisis__phone__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "HudTickets__overflow__phone__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "HudTickets__routine__phone_notch__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "HudTickets__routine__tablet__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "HudTickets__routine__pc__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "HudTickets__routine__console__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "HudTickets__routine__phone__A": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "HudTickets__routine__phone__B": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "HudTickets__routine__phone__C__zones": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  }
+ }
+}

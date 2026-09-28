@@ -6,17 +6,22 @@ expanded tree. The two examples in `specs/` cover a HUD stack and a modal with s
 ## Top level
 ```json
 {"screen": "LobbyCreateMatch", "title": "...", "purpose": "one job, in the owner's words",
- "design": {"device": "phone"}, "gui": {"display_order": 30, "insets": "CoreUISafeInsets", "modal": true},
- "canon": ["ui.lobby.controls"], "oq": ["OQ-017"], "icons": "../assets/icons",
+ "source": "where the design came from and the rules it states", "design": {"device": "phone"},
+ "gui": {"display_order": 30, "insets": "CoreUISafeInsets", "modal": true},
+ "canon": ["ui.lobby.controls", "ui.rules.one_accent"], "oq": ["OQ-017"], "icons": "icons",
  "data": {...}, "types": {...}, "nodes": [...], "nav": {...}, "machine": {...}, "boards": [...]}
 ```
-- `design.device` must be the kit's design device (phone). Top-level rects are **phone-screen px** (844 x 390,
-  as drawn in the mock); the ScreenGui area starts under the 58 px top bar (`tech.ui_platform.topbar_inset`).
+- `design.device` must be the kit's design device (phone). Top-level rects are **phone-screen px**
+  (`tech.ui_platform.phone`, as drawn in the mock); the ScreenGui area starts under the top bar
+  (`tech.ui_platform.topbar_inset`).
 - `gui.insets`: CoreUISafeInsets for anything interactive or important (default); DeviceSafeInsets or None only
   for backgrounds. Nodes with `"layer": "backdrop"` go to a second ScreenGui with ScreenInsets None (full screen,
   one DisplayOrder lower), e.g. a modal scrim.
-- `canon` / `oq`: keys this screen relies on (checked to exist; cited in the brief and manifest).
-- `purpose` feeds the critic brief; `title` the boards and UI_SPEC.md.
+- `canon` / `oq`: keys this screen relies on (checked to exist; the brief quotes each canon value so the critic
+  keeps them; a decided OQ stays valid and validate says to drop it).
+- `purpose` and `source` feed the critic brief; `title` the boards and UI_SPEC.md.
+- `icons` (optional): a folder relative to the spec; icons missing there come from the skill's `assets/icons`.
+  An icon with no file anywhere is an error (kinds need their icon: `ui.rules.colourblind`).
 
 ## Nodes (primitives)
 | key | meaning |
@@ -32,22 +37,33 @@ expanded tree. The two examples in `specs/` cover a HUD stack and a modal with s
 | `fill`, `gradient` `[top, bottom]`, `stroke` `[role, px]`, `alpha`, `radius` (px or `"circle"`), `clip`, `rot` | style; colours are **roles** (or `@bible.key` for a one-off token), never hex |
 | `text`, `style`, `color`, `align`, `valign`, `wrap`, `truncate` | text; `style` is a type style in `kit/roles.json` |
 | `image`, `tint` | `icon.<name>` (icons folder, packed into the sheet) or `key.<KeyCode>` (gamepad glyph) |
+| `repeat` | template parts: `{"n": 5, "dy": 8}`, or `{"n": "fit", "dx": 8}` = as many as fit between the same margins |
 | `action` | on a hit: `"join"` (Action event + machine event if one exists), `{"set": {"players": 1}}`, `{"cycle": {"difficulty": 1}}` |
 | `on` | component `on` state while a data condition holds: `"players=1"` |
 | `visible`, `if`, `unless` | default visibility; template conditions on slots (`"stamp"`, `"kind=risk"`) |
 | `children`, `note` | children in the parent's design space; notes are dropped from exports |
 
 `{slot}` / `{slot|lower}` / `{slot|upper}` in texts and roles bind to screen `data` (live via `screen:set`) or to
-template slots. Children of a `use: panel` are placed relative to the panel and parented to its content part.
+template slots. Children of a `use: panel` are placed relative to the panel and parented to its content part
+(content starts at y 80: header 64, seam, 16 px gap).
+
+Role rules validate enforces on spec nodes (templates are the kit's job): `diff.*` fills only on difficulty marks
+(min side <= 24 design px; the current value takes the accent), `danger` and literal `kind.*` only in the ticket
+kinds (warning), `accent` only on something active, current or primary: a data-bound node or its control
+(warning). A current-value control copies the chip's selected look: cream face, ink edge, inner accent ring,
+ink underline.
 
 ## Layout: pin + scale
 - A top-level group gets `Size = Scale of the design area`, a `UIAspectRatioConstraint` (its design ratio,
-  FitWithinMaxSize) and a `UIScale` = density; so it becomes design size x s x density, where
-  s = min(areaW / 844, areaH / 332). Its AnchorPoint is its pin and its margin from that edge is design px x
-  s x density (the kit updates the offsets on resize).
+  FitWithinMaxSize) and a `UIScale`; it becomes design size x g x density. On a bigger area g = s =
+  min(areaW / designW, areaH / designH). On a smaller area (notched phone) g = the group's own fit: it shrinks
+  only as much as its margin + size (centred: size + twice its offset) needs, never below s, so a corner HUD or
+  a centred panel keeps its size. Validate fails two groups that overlap there but not on the design board: make
+  them one group. Stretch groups always use s. AnchorPoint = pin, margins = design px x g x density (the kit
+  updates offsets and UIScale on resize).
 - Children use pure Scale of their parent (exact, because the parent scales uniformly); children of a stretch
   node keep their shape with their own aspect constraint.
-- Text size, stroke, corner radius and tile size = design px x s (UIScale adds the density).
+- Text size, stroke, corner radius and tile size = design px x the group's scale (UIScale adds density and own fit).
 - Density: Small (phones, tablets) and Medium (PC) come from `tech.ui_platform.layout`; Large (TV) is OQ-033.
 
 ## data, types, stack

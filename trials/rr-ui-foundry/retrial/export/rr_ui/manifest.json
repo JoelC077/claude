@@ -1,0 +1,72 @@
+{
+ "generated": "2026-09-28T03:53:11",
+ "skin": "C",
+ "skin_status": "assumed (OQ-001 default)",
+ "screens": {
+  "HudTickets": "b3fe1c76f9ec",
+  "LobbyCreateMatch": "5328d80db491"
+ },
+ "kit": {
+  "dir": "/home/user/claude/rr-ui-foundry/kit",
+  "files": {
+   "roles.json": "398840b1a991",
+   "components.json": "a521e1371bfe"
+  }
+ },
+ "canon_cited": [
+  "gameplay.alerts.breakdown",
+  "gameplay.alerts.coal_low",
+  "gameplay.alerts.crate_landed",
+  "gameplay.alerts.crew_joined",
+  "gameplay.alerts.crew_left",
+  "gameplay.alerts.fare_banked",
+  "gameplay.alerts.junction_ahead",
+  "gameplay.alerts.life_cash_ms",
+  "gameplay.alerts.life_danger_ms",
+  "gameplay.alerts.life_info_ms",
+  "gameplay.alerts.life_risk_ms",
+  "gameplay.alerts.passengers_upset",
+  "gameplay.alerts.pressure_high",
+  "gameplay.alerts.risky_route",
+  "gameplay.alerts.transport",
+  "gameplay.crew.max",
+  "gameplay.difficulty.tiers",
+  "tech.ui_platform.console",
+  "tech.ui_platform.home_inset",
+  "tech.ui_platform.layout",
+  "tech.ui_platform.notch_inset",
+  "tech.ui_platform.pc",
+  "tech.ui_platform.phone",
+  "tech.ui_platform.stick_area",
+  "tech.ui_platform.tablet",
+  "tech.ui_platform.topbar_inset",
+  "tech.ui_platform.touch_small_screen",
+  "tech.ui_platform.touch_target_px",
+  "ui.hud.anchor",
+  "ui.hud.body_type",
+  "ui.hud.compact_rule",
+  "ui.hud.crisis_extra",
+  "ui.hud.gap_px",
+  "ui.hud.max_visible",
+  "ui.hud.motion",
+  "ui.hud.stamp",
+  "ui.hud.title_type",
+  "ui.lobby.controls",
+  "ui.rules.colourblind",
+  "ui.rules.difficulty_never_chrome",
+  "ui.rules.min_text",
+  "ui.rules.one_accent"
+ ],
+ "gates": {
+  "validate": "PASS",
+  "luaparse": "PASS",
+  "bible_check": "PASS",
+  "luatest": "PASS"
+ },
+ "density": {
+  "Small": 1.0,
+  "Medium": 0.7649,
+  "Large": 1.0
+ },
+ "studio": "Studio test pending (owner); nothing here was published or uploaded"
+}

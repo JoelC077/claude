@@ -1,0 +1,147 @@
+{
+ "sheet": "rr_ui_icons.png",
+ "cell": 128,
+ "tint": "white icons: ImageColor3 tints them",
+ "icons": {
+  "chevron_left": {
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "chevron_right": {
+   "offset": [
+    128,
+    0
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "coal": {
+   "offset": [
+    256,
+    0
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "coin": {
+   "offset": [
+    384,
+    0
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "crate": {
+   "offset": [
+    512,
+    0
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "crew": {
+   "offset": [
+    640,
+    0
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "crew_join": {
+   "offset": [
+    768,
+    0
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "crew_leave": {
+   "offset": [
+    896,
+    0
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "fork": {
+   "offset": [
+    0,
+    128
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "gauge": {
+   "offset": [
+    128,
+    128
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "lever": {
+   "offset": [
+    256,
+    128
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "passenger": {
+   "offset": [
+    384,
+    128
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "tiers": {
+   "offset": [
+    512,
+    128
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "wrench": {
+   "offset": [
+    640,
+    128
+   ],
+   "size": [
+    128,
+    128
+   ]
+  }
+ }
+}

@@ -31,6 +31,8 @@ PART_CLASSES = {"Part", "MeshPart", "WedgePart", "CornerWedgePart", "TrussPart",
 # Open Cloud place publishing does not update these (creator-docs usage-place-publishing.md, 2026-09-28)
 OC_UNSUPPORTED = {"EditableImage", "EditableMesh", "PartOperation", "UnionOperation", "NegateOperation",
                   "IntersectOperation", "SurfaceAppearance", "WrapLayer", "WrapTarget", "WrapDeformer", "BaseWrap"}
+# an asset reference that points at nothing: rbxassetid://0, rbxassetid:// with no id, ...asset/?id=0
+BLANK_ASSET = re.compile(r"^\s*(?:rbxassetid://0*|(?:https?://www\.roblox\.com)?/?asset/?\?id=0*)\s*$", re.I)
 EFFECT_CLASSES = ("ParticleEmitter", "Beam", "Trail", "Fire", "Smoke", "Sparkles", "PointLight", "SpotLight",
                   "SurfaceLight", "Sound", "BloomEffect", "SunRaysEffect", "DepthOfFieldEffect", "Atmosphere")
 
@@ -267,6 +269,8 @@ def _xml_value(el):
         return el.text or ""
     if tag == "bool":
         return (el.text or "").strip() == "true"
+    if tag == "Content":
+        return (el.findtext("url") or el.findtext("uri") or "").strip()
     if tag in ("int", "int64"):
         try:
             return int((el.text or "0").strip())
@@ -398,6 +402,8 @@ def audit(P, top=40):
     stamp = next((i for i in P.insts.values() if i.cls == "ModuleScript" and i.name == "RR_Version"), None)
     m = re.search(r'version\s*=\s*"([^"]+)"', stamp.props.get("Source", "")) if stamp else None
     placeholders = sorted({P.full_name(i) for i in P.insts.values() if i.name.upper().startswith("PLACEHOLDER")})
+    blank_assets = sorted({f"{P.full_name(i)}.{k}" for i in P.insts.values() for k, v in i.props.items()
+                           if k != "Source" and isinstance(v, str) and v and BLANK_ASSET.match(v)})
     size = os.path.getsize(P.path)
     return {
         "file": P.path, "format": P.fmt, "bytes": size, "sha256": sha256(P.path),
@@ -412,6 +418,7 @@ def audit(P, top=40):
         "oc_unsupported": {c: n for c, n in cls.items() if c in OC_UNSUPPORTED},
         "stamp_version": m.group(1) if m else None,
         "placeholders": placeholders[:50],
+        "blank_assets": blank_assets[:50],
         "colours": [{"hex": h, "count": e["count"], "example": e["example"], "props": sorted(e["props"])}
                     for h, e in sorted(colours.items(), key=lambda kv: -kv[1]["count"])][:top],
         "colour_total": len(colours),

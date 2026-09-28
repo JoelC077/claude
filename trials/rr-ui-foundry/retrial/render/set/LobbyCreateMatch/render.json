@@ -1,0 +1,278 @@
+{
+ "spec": "src/lobby/spec.json",
+ "files": [
+  {
+   "name": "LobbyCreateMatch__open__phone__C",
+   "board": "open",
+   "device": "phone",
+   "skin": "C",
+   "zones": false,
+   "screen": "LobbyCreateMatch",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null,
+   "tops": [
+    [
+     202.0,
+     79.0,
+     440.0,
+     290.0
+    ]
+   ],
+   "png": "render/set/LobbyCreateMatch/LobbyCreateMatch__open__phone__C.png"
+  },
+  {
+   "name": "LobbyCreateMatch__insane__phone__C",
+   "board": "insane",
+   "device": "phone",
+   "skin": "C",
+   "zones": false,
+   "screen": "LobbyCreateMatch",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null,
+   "tops": [
+    [
+     202.0,
+     79.0,
+     440.0,
+     290.0
+    ]
+   ],
+   "png": "render/set/LobbyCreateMatch/LobbyCreateMatch__insane__phone__C.png"
+  },
+  {
+   "name": "LobbyCreateMatch__joining__phone__C",
+   "board": "joining",
+   "device": "phone",
+   "skin": "C",
+   "zones": false,
+   "screen": "LobbyCreateMatch",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null,
+   "tops": [
+    [
+     202.0,
+     79.0,
+     440.0,
+     290.0
+    ]
+   ],
+   "png": "render/set/LobbyCreateMatch/LobbyCreateMatch__joining__phone__C.png"
+  },
+  {
+   "name": "LobbyCreateMatch__open__phone_notch__C",
+   "board": "open",
+   "device": "phone_notch",
+   "skin": "C",
+   "zones": false,
+   "screen": "LobbyCreateMatch",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null,
+   "tops": [
+    [
+     202.0,
+     68.5,
+     440.0,
+     290.0
+    ]
+   ],
+   "png": "render/set/LobbyCreateMatch/LobbyCreateMatch__open__phone_notch__C.png"
+  },
+  {
+   "name": "LobbyCreateMatch__open__tablet__C",
+   "board": "open",
+   "device": "tablet",
+   "skin": "C",
+   "zones": false,
+   "screen": "LobbyCreateMatch",
+   "size": [
+    1180.0,
+    820.0
+   ],
+   "stack": null,
+   "tops": [
+    [
+     282.41706161137444,
+     236.2748815165877,
+     615.1658767772511,
+     405.4502369668246
+    ]
+   ],
+   "png": "render/set/LobbyCreateMatch/LobbyCreateMatch__open__tablet__C.png"
+  },
+  {
+   "name": "LobbyCreateMatch__open__pc__C",
+   "board": "open",
+   "device": "pc",
+   "skin": "C",
+   "zones": false,
+   "screen": "LobbyCreateMatch",
+   "size": [
+    1280.0,
+    720.0
+   ],
+   "stack": null,
+   "tops": [
+    [
+     384.79165876777256,
+     220.79450236966827,
+     510.41668246445494,
+     336.41099526066347
+    ]
+   ],
+   "png": "render/set/LobbyCreateMatch/LobbyCreateMatch__open__pc__C.png",
+   "crop": "render/set/LobbyCreateMatch/LobbyCreateMatch__pc_crop.png"
+  },
+  {
+   "name": "LobbyCreateMatch__open__console__C",
+   "board": "open",
+   "device": "console",
+   "skin": "C",
+   "zones": false,
+   "screen": "LobbyCreateMatch",
+   "size": [
+    1920.0,
+    1080.0
+   ],
+   "stack": null,
+   "tops": [
+    [
+     459.5260663507109,
+     239.14218009478674,
+     1000.9478672985782,
+     659.7156398104265
+    ]
+   ],
+   "png": "render/set/LobbyCreateMatch/LobbyCreateMatch__open__console__C.png"
+  },
+  {
+   "name": "LobbyCreateMatch__open__phone__A",
+   "board": "open",
+   "device": "phone",
+   "skin": "A",
+   "zones": false,
+   "screen": "LobbyCreateMatch",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null,
+   "tops": [
+    [
+     202.0,
+     79.0,
+     440.0,
+     290.0
+    ]
+   ],
+   "png": "render/set/LobbyCreateMatch/LobbyCreateMatch__open__phone__A.png"
+  },
+  {
+   "name": "LobbyCreateMatch__open__phone__B",
+   "board": "open",
+   "device": "phone",
+   "skin": "B",
+   "zones": false,
+   "screen": "LobbyCreateMatch",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null,
+   "tops": [
+    [
+     202.0,
+     79.0,
+     440.0,
+     290.0
+    ]
+   ],
+   "png": "render/set/LobbyCreateMatch/LobbyCreateMatch__open__phone__B.png"
+  },
+  {
+   "name": "LobbyCreateMatch__open__phone__C__zones",
+   "board": "open",
+   "device": "phone",
+   "skin": "C",
+   "zones": true,
+   "screen": "LobbyCreateMatch",
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null,
+   "tops": [
+    [
+     202.0,
+     79.0,
+     440.0,
+     290.0
+    ]
+   ],
+   "png": "render/set/LobbyCreateMatch/LobbyCreateMatch__open__phone__C__zones.png"
+  }
+ ],
+ "measures": {
+  "LobbyCreateMatch__open__phone__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "LobbyCreateMatch__insane__phone__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "LobbyCreateMatch__joining__phone__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "LobbyCreateMatch__open__phone_notch__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "LobbyCreateMatch__open__tablet__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "LobbyCreateMatch__open__pc__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "LobbyCreateMatch__open__console__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "LobbyCreateMatch__open__phone__A": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "LobbyCreateMatch__open__phone__B": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "LobbyCreateMatch__open__phone__C__zones": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  }
+ }
+}

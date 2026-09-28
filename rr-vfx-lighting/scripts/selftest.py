@@ -215,12 +215,15 @@ def main(argv=None):
         pv = tmp / "preview"
         if render:
             names = ["steam_chimney", "sparks_brake", "coal_dust", "grassland.day", "grassland.dusk"]
-            code, out = vfx("preview", "all", *names, "--out", str(pv), "--quick")
+            code, out = vfx("preview", "all", *names, "--out", str(pv), "--quick", "--presets", str(work))
             B = pv / "board"
             man = json.loads((B / "manifest.json").read_text()) if (B / "manifest.json").is_file() else {}
-            check("preview all NAMES: one board (contact, facts, manifest) for the pack", code == 0 and (B / "contact.png").is_file()
-                  and (B / "facts.md").is_file() and man.get("presets") == ["steam_chimney", "sparks_brake", "coal_dust"]
-                  and man.get("looks") == ["grassland.day", "grassland.dusk"], out[-600:])
+            check("preview all NAMES: one board (contact, facts, manifest) for the pack, from the work copy",
+                  code == 0 and (B / "contact.png").is_file() and (B / "facts.md").is_file()
+                  and man.get("presets") == ["steam_chimney", "sparks_brake", "coal_dust"]
+                  and man.get("looks") == ["grassland.day", "grassland.dusk"] and man.get("presets_dir") == str(work.resolve()), out[-600:])
+            code, out = vfx("preview", "vfx", *names, "--out", str(pv), "--quick", "--presets", str(work))
+            check("preview vfx NAMES over existing plates rebuilds the board", code == 0 and "board:" in out, out[-300:])
             L = pv / "lighting"
             check("pack renders roof, door, near cameras and phone plates",
                   all((L / f).is_file() for f in ("grassland.dusk.png", "grassland.day_door1p.png", "grassland.day_cab1p.png",

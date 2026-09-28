@@ -1,13 +1,13 @@
 {
  "sheet": [
   856,
-  1380
+  1140
  ],
- "megapixels": 1.18,
+ "megapixels": 0.98,
  "tiles": [
   {
    "n": 1,
-   "label": "grassland.day roof3p PHONE phone rates, no shadows/Bloom/SunRays: steam_chimney, smoke_chimney; hidden: sparks_brake \u00b7 stand-in train",
+   "label": "grassland.day roof3p PHONE (phone rates; no shadows, Bloom, SunRays): steam_chimney, smoke_chimney; hidden sparks_brake",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.day_roof3p.phone.png",
    "box": [
     6,
@@ -19,7 +19,7 @@
   },
   {
    "n": 2,
-   "label": "dusk roof3p PHONE: steam_chimney, smoke_chimney +headlamp;..",
+   "label": "dusk roof3p PHONE: steam, smoke +headlamp; hi.",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.dusk_roof3p.phone.png",
    "box": [
     6,
@@ -31,7 +31,7 @@
   },
   {
    "n": 3,
-   "label": "night roof3p PHONE: steam_chimney, smoke_chimney +headlamp..",
+   "label": "night roof3p PHONE: steam, smoke +headlamp; h.",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.night_roof3p.phone.png",
    "box": [
     396,
@@ -43,7 +43,7 @@
   },
   {
    "n": 4,
-   "label": "day roof3p: steam_chimney, smoke_chimney, sparks_brake",
+   "label": "day roof3p: steam, smoke, sparks",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.day_roof3p.png",
    "box": [
     6,
@@ -55,7 +55,7 @@
   },
   {
    "n": 5,
-   "label": "day door1p: steam_chimney, sparks_brake; hidden: smoke_chi..",
+   "label": "day door1p: steam, sparks; hidden smoke",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.day_door1p.png",
    "box": [
     396,
@@ -67,7 +67,7 @@
   },
   {
    "n": 6,
-   "label": "dusk roof3p: steam_chimney, smoke_chimney, sparks_brake +h..",
+   "label": "dusk roof3p: steam, smoke, sparks +headlamp",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.dusk_roof3p.png",
    "box": [
     6,
@@ -79,23 +79,11 @@
   },
   {
    "n": 7,
-   "label": "dusk door1p: steam_chimney, sparks_brake +headlamp; hidden..",
+   "label": "dusk door1p: steam, sparks +headlamp; hidden .",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.dusk_door1p.png",
    "box": [
     396,
     918,
-    384,
-    216
-   ],
-   "scale": "fit x0.50"
-  },
-  {
-   "n": 8,
-   "label": "night roof3p: steam_chimney, smoke_chimney, sparks_brake +..",
-   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.night_roof3p.png",
-   "box": [
-    6,
-    1158,
     384,
     216
    ],

@@ -6,11 +6,15 @@
   - `bible.py add-fact style.world.brass "#..." --replace` + `ui.py build` reskins every screen that uses a role
     mapped to it (the selftest proves it on a temp canon copy);
   - `Kit.setSkin("A")` rebinds every bound property of every mounted screen at run time.
-- Skins A, B, C are the options of OQ-001 (heritage brass, teal-cream/mustard livery, hybrid). C is the default
-  and is always labelled "assumed (OQ-001 default)". `ui.py render SPEC --skins A,C` is the side-by-side board
-  the OQ's default asks for.
-- Rules the roles keep: one accent hue for "this is active" (`ui.rules.one_accent`); difficulty colours only as
-  difficulty (`diff.*`); danger red only for the danger signal; kinds carry an icon too (`ui.rules.colourblind`).
+- Skins A, B, C are the options of OQ-001 (heritage brass, teal-cream/mustard livery, hybrid). While it is open
+  `default_skin` is the main skin, labelled "assumed (OQ-001 default)"; once decided, the decision's option is the
+  main skin ("decided: A (D-nnn)") everywhere (boards, theme, manifest). `ui.py render SPEC --skins A,C` is the
+  side-by-side board.
+- Rules the roles keep (validate checks the spec side): one accent hue for "this is active"
+  (`ui.rules.one_accent`: selected and current get an accent ring, the cta is the only solid accent); difficulty
+  colours only as difficulty (`diff.*` marks); danger red only for the danger signal; kinds carry an icon too
+  (`ui.rules.colourblind`). `ui.py render --kit` boards every template state in every skin, so a role that fails
+  contrast in one state (a pressed face) shows up before a screen uses it.
 - Type styles (`type`) name a font role, weight and design px size; canon sizes are `{"v", "canon"}`.
 - Adding a role: add it to `roles` with a key for every skin; `ui.py validate` fails if one does not resolve.
 
@@ -20,16 +24,17 @@
 | `ticket` (runtime) | mover (Feel target), halo (newest crisis), frame, card, stub + hazard stripes, medallion + icon, title (short with a stamp), body, life bar, stamp (-8 deg), notches, perforation, badge | kind, title, body, stamp, icon, count, life, halo, sticky | - |
 | `ticket_compact` (runtime) | same frame at 44 px: title + life bar | as ticket | - |
 | `more_chip` (runtime) | "+{n} MORE" | n | - |
-| `button` | shadow, face, label, gamepad glyph | text, hint; variants primary, secondary, icon | hover (face lifts 1), pressed (face drops 3, darker), disabled (alpha .45) |
-| `chip` | face, label, mark | text | on (accent face, thick edge, underline mark), pressed, disabled |
-| `panel` | shadow, body (content), header + title, brass rule, close button | title, closable | - |
+| `button` | shadow, face, label or icon, gamepad glyph | text, icon, hint; variants cta (the one call to action: solid accent, 30 px label), primary, secondary, icon | hover (face lifts 1), pressed (face drops 3, darker), disabled (alpha .45) |
+| `chip` | face, accent ring, label, mark | text | on (ink edge 3, inner accent ring, underline mark; face stays cream), pressed, disabled |
+| `panel` | shadow, body (content), header 64 + title, ticket seam (perforation + notches), close button 48 inset 8 | title, closable | - |
 
 Runtime templates ship to Luau with their slots, because tickets are created live; the others are expanded
 into each screen at build time. Rects may be px or `"P%"`, `"P%+N"`, `"P%-N"` of the instance size.
 
 Adding a template: write it in components.json (`root` for a hit or comp root, `parts`, `slots`, `variants`,
-`states` keyed by part id, `runtime: true` if game code creates it live), use it in a spec, then `ui.py validate`,
-`render` and `build` (parity must pass). Keep every part addressable by id; the state overrides are `fill`,
+`states` keyed by part id, `runtime: true` if game code creates it live), add it to `kit_spec` in ui.py if it
+has states the kit board should show, then `ui.py render --kit`, use it in a spec, `validate`, `render` and
+`build` (parity and runtime must pass). Keep every part addressable by id; the state overrides are `fill`,
 `gradient`, `stroke`, `color`, `alpha` (root), `visible`, `text`, `dy`.
 
 ## Runtime (assets/luau/RR_UIKit.lua)
@@ -49,7 +54,10 @@ Adding a template: write it in components.json (`root` for a hit or comp root, `
   with ContextActionService at priority 3000 while open, key glyphs from `GetImageForKeyCode` shown only for
   gamepads.
 - Touch zones: `avoid` reads `PlayerGui.TouchGui.TouchControlFrame.JumpButton` (or the DynamicThumbstick's
-  `ThumbstickStart`) when present, else the canon worst-case zones for Touch input, and lifts the group.
+  `ThumbstickStart`) when present, else the canon worst-case zones for Touch input, and lifts the group. It
+  re-lifts when TouchGui appears after mount and when the button's Visible, AbsolutePosition or AbsoluteSize
+  change (luatest covers both).
+- Data-bound `on` states (chips) are applied at mount, not only after the first `screen:set`.
 - Motion: `Kit.useFeel(module)` or a sibling `RR_Feel`: transitions and stack events call `Feel.play(event,
   {targets = {panel | ticket | halo | stamp | button}})`; without it `Kit.fade` (0.15 s, snaps under
   `GuiService.ReducedMotionEnabled` or RR_Feel's reduceMotion setting). Stack reflow tweens 0.18 s unless

@@ -18,6 +18,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
+sys.dont_write_bytecode = True
 import feelmath as fm
 
 # chart roles (dataviz reference palette, light mode): recessive grid, ink text, slots 1-3 only
@@ -189,10 +190,13 @@ def plot_curves(model, out, compare=None):
         used.add((model.r["lever"][k]["style"], model.r["lever"][k]["dir"]))
     dump = {}
     if compare:
-        for line in Path(compare).read_text().splitlines():
-            p = [x.strip() for x in line.split(",")]
-            if len(p) == 4 and p[0] in fm.STYLES:
-                dump.setdefault((p[0], p[1]), []).append((float(p[2]), float(p[3])))
+        # Studio Output adds a timestamp before and "  -  Client - Script:line" after lines: find the CSV anywhere
+        row = re.compile(r"\b(" + "|".join(fm.STYLES) + r"),(In|Out|InOut),(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?(?:[eE]-?\d+)?)")
+        for line in Path(compare).read_text(errors="replace").splitlines():
+            for mt in row.finditer(line):
+                dump.setdefault((mt.group(1), mt.group(2)), []).append((float(mt.group(3)), float(mt.group(4))))
+        if not dump:
+            return None
     cw, chh, cols = 140, 112, 11
     W, H = cols * cw + 20, 3 * chh + 60
     img = Image.new("RGB", (W, H), SURF)
@@ -236,8 +240,9 @@ def plot_lever(model, out):
     W, H = 900, 300
     img = Image.new("RGB", (W, H), SURF)
     d = ImageDraw.Draw(img)
-    d.text((10, 8), f"Lever drag: knob = detent x (finger/detent)^{lv['resist']}, commit at {lv['detent']:.0%} "
-                    f"(OQ-031 default: drag console)", fill=INK, font=font(13))
+    d.text((10, 8), f"Lever drag (two-way, one side shown): knob = detent x (finger/detent)^{lv['resist']}, tick at "
+                    f"{lv.get('notch', lv['detent']):.0%}, commit at {lv['detent']:.0%} (OQ-031 default: drag console)",
+           fill=INK, font=font(13))
     panels = [("finger -> knob (fraction of travel)", 0), ("after commit: snap home", 1), ("released early: snapback", 2)]
     for pi, (ttl, kind) in enumerate(panels):
         x0 = 10 + pi * 296
@@ -254,7 +259,11 @@ def plot_lever(model, out):
             pts = [(X(i / 100), Y(fm.lever_display(i / 100, lv["detent"], lv["resist"]))) for i in range(int(lv["detent"] * 100))]
             d.line(pts, fill=SERIES[0], width=2)
             d.line([(X(lv["detent"]), Y(lv["detent"])), (X(lv["detent"]), Y(1))], fill=SERIES[1], width=2)
-            d.text((X(lv["detent"]) + 4, Y(0.35)), "detent: tick +\ncommit", fill=INK2, font=font(10))
+            if lv.get("notch"):
+                nx = X(lv["notch"])
+                dashed(d, [(nx, Y(0)), (nx, Y(1))], SERIES[2] if len(SERIES) > 2 else INK2, 1)
+                d.text((nx - 30, Y(0.12)), "tick", fill=INK2, font=font(10))
+            d.text((X(lv["detent"]) + 4, Y(0.35)), "detent:\ncommit", fill=INK2, font=font(10))
             d.text((X(0.02), Y(0.95)), "dashed = finger", fill=INK2, font=font(10))
         else:
             sp = lv["snap"] if kind == 1 else lv["snapback"]
@@ -312,7 +321,11 @@ def plot(model, a):
     out.mkdir(parents=True, exist_ok=True)
     what, lines = a.what, []
     if a.compare:
-        lines += plot_curves(model, out, a.compare)
+        got = plot_curves(model, out, a.compare)
+        if got is None:
+            print(f"--compare {a.compare}: no 'Style,Direction,t,value' rows found (paste the DUMP output lines)")
+            return 2
+        lines += got
     if what in ("curves", "all") and not a.compare:
         lines += plot_curves(model, out)
     if what in ("lever", "all"):
@@ -671,7 +684,7 @@ def matrix(model, names, group, w=700, h=390):
         m = allm[n]
         yy = y + 22 + ri * rh
         col = INK if mine else INK2
-        vals = [n[:24], f"{m['tier']} {tiers[str(m['tier'])]}", f"{m['cam_px']:.0f}", f"{m['fov_deg']:+.0f}" if m["fov_deg"] else "-",
+        vals = [n[:24], f"{m['tier']} {tiers[str(m['tier'])]}", f"{m['cam_px']:.0f}", f"{m['fov_signed']:+.0f}" if m["fov_signed"] else "-",
                 str(m["hitstop_ms"] or "-"), f"{m['flash_peak']:.2f}" if m["flash_peak"] else "-",
                 f"{m['haptic_peak']:.1f}" if m["haptic_peak"] else "-", f"{m['total_s']:.1f}{'+' if m['loops'] else ''}"]
         for (c, x), v in zip(cols, vals):
@@ -709,11 +722,11 @@ def row(images, gap=8, bg=SURF):
     return out
 
 
-def sheet(critic, out, items):
+def sheet(critic, out, items, extra=()):
     if not critic:
         print("multiuse-critic not found (RR_CRITIC_SKILL): contact sheet skipped")
         return 3
-    r = subprocess.run([sys.executable, str(critic / "scripts" / "contact_sheet.py"), str(out), *items],
+    r = subprocess.run([sys.executable, str(critic / "scripts" / "contact_sheet.py"), str(out), *items, *extra],
                        capture_output=True, text=True)
     if r.returncode not in (0,):
         print((r.stdout + r.stderr).strip())
@@ -725,15 +738,24 @@ def preview(model, a):
     critic = find_sibling("multiuse-critic", "RR_CRITIC_SKILL")
     out = Path(a.out)
     sel = a.sel
-    if sel in model.events:
-        groups = {model.events[sel]["group"]: [sel]}
+    heroes = dict(model.r["preview"].get("heroes", {}))
+    if sel in model.events:   # one event: its own folder, never over a group's files
+        folder = getattr(a, "name", None) or f"ev_{sel}"
+        groups = {folder: [sel]}
+        heroes[folder] = sel
+    elif "," in sel:          # a set of events (a mission's moments): one critic sees all of them
+        names = model.names(sel)
+        folder = getattr(a, "name", None) or f"set_{names[0]}"
+        groups = {folder: names}
+        heroes[folder] = names[0]
     else:
         names = model.names(sel)
         groups = {}
         for n in names:
             groups.setdefault(model.events[n]["group"], []).append(n)
     plate = Plate(model)
-    heroes = model.r["preview"].get("heroes", {})
+    lv = model.r["lever"]
+    lever_events = {lv["detent_event"], lv["commit_event"], lv["snapback_event"]}
     rc_all = 0
     for group, names in groups.items():
         d = out / group
@@ -770,7 +792,17 @@ def preview(model, a):
                 grid.paste(r_, (0, y))
                 y += r_.height + 8
             grid.save(d / "_grid.png")
-            rc2 = sheet(critic, d / "closeups.png", [f"{group}: {hero} with reduce motion, then the other events={d / '_grid.png'}@1"])
+            items = []
+            if lever_events & set(names):   # the drag curve is the core of the lever feel: the critic must see it
+                plot_lever(model, d)
+                items.append(f"lever drag: finger to knob, tick, commit, snap home, snapback={d / 'lever.png'}@1")
+            elif any("setSpeed" in model.events[n].get("trigger", "") or "setPressure" in model.events[n].get("trigger", "")
+                     for n in names):   # one true-size plot fits beside the grid; the rumble numbers are in facts.md
+                plot_sustain(model, d)
+                items.append(f"sustained rumble vs Speed and pressure (stable_train limit)={d / 'sustain.png'}@1")
+            items.append(f"{group}: {hero} with reduce motion, then the other events={d / '_grid.png'}" + ("" if items else "@1"))
+            extra = ["--tile", "1300x402", "--max-width", "1528"] if len(items) > 1 else []
+            rc2 = sheet(critic, d / "closeups.png", items, extra)
             rc = rc or rc2
         if a.gif:
             for n in names:
@@ -794,22 +826,29 @@ def gif(model, plate, name, path, reduce_motion=False, fps=30):
 
 
 def facts(model, names, hero, d, tpk):
-    from feel import metrics, sustain_metrics
+    from feel import metrics, sustain_metrics, hierarchy
     r = model.r
+    pairs, _ = hierarchy(model)
     lines = [f"# Facts: feel presets, group {model.events[hero]['group']} (measured by feel.py)", "",
              f"- Phone {r['meta']['phone']}, FOV {r['meta']['fov_deg']}; camera px = rotation at the screen centre + translation of "
              f"geometry {r['meta']['near_depth_studs']} studs away + half the roll at the screen edge (upper bound).",
              f"- Limits: camera px by tier {r['limits']['tier_shake_px']}; hit-stop <= {r['limits']['hitstop_ms_max']} ms; "
              f"screen flash <= {r['a11y']['flash']['screen_peak_max']} (red {r['a11y']['flash']['red_peak_max']}), "
              f"<= {r['a11y']['flash']['per_second_max']}/s; events <= {r['limits']['event_s_max']} s (fail {r['limits']['fail_s_max']} s).",
-             f"- Hero {hero}: peak frame at t={tpk:.2f} s. Filmstrip frames are the same mock at six times.", ""]
+             f"- Hero {hero}: peak frame at t={tpk:.2f} s. Filmstrip frames are the same mock at six times.",
+             "- Punch amps and kick angles are delivered peaks; camera pitch + tips the view up, - down.", ""]
     for n in names:
         m, rm = metrics(model, n), metrics(model, n, reduce_motion=True)
         lines.append(f"- {n} (tier {m['tier']}, {model.events[n]['who']}): camera {m['cam_px']} px (roll {m['roll_deg']} deg, "
                      f"kick {m['kick_deg']} deg), FOV {m['fov_deg']}, hit-stop {m['hitstop_ms']} ms, screen flash "
                      f"{m['flash_peak']}{' red' if m['flash_red'] else ''}, haptic {m['haptic_peak']} for {m['haptic_ms']} ms, "
                      f"UI punch {m['punch_scale']:.0%} / {m['punch_px']} px, lasts {m['total_s']} s{' + loop' if m['loops'] else ''}, "
-                     f"loudness {m['loudness']}. Reduce motion: camera {rm['cam_px']} px; reads through {', '.join(rm['communicates'])}.")
+                     f"loudness {m['loudness']}. Reduce motion: camera {rm['cam_px']} px; reads through "
+                     f"{', '.join(rm['communicates']) or 'no feel channel'}"
+                     f"{'; outside feel: ' + model.events[n]['rm_reads'] if model.events[n].get('rm_reads') else ''}. "
+                     "Outshouts: " + (", ".join(f"{o} (tier {model.events[o]['priority']}, {lo:.2f})" for o, lo in pairs.get(n, []))
+                                      or "no higher-tier event") +
+                     "".join(f"; {k}: {model.events[n][k]}" for k in ("loud_ok", "quiet_ok") if model.events[n].get(k)) + ".")
     sm = sustain_metrics(model)
     lines += ["", f"- Sustained rumble (constant while running): Speed at max {sm['speed']['px_max']} px, pressure at redline "
               f"{sm['pressure']['px_max']} px, both capped {sm['both']['px_max']} px (limit {r['limits']['sustain_px_max']} px).",

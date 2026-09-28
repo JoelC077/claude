@@ -12,6 +12,7 @@ advisory gate; else GO. Rules and thresholds: presets/gates.json; game facts: rr
 import datetime as dt
 import json
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -89,44 +90,70 @@ def release_route(ctx):
 
 
 # ---------------------------------------------------------------- notes-check
+def lexicon(bible):
+    return [f["value"].strip() for f in bible.facts("world.lexicon") if f.get("value")]
+
+
 def notes_check(ctx):
+    """Trace every line of the .src files; outputs are written only on PASS (a FAIL removes stale ones)."""
     n, rel, bible = ctx.presets["notes"], ctx.rel, ctx.bible
     by_id = {c["id"]: c for c in rel["changes"]}
     player = {c["id"] for c in ctx.included() if c["audience"] == "player"}
-    errors, warnings, outputs, tagged = [], [], [], set()
+    errors, warnings, texts, tagged = [], [], {}, set()
     odds, buy = re.compile(n["odds_words"], re.I), re.compile(n["buy_words"], re.I)
-    siding_terms = sidings(bible)
+    promise = re.compile(n.get("promise_words", r"$^"), re.I)
+    siding_terms, lex = sidings(bible), lexicon(bible)
+    lex_low = [x.lower().rstrip(".!") for x in lex]
+    all_text = " ".join(by_id[c]["title"] + " " + by_id[c].get("note", "") for c in player)
+    VER = re.compile(r"\bv?\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?")
 
     def scan(text, fname, store=False):
         out = []
         for i, line in enumerate(text.splitlines(), 1):
             ids = [x for grp in TAG.findall(line) for x in re.findall(r"C-\d+", grp)]
             bullet = bool(re.match(r"^\s*[-*]\s+", line))
+            head = line.lstrip().startswith("#")
+            clean = re.sub(r"\s*" + TAG.pattern, "", line).rstrip()
+            body = re.sub(r"^\s*(#+|[-*])\s*", "", clean).strip()
+            where = f"{fname}:{i}"
             if bullet and not ids and not store:
-                errors.append(f"{fname}:{i}: bullet has no [C-n] tag (every claim must trace to a change)")
+                errors.append(f"{where}: bullet has no [C-n] tag (every claim must trace to a change)")
             for cid in ids:
                 c = by_id.get(cid)
                 if not c:
-                    errors.append(f"{fname}:{i}: {cid} is not a change in this release")
+                    errors.append(f"{where}: {cid} is not a change in this release")
                 elif c.get("in_build") != "yes":
-                    errors.append(f"{fname}:{i}: {cid} is not confirmed in the build (mark it or drop the line)")
+                    errors.append(f"{where}: {cid} is not confirmed in the build (mark it or drop the line)")
                 elif c["audience"] != "player":
-                    errors.append(f"{fname}:{i}: {cid} is internal; players do not get internal work")
+                    errors.append(f"{where}: {cid} is internal; players do not get internal work")
                 tagged.add(cid)
-            clean = re.sub(r"\s*" + TAG.pattern, "", line).rstrip()
+            src_text = " ".join(by_id[x]["title"] + " " + by_id[x].get("note", "") for x in ids if x in by_id)
+            is_lex = body.lower().rstrip(".!") in lex_low
+            free = body and not bullet and not ids and not store and not head
+            if free and not is_lex and not body.upper().startswith("TITLE:"):
+                errors.append(f"{where}: untraced line '{body[:60]}': a notice or sign-off is a world.lexicon string "
+                              "verbatim, or carries the [C-n] tag of the change it describes")
             if odds.search(clean) and buy.search(clean):
-                errors.append(f"{fname}:{i}: sells or implies odds/luck for money (D-007 never sell odds): {clean[:80]}")
+                errors.append(f"{where}: sells or implies odds/luck for money (D-007 never sell odds): {clean[:80]}")
+            if promise.search(clean):
+                errors.append(f"{where}: promises future content ('{promise.search(clean).group(0)}'): notes say what "
+                              "shipped; plans are the owner's to announce")
             for j in n["jargon"]:
                 if re.search(re.escape(j) if not j[0].isalpha() else rf"\b{re.escape(j)}", clean, re.I):
-                    warnings.append(f"{fname}:{i}: internal jargon '{j}' in player text")
+                    warnings.append(f"{where}: internal jargon '{j}' in player text")
             for t in siding_terms:
-                if t in clean.lower():
-                    warnings.append(f"{fname}:{i}: names parked siding '{t}' (release.alpha.sidings): only if a change ships it")
-            nums = re.findall(r"\d+(?:\.\d+)?%?", re.sub(r"\bv?\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?", "", clean))
-            src_text = " ".join(by_id[x]["title"] + " " + by_id[x].get("note", "") for x in ids if x in by_id)
+                if t in clean.lower() and not (ids and t in src_text.lower()):
+                    errors.append(f"{where}: names parked siding '{t}' (release.alpha.sidings): only a tagged line "
+                                  "whose change ships it may name it")
+            nums = re.findall(r"\d+(?:\.\d+)?%?", VER.sub("", clean))
+            lex_hit = " ".join(x for x in lex if x.lower() in clean.lower())
             for num in nums:
-                if ids and num.rstrip("%") not in src_text:
-                    warnings.append(f"{fname}:{i}: number {num} is not in {', '.join(ids)}; confirm it against canon")
+                bare = num.rstrip("%")
+                if bullet and ids and bare not in src_text:
+                    warnings.append(f"{where}: number {num} is not in {', '.join(ids)}; confirm it against canon")
+                elif not bullet and bare not in (src_text if ids else all_text) and bare not in lex_hit:
+                    errors.append(f"{where}: number {num} in a headline/notice/sign-off traces to no change "
+                                  "(tag the line, or drop the number)")
             out.append(clean)
         return "\n".join(out).strip() + "\n"
 
@@ -135,8 +162,7 @@ def notes_check(ctx):
         errors.append("PATCH_NOTES.src.md missing: `release.py notes` writes the brief; write the notes from it")
     else:
         text = scan(src.read_text(), src.name)
-        (ctx.dir / "PATCH_NOTES.md").write_text(text)
-        outputs.append("PATCH_NOTES.md")
+        texts["PATCH_NOTES.md"] = text
         if len(text) > n["discord_max"]:
             errors.append(f"PATCH_NOTES.md is {len(text)} characters (limit {n['discord_max']}, one Discord post)")
         if len(EMOJI.findall(text)) > n["max_emoji"]:
@@ -149,8 +175,7 @@ def notes_check(ctx):
         lines = [x for x in text.splitlines() if x.strip()]
         title = next((x.split(":", 1)[1].strip() for x in lines if x.upper().startswith("TITLE:")), None)
         blurb = "\n".join(x for x in lines if not x.upper().startswith("TITLE:"))
-        (ctx.dir / "STORE_UPDATE.txt").write_text(text)
-        outputs.append("STORE_UPDATE.txt")
+        texts["STORE_UPDATE.txt"] = text
         if len(blurb) > n["store_max"]:
             errors.append(f"store line is {len(blurb)} characters (limit {n['store_max']})")
         for rx in n["store_banned"]:
@@ -164,21 +189,84 @@ def notes_check(ctx):
                 errors.append("title has more than one emoji (release.store.title: one emoji max)")
             if not title.lower().startswith("risky rails"):
                 warnings.append(f"title does not follow release.store.title: {bible.value('release.store.title')}")
-    missing = sorted(player - tagged, key=lambda x: int(x[2:]))
-    for cid in missing:
+    for cid in sorted(player - tagged, key=lambda x: int(x[2:])):
         errors.append(f"{cid} ({by_id[cid]['title'][:60]}) is a player change the notes do not cover "
                       "(cover it, or `mark --audience internal`)")
+    tmp = ctx.dir / ".notes-check"
+    tmp.mkdir(exist_ok=True)
     if not bible.ok:
         errors.append("rr-bible not found (RR_BIBLE_SKILL): canon check impossible")
     else:
-        for o in outputs:
-            code, findings, _ = bible.check(ctx.dir / o, skip="hex,fonts")
+        for o, text in texts.items():
+            (tmp / o).write_text(text)
+            code, findings, _ = bible.check(tmp / o, skip="hex,fonts")
             for f in findings:
                 (errors if f.get("level") == "ERROR" else warnings).append(f"{o}:{f.get('line')}: {f.get('msg')}")
+    shutil.rmtree(tmp, ignore_errors=True)
+    outputs = []
+    for o, text in texts.items():
+        if not errors:
+            (ctx.dir / o).write_text(text)
+            outputs.append(o)
+        elif (ctx.dir / o).is_file():
+            (ctx.dir / o).unlink()  # a stale "clean" file must not be posted
     res = {"ok": not errors, "errors": errors, "warnings": sorted(set(warnings), key=warnings.index),
            "outputs": outputs, "changes_hash": changes_hash(ctx), "at": now()}
     save_json(ctx.dir / "notes-check.json", res)
     return res
+
+
+# ---------------------------------------------------------------- missions (rr-mission-control folders)
+def mission_notes(mdir):
+    """Owner-facing notes a mission's export left: 'Watch:' checks, scripts marked 'delete for release'."""
+    out = {"watch": [], "delete": []}
+    d = Path(mdir) / "export"
+    for f in sorted(d.rglob("*.md"))[:20] if d.is_dir() else []:
+        for line in f.read_text(errors="replace").splitlines():
+            m = re.search(r"\bWatch:\s*(.+)", line)
+            if m:
+                out["watch"].append(m.group(1).strip()[:200])
+            if re.search(r"delete (it )?(for|before) release", line, re.I):
+                for tok in re.findall(r"[\w/.-]+\.lua\b", line):
+                    out["delete"].append(re.sub(r"(\.(client|server))?\.lua$", "", tok.split("/")[-1]))
+    out["delete"] = sorted(set(out["delete"]))
+    return out
+
+
+def ledger_standing(crit_dir, bar):
+    """multiuse-critic standing rule, read fresh: latest score per criterion, overall = lowest. Certified =
+    every standing score from a recorded non-self agent, overall >= bar, and an independent --kind final pass
+    that agrees (all its scores at the bar)."""
+    rows = load_json(Path(crit_dir) / "ledger.json", []) or []
+    if not rows:
+        return None
+    stand, agents = {}, {}
+    for r in rows:
+        for c, sc in (r.get("scores") or {}).items():
+            stand[c], agents[c] = sc, (r.get("agent") or "").strip()
+    overall = min(stand.values()) if stand else None
+    indep = bool(agents) and all(w and "self" not in w.lower() for w in agents.values())
+    finals = [r for r in rows if r.get("kind") == "final" and "self" not in (r.get("agent") or "self").lower()]
+    final_ok = bool(finals) and all(v >= bar for v in (finals[-1].get("scores") or {}).values())
+    return {"dir": str(crit_dir), "overall": overall, "bar": bar, "passes": len(rows), "independent": indep,
+            "final": final_ok, "certified": indep and final_ok and overall is not None and overall >= bar,
+            "agents": sorted({w or "(unrecorded)" for w in agents.values()})}
+
+
+def mission_terms(c):
+    """Distinctive words of an in-build mission (slug words, capitalised terms of its objective and title)."""
+    m = c.get("mission") or {}
+    slug = Path(m.get("dir", "")).name
+    stop = {"risky rails", "roblox", "blender", "studio", "claude", "fbx", "build", "remake", "objective", "the", "and",
+            "for", "new", "mission", "each", "every", "exported", "ready", "alerts", "every alert"}
+    t = {w for w in re.sub(r"^\d{6}-", "", slug).split("-") if len(w) >= 3}
+    obj = ""
+    mm = Path(m.get("dir", "")) / "mission.md"
+    if mm.is_file():
+        x = re.search(r"^Objective:\s*(.+)$", mm.read_text(errors="replace"), re.M)
+        obj = x.group(1) if x else ""
+    t |= {w.lower() for w in re.findall(r"\b[A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)*", obj + " " + c.get("title", ""))}
+    return {x for x in t if x not in stop and len(x) >= 3}
 
 
 # ---------------------------------------------------------------- gates

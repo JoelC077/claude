@@ -19,7 +19,7 @@
   },
   {
    "n": 2,
-   "label": "sparks_brake (loop p2): side strip, Speed 35, 16.0 px/stud, construction view",
+   "label": "sparks_brake (loop p2): side strip, Speed 35, 15.84 px/stud, construction view",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/strip_sparks_brake.png",
    "box": [
     6,
@@ -55,7 +55,7 @@
   },
   {
    "n": 5,
-   "label": "day cab1p: coal_dust",
+   "label": "day cab1p: coal",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_coal_dust.png",
    "box": [
     6,
@@ -67,7 +67,7 @@
   },
   {
    "n": 6,
-   "label": "dusk roof3p PHONE: steam_chimney, smoke_chimney +headlamp;..",
+   "label": "dusk roof3p PHONE: steam, smoke +headlamp; hi.",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.dusk_roof3p.phone.png",
    "box": [
     396,
@@ -79,7 +79,7 @@
   },
   {
    "n": 7,
-   "label": "night roof3p PHONE: steam_chimney, smoke_chimney +headlamp..",
+   "label": "night roof3p PHONE: steam, smoke +headlamp; h.",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.night_roof3p.phone.png",
    "box": [
     6,

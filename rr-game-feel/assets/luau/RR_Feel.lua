@@ -610,7 +610,8 @@ local function step(dt)
 			if alive then
 				local len = channelLength(ch)
 				local ctype = tostring(ch.type)
-				if lt > len + 0.05 and ctype ~= "tween" then
+				local expired = lt > len + 0.05 and ctype ~= "tween" -- a boolean local: no false type refinement below
+				if expired then
 					alive = false
 				elseif ctype == "camkick" then
 					if lt >= 0 then

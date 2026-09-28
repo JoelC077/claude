@@ -4,11 +4,13 @@
   luatest.py [--presets FILE] [--only parity|runtime] [-v]
 
   parity   RR_FeelMath.lua vs feelmath.py: every easing style x direction, noise, springs, envelopes, pulses,
-           haptic keys, lever curve (max abs error must be < 1e-9)
+           haptic keys, lever curve (signed), spring peak gain (max abs error must be < 1e-9)
   runtime  RR_Feel.lua + the generated RR_FeelPresets.lua: every event plays and steps for 5 s without a Lua
            error; camera and FOV return to rest (default and scripted cameras); targets restore; camera angles
            match feelmath.sample_event frame by frame; reduce motion; flash limiter; hit-stop cooldown and
-           animation freeze; lever detent/commit/snapback; haptics (HapticEffect and gamepad fallback); curve dump
+           animation freeze; lever notch/commit/snapback, two-way and once per junction (ctx.fork); a stalled
+           flash never leaves colour on screen; FOV kicks keep a FOV another script set; playFor routing;
+           haptics (HapticEffect and gamepad fallback); curve dump
 
 Needs lupa (Lua 5.1 in Python), an optional test dependency:
   pip install --target ~/.cache/rr-tools/py lupa     (this script adds that folder to sys.path)
@@ -17,6 +19,7 @@ Stubs model only what RR_Feel touches; they prove logic, not Roblox rendering. E
 import argparse, math, sys
 from pathlib import Path
 
+sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
 SKILL = HERE.parent
 sys.path.insert(0, str(HERE))
@@ -160,7 +163,7 @@ local tracks = { { Speed = 1, AdjustSpeed = function(self, s) self.Speed = s end
 T.tracks = tracks
 local animator = { ClassName = "Animator", GetPlayingAnimationTracks = function() return tracks end }
 local hum = { FindFirstChildOfClass = function(_, c) if c == "Animator" then return animator end end }
-local player = { Character = { FindFirstChildOfClass = function(_, c) if c == "Humanoid" then return hum end end },
+local player = { UserId = 7, Character = { FindFirstChildOfClass = function(_, c) if c == "Humanoid" then return hum end end },
 	WaitForChild = function(_, n) return playerGui end }
 T.playerGui = playerGui
 T.camera = { CFrame = CFrame.new(), FieldOfView = 70 }
@@ -226,8 +229,11 @@ def parity(L, verbose=False):
     lk = L.table_from([L.table_from(k) for k in keys])
     for i in range(130):
         upd("keysAt", M.keysAt(lk, i / 100), fm.keys_at(keys, i / 100))
-    for i in range(101):
+    for i in range(-100, 101):
         upd("lever", M.leverDisplay(i / 100, 0.7, 1.6), fm.lever_display(i / 100, 0.7, 1.6))
+    for shape in ("sin", "cos", "noise"):
+        for f, z, d in ((4, 0.05, 0.5), (6, 0.35, 0.4), (12, 0.3, 0.25), (1.2, 0.6, 1.5)):
+            upd("peakGain", M.peakGain(f, z, shape, d), fm.peak_gain(f, z, shape, d))
     bad = {k: v for k, v in worst.items() if v > 1e-9}
     lines = [f"  parity {k}: max |lua - python| = {v:.2e}" for k, v in worst.items()] if verbose else []
     return not bad, lines + ([f"  parity FAIL {k}: {v:.3e}" for k, v in bad.items()] or
@@ -441,11 +447,59 @@ def runtime(presets_lua, model, verbose=False):
     check(rt.F.leverRelease(ctx) == "committed", "lever: release after commit keeps it")
     rt.F.leverReset()
     check(rt.F.leverRelease(ctx) == "snapback", "lever: early release snaps back")
+    # two-way, notch before the commit, once per junction (ctx.fork)
+    rt = Rt(presets_lua)
+    ctx = rt.L.table_from({"fork": 1})
+    ctx.targets = rt.target_table(roles)
+    lv = model.r["lever"]
+    v = rt.F.leverDrag(-(lv["notch"] + lv["detent"]) / 2, ctx)
+    rt.step()
+    knob, _ = rt.targets["lever_knob"]
+    check(v < 0 and knob.FindFirstChild(knob, "RR_FeelScale") is not None and "lever_commit" not in rt.cues,
+          f"lever: left drag gives a negative knob ({v:.3f}); the detent tick plays at the notch, before the commit")
+    rt.F.leverDrag(-0.9, ctx)
+    yaws = [rt.step()[1] for _ in range(6)]
+    check(rt.cues.count("lever_commit") == 1 and min(yaws) < 0, f"lever: left commit kicks the camera to the left (yaw {min(yaws):.3f})")
+    check(rt.F.leverRelease(ctx) == "committed" and rt.F.leverDrag(0.9, ctx) == -1, "lever: stays committed to its side")
+    ctx2 = rt.L.table_from({"fork": 2})
+    ctx2.targets = ctx.targets
+    for u in (0.2, 0.5, 0.8):
+        rt.F.leverDrag(u, ctx2)
+    check(rt.cues.count("lever_commit") == 2, "lever: a new junction (ctx.fork) commits again")
     seen = []
     rt.F.animateValue(0, 35, model_lever_snap(rt, model), lambda v: seen.append(v))
     for _ in range(20):
         rt.step()
     check(abs(seen[-1] - 35) < 1e-9 and max(seen) > 35, "animateValue: world lever throw overshoots (Back) and lands")
+
+    # 7b) a flash that ends during a stall (hitch, app switch) leaves nothing on screen
+    rt = Rt(presets_lua)
+    rt.F.play("alert_pressure_high", rt.L.table())
+    for _ in range(12):
+        rt.step()
+    rt.frame += 60
+    for _ in range(5):
+        rt.step()
+    ov = rt.T.playerGui.FindFirstChild(rt.T.playerGui, "RR_FeelOverlay")
+    vig = [ov.FindFirstChild(ov, f"Vignette{i}").BackgroundTransparency for i in range(1, 5)] if ov else [0]
+    check(all(abs(x - 1) < 1e-12 for x in vig), f"stalled vignette flash is cleared ({min(vig):.3f})")
+
+    # 7c) FOV kick as a delta: a FOV set by another script mid-kick survives
+    rt = Rt(presets_lua)
+    rt.F.play("boiler_burst", rt.L.table())
+    for _ in range(20):
+        rt.step()
+    rt.T.camera.FieldOfView = 50
+    for _ in range(300):
+        last = rt.step()
+    check(abs(last[5] - 50) < 1e-9, f"FOV set by a fail camera during a kick is kept ({last[5]:.4f})")
+
+    # 7d) playFor routes by who
+    rt = Rt(presets_lua)
+    got = [rt.F.playFor("shovel_coal", 7, rt.L.table()) is not None, rt.F.playFor("shovel_coal", 8, rt.L.table()) is None,
+           rt.F.playFor("lever_commit_crew", 7, rt.L.table()) is None, rt.F.playFor("lever_commit_crew", 8, rt.L.table()) is not None,
+           rt.F.playFor("depart", None, rt.L.table()) is not None]
+    check(all(got), f"playFor: actor only on the actor, crew only elsewhere, all everywhere {got}")
 
     # 8) haptics
     rt = Rt(presets_lua)

@@ -37,7 +37,5 @@
   "pov_coal_dust"
  ],
  "presets_dir": "/home/user/claude/trials/rr-vfx-lighting/retrial/fx",
- "warnings": [
-  "- WARN sparks_brake: under 0.1% of the screen in every POV (best pov_grassland.day_door1p: 28 of 92 visible, 0.09%): players may never see it (references/presets.md, Visible from the players' views)"
- ]
+ "warnings": []
 }

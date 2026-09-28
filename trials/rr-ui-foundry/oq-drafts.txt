@@ -12,3 +12,16 @@
 - default: A (as sketched; the kit renders any chip count, so B or C is a spec edit)
 - affects: ui.lobby.controls, gameplay.crew.max, gameplay.crew.launch_cap
 - blocks: lobby UI
+
+(dry run, rr-ui-foundry fix pass 2026-09-28; number assigned at record time)
+### OQ-042 · HUD: one expanded slot per stack, or newest and newest crisis both full size?
+- status: open
+- raised: 2026-09-28
+- src: UIF
+- context: multiuse-critic pass 1 (rr-ui-foundry trial, B1-2): on the overflow board PRESSURE HIGH! (crisis, top) and CREW LEFT! (newest, bottom) are both expanded, so two same-size tickets compete and the crisis moves slot between states. B is a stack-policy change (uimodel.stack_visible + RR_UIKit Stack:visible, parity-tested), about 20 lines.
+- options:
+  - A: canon ui.hud.compact_rule as is: the newest ticket and the newest crisis stay full size (two can be expanded; a sticky crisis keeps its place in time)
+  - B: one expanded slot, always the bottom one: a crisis takes it while present, every other ticket (even the newest routine one) goes compact
+- default: A (canon, critic-approved in mission 260927; B came from an independent critic pass on the rr-ui-foundry trial 2026-09-28)
+- affects: ui.hud.compact_rule
+- blocks: nothing (default in use)

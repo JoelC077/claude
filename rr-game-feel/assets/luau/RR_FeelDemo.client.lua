@@ -49,7 +49,7 @@ local halo = frame({ Name = "Halo", Size = UDim2.new(1, 14, 1, 12), Position = U
 corner(18, halo)
 local ticket = frame({ Name = "Ticket", class = "CanvasGroup", Size = UDim2.fromScale(1, 1), BackgroundColor3 = PAPER }, slot)
 corner(11, ticket)
-local title = frame({ class = "TextLabel", Size = UDim2.new(1, -70, 1, 0), Position = UDim2.fromOffset(64, 0),
+frame({ class = "TextLabel", Size = UDim2.new(1, -70, 1, 0), Position = UDim2.fromOffset(64, 0),
 	BackgroundTransparency = 1, Text = "TICKET", TextColor3 = INK, TextScaled = true }, ticket)
 local stamp = frame({ Name = "Stamp", class = "TextLabel", Size = UDim2.fromOffset(68, 36), Position = UDim2.new(1, -74, 0, 14),
 	BackgroundColor3 = PAPER, Text = "X2", TextColor3 = INK, TextScaled = true, Rotation = -8 }, ticket)

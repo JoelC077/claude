@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """opencloud.py - Roblox Open Cloud client for rr-release-train: place publishing, Luau tests, server restart.
 
-  opencloud.py probe                                   can this machine reach the API host? (no key needed)
+  opencloud.py probe [--universe U]                    can this machine reach the API host? With the key set it also
+                                                       asks api-keys/v1/introspect: enabled, expiry, scopes (key never shown)
   opencloud.py request FILE --universe U --place P [--type Saved|Published]
                                                        print the request a publish would send (key redacted)
 
-Library (release.py): publish_place(), run_luau(), restart_servers(), describe_publish(), probe().
+Library (release.py): publish_place(), run_luau(), restart_servers(), restart_body(), describe_publish(), probe(),
+key_report(). Keys unused for 60 days auto-expire (Creator Docs, api-keys): key_report says so before a publish.
 Key: environment variable ROBLOX_API_KEY only; never read from a file in the repo, never printed.
 RR_OPENCLOUD_BASE overrides https://apis.roblox.com (selftest points it at a local mock server).
 Endpoints and limits: rr-bible tech.publish.oc_* (source RBXOC). POSTs are retried only on HTTP 429, so a
@@ -45,7 +47,9 @@ def content_type(path):
 
 def _call(method, path, key, data=None, ctype=None, timeout=180):
     url = path if path.startswith("http") else base() + path
-    headers = {"x-api-key": key, "Accept": "application/json"}
+    headers = {"Accept": "application/json"}
+    if key:
+        headers["x-api-key"] = key
     if ctype:
         headers["Content-Type"] = ctype
     for attempt in range(4):
@@ -121,16 +125,66 @@ def run_luau(universe, place, version, script, key, timeout_s=300, poll_s=3.0):
             "error": task.get("error"), "logs": logs[-50:], "task": tpath}
 
 
-def restart_servers(universe, key, place_ids=None, bleed_minutes=10):
-    """Restart servers on older versions; bleed-off 1-60 min lets running trips finish (0 = immediate)."""
-    body = {"closeAllVersions": False, "bleedOffServers": bleed_minutes > 0}
-    if bleed_minutes > 0:
-        body["bleedOffDurationMinutes"] = max(1, min(60, int(bleed_minutes)))
+def restart_body(bleed_minutes, place_ids=None):
+    """The restartServers body; the dry run prints exactly this. bleed 0 = immediate (rollback emergencies only)."""
+    b = int(bleed_minutes or 0)
+    body = {"closeAllVersions": False, "bleedOffServers": b > 0}
+    if b > 0:
+        body["bleedOffDurationMinutes"] = max(1, min(60, b))
     if place_ids:
         body["placeIds"] = [int(p) for p in place_ids]
+    return body
+
+
+def restart_servers(universe, key, place_ids=None, bleed_minutes=10):
+    """Restart servers on older versions with a bleed-off (1-60 min) so running trips can finish."""
+    body = restart_body(bleed_minutes, place_ids)
     _call("POST", f"/cloud/v2/universes/{universe}:restartServers", key, data=json.dumps(body).encode(),
           ctype="application/json")
     return body
+
+
+SCOPES = {"publish": "universe-places", "tests": "universe.place.luau-execution-session", "restart": "universe"}
+
+
+def introspect(key):
+    """POST api-keys/v1/introspect (the key goes in the body, never printed). Returns the parsed response."""
+    _, body = _call("POST", "/api-keys/v1/introspect", "", data=json.dumps({"apiKey": key}).encode(),
+                    ctype="application/json", timeout=20)
+    return _json(body)
+
+
+def key_report(key, universes, need=("publish",), warn_days=14):
+    """(problems, notes) for a live call: key enabled, not expired, write scopes on these universes."""
+    import datetime as dt
+    try:
+        info = introspect(key)
+    except OCError as e:
+        return [f"API key check failed ({str(e)[:160]})"], []
+    problems, notes = [], []
+    if info.get("enabled") is False:
+        problems.append("API key is disabled (Creator Dashboard > API Keys > Enable Key)")
+    if info.get("expired"):
+        problems.append("API key expired (set a new expiry, or toggle Enable Key off/on: keys unused for 60 days "
+                        "auto-expire)")
+    exp = info.get("expirationTimeUtc")
+    if exp and not info.get("expired"):
+        try:
+            left = dt.datetime.fromisoformat(exp.replace("Z", "+00:00")) - dt.datetime.now(dt.timezone.utc)
+            if left.days < warn_days:
+                notes.append(f"API key expires in {left.days} days ({exp[:10]})")
+        except ValueError:
+            pass
+    scopes = {sc.get("name"): sc for sc in info.get("scopes") or []}
+    for n in need:
+        sc = scopes.get(SCOPES[n])
+        ids = {str(x) for x in (sc or {}).get("universeIds") or []}
+        if not sc or "write" not in [o.lower() for o in sc.get("operations") or []]:
+            problems.append(f"API key lacks {SCOPES[n]}:write ({n})")
+        elif ids and "*" not in ids and "*" not in universes and not {str(u) for u in universes} <= ids:
+            problems.append(f"API key's {SCOPES[n]} scope does not cover universe {', '.join(map(str, universes))}")
+    notes.append("keys unused for 60 days auto-expire: publish (or touch the key) at least every 60 days")
+    return problems, notes
 
 
 def probe(timeout=8):
@@ -147,7 +201,8 @@ def probe(timeout=8):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sp = ap.add_subparsers(dest="cmd", required=True)
-    sp.add_parser("probe", help="check the API host is reachable from here")
+    p = sp.add_parser("probe", help="check the API host is reachable from here (and the key, when set)")
+    p.add_argument("--universe", action="append", default=[])
     p = sp.add_parser("request", help="print the publish request (dry run, key redacted)")
     p.add_argument("file")
     p.add_argument("--universe", required=True)
@@ -157,6 +212,11 @@ def main(argv=None):
     if a.cmd == "probe":
         ok, detail = probe()
         print(f"{base()}: {detail}; key {'set' if api_key() else 'not set'} in ${KEY_ENV}")
+        if ok and api_key():
+            problems, notes = key_report(api_key(), a.universe or ["*"], ("publish", "tests", "restart"))
+            for x in problems + notes:
+                print(("key problem: " if x in problems else "note: ") + x)
+            return 1 if problems else 0
         return 0 if ok else 1
     d = describe_publish(a.universe, a.place, a.file, a.type)
     print(json.dumps({k: v for k, v in d.items() if k != "curl"}, indent=1))

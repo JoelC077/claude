@@ -10,6 +10,7 @@ Prints one line per check and "selftest: all N passed" (exit 0) or the failures 
 import json, os, shutil, subprocess, sys, tempfile
 from pathlib import Path
 
+sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
 SKILL = HERE.parent
 PY = sys.executable
@@ -18,6 +19,7 @@ RESULTS = []
 
 def run(args, env=None, cwd=None):
     e = dict(os.environ)
+    e["PYTHONDONTWRITEBYTECODE"] = "1"
     e.update(env or {})
     r = subprocess.run([PY, *args], capture_output=True, text=True, env=e, cwd=cwd)
     return r.returncode, r.stdout + r.stderr
@@ -42,7 +44,7 @@ def main():
     feel = str(HERE / "feel.py")
     try:
         # help on every script
-        for s in ("feel.py", "feelmath.py", "feelplot.py", "luatest.py", "selftest.py"):
+        for s in ("feel.py", "feelmath.py", "feelplot.py", "luatest.py", "luau_check.py", "selftest.py"):
             code, out = run([str(HERE / s), "--help"]) if s != "selftest.py" else (0, __doc__)
             check(f"{s} --help", code == 0 and len(out) > 100, out)
         code, out = run([str(HERE / "feelmath.py"), "--demo"])
@@ -68,15 +70,23 @@ def main():
 
         bad = {
             "canon contradicted": (lambda d: d["events"]["hud_merge_bump"]["channels"][0]["from"].__setitem__("v", 1.1),
-                                   "not found in canon ui.hud.motion"),
+                                   "disagrees with canon ui.hud.motion"),
+            "canon number from the wrong phrase": (lambda d: d["events"]["hud_crisis_arrival"]["channels"][0]["amp"].__setitem__("v", 0.5),
+                                                   "disagrees with canon ui.hud.crisis_extra"),
+            "swapped pulse range": (lambda d: d["events"]["hud_crisis_arrival"]["channels"][1].update(
+                min={"v": 0.95, "canon": "ui.hud.crisis_extra", "match": "0.95"}, max={"v": 0.3, "canon": "ui.hud.crisis_extra", "match": "pulsing 0.3"}),
+                "swapped range"),
+            "unknown sound cue": (lambda d: d["events"]["shovel_coal"]["channels"][4].__setitem__("sfx", "shovel_bonk"),
+                                  "is not an rr-soundsmith sound"),
+            "camkick frequency out of range": (lambda d: d["events"]["depart"]["channels"][0].__setitem__("freq_hz", 20),
+                                               "camkick freq_hz 20 outside"),
             "red flash on a reward": (lambda d: d["events"]["alert_fare_banked"]["channels"].append(
                 {"type": "flash", "scope": "screen", "color": "@style.brand.danger_red", "peak": 0.2, "in": 0.03, "out": 0.2}),
                 "red flash on a tier 4 event"),
             "hit-stop on a crew event": (lambda d: d["events"]["lever_commit_crew"]["channels"].append({"type": "hitstop", "ms": 50}),
                                          "hit-stop on a crew event"),
-            "reduce motion loses the event": (lambda d: d["events"]["lever_snapback"].__setitem__("channels", [
-                {"type": "punch", "target": "lever_panel", "prop": "x_px", "shape": "noise", "amp": 1, "freq_hz": 14, "dur": 0.25}]),
-                "with Reduce Motion on nothing is left"),
+            "reduce motion keeps only a haptic": (lambda d: d["events"]["depart"]["channels"].pop(2),
+                                                  "with Reduce Motion on only haptic is left"),
             "rumble gain over its cap": (lambda d: d["sustain"]["speed"].__setitem__("gain", 0.6), "flatten before its maximum"),
             "constant rumble too big": (lambda d: d["shake"].__setitem__("sustain_cap", 0.5), "px of constant camera motion"),
             "unknown easing": (lambda d: d["events"]["ui_panel_open"]["channels"][0].__setitem__("style", "Springy"),
@@ -98,16 +108,51 @@ def main():
         p = planted(tmp, "hierarchy", lambda d: d["events"]["ui_button_release"]["channels"].append({"type": "shake", "trauma": 0.9}))
         code, out = run([feel, "--presets", str(p), "validate"])
         code2, out2 = run([feel, "--presets", str(p), "validate", "--strict"])
-        check("hierarchy breach: warning, strict fails", "outshouts" in out and code2 == 1, out + out2)
+        check("hierarchy breach: warning, strict fails", "louder than most" in out and code2 == 1, out + out2)
+        warn_cases = {
+            "canon number without a phrase": (lambda d: d["events"]["hud_merge_bump"]["channels"][0]["from"].pop("match"), "holds several numbers"),
+            "invisible shake": (lambda d: d["events"]["alert_crate_landed"]["channels"].append({"type": "shake", "trauma": 0.2}), "invisible"),
+            "pitch against the intent": (lambda d: d["events"]["station_arrive"]["channels"][0]["angles_deg"].__setitem__(0, 0.32),
+                                         "tips the view UP"),
+            "OQ number about something else": (lambda d: d["events"]["lever_commit"]["oq"].append("OQ-037"), "shares no word"),
+        }
+        for label, (mut, expect) in warn_cases.items():
+            p = planted(tmp, label.replace(" ", "-"), mut)
+            code, out = run([feel, "--presets", str(p), "validate", "--strict"])
+            check(f"validate --strict catches: {label}", code == 1 and expect in out, out)
+        p = planted(tmp, "oq-tbd", lambda d: d["events"]["depart"].__setitem__("oq", ["OQ-TBD-hard-brake"]))
+        code, out = run([feel, "--presets", str(p), "validate", "--strict"])
+        check("OQ-TBD: a note (owner records it), not a failure", code == 0 and "NOTE events.depart: OQ-TBD-hard-brake" in out, out)
+        code, out = run([feel, "show", "lever_commit"])
+        check("show lists the higher-tier events it outshouts", code == 0 and "Hierarchy:" in out and "louder than" in out, out)
         p = planted(tmp, "build-refused", lambda d: d["events"]["ui_panel_open"]["channels"][0].__setitem__("style", "Springy"))
         code, out = run([feel, "--presets", str(p), "build", "--out", str(tmp / "nobuild")])
         check("build refuses invalid presets", code == 1 and "build refused" in out, out)
 
-        # env override (a mission copy)
+        # env override (a mission copy), --presets after the command, editing helpers
         mission = tmp / "M" / "src" / "feel"
         shutil.copytree(SKILL / "presets", mission)
         code, out = run([feel, "list"], env={"RR_FEEL_PRESETS": str(mission)})
         check("RR_FEEL_PRESETS folder override", code == 0 and str(mission) in out, out)
+        mj = mission / "feel.json"
+        before = mj.read_text()
+        code, out = run([feel, "set", "events.alert_crate_landed.channels[0].angles_deg=[-0.9,0,0.2]",
+                         "events.hud_crisis_arrival.channels[0].amp=-5", "--presets", str(mj)])
+        d = json.loads(mj.read_text())
+        check("set edits by path, keeps canon bindings and the layout", code == 0
+              and d["events"]["alert_crate_landed"]["channels"][0]["angles_deg"] == [-0.9, 0, 0.2]
+              and d["events"]["hud_crisis_arrival"]["channels"][0]["amp"].get("canon") == "ui.hud.crisis_extra"
+              and len(mj.read_text().splitlines()) == len(before.splitlines()), out)
+        code, out = run([feel, "fmt", "--check", "--presets", str(mj)])
+        check("fmt --check: set output is in the house layout", code == 0, out)
+        old = tmp / "old.json"
+        old.write_text(before)
+        code, out = run([feel, "changed", "--since", str(old), "--presets", str(mj)])
+        check("changed: only the edited groups (+ includers)", code == 0 and "re-preview and re-critique only: crisis, info" in out, out)
+        code, out = run([feel, "tune", "alert_crate_landed,hud_crisis_arrival", "--out", str(tmp / "tune"), "--presets", str(mj)])
+        tm = (tmp / "tune" / "TUNING.md").read_text() if (tmp / "tune" / "TUNING.md").is_file() else ""
+        check("tune: TUNING.md + tuning.csv with ranges and canon locks", code == 0 and "canon ui.hud.crisis_extra" in tm
+              and "delivered" in tm and (tmp / "tune" / "tuning.csv").is_file(), out)
 
         # spec
         code, out = run([feel, "spec", "all", "--out", str(tmp / "FEEL_SPEC.md")])
@@ -132,10 +177,14 @@ def main():
                     v = fm.ease(st, dr, i / 20)
                     if st == "Elastic" and dr == "Out":
                         v += 0.05 * (i % 2)   # a planted engine difference
-                    lines.append(f"{st},{dr},{i / 20:.4f},{v:.6f}")
-        dump.write_text("\n".join(lines))
+                    lines.append(f"12:00:0{i % 10}.123  {st},{dr},{i / 20:.4f},{v:.6f}" + ("  -  Client - RR_FeelDemo:154" if i == 20 else ""))
+        dump.write_text("\n".join(lines))   # as copied from Studio's Output: timestamps before, source after
         code, out = run([feel, "plot", "curves", "--out", str(tmp / "cmp"), "--compare", str(dump)])
-        check("plot --compare flags a differing style only", code == 0 and "DIFF Elastic Out" in out and out.count("DIFF") == 1, out)
+        check("plot --compare reads Studio Output lines, flags a differing style only", code == 0 and "DIFF Elastic Out" in out
+              and out.count("DIFF") == 1, out)
+        (tmp / "junk.txt").write_text("no curves here\n")
+        code, out = run([feel, "plot", "curves", "--out", str(tmp / "cmp"), "--compare", str(tmp / "junk.txt")])
+        check("plot --compare with no curve rows exits 2", code == 2, out)
 
         # previews + critic hand-off
         code, out = run([feel, "preview", "all", "--out", str(tmp / "prev")])
@@ -153,8 +202,14 @@ def main():
                 sizes_ok &= w * h <= 1.15e6 and max(w, h) <= 1568
             sizes_ok &= (tmp / "prev" / g / "facts.md").is_file()
         check("previews: contact + closeups within 1.15 MP, facts.md per group", sizes_ok)
-        code, out = run([feel, "preview", "lever_commit", "--out", str(tmp / "prev1"), "--gif", "--rm"])
-        check("preview EVENT --gif --rm", code == 0 and (tmp / "prev1" / "lever" / "lever_commit.gif").is_file(), out)
+        code, out = run([feel, "preview", "lever_commit", "--out", str(tmp / "prev"), "--gif", "--rm"])
+        check("preview EVENT goes to ev_<event>/, never over its group", code == 0
+              and (tmp / "prev" / "ev_lever_commit" / "lever_commit.gif").is_file()
+              and json.loads((tmp / "prev" / "lever" / "preview.json").read_text())["events"].__len__() == 6, out)
+        code, out = run([feel, "preview", "lever_commit,alert_crate_landed,depart", "--out", str(tmp / "prev"), "--name", "kit"])
+        pj = json.loads((tmp / "prev" / "kit" / "preview.json").read_text()) if (tmp / "prev" / "kit" / "preview.json").is_file() else {}
+        check("preview E1,E2 --name: one set for one critic, lever drag in its closeups", code == 0 and len(pj.get("events", [])) == 3
+              and (tmp / "prev" / "kit" / "lever.png").is_file() and "lever drag" in (tmp / "prev" / "kit" / "closeups.json").read_text(), out)
         crit = tmp / "M" / "critique-feel-fail"
         code, out = run([feel, "crit", str(crit), "--pass", "1", "--from", str(tmp / "prev" / "fail")])
         rub = (crit / "rubric.md").read_text() if (crit / "rubric.md").is_file() else ""
@@ -173,8 +228,32 @@ def main():
         # build
         code, out = run([feel, "build", "--out", str(tmp / "export")])
         files = sorted(p.name for p in (tmp / "export").iterdir()) if (tmp / "export").is_dir() else []
-        check("build PASS (luaparse or balance + bible check)", code == 0 and "build PASS" in out and len(files) == 6, out)
-        check("build ran a real Lua parser", "luaparse: ok" in out, "install luaparse: npm i --prefix ~/.cache/rr-tools luaparse")
+        check("build PASS (Luau syntax + strict types + bible check)", code == 0 and "build PASS" in out and len(files) == 7, out)
+        sys.path.insert(0, str(HERE))
+        import luau_check
+        tools = luau_check.status()
+        if tools["luau-compile"]:
+            check("build ran the real Luau compiler", "PASS RR_Feel.lua: luau-compile" in out, out)
+        else:
+            print("SKIP real Luau compiler check: luau-compile not installed (luau_check.py --install)")
+        if all(tools.values()):
+            x = tmp / "export"
+            good = ('--!strict\nlocal RS = game:GetService("ReplicatedStorage")\n'
+                    'local Feel = require(RS:WaitForChild("RRFeel"):WaitForChild("RR_FeelTyped"))\n'
+                    'Feel.play("lever_commit", { side = -1, targets = { lever_panel = Instance.new("Frame") } })\n'
+                    'local k: number = Feel.leverDrag(-0.5, { fork = 1 })\nprint(k)\n')
+            (x / "Good.client.luau").write_text(good)
+            (x / "Bad.client.luau").write_text(good.replace('"lever_commit"', '"lever_comit"').replace("lever_panel =", "lever_pnael ="))
+            c1, o1 = run([str(HERE / "luau_check.py"), str(x / "Good.client.luau"), "--strict", str(x / "Good.client.luau") + "," + str(x / "RR_FeelTyped.luau")])
+            c2, o2 = run([str(HERE / "luau_check.py"), str(x / "Bad.client.luau"), "--strict", str(x / "Bad.client.luau") + "," + str(x / "RR_FeelTyped.luau")])
+            check("RR_FeelTyped: strict callers typecheck; a wrong event or role name is a type error", c1 == 0 and c2 == 1
+                  and o2.count("TypeError") >= 2, o1 + o2)
+        else:
+            print("SKIP strict typecheck of RR_FeelTyped callers: luau-lsp or Roblox types missing")
+        empty = tmp / "home"
+        empty.mkdir()
+        code, out = run([feel, "build", "--out", str(tmp / "export3")], env={"HOME": str(empty), "PATH": "/usr/bin:/bin"})
+        check("build without any Luau tool: syntax SKIP, not FAIL", code == 0 and "syntax unchecked" in out and "FAIL" not in out, out)
         code, out = run([feel, "build", "--out", str(tmp / "export2"), "--no-check"])
         check("build --no-check", code == 0 and "wrote" in out, out)
 

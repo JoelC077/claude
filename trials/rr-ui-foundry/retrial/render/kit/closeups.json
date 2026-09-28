@@ -1,0 +1,45 @@
+{
+ "sheet": [
+  572,
+  858
+ ],
+ "megapixels": 0.49,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "zones phone",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/kit/KitBoard__controls__phone__C__zones.png",
+   "box": [
+    6,
+    24,
+    560,
+    259
+   ],
+   "scale": "fit x0.66"
+  },
+  {
+   "n": 2,
+   "label": "skin A controls",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/kit/KitBoard__controls__phone__A.png",
+   "box": [
+    6,
+    308,
+    560,
+    259
+   ],
+   "scale": "fit x0.66"
+  },
+  {
+   "n": 3,
+   "label": "skin B controls",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/kit/KitBoard__controls__phone__B.png",
+   "box": [
+    6,
+    592,
+    560,
+    259
+   ],
+   "scale": "fit x0.66"
+  }
+ ]
+}

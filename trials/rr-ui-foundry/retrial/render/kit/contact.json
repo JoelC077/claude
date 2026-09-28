@@ -1,0 +1,57 @@
+{
+ "sheet": [
+  856,
+  918
+ ],
+ "megapixels": 0.79,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "phone 844x390 controls (C)",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/kit/KitBoard__controls__phone__C.png",
+   "box": [
+    6,
+    24,
+    844,
+    390
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "panels phone",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/kit/KitBoard__panels__phone__C.png",
+   "box": [
+    6,
+    458,
+    400,
+    185
+   ],
+   "scale": "fit x0.47"
+  },
+  {
+   "n": 3,
+   "label": "tickets phone",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/kit/KitBoard__tickets__phone__C.png",
+   "box": [
+    412,
+    458,
+    400,
+    185
+   ],
+   "scale": "fit x0.47"
+  },
+  {
+   "n": 4,
+   "label": "controls pc",
+   "src": "/home/user/claude/trials/rr-ui-foundry/retrial/render/kit/KitBoard__controls__pc__C.png",
+   "box": [
+    6,
+    687,
+    400,
+    225
+   ],
+   "scale": "fit x0.31"
+  }
+ ]
+}

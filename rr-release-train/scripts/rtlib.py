@@ -141,18 +141,22 @@ class Bible:
                 out.append(m.groups())
         return out
 
-    def questions_about(self, words=("release", "launch", "publish")):
-        """Open questions whose text mentions any word, as get-OQ dicts."""
-        ids = set()
-        for w in words:
-            code, out = self.run("search", w, "--limit", "300")
-            ids |= set(re.findall(r"\b(OQ-\d+)\b", out if code == 0 else ""))
-        res = []
-        for q in sorted(ids):
-            d = self.get(q)
-            if isinstance(d, dict) and d.get("fields", {}).get("status", "open") == "open":
-                res.append(d)
-        return res
+    def open_questions(self):
+        """Every open OQ as a get-OQ dict ({id, title, fields, options})."""
+        if "__oqs" not in self._cache:
+            ids = re.findall(r"^(OQ-\d+)\b", self.text("open-questions"), re.M)
+            res = [self.get(q) for q in ids]
+            self._cache["__oqs"] = [d for d in res if isinstance(d, dict)
+                                    and (d.get("fields") or {}).get("status", "open") == "open"]
+        return self._cache["__oqs"]
+
+    def mission_src(self, slug):
+        """Source ID that rr-bible's source list gives a mission folder (e.g. HUDM for 260927-ticket-hud), or ''."""
+        f = self.dir / "canon" / "sources.md" if self.dir else None
+        if not f or not f.is_file():
+            return ""
+        m = re.search(r"^- `([A-Z0-9_]+)`[^\n]*\bmission " + re.escape(slug) + r"\b", f.read_text(errors="replace"), re.M)
+        return m.group(1) if m else ""
 
     def check(self, path, skip=None):
         """(exit code, findings list) of `bible check FILE --json`."""
@@ -277,20 +281,35 @@ def releases_root(arg=None):
 
 
 def missions_roots(extra=None):
-    """Mission folders (rr-mission-control): given ones + RR_MISSIONS_ROOT; if none, <git top>/missions and
-    /home/user/*/missions."""
+    """Mission folders (rr-mission-control): configured ones, $RR_MISSIONS_ROOT, ~/.rr-missions and
+    <git top>/.rr-missions (mission-control's own defaults); only when none of those holds a mission, the legacy
+    <git top>/missions and /home/user/*/missions."""
+    top = git_top()
     cands = [Path(x).expanduser() for x in (extra or [])]
     if os.environ.get("RR_MISSIONS_ROOT"):
         cands.append(Path(os.environ["RR_MISSIONS_ROOT"]).expanduser())
-    if not cands:  # nothing configured: discover
-        top = git_top()
-        cands = ([top / "missions"] if top else []) + _walk_find("/home/user", "missions", depth=3)
-    out = []
-    for c in cands:
-        c = c.resolve()
-        if c.is_dir() and c not in out and any(c.glob("*/state.json")):
-            out.append(c)
+    cands += [Path.home() / ".rr-missions"] + ([top / ".rr-missions"] if top else [])
+
+    def keep(cs):
+        out = []
+        for c in cs:
+            c = c.resolve()
+            if c.is_dir() and c not in out and any(c.glob("*/state.json")):
+                out.append(c)
+        return out
+    out = keep(cands)
+    if not out and not extra and not os.environ.get("RR_MISSIONS_ROOT"):
+        out = keep(([top / "missions"] if top else []) + _walk_find("/home/user", "missions", depth=3))
     return out
+
+
+def scratch_warning(root):
+    """A releases root that will not survive the session (history and the rollback archive live there)."""
+    s = str(Path(root).resolve())
+    if s.startswith(("/tmp", "/var/tmp")) or "scratchpad" in s or "/claude-0/" in s:
+        return (f"releases root {s} is a scratch/temp path: history.json and the rollback archive would be lost "
+                "(set $RR_RELEASES_ROOT to a persistent folder the owner names)")
+    return ""
 
 
 def load_presets():
@@ -302,13 +321,39 @@ def history(root):
 
 
 def released_versions(root):
-    return [h["version"] for h in history(root) if h.get("status") in ("published", "rolled_back", "recorded")]
+    """Every version ever used (never reuse one): published, recorded, rolled back, or seeded by the owner."""
+    return [h["version"] for h in history(root) if h.get("status") in ("published", "rolled_back", "recorded", "seed")]
 
 
-def last_release(root):
-    rows = [h for h in history(root) if h.get("status") in ("published", "recorded", "rolled_back")]
-    rows.sort(key=lambda h: ver_key(h["version"]))
+def _ordered(root, statuses):
+    rows = [h for h in history(root) if h.get("status") in statuses and parse_ver(h.get("version"))]
+    return sorted(rows, key=lambda h: ver_key(h["version"]))
+
+
+def latest_release(root):
+    """The newest release this train published (any outcome, seeds excluded): smoke and rollback act on it."""
+    rows = _ordered(root, ("published", "recorded", "rolled_back"))
     return rows[-1] if rows else None
+
+
+def live_release(root):
+    """The release whose content is live now: the newest published one, or, when that was rolled back, the release
+    it was rolled back to (with the rollback's new place version numbers). Seeds count when nothing newer exists.
+    Collect, the script diff, G7 and ROLLBACK.md compare against this."""
+    rows = _ordered(root, ("published", "recorded", "rolled_back", "seed"))
+    if not rows:
+        return None
+    top = rows[-1]
+    if top.get("status") != "rolled_back":
+        return top
+    rb = top.get("rollback") or {}
+    tgt = next((h for h in rows if h["version"] == rb.get("to")), None)
+    if not tgt:
+        return None
+    live = dict(tgt, via_rollback=top["version"])
+    live["places"] = {n: dict(p, version_number=(rb.get("places") or {}).get(n, p.get("version_number")))
+                      for n, p in (tgt.get("places") or {}).items()}
+    return live
 
 
 if __name__ == "__main__":
@@ -318,5 +363,8 @@ if __name__ == "__main__":
         for n in ("multiuse-critic", "rr-mission-control", "rr-exploit-guard", "rr-soundsmith", "rr-vfx-lighting"):
             print(f"{n}: {find_sibling(n) or 'not found'}")
         print("missions:", ", ".join(map(str, missions_roots())) or "none found")
+        w = scratch_warning(releases_root())
+        if w:
+            print("warning: " + w)
     else:
         print(__doc__)
