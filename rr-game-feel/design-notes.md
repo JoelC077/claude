@@ -19,17 +19,20 @@ bible get (canon slice) -> presets/feel.json (source of truth: events -> channel
                        GIF, feel matrix, contact.png + closeups.png + facts.md (multiuse-critic layout)
   -> feel.py crit      CRIT/rubric.md = critic rubric + Profile G (game feel), pass files, brief from canon
   -> critic_kit.py build --profile G -> independent critic (never self-scored)
-  -> feel.py build     RR_FeelPresets.lua (generated) + RR_Feel.lua + RR_FeelMath.lua + RR_FeelDemo.client.lua
-                       + FEEL_SPEC.md + README; luaparse and bible check gates
+  -> feel.py tune      TUNING.md + tuning.csv: every knob, safe range, canon lock, measured result
+  -> feel.py build     RR_FeelPresets.lua + RR_FeelTyped.luau (generated) + RR_Feel.lua + RR_FeelMath.lua +
+                       RR_FeelDemo.client.lua + FEEL_SPEC.md + README; luau-compile, luau-lsp strict, bible check
+  (feel.py set / fmt / changed: edit by path in the house layout; list the groups a fix touches)
 ```
 
 ## Files
-- `presets/feel.json`: shake, sustain (speed, pressure), lever, a11y, profiles, limits, roles, ~30 events in
-  groups ui, alerts, lever, impacts, fail, ambient; events compose (`include`) so the HUD enter lives once.
+- `presets/feel.json`: shake, sustain (speed, pressure), lever, a11y, profiles, limits, roles, 33 events in
+  groups ui, crisis, info, lever, actions, fail; events compose (`include`) so the HUD enter lives once.
 - `scripts/feelmath.py` (stdlib): Penner easing for all 11 Roblox styles x 3 directions, damped springs, a
   deterministic 1D gradient noise shared with Luau, trauma sim, lever drag curve, haptic envelopes, event sampler.
 - `scripts/feel.py` (stdlib CLI), `scripts/feelplot.py` (Pillow), `scripts/luatest.py` (runs the Luau in a Lua 5.1
-  VM via lupa against stubbed Roblox services), `scripts/selftest.py`.
+  VM via lupa against stubbed Roblox services), `scripts/luau_check.py` (luau-compile + luau-lsp gates, pinned
+  install), `scripts/selftest.py`.
 - `assets/luau/`: `RR_FeelMath.lua` (pure, same formulas as feelmath.py), `RR_Feel.lua` (runtime),
   `RR_FeelDemo.client.lua` (Studio demo, curve dump).
 - `references/`: schema.md (preset format, knobs), rubric-feel.md (Profile G), fidelity.md (preview vs Roblox,
@@ -55,21 +58,33 @@ bible get (canon slice) -> presets/feel.json (source of truth: events -> channel
    peak caps (red lower), can be switched off; validate fails an event that stops communicating under reduce
    motion. Settings API (`Feel.setSetting`) is ready for an in-game panel (open question).
 7. **Hierarchy is checked, not hoped for.** Each event has a priority tier (1 fail ... 5 UI tick); a loudness
-   score (shake, kick, hit-stop, flash, FOV, haptic, punch) must not let a lower tier outshout a higher one.
+   score (shake, kick, hit-stop, flash, FOV, haptic, punch, HUD alarm) of an event must not exceed the median of
+   any higher tier; single outshouting pairs are listed (show, facts) so no claim is made from memory; `quiet_ok`
+   and `loud_ok` carry the reason when a tier holds a quiet-on-purpose or loud-on-purpose event. Reduce motion
+   must keep a channel every device has (visible or sound); a haptic alone does not count.
 8. **Critic Profile G** (signal, timing and curves, comfort, phone read, style, polish) merged into
    CRIT/rubric.md so critic_kit.py works unchanged. Plots and mock frames are judged as intent; the owner's
    Studio playtest is the final feel check.
+9. **Knobs mean what the player sees.** Punch `amp` and camkick `angles_deg` are delivered peaks (the spring is
+   divided by its own peak, identical in Python and Luau); canon numbers bind to a phrase of the fact (`match`),
+   so "+-5 px" can only be satisfied by a 5 px shake. Signs follow Roblox camera space (+ pitch up, + yaw left),
+   the preview draws the same, and validate checks the sign against the intent's words.
+10. **Typed where Roblox code is written, untyped where the cloud must run it.** RR_Feel stays Lua 5.1-compatible
+   (lupa tests); RR_FeelTyped.luau is the strict interface, generated from the presets, so event and role names
+   are type-checked in the owner's `--!strict` code.
+11. **One writer per property.** The runtime restores what it captured when an event starts, so another animator
+   on the same object (the shipped HUD controller) must be removed first; the README says what to delete.
 
 ## Plugs
 - rr-bible: canon read at run time (ui.hud.motion, ui.hud.crisis_extra, ui.lever.*, gameplay.alerts.*,
   gameplay.speed.*, gameplay.run.depart, gameplay.crisis.fail_cinematic, tech.camera.*, tech.ui_platform.*,
   av.feel.*, av.vfx.*, identity.pillars.*, style tokens); `bible check` on every export; platform facts
   (tech.feel.*) and open questions recorded through bible.py.
-- rr-mission-control: feel is a deliverable of kind `mixed`; presets in `<M>/src/feel/` (RR_FEEL_PRESETS),
+- rr-mission-control: feel is a deliverable of kind `mixed`; presets in `<M>/src/feel/feel.json` (--presets),
   pre-flight = `validate --strict` + `build --no-check`, critic `<M>/critique-feel-<group>`, export `<M>/export/feel/`.
 - multiuse-critic: contact_sheet.py and critic_kit.py found by glob, never copied; Profile G rubric.
-- Siblings: event `cues` name rr-vfx-lighting presets (checked when that skill is found) and sound names for
-  rr-soundsmith (free text until it exists); the runtime fires `Feel.Cue` so those modules subscribe.
+- Siblings: event `cues` name rr-vfx-lighting presets and rr-soundsmith sounds (both checked when the skill is
+  found); the runtime fires `Feel.Cue` so those modules subscribe. rr-ui-foundry: `Kit.useFeel(RR_Feel)`.
 
 ## Limits
 No Studio: nothing here has run in Roblox. Previews are mock plates; Roblox's exact Elastic/Bounce shapes,

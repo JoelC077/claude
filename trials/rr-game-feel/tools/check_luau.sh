@@ -7,14 +7,14 @@
 #        2) luau-lsp analyze with Roblox types + a sourcemap: RR_FeelKit*.luau must be clean in --!strict;
 #           the rr-game-feel runtime files (untyped, nonstrict) are reported, not gated.
 set -uo pipefail
-if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then sed -n 2,9p "$0"; exit 0; fi
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then sed -n 2,8p "$0"; exit 0; fi
 M="$(cd "$(dirname "$0")/.." && pwd)"; X="$M/export/feel"; T=~/.cache/rr-tools; B="$T/bin"
 DEFS="$T/globalTypes.None.d.luau"
 if [[ "${1:-}" == "--install" ]]; then
   mkdir -p "$B"; tmp="$(mktemp -d)"
-  curl -sSL -o "$tmp/luau.zip" https://github.com/luau-lang/luau/releases/latest/download/luau-ubuntu.zip
-  curl -sSL -o "$tmp/lsp.zip" https://github.com/JohnnyMorganz/luau-lsp/releases/latest/download/luau-lsp-linux-x86_64.zip
-  curl -sSL -o "$DEFS" https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/main/scripts/globalTypes.None.d.luau
+  curl -sSL -o "$tmp/luau.zip" https://github.com/luau-lang/luau/releases/download/0.740/luau-ubuntu.zip
+  curl -sSL -o "$tmp/lsp.zip" https://github.com/JohnnyMorganz/luau-lsp/releases/download/1.70.1/luau-lsp-linux-x86_64.zip
+  curl -sSL -o "$DEFS" https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/1.70.1/scripts/globalTypes.None.d.luau
   (cd "$tmp" && unzip -oq luau.zip -d "$B" && unzip -oq lsp.zip -d "$B"); chmod +x "$B"/luau*; rm -rf "$tmp"
 fi
 if [[ ! -x "$B/luau-compile" || ! -x "$B/luau-lsp" || ! -f "$DEFS" ]]; then

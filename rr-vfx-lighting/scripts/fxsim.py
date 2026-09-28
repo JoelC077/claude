@@ -393,10 +393,13 @@ def blend(canvas, img_rgb, alpha_l, le, box, count=None):
         count.paste(ImageChops.add(cr, m), (x0, y0))
 
 
-def draw_particles(canvas, sim, proj, light=(1, 1, 1), fog=None, depth=None, depth_scale=16, count=None, per=None):
-    """per: dict filled with {preset: {live, visible, hidden, offscreen, mask}} (POV visibility facts)."""
+def draw_particles(canvas, sim, proj, light=(1, 1, 1), fog=None, depth=None, depth_scale=16, count=None, per=None, only=None):
+    """per: dict filled with {preset: {live, visible, hidden, offscreen, mask}} (POV visibility facts);
+    only: draw just this preset's emitters (solo contrast)."""
     items = []
     for e in sim.emitters:
+        if only is not None and e.name != only:
+            continue
         st = per.setdefault(e.name, {"live": 0, "visible": 0, "hidden": 0, "offscreen": 0,
                                      "mask": Image.new("L", canvas.size, 0)}) if per is not None else None
         for q in e.parts:
@@ -739,6 +742,7 @@ def pov(model, names, view_path, out, speed=None, t=None, plate=None, tier="pc")
             break
     mean = sum(i * v for i, v in enumerate(hist)) / covered if covered else 0
     presets = {}
+    plate_l = plate_im.convert("L")
     for n in names:
         st = per.get(n)
         if not st:   # lights, beams or debris only: no particle stats
@@ -746,13 +750,16 @@ def pov(model, names, view_path, out, speed=None, t=None, plate=None, tier="pc")
             continue
         m = st.pop("mask")
         cov = sum(m.histogram()[1:])
-        peak = None
-        if cov:   # 90th percentile of the luma change over its pixels: how hard its core reads against the plate
-            h = ImageChops.difference(im.convert("L"), plate_im.convert("L")).histogram(mask=m)
+        dl = peak = None
+        if cov:   # drawn alone over the plate (overlapping presets would cancel): mean and 90th-percentile change
+            solo = plate_im.copy()
+            draw_particles(solo, sim, cam, light=light, fog=view.get("fog"), depth=depth,
+                           depth_scale=view.get("depth_scale", 16), only=n)
+            h = ImageChops.difference(solo.convert("L"), plate_l).histogram(mask=m)
             acc, tot = 0, sum(h)
             peak = next((i for i, v in enumerate(h) if (acc := acc + v) >= 0.9 * tot), 0)
-        presets[n] = {**st, "covered": round(cov / total, 4),
-                      "dluma": round(luma(im, m) - luma(plate_im, m), 1) if cov else None, "peak": peak}
+            dl = round(luma(solo, m) - luma(plate_im, m), 1)
+        presets[n] = {**st, "covered": round(cov / total, 4), "dluma": dl, "peak": peak}
     return {"out": str(out), "presets": names, "speed": speed, "tier": tier, "t": round(warm + t_after, 2),
             "live": sim.live(), "hidden_by_depth": hidden, "overdraw_max": mx, "overdraw_p95": p95,
             "overdraw_mean": round(mean, 2), "screen_covered": round(covered / total, 4), "per_preset": presets,

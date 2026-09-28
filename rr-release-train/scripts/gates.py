@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from rtlib import (LEVELS, core, effective_level, find_sibling, last_release, level_between,  # noqa: E402
+from rtlib import (LEVELS, core, effective_level, find_sibling, level_between, live_release,  # noqa: E402
                    load_json, now, parse_ver, released_versions, save_json, sha256_text, ver_key)
 
 TAG = re.compile(r"\[((?:C-\d+)(?:[,\s]+C-\d+)*)\]")
@@ -39,7 +39,7 @@ def changes_hash(ctx):
 
 def sidings(bible):
     v = bible.value("release.alpha.sidings") or ""
-    terms = [t.strip(' "()').lower() for t in re.split(r"[,()]", v)]
+    terms = [t.replace('"', "").strip(" ()").lower() for t in re.split(r"[,()]", v)]
     return [t for t in terms if t and "parking lot" not in t]
 
 
@@ -280,20 +280,33 @@ def soft(ctx):
     return "FAIL" if ctx.presets["channels"][ctx.rel["channel"]]["strict"] else "WARN"
 
 
+def worse(a, b):
+    order = ["N/A", "PASS", "WARN", "PENDING", "FAIL"]
+    return a if order.index(a) >= order.index(b) else b
+
+
 def audit_of(ctx, name):
     info = ctx.rel["places"][name]
     return load_json(ctx.dir / info["audit"], {}) or {}
 
 
+def baseline_dir(ctx, name):
+    """Audit folder of the release that is live now (rtlib.live_release), or None."""
+    live = live_release(ctx.root)
+    d = ctx.root / live["version"] / "places" / name / "audit" if live else None
+    return d if d and d.is_dir() else None
+
+
 def g1(ctx):
     rel, v = ctx.rel, ctx.rel.get("version")
     if not v:
-        return G("G1", ctx, "PENDING", "no version", fix=["release.py version"])
+        return G("G1", ctx, "PENDING", "no version", fix=["release.py version --apply"])
     if not parse_ver(v):
         return G("G1", ctx, "FAIL", f"{v} is not semver", fix=["release.py version --set X.Y.Z-alpha.N"])
     hist = released_versions(ctx.root)
     if hist and ver_key(v) <= max(ver_key(h) for h in hist):
-        return G("G1", ctx, "FAIL", f"{v} is not above released {max(hist, key=ver_key)}", fix=["release.py version"])
+        return G("G1", ctx, "FAIL", f"{v} is not above released {max(hist, key=ver_key)}",
+                 fix=["release.py version --apply"])
     status, det, fix = "PASS", [], []
     pre = parse_ver(v)[3].split(".")[0]
     if pre != ctx.channel_pre():
@@ -303,8 +316,8 @@ def g1(ctx):
         return G("G1", ctx, "PENDING", f"{v}; no place attached", det, ["release.py attach NAME FILE"])
     for n, i in rel["places"].items():
         if i.get("stamp") is None:
-            status = "FAIL" if status == "FAIL" else soft(ctx)
-            det.append(f"{n}: no RR_Version stamp in the file")
+            status = "FAIL"
+            det.append(f"{n}: no RR_Version stamp in the file (the Luau release tests and smoke S1 need it)")
             fix.append("release.py stamp; owner places RR_Version in ReplicatedStorage, saves, re-attaches")
         elif i["stamp"] != v:
             status = "FAIL"
@@ -318,13 +331,13 @@ def g2(ctx):
     unknown = [c["id"] for c in rel["changes"] if c.get("in_build") == "unknown"]
     if not inc:
         return G("G2", ctx, "FAIL" if not unknown else "PENDING", "no confirmed in-build change",
-                 fix=["release.py collect / add / mark --in-build yes"])
+                 fix=["release.py collect / add / mark --in-build yes --via ..."])
     if unknown:
         return G("G2", ctx, "PENDING", f"{len(unknown)} changes not confirmed in the build: {', '.join(unknown)}",
-                 fix=[f"release.py mark {' '.join(unknown)} --in-build yes|no (owner knows what is in Studio)"])
+                 fix=[f"ask the owner, then release.py mark {' '.join(unknown)} --in-build yes|no --via \"chat DATE\""])
     need = max((c["bump"] for c in inc), key=lambda b: LEVELS[b])
     v = rel.get("version")
-    det, status = [], "PASS"
+    det, status, fix = [], "PASS", []
     if v and parse_ver(v):
         lives = [h for h in released_versions(ctx.root) if not parse_ver(h)[3]]
         base = max(lives, key=ver_key) if lives else "0.0.0"
@@ -332,13 +345,29 @@ def g2(ctx):
         if LEVELS[have] < LEVELS[effective_level(need, base)]:
             status = "FAIL"
             det.append(f"{v} is a {have} step from {base}, changes need {effective_level(need, base)}")
+            fix.append("release.py version --apply")
+    owner_word = [c for c in inc if not c["src"].startswith(("git:", "place:"))]
+    agent_word = [c["id"] for c in owner_word if not c.get("via")]
+    for c in owner_word:
+        if c.get("via"):
+            det.append(f"{c['id']} in build per the owner ({c['via']})")
+    if agent_word:
+        status = worse(status, soft(ctx))
+        det.insert(0, f"in build on the agent's word, no owner citation: {', '.join(agent_word)}")
+        fix.append(f"ask the owner what is in Studio, then release.py mark {' '.join(agent_word)} --in-build yes "
+                   "--via \"chat DATE\"")
     players = [c for c in inc if c["audience"] == "player"]
     diffs = [c for c in inc if c["src"].startswith("place:")]
     if diffs and not players:
-        status = "WARN" if status == "PASS" else status
+        status = worse(status, "WARN")
         det.append("scripts changed but no player-facing change describes them")
+    tele = [p for c in diffs for p in (c.get("scripts") or {}).get("teleport", [])]
+    if tele:
+        status = worse(status, "WARN")
+        det.append(f"cross-place contract changed ({', '.join(tele[:4])}): during the bleed-off old Lobby servers "
+                   "still send players to the new Trip (and back); the new side must accept the old TeleportData")
     return G("G2", ctx, status, f"{len(inc)} in build ({len(players)} player) · bump {need}" +
-             (f" · {det[0]}" if det else ""), det, ["release.py version"] if status == "FAIL" else [])
+             (f" · {det[0]}" if det else ""), det, fix)
 
 
 def g3(ctx):
@@ -351,24 +380,60 @@ def g3(ctx):
         return G("G3", ctx, "PENDING", "changes or version moved since notes-check", fix=["release.py notes-check"])
     if not nc["ok"]:
         return G("G3", ctx, "FAIL", f"{len(nc['errors'])} errors", nc["errors"][:10], ["fix the .src files; notes-check"])
-    return G("G3", ctx, "WARN" if nc["warnings"] else "PASS", f"traced and covered · {len(nc['warnings'])} warnings",
+    return G("G3", ctx, "WARN" if nc["warnings"] else "PASS", f"every line traced · {len(nc['warnings'])} warnings",
              nc["warnings"][:10])
 
 
-def combined_scripts(ctx, name):
+def script_files(ctx, name):
+    """[(instance path, class, text)] of one attached place's extracted scripts."""
     info = ctx.rel["places"][name]
     sdir = ctx.dir / Path(info["audit"]).parent / "scripts"
-    idx = load_json(sdir / "index.json", []) or []
-    lines, where = [], []
-    for e in idx:
+    out = []
+    for e in load_json(sdir / "index.json", []) or []:
         f = sdir / e["file"]
         if f.is_file():
-            for k, ln in enumerate(f.read_text(errors="replace").splitlines(), 1):
-                lines.append(ln)
-                where.append(f"{e['path']}:{k}")
-    out = sdir.parent / "all_scripts.lua"
+            out.append((e["path"], e.get("class", ""), f.read_text(errors="replace")))
+    return out
+
+
+def combined_scripts(ctx, name):
+    lines, where = [], []
+    for path, _, txt in script_files(ctx, name):
+        for k, ln in enumerate(txt.splitlines(), 1):
+            lines.append(ln)
+            where.append(f"{path}:{k}")
+    out = ctx.dir / Path(ctx.rel["places"][name]["audit"]).parent / "all_scripts.lua"
     out.write_text("\n".join(lines) + "\n")
-    return out, where, idx, sdir
+    return out, where
+
+
+def number_drift(ctx):
+    """Heuristic: `name = number` in scripts vs single-number canon facts whose last key segment names it."""
+    d = ctx.presets.get("drift") or {}
+    facts = []
+    for pre in d.get("prefixes", []):
+        for f in ctx.bible.facts(pre):
+            if re.fullmatch(r"-?\d+(?:\.\d+)?", str(f.get("value", "")).strip()):
+                seg, parent = f["key"].split(".")[-1], f["key"].split(".")[-2]
+                for u in d.get("units", []):
+                    if seg.endswith(u):
+                        seg = seg[: -len(u)]
+                        break
+                facts.append((seg.replace("_", "").lower(), "_" in seg, parent.lower(), f))
+    out = []
+    for n in ctx.rel["places"]:
+        for path, _, txt in script_files(ctx, n):
+            low_path = path.lower()
+            for k, ln in enumerate(txt.splitlines(), 1):
+                if ln.lstrip().startswith("--"):
+                    continue
+                for m in re.finditer(r"\b([A-Za-z_]\w*)\s*=\s*(-?\d+(?:\.\d+)?)\b", ln):
+                    ident = m.group(1).replace("_", "").lower()
+                    for seg, multi, parent, f in facts:
+                        if ident == seg and (multi or parent in low_path) and float(m.group(2)) != float(f["value"]):
+                            out.append(f"{n} {path.split('.')[-1]}:{k} {m.group(1)} = {m.group(2)}; canon "
+                                       f"{f['key']} = {f['value']} ({(f.get('note') or '')[:60]})")
+    return sorted(set(out))
 
 
 def g4(ctx):
@@ -377,8 +442,7 @@ def g4(ctx):
         return G("G4", ctx, "FAIL", "rr-bible not found", fix=["set RR_BIBLE_SKILL to the rr-bible folder"])
     if not ctx.rel["places"]:
         return G("G4", ctx, "PENDING", "no place attached", fix=["release.py attach NAME FILE"])
-    status, det = "PASS", []
-    off = 0
+    status, det, off = "PASS", [], 0
     for n in ctx.rel["places"]:
         props = ctx.dir / Path(ctx.rel["places"][n]["audit"]).parent / "props.lua"
         if props.is_file():
@@ -386,45 +450,78 @@ def g4(ctx):
             errs = [f for f in finds if f.get("level") == "ERROR"]
             off += len(errs)
             det += [f"{n} colour/font: {f['msg']}" for f in errs[:4]]
-        allf, where, _, _ = combined_scripts(ctx, n)
+        allf, where = combined_scripts(ctx, n)
         _, finds, _ = b.check(allf, skip="hex,fonts")
         for f in finds:
             loc = where[f["line"] - 1] if f.get("line") and f["line"] <= len(where) else "?"
             if f.get("level") == "ERROR":
                 status = "FAIL"
             det.insert(0, f"{n} {loc}: {f['msg']}")
-    if off and status == "PASS":
-        status = "WARN"
-    summ = (f"{off} off-palette colours/fonts in the places (bought or kitbashed assets are often off-token)" if off
-            else "place colours and fonts on canon") + " · scripts: names and numbers " + \
-        ("FAIL" if status == "FAIL" else "clean")
-    return G("G4", ctx, status, summ, det[:12], ["fix the script string/number to canon, or record the change "
-                                                   "with bible add-fact / decide (owner)"] if status == "FAIL" else [])
+    if off:
+        status = worse(status, "WARN")
+    drift = number_drift(ctx)
+    if drift:
+        status = worse(status, "WARN")
+        det += [f"possible number drift: {x}" for x in drift[:6]]
+    summ = (f"{off} off-palette colours/fonts" if off else "colours/fonts on canon") + \
+        (" · scripts: banned name or contradicting number" if status == "FAIL" else
+         " · scripts: no banned name; numbers compared only where canon has a check pattern") + \
+        (f" · {len(drift)} possible number drifts (heuristic)" if drift else "")
+    fix = ["fix the script to canon, or record the change with bible add-fact / decide (owner)"] if status != "PASS" \
+        and (status == "FAIL" or drift) else []
+    return G("G4", ctx, status, summ, det[:14], fix)
+
+
+def security_file_problems(data):
+    """Why a SECURITY_GATE.json is not an rr-exploit-guard verdict ([] when it is)."""
+    if not isinstance(data, dict):
+        return ["not a JSON object"]
+    p = []
+    if data.get("skill") != "rr-exploit-guard":
+        p.append("skill is not rr-exploit-guard")
+    if str(data.get("verdict", "")).upper() not in ("PASS", "HOLD", "FAIL"):
+        p.append("verdict is not PASS/HOLD/FAIL")
+    if not _ts(data.get("scanned_at")):
+        p.append("no scanned_at")
+    if not isinstance(data.get("places"), dict):
+        p.append("no places map (sha256 of what was scanned)")
+    return p
 
 
 def g5(ctx):
     ev = ctx.rel["evidence"].get("security") or {}
-    f = Path(ev["file"]) if ev.get("file") else ctx.dir / "security" / "SECURITY_GATE.json"
     guard = find_sibling("rr-exploit-guard", "RR_EXPLOIT_GUARD_SKILL")
     scan_dirs = " ".join(str(ctx.dir / Path(i["audit"]).parent / "scripts") for i in ctx.rel["places"].values())
-    how = (f"rr-exploit-guard ({guard or 'not installed yet'}): scan {scan_dirs or '<attach places first>'} and write "
-           f"{ctx.dir / 'security' / 'SECURITY_GATE.json'}")
+    how = (f"rr-exploit-guard ({guard or 'not installed yet'}): scan {scan_dirs or '<attach places first>'}, gate "
+           f"--stage {ctx.rel['channel']} --out {ctx.dir / 'security'}")
+    if ev.get("by") == "owner" and not ev.get("file"):
+        st = {"pass": "PASS", "hold": soft(ctx), "fail": "FAIL"}[ev["result"]]
+        return G("G5", ctx, st, f"owner-attested {ev['result']} without an rr-exploit-guard verdict "
+                 f"({ev.get('note', '')[:80]})", fix=[how] if st != "PASS" else [])
+    f = Path(ev["file"]) if ev.get("file") else ctx.dir / "security" / "SECURITY_GATE.json"
     if not f.is_file():
-        if ev.get("result"):
-            st = {"pass": "PASS", "hold": soft(ctx), "fail": "FAIL"}[ev["result"]]
-            return G("G5", ctx, st, f"manual security result {ev['result']} ({ev.get('by')}): {ev.get('note', '')}")
         return G("G5", ctx, "PENDING", "no security verdict", fix=[how])
-    data = load_json(f, {}) or {}
-    verdict = str(data.get("verdict", "")).upper()
-    scanned = _ts(data.get("scanned_at"))
-    newest = max((_ts(i["attached_at"]) for i in ctx.rel["places"].values()), default=None)
-    if scanned and newest and scanned < newest:
-        return G("G5", ctx, "PENDING", f"verdict {verdict} is older than the attached places (stale)", fix=[how])
+    try:
+        data = load_json(f, {})
+    except ValueError:
+        data = None
+    bad = security_file_problems(data)
+    if bad:
+        return G("G5", ctx, "FAIL", f"{f.name} is not an rr-exploit-guard verdict: {'; '.join(bad)}", fix=[how])
+    verdict = str(data["verdict"]).upper()
+    pinned = {str(v) for v in data["places"].values()}
+    unbound = [n for n, i in ctx.rel["places"].items() if i["sha256"] not in pinned]
+    if unbound:
+        return G("G5", ctx, "PENDING", f"verdict {verdict} was not made on the attached {', '.join(unbound)} "
+                 "(file changed since the scan, or the scan did not pin it)", fix=[how])
+    if data.get("stage") != ctx.rel["channel"]:
+        return G("G5", ctx, "PENDING", f"verdict {verdict} is for stage {data.get('stage')}, release channel is "
+                 f"{ctx.rel['channel']}", fix=[how])
     counts = f"blocking {len(data.get('blocking') or [])}, hold {len(data.get('hold') or [])}"
-    st = {"PASS": "PASS", "HOLD": soft(ctx), "FAIL": "FAIL"}.get(verdict, "FAIL")
+    st = {"PASS": "PASS", "HOLD": soft(ctx), "FAIL": "FAIL"}[verdict]
     det = [str(x)[:160] for x in (data.get("blocking") or [])[:5] + (data.get("hold") or [])[:5]]
-    return G("G5", ctx, st, f"rr-exploit-guard {verdict or 'unreadable'} ({counts}, stage {data.get('stage', '?')})",
-             det, [how] if st != "PASS" else [])
+    return G("G5", ctx, st, f"rr-exploit-guard {verdict} ({counts}, stage {data['stage']}, bound to the attached "
+             "files)", det, [how] if st != "PASS" else [])
 
 
 def need_kind(ctx, kind):
@@ -437,17 +534,29 @@ def need_kind(ctx, kind):
 def g6(ctx):
     ev, cfg, det, fix = ctx.rel["evidence"], ctx.cfg, [], []
     status = "PASS"
+    data_rx = re.compile(ctx.presets.get("specs_data", r"$^"))
+    risky = [f"{n} {p}" for n in ctx.rel["places"] for p, _, txt in script_files(ctx, n)
+             if p.endswith(".spec") and data_rx.search(txt)]
+    if risky:
+        status = "FAIL"
+        det.append("specs touch live data services (the release tests run on the production universe): "
+                   + ", ".join(risky[:4]))
+        fix.append("keep specs off DataStore/ProfileStore/Messaging/MemoryStore; data modules check "
+                   "_G.RR_RELEASE_TEST and stub themselves (references/gates.md)")
     t = ev.get("tests")
-    if t:
+    route, why = release_route(ctx) if ctx.rel["places"] else ("studio", ["no places"])
+    deferred = cfg.get("luau_tests") and route == "api" and not why
+    if t and t.get("by") == "opencloud" and deferred:
+        det.append(f"tests deferred (publish re-runs them); last Open Cloud run {t['result']}")
+    elif t:
         if t["result"] != "pass":
             status = "FAIL"
         det.append(f"tests {t['result']} ({t['by']}) {t.get('note', '')[:120]}")
     elif need_kind(ctx, "tests"):
-        route, why = release_route(ctx)
-        if cfg.get("luau_tests") and route == "api" and not why and ctx.rel["places"]:
+        if deferred:
             det.append("tests deferred: run_tests.lua runs on each saved version before publish; publish stops on a fail")
         else:
-            status = "PENDING"
+            status = worse(status, "PENDING")
             det.append("no test result")
             fix.append("owner runs assets/luau/run_tests.lua in Studio (command bar, server) and records "
                        "`evidence tests --result pass --by owner --note \"N specs\"`")
@@ -456,7 +565,7 @@ def g6(ctx):
         status = "FAIL" if b["result"] != "pass" else status
         det.append(f"bug bash {b['result']} ({b['by']}) {b.get('note', '')[:80]}")
     elif need_kind(ctx, "bugbash"):
-        status = "FAIL" if status == "FAIL" else "PENDING"
+        status = worse(status, "PENDING")
         det.append("bug bash needed (minor or bigger release): " + (ctx.bible.value("release.alpha.bug_bash") or ""))
         fix.append("owner runs the bug bash and records `evidence bugbash --result pass --by owner --note ...`")
     summ = " · ".join(d.split(":")[0] for d in det) or "no tests required"
@@ -464,22 +573,45 @@ def g6(ctx):
 
 
 def run_extra(ctx, gid):
-    out = []
+    """Sibling checks from presets. Advisory unless the cmd takes {audits} (then it judges this build)."""
+    cache = ctx.__dict__.setdefault("_extra", {})
+    if gid in cache:
+        return cache[gid]
+    out = cache[gid] = []
+    audits = [str(ctx.dir / Path(i["audit"]).parent) for i in ctx.rel["places"].values()]
     for x in ctx.presets.get("extra_checks", []):
         if x["gate"] != gid:
             continue
+        bound = any("{audits}" in c for c in x["cmd"])
         sk = find_sibling(x["skill"])
         if not sk:
-            out.append((x["name"], None, f"skipped: {x['skill']} not installed"))
+            out.append((x["name"], None, f"skipped: {x['skill']} not installed", bound))
             continue
-        cmd = [c.replace("{python}", sys.executable).replace("{skill}", str(sk)) for c in x["cmd"]]
+        cmd = []
+        for c in x["cmd"]:
+            cmd += audits if c == "{audits}" else [c.replace("{python}", sys.executable).replace("{skill}", str(sk))]
         try:
             r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-            tail = (r.stdout + r.stderr).strip().splitlines()[-3:]
-            out.append((x["name"], r.returncode, " | ".join(tail)[:300]))
+            lines = [ln.strip() for ln in (r.stdout + r.stderr).strip().splitlines() if ln.strip()]
+            keep = [ln for ln in lines if re.search(r"\b(FAIL|ERROR|over|missing|placeholder)\b", ln, re.I)] or lines[-1:]
+            out.append((x["name"], r.returncode, " | ".join(keep[:3])[:600], bound))
         except (OSError, subprocess.TimeoutExpired) as e:
-            out.append((x["name"], 1, f"could not run: {e}"))
+            out.append((x["name"], 1, f"could not run: {e}", bound))
     return out
+
+
+def extra_lines(ctx, gid):
+    """(status change for build-bound checks, detail lines bound to the build, advisory lines)."""
+    st, det, adv = "PASS", [], []
+    for name, code, tail, bound in run_extra(ctx, gid):
+        line = f"{name}: {'skipped' if code is None else ('ok' if code == 0 else 'FAILED')} {tail}"
+        if bound:
+            det.append(line)
+            if code:
+                st = soft(ctx)
+        else:
+            adv.append(f"{gid} (library, not this build) {line}")
+    return st, det, adv
 
 
 def audit_metrics(a):
@@ -492,28 +624,34 @@ def audit_metrics(a):
 
 def g7(ctx):
     p, status, det, fix = ctx.presets["perf"], "PASS", [], []
-    last = last_release(ctx.root)
+    live = live_release(ctx.root)
+    ev = ctx.rel["evidence"]
+    fresh = []
     for n in ctx.rel["places"]:
         cur = audit_metrics(audit_of(ctx, n))
-        prev_a = load_json(ctx.root / last["version"] / "places" / n / "audit" / "audit.json") if last else None
+        bd = baseline_dir(ctx, n)
+        prev_a = load_json(bd / "audit.json") if bd else None
         if not prev_a:
-            det.append(f"{n}: baseline {cur['instances']} instances, {cur['parts']} parts, {cur['script_bytes']} B scripts "
-                       "(no previous audit to compare)")
+            fresh.append(n)
+            det.append(f"{n}: no baseline to compare (first audited release): {cur['instances']} instances, "
+                       f"{cur['parts']} parts ({cur['meshparts']} MeshParts, {cur['unanchored_parts']} unanchored), "
+                       f"{cur['scripts']} scripts, {cur['effects']} effects, {cur['bytes'] / 1e6:.1f} MB")
             continue
         old = audit_metrics(prev_a)
         grew = [f"{m} {old[m]}->{cur[m]} (+{(cur[m] - old[m]) * 100 // max(old[m], 1)}%)" for m in p["metrics"]
                 if cur[m] > old[m] and (cur[m] - old[m]) * 100 > p["warn_growth_pct"] * max(old[m], 1)]
         if grew:
-            status = "WARN"
-            det.append(f"{n} vs {last['version']}: " + ", ".join(grew))
+            status = worse(status, "WARN")
+            det.append(f"{n} vs {live['version']}: " + ", ".join(grew))
             fix.append("owner: confirm on a phone (F9 memory, FPS) that the growth is fine; record `evidence perf`")
         else:
-            det.append(f"{n}: no metric grew over {p['warn_growth_pct']}% vs {last['version']}")
-    for name, code, tail in run_extra(ctx, "G7"):
-        det.append(f"{name}: {'skipped' if code is None else ('ok' if code == 0 else 'FAILED')} {tail}")
-        if code:
-            status = "FAIL" if soft(ctx) == "FAIL" else ("WARN" if status == "PASS" else status)
-    ev = ctx.rel["evidence"]
+            det.append(f"{n}: no metric grew over {p['warn_growth_pct']}% vs {live['version']}")
+    if fresh and not ev.get("perf"):
+        status = worse(status, soft(ctx))
+        fix.append("owner: play the new content on a phone (F9 memory, FPS) and record "
+                   "`evidence perf --result pass --by owner --note \"phone, FPS, MB\"`")
+    xs, xdet, _ = extra_lines(ctx, "G7")
+    status, det = worse(status, xs), det + xdet
     for kind in ("perf", "livecheck"):
         e = ev.get(kind)
         if e and e["result"] != "pass":
@@ -522,10 +660,12 @@ def g7(ctx):
         elif e:
             det.append(f"{kind} pass ({e['by']}): {e.get('note', '')[:80]}")
     if not ev.get("livecheck") and need_kind(ctx, "livecheck"):
-        status = "FAIL" if status == "FAIL" else "PENDING"
+        status = worse(status, "PENDING")
         det.append("live check needed: " + (ctx.bible.value("tech.streaming.live_check") or ""))
         fix.append("owner runs the live check and records `evidence livecheck --result pass --by owner --note ...`")
-    return G("G7", ctx, status, (det[0] if det else "no places")[:120] + " (budgets: OQ-039 default A)", det, fix)
+    summ = ("no baseline: owner phone evidence needed · " if fresh and not ev.get("perf") else "") + \
+        (det[0] if det else "no places")
+    return G("G7", ctx, status, summ[:140] + " (budgets: OQ-039 default A)", det, fix)
 
 
 def g8(ctx):
@@ -535,75 +675,153 @@ def g8(ctx):
         return G("G8", ctx, "N/A", "no visual work from missions in this build")
     det, fix, bad = [], [], 0
     for c in vis:
-        crit = c["mission"].get("critic") or []
-        ok = [x for x in crit if x["certified"] and x["overall"] is not None and x["overall"] >= x["bar"]]
+        m = c["mission"]
+        bar = m.get("bar") or 8
+        crit = [x for x in (ledger_standing(d, bar) for d in sorted(Path(m["dir"]).glob("critique*")) if d.is_dir()) if x]
+        ok = [x for x in crit if x["certified"]]
         if ok:
-            det.append(f"{c['id']}: certified {ok[0]['overall']}/{ok[0]['bar']} by {', '.join(ok[0]['agents'])}")
+            det.append(f"{c['id']}: certified {ok[0]['overall']}/{bar} by {', '.join(ok[0]['agents'])} (final pass agrees)")
             continue
         bad += 1
-        led = "; ".join(f"{Path(x['dir']).name} {x['overall']}/{x['bar']} by {', '.join(x['agents'])}" for x in crit)
+        led = "; ".join(f"{Path(x['dir']).name} {x['overall']}/{bar} by {', '.join(x['agents'])}"
+                        + ("" if x["final"] else ", no independent final pass") for x in crit)
         det.append(f"{c['id']} {c['title'][:50]}: uncertified ({led or 'no critic ledger'})")
-        fix.append(f"multiuse-critic: one independent --kind final pass on {c['mission']['dir']}")
+        best = max(crit, key=lambda x: (x["overall"] or 0), default=None)
+        if not best:
+            fix.append(f"{c['id']}: no critic ledger: score it with multiuse-critic ({m['dir']})")
+        elif (best["overall"] or 0) < bar:
+            fix.append(f"{c['id']}: standing {best['overall']}/{bar}: finish the fix loop in rr-mission-control "
+                       f"(fix the open blocks-{bar} issues), then one independent --kind final pass ({best['dir']})")
+        elif not best["independent"]:
+            fix.append(f"{c['id']}: at the bar on self-review only: one independent --kind final multiuse-critic "
+                       f"pass ({best['dir']})")
+        else:
+            fix.append(f"{c['id']}: independent and at the bar: one --kind final pass must agree ({best['dir']})")
     st = "PASS" if not bad else soft(ctx)
-    return G("G8", ctx, st, f"{len(vis) - bad}/{len(vis)} visual changes certified by an independent critic", det, fix)
+    return G("G8", ctx, st, f"{len(vis) - bad}/{len(vis)} visual changes certified (independent, at the bar, final "
+             "pass agrees)", det, fix)
+
+
+def words_of(name):
+    return {w.lower() for w in re.findall(r"[A-Z]+(?![a-z])|[A-Z]?[a-z]+|\d+", name)}
 
 
 def g9(ctx):
     h, status, det, fix = ctx.presets["hygiene"], "PASS", [], []
-    flag = re.compile(h["debug_flag"], re.I)
+    assign, dname = re.compile(h["debug_assign"]), re.compile(h["debug_name"])
+    dex, blank = re.compile(h["debug_name_exclude"]), re.compile(h["blank_asset_in_script"], re.I)
+    demo_words = set(h["demo_words"])
     canon_store = ctx.bible.value("tech.data.store_name")
+    marked = {x for c in ctx.included() if c.get("mission") for x in mission_notes(c["mission"]["dir"])["delete"]}
     for n in ctx.rel["places"]:
         a = audit_of(ctx, n)
-        _, where, idx, sdir = combined_scripts(ctx, n)
-        stores = set()
-        for e in idx:
-            f = sdir / e["file"]
-            if not f.is_file():
-                continue
-            txt = f.read_text(errors="replace")
+        files = script_files(ctx, n)
+        bd = baseline_dir(ctx, n)
+        old = {e["path"] for e in (load_json(bd / "scripts" / "index.json", []) if bd else [])} if bd else set()
+        stores, demos = set(), []
+        for path, cls, txt in files:
+            name = path.split(".")[-1] if not path.endswith(".spec") else path.rsplit(".", 2)[-2] + ".spec"
+            if not path.endswith(".spec") and ((words_of(name) & demo_words) or name in marked):
+                demos.append(name)
+                status = worse(status, soft(ctx))
+                det.append(f"{n} {path}: {'marked delete-for-release by its mission' if name in marked else 'demo/test script'}"
+                           f" ({cls}) ships in the build")
             for k, ln in enumerate(txt.splitlines(), 1):
                 if ln.lstrip().startswith("--"):
                     continue
-                m = flag.search(ln)
-                if m:
-                    status = soft(ctx) if status != "FAIL" else status
-                    det.append(f"{n} {e['path']}:{k}: debug flag {m.group(1)} = true")
+                for m in assign.finditer(ln):
+                    ident = m.group(1).replace("_", "").lower()
+                    if dname.search(ident) and not dex.search(ident):
+                        status = worse(status, soft(ctx))
+                        det.append(f"{n} {path}:{k}: debug flag {m.group(1)} = true")
+                if blank.search(ln):
+                    status = worse(status, soft(ctx))
+                    det.append(f"{n} {path}:{k}: blank asset id {blank.search(ln).group(1)} (upload the asset, set the id)")
             for rx in h["store_calls"]:
                 stores |= set(re.findall(rx, txt))
+        mods = [(p, t) for p, cls, t in files if cls == "ModuleScript" and not p.endswith(".spec")
+                and p.split(".")[-1] not in h.get("no_caller_skip", []) and (not old or p not in old)]
+        lonely, demo_only = [], []
+        for p, _ in mods:
+            mname = p.split(".")[-1]
+            rx = re.compile(rf"\b{re.escape(mname)}\b")
+            callers = [q.split(".")[-1] for q, _, t in files if q != p and rx.search(t)]
+            if not callers:
+                lonely.append(mname)
+            elif all(cl in demos for cl in callers):
+                demo_only.append(f"{mname} (only {', '.join(callers)})")
+        if lonely:
+            status = worse(status, "WARN")
+            det.append(f"{n}: {'new ' if old else ''}modules nothing in this place requires: {', '.join(lonely[:8])} "
+                       "(dead code, or the feature is not wired up here)")
+        if demo_only:
+            status = worse(status, "WARN")
+            det.append(f"{n}: modules only a demo script requires: {', '.join(demo_only[:4])} (delete the demo and "
+                       "nothing calls them)")
         if stores and canon_store and canon_store not in stores:
-            status = "WARN" if status == "PASS" else status
+            status = worse(status, "WARN")
             det.append(f"{n}: data stores {sorted(stores)}; canon tech.data.store_name is {canon_store}")
         test_stores = [s for s in stores if re.search(r"test|dev|debug|tmp|temp", s, re.I)]
         if test_stores:
-            status = soft(ctx) if status != "FAIL" else status
+            status = worse(status, soft(ctx))
             det.append(f"{n}: test-looking data store {test_stores}")
         if a.get("placeholders"):
-            status = soft(ctx) if status != "FAIL" else status
+            status = worse(status, soft(ctx))
             det.append(f"{n}: placeholder instances {a['placeholders'][:5]}")
+        if a.get("blank_assets"):
+            status = worse(status, soft(ctx))
+            det.append(f"{n}: blank asset ids in properties {a['blank_assets'][:5]}")
     if any("debug flag" in d for d in det):
         fix.append("turn debug flags off before a live release (tech.security.admin); alpha may keep owner-only admin")
-    for name, code, tail in run_extra(ctx, "G9"):
-        det.append(f"{name}: {'skipped' if code is None else ('ok' if code == 0 else 'FAILED')} {tail}")
-        if code:
-            status = soft(ctx) if status != "FAIL" else status
-    return G("G9", ctx, status, (det[0] if det else "no debug flags, placeholders or store-name drift")[:120], det, fix)
+    if any("blank asset" in d for d in det):
+        fix.append("owner uploads the assets (Asset Manager) and sets the ids, then re-attach")
+    if any("ships in the build" in d for d in det):
+        fix.append("owner deletes demo/test scripts from the place, saves, re-attaches")
+    xs, xdet, _ = extra_lines(ctx, "G9")
+    status, det = worse(status, xs), det + xdet
+    return G("G9", ctx, status, (f"{len(det)} findings · " + det[0] if det
+                                 else "no debug flags, demo scripts, blank assets or store-name drift")[:140], det, fix)
 
 
 def g10(ctx):
+    b, ch = ctx.bible, ctx.rel["channel"]
+    if not b.ok:
+        return G("G10", ctx, "WARN", "rr-bible not found: open questions unknown")
     words = ("release", "launch", "publish", "monetis")
-    qs = ctx.bible.questions_about(words) if ctx.bible.ok else []
-    qs = [q for q in qs if any(w in (q.get("title", "") + " " + (q.get("fields") or {}).get("blocks", "")).lower()
-                               for w in words)]
-    if not qs:
-        return G("G10", ctx, "PASS", "no open question blocks releasing")
-    det = [f"{q['id']} {q['title']}: default {(q.get('fields') or {}).get('default', '?')} (assumed)" for q in qs]
-    return G("G10", ctx, "WARN", f"{len(qs)} open questions touch releasing; their defaults are in use", det,
-             ["owner: `bible decide OQ-nnn X --by owner` when ready"])
+    missions = [(c, mission_terms(c), b.mission_src(Path(c["mission"]["dir"]).name))
+                for c in ctx.included() if c.get("mission")]
+    status, det, block, touch = "PASS", [], [], []
+    for q in b.open_questions():
+        f = q.get("fields") or {}
+        blocks, title = f.get("blocks", "").lower(), q.get("title", "")
+        text = re.sub(r"[._]", " ", f"{title} {f.get('affects', '')} {blocks}".lower())
+        srcs = [x.strip() for x in f.get("src", "").split(",")]
+        why = [c["id"] for c, terms, sid in missions
+               if (sid and sid in srcs) or any(re.search(rf"\b{re.escape(t)}\b", text) for t in terms)]
+        line = f"{q['id']} {title}: default {f.get('default', '?')[:90]} (assumed)"
+        if re.search(rf"\b{ch}\b", blocks) and re.search(r"release-train|channel|publish", blocks):
+            block.append(q["id"])
+            status = "FAIL"
+            det.insert(0, f"BLOCKS the {ch} channel: {line} (blocks: {f.get('blocks')})")
+        elif why:
+            touch.append(q["id"])
+            status = worse(status, soft(ctx))
+            det.append(f"touches {', '.join(why)}: {line}" + (f" (blocks: {f['blocks']})" if f.get("blocks") else ""))
+        elif any(w in f"{title} {blocks}".lower() for w in words):
+            status = worse(status, "WARN")
+            det.append(line)
+    if status == "PASS":
+        return G("G10", ctx, "PASS", "no open question blocks this channel or touches what ships")
+    summ = (f"{len(block)} block the {ch} channel · " if block else "") + \
+        (f"{len(touch)} touch in-build changes · " if touch else "") + f"{len(det)} open questions in play"
+    return G("G10", ctx, status, summ, det[:14], ["owner: `bible decide OQ-nnn X --by owner` (or waive G10 with a "
+                                                  "reason) when ready"])
 
 
 def run(ctx):
     rel = ctx.rel
     gates = [fn(ctx) for fn in (g1, g2, g3, g4, g5, g6, g7, g8, g9, g10)]
+    advisory = extra_lines(ctx, "G7")[2] + extra_lines(ctx, "G9")[2]
     blocking = set(ctx.presets["blocking"][rel["channel"]])
     for g in gates:
         w = rel["waivers"].get(g["id"])
@@ -614,10 +832,11 @@ def run(ctx):
     warn = [g for g in gates if g["status"] in ("WARN", "PENDING")]
     verdict = "NO-GO" if fail else ("GO-WITH-WARNINGS" if warn else "GO")
     core_ = [(g["id"], g["status"], g["summary"], g["details"]) for g in gates]
-    h = sha256_text(json.dumps([rel.get("version"), core_]))
+    h = sha256_text(json.dumps([rel.get("version"), rel["channel"], core_]))
     fixes = [f"{g['id']}: {x}" for g in gates if g["status"] in ("FAIL", "PENDING", "WARN") for x in g["fix"]]
     rep = {"version": rel.get("version"), "channel": rel["channel"], "verdict": verdict, "at": now(), "hash": h,
-           "gates": gates, "fixes": fixes}
+           "gates": gates, "fixes": fixes, "advisory": advisory,
+           "blockers": [g["id"] for g in fail]}
     save_json(ctx.dir / "gates.json", rep)
     L = [f"# Gates · {rel.get('version')} ({rel['channel']}) · {verdict}", "",
          f"Run {rep['at']}. Blocking in {rel['channel']}: {', '.join(sorted(blocking, key=lambda x: int(x[1:])))}. "
@@ -628,8 +847,11 @@ def run(ctx):
         if g["details"] or g["fix"]:
             L += ["", f"## {g['id']} {g['name']} · {g['status']}"] + [f"- {d}" for d in g["details"]] + \
                  [f"- fix: {x}" for x in g["fix"]]
+    if advisory:
+        L += ["", "## Advisory: sibling library checks (not about this build; not in the verdict or approval)"] + \
+             [f"- {x}" for x in advisory]
     (ctx.dir / "GATES.md").write_text("\n".join(L) + "\n")
-    rel["gate"] = {"verdict": verdict, "at": rep["at"], "hash": h}
+    rel["gate"] = {"verdict": verdict, "at": rep["at"], "hash": h, "blockers": rep["blockers"]}
     ctx.save()
     return rep
 

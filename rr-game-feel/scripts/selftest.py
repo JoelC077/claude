@@ -137,7 +137,8 @@ def main():
         mj = mission / "feel.json"
         before = mj.read_text()
         code, out = run([feel, "set", "events.alert_crate_landed.channels[0].angles_deg=[-0.9,0,0.2]",
-                         "events.hud_crisis_arrival.channels[0].amp=-5", "--presets", str(mj)])
+                         "events.hud_crisis_arrival.channels[0].amp=-5", "events.alert_coal_low.channels[0].amp=0.08",
+                         "--presets", str(mj)])
         d = json.loads(mj.read_text())
         check("set edits by path, keeps canon bindings and the layout", code == 0
               and d["events"]["alert_crate_landed"]["channels"][0]["angles_deg"] == [-0.9, 0, 0.2]
@@ -151,7 +152,7 @@ def main():
         check("changed: only the edited groups (+ includers)", code == 0 and "re-preview and re-critique only: crisis, info" in out, out)
         code, out = run([feel, "tune", "alert_crate_landed,hud_crisis_arrival", "--out", str(tmp / "tune"), "--presets", str(mj)])
         tm = (tmp / "tune" / "TUNING.md").read_text() if (tmp / "tune" / "TUNING.md").is_file() else ""
-        check("tune: TUNING.md + tuning.csv with ranges and canon locks", code == 0 and "canon ui.hud.crisis_extra" in tm
+        check("tune: TUNING.md + tuning.csv with ranges and canon locks", code == 0 and "amp (ui.hud.crisis_extra)" in tm
               and "delivered" in tm and (tmp / "tune" / "tuning.csv").is_file(), out)
 
         # spec

@@ -9,24 +9,24 @@ Side strips: steady state at Speed 35.0 (gameplay.speed.normal) on sky, pasture 
 | sparks_brake | loop | 2 | BrakeShoe | off | 90 / 128 | 68/68/68 | 15.84 | gameplay.run.brake_formula, gameplay.crisis.pressure |
 | coal_dust | burst | 2 | Firebox | event | 15 / 20 | 20/20/11/20 | 17.78 | gameplay.crisis.firebox, gameplay.fuel.shovel_pct |
 
-POV composites (particles over the lookdev plate from the same camera; loops at steady state, Speed = gameplay.speed.fast; bursts fire after the loops warm up). Per preset: visible / live, hidden by the train or ground, off-screen, share of the screen, mean and peak (90th percentile) luma change over its own pixels:
+POV composites: particles over the lookdev plate from the same camera (PC 768x432, phone 844x390 at phone rates); loops at steady state at Speed gameplay.speed.fast, bursts shown t s after they fire. Per preset: visible/live, h = hidden by the train or ground, o = off-screen, share of the screen, then drawn alone over the plate: mean luma change / 90th-percentile luma change.
 
-| POV | look | cam | tier | res | t s | overdraw max/p95 | screen | per preset |
-|---|---|---|---|---|---|---|---|---|
-| pov_grassland.day_roof3p | grassland.day | roof3p | pc | 768x432 | 6.8 | 30/19 | 3.7% | steam_chimney 50/50, hid 0, off 0, 1.74%, Δluma +3.2 peak 16; smoke_chimney 16/16, hid 0, off 0, 3.25%, Δluma -5.5 peak 15; sparks_brake 3/92, hid 89, off 0, 0.00%, Δluma +9.0 peak 11 |
-| pov_grassland.day_roof3p.phone | grassland.day | roof3p | phone | 844x390 | 6.8 | 21/14 | 1.8% | steam_chimney 34/34, hid 0, off 0, 1.22%, Δluma +3.0 peak 24; smoke_chimney 9/10, hid 0, off 1, 1.36%, Δluma -5.9 peak 20; sparks_brake 1/61, hid 60, off 0, 0.00%, Δluma +12.0 peak 16 |
-| pov_grassland.day_door1p | grassland.day | door1p | pc | 768x432 | 6.8 | 4/3 | 1.1% | steam_chimney 0/50, hid 34, off 16, 0.90%, Δluma +32.7 peak 85; smoke_chimney 0/16, hid 10, off 6, 0.00%; sparks_brake 28/92, hid 64, off 0, 0.16%, Δluma +29.0 peak 73 |
-| pov_grassland.dusk_roof3p | grassland.dusk | roof3p | pc | 768x432 | 6.8 | 30/19 | 3.7% | steam_chimney 50/50, hid 0, off 0, 1.74%, Δluma -12.9 peak 27; smoke_chimney 16/16, hid 0, off 0, 3.25%, Δluma -10.2 peak 21; sparks_brake 3/92, hid 89, off 0, 0.00%, Δluma +9.0 peak 10; headlamp (light/beam) |
-| pov_grassland.dusk_roof3p.phone | grassland.dusk | roof3p | phone | 844x390 | 6.8 | 21/14 | 1.8% | steam_chimney 34/34, hid 0, off 0, 1.22%, Δluma -11.2 peak 19; smoke_chimney 9/10, hid 0, off 1, 1.36%, Δluma -12.4 peak 19; sparks_brake 1/61, hid 60, off 0, 0.00%, Δluma +12.2 peak 16; headlamp (light/beam) |
-| pov_grassland.dusk_door1p | grassland.dusk | door1p | pc | 768x432 | 6.8 | 4/3 | 1.1% | steam_chimney 0/50, hid 34, off 16, 0.90%, Δluma +5.4 peak 34; smoke_chimney 0/16, hid 10, off 6, 0.00%; sparks_brake 28/92, hid 64, off 0, 0.16%, Δluma +29.4 peak 73; headlamp (light/beam) |
-| pov_grassland.night_roof3p | grassland.night | roof3p | pc | 768x432 | 6.8 | 30/19 | 3.7% | steam_chimney 50/50, hid 0, off 0, 1.74%, Δluma +18.9 peak 37; smoke_chimney 16/16, hid 0, off 0, 3.25%, Δluma +9.3 peak 34; sparks_brake 3/92, hid 89, off 0, 0.00%, Δluma +8.0 peak 10; headlamp (light/beam) |
-| pov_grassland.night_roof3p.phone | grassland.night | roof3p | phone | 844x390 | 6.8 | 21/14 | 1.8% | steam_chimney 34/34, hid 0, off 0, 1.22%, Δluma +17.5 peak 40; smoke_chimney 9/10, hid 0, off 1, 1.36%, Δluma +12.5 peak 38; sparks_brake 1/61, hid 60, off 0, 0.00%, Δluma +12.5 peak 16; headlamp (light/beam) |
-| pov_grassland.night_door1p | grassland.night | door1p | pc | 768x432 | 6.8 | 4/3 | 1.1% | steam_chimney 0/50, hid 34, off 16, 0.90%, Δluma +2.7 peak 24; smoke_chimney 0/16, hid 10, off 6, 0.00%; sparks_brake 28/92, hid 64, off 0, 0.16%, Δluma +29.6 peak 74; headlamp (light/beam) |
-| pov_coal_dust | grassland.day | cab1p | pc | 768x432 | 0.4 | 10/7 | 1.6% | coal_dust 20/20, hid 0, off 0, 1.64%, Δluma -22.7 peak 112 |
+| POV | look | cam | tier | overdraw max/p95 | screen | per preset |
+|---|---|---|---|---|---|---|
+| grassland.day_roof3p | grassland.day | roof3p | pc | 30/19 | 3.7% | steam 50/50 h0 o0 1.74% +20/39; smoke 16/16 h0 o0 3.25% -17/34; sparks 3/92 h89 o0 0.00% +9/11 |
+| grassland.day_roof3p.phone | grassland.day | roof3p | phone | 21/14 | 1.8% | steam 34/34 h0 o0 1.22% +17/40; smoke 9/10 h0 o1 1.36% -20/33; sparks 1/61 h60 o0 0.00% +12/16 |
+| grassland.day_door1p | grassland.day | door1p | pc | 4/3 | 1.1% | steam 0/50 h34 o16 0.90% +33/85; smoke 0/16 h10 o6 0.00%; sparks 28/92 h64 o0 0.16% +29/73 |
+| grassland.dusk_roof3p | grassland.dusk | roof3p | pc | 30/19 | 3.7% | steam 50/50 h0 o0 1.74% -4/9; smoke 16/16 h0 o0 3.25% -11/23; sparks 3/92 h89 o0 0.00% +9/10; headlamp light |
+| grassland.dusk_roof3p.phone | grassland.dusk | roof3p | phone | 21/14 | 1.8% | steam 34/34 h0 o0 1.22% -4/7; smoke 9/10 h0 o1 1.36% -13/22; sparks 1/61 h60 o0 0.00% +12/16; headlamp light |
+| grassland.dusk_door1p | grassland.dusk | door1p | pc | 4/3 | 1.1% | steam 0/50 h34 o16 0.90% +5/34; smoke 0/16 h10 o6 0.00%; sparks 28/92 h64 o0 0.16% +29/73; headlamp light |
+| grassland.night_roof3p | grassland.night | roof3p | pc | 30/19 | 3.7% | steam 50/50 h0 o0 1.74% +23/49; smoke 16/16 h0 o0 3.25% -0/2; sparks 3/92 h89 o0 0.00% +8/10; headlamp light |
+| grassland.night_roof3p.phone | grassland.night | roof3p | phone | 21/14 | 1.8% | steam 34/34 h0 o0 1.22% +20/49; smoke 9/10 h0 o1 1.36% +0/2; sparks 1/61 h60 o0 0.00% +12/15; headlamp light |
+| grassland.night_door1p | grassland.night | door1p | pc | 4/3 | 1.1% | steam 0/50 h34 o16 0.90% +2/25; smoke 0/16 h10 o6 0.00%; sparks 28/92 h64 o0 0.16% +29/73; headlamp light |
+| coal_dust | grassland.day | cab1p | pc | 10/7 | 1.6% | coal 20/20 h0 o0 1.64% -26/117 |
 
 Visibility (warnings are for the maker to fix before the critic; hidden counts are facts):
 - steam_chimney: mostly hidden by the train or ground from door1p
-- steam_chimney: faint in grassland.day_roof3p, grassland.day_roof3p.phone, grassland.dusk_roof3p.phone, grassland.night_door1p (peak luma change under 25: its core barely differs from what is behind it; heuristic)
+- steam_chimney: faint in grassland.dusk_roof3p, grassland.dusk_roof3p.phone (drawn alone, 90% of its pixels change luma by under 25: it barely differs from what is behind it; heuristic)
 - smoke_chimney: mostly hidden by the train or ground from door1p
-- smoke_chimney: faint in grassland.day_roof3p, grassland.day_roof3p.phone, grassland.dusk_roof3p, grassland.dusk_roof3p.phone (peak luma change under 25: its core barely differs from what is behind it; heuristic)
+- smoke_chimney: faint in grassland.dusk_roof3p, grassland.dusk_roof3p.phone, grassland.night_roof3p, grassland.night_roof3p.phone (drawn alone, 90% of its pixels change luma by under 25: it barely differs from what is behind it; heuristic)
 - sparks_brake: mostly hidden by the train or ground from door1p, roof3p, roof3p phone

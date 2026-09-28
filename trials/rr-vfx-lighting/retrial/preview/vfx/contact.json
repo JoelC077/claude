@@ -7,7 +7,7 @@
  "tiles": [
   {
    "n": 1,
-   "label": "grassland.day roof3p PHONE (phone rates; no shadows, Bloom, SunRays): steam_chimney, smoke_chimney; hidden sparks_brake",
+   "label": "grassland.day roof3p PHONE (phone rates; no shadows, Bloom, SunRays): steam, smoke | hid sparks \u00b7 stand-in train",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.day_roof3p.phone.png",
    "box": [
     6,
@@ -19,7 +19,7 @@
   },
   {
    "n": 2,
-   "label": "dusk roof3p PHONE: steam, smoke +headlamp; hi.",
+   "label": "dusk roof PHONE: steam, smoke, headlamp | hid s.",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.dusk_roof3p.phone.png",
    "box": [
     6,
@@ -31,7 +31,7 @@
   },
   {
    "n": 3,
-   "label": "night roof3p PHONE: steam, smoke +headlamp; h.",
+   "label": "night roof PHONE: steam, smoke, headlamp | hid .",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.night_roof3p.phone.png",
    "box": [
     396,
@@ -43,7 +43,7 @@
   },
   {
    "n": 4,
-   "label": "day roof3p: steam, smoke, sparks",
+   "label": "day roof: steam, smoke | hid sparks",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.day_roof3p.png",
    "box": [
     6,
@@ -55,7 +55,7 @@
   },
   {
    "n": 5,
-   "label": "day door1p: steam, sparks; hidden smoke",
+   "label": "day door: steam, sparks | hid smoke",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.day_door1p.png",
    "box": [
     396,
@@ -67,7 +67,7 @@
   },
   {
    "n": 6,
-   "label": "dusk roof3p: steam, smoke, sparks +headlamp",
+   "label": "dusk roof: steam, smoke, headlamp | hid sparks",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.dusk_roof3p.png",
    "box": [
     6,
@@ -79,7 +79,7 @@
   },
   {
    "n": 7,
-   "label": "dusk door1p: steam, sparks +headlamp; hidden .",
+   "label": "dusk door: steam, sparks, headlamp | hid smoke",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.dusk_door1p.png",
    "box": [
     396,

@@ -343,16 +343,21 @@ def live_release(root):
     rows = _ordered(root, ("published", "recorded", "rolled_back", "seed"))
     if not rows:
         return None
-    top = rows[-1]
-    if top.get("status") != "rolled_back":
-        return top
-    rb = top.get("rollback") or {}
-    tgt = next((h for h in rows if h["version"] == rb.get("to")), None)
-    if not tgt:
-        return None
-    live = dict(tgt, via_rollback=top["version"])
-    live["places"] = {n: dict(p, version_number=(rb.get("places") or {}).get(n, p.get("version_number")))
-                      for n, p in (tgt.get("places") or {}).items()}
+    cur, nums = rows[-1], None
+    seen = set()
+    while cur.get("status") == "rolled_back" and cur["version"] not in seen:
+        seen.add(cur["version"])
+        rb = cur.get("rollback") or {}
+        nums = rb.get("places") or {}
+        nxt = next((h for h in rows if h["version"] == rb.get("to")), None)
+        if not nxt:
+            return None
+        via, cur = cur["version"], nxt
+    if nums is None:
+        return cur
+    live = dict(cur, via_rollback=via)
+    live["places"] = {n: dict(p, version_number=nums.get(n, p.get("version_number")))
+                      for n, p in (cur.get("places") or {}).items()}
     return live
 
 

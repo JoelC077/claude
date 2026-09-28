@@ -85,7 +85,7 @@ def main(argv=None):
     a = ap.parse_args(argv)
     tmp = Path(tempfile.mkdtemp(prefix="rrfx_selftest_"))
     try:
-        for s in ("vfx.py", "fxsim.py", "lookdev_bpy.py", "preview.py", "selftest.py"):
+        for s in ("vfx.py", "fxsim.py", "lookdev_bpy.py", "preview.py", "luatest.py", "selftest.py"):
             code, out = run([str(HERE / s), "--help"])
             check(f"{s} --help", code == 0 and "usage" in out.lower(), out[-200:])
         code, out = vfx("list")
@@ -233,7 +233,9 @@ def main(argv=None):
             check("lookdev facts measured (fog, contrast, hazard rails, phone aspect)", facts["spawn_edge_fog"] > 0.5
                   and facts["train_vs_world_contrast"] and facts.get("hazard_vs_world") and ph["res"][0] / ph["res"][1] > 2, str(facts)[:300])
             fm = (B / "facts.md").read_text()
-            check("board facts carry per-preset visibility and phone POVs", "hid " in fm and "| phone |" in fm and "pov_coal_dust" in fm, fm[-600:])
+            import re as _re
+            check("board facts carry per-preset visibility, phone POVs and the burst's near camera",
+                  _re.search(r"\d+/\d+ h\d+ o\d+ [\d.]+%", fm) and "| phone |" in fm and "| coal_dust | grassland.day | cab1p |" in fm, fm[-600:])
             src = pv
         else:
             code, out = vfx("preview", "vfx", "--out", str(pv), "--quick")

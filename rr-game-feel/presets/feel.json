@@ -356,7 +356,7 @@
       "oq": ["OQ-006", "OQ-031"],
       "channels": [
         {"type": "hitstop", "ms": 70},
-        {"type": "camkick", "angles_deg": [0.2, 0.82, 0.51], "side_sign": true, "freq_hz": 5, "damping": 0.45,
+        {"type": "camkick", "angles_deg": [0.2, -0.82, -0.51], "side_sign": true, "freq_hz": 5, "damping": 0.45,
          "dur": 0.5},
         {"type": "punch", "target": "lever_panel", "prop": "scale", "amp": 0.059, "freq_hz": 6, "damping": 0.35,
          "dur": 0.5},
@@ -371,7 +371,7 @@
       "trigger": "the server confirms the route lock; every client except the puller's",
       "intent": "everyone feels the points throw under the train", "canon": ["gameplay.fork.lock"],
       "channels": [
-        {"type": "camkick", "angles_deg": [0.0, 0.36, 0.2], "side_sign": true, "freq_hz": 4, "damping": 0.45,
+        {"type": "camkick", "angles_deg": [0, -0.36, -0.2], "side_sign": true, "freq_hz": 4, "damping": 0.45,
          "dur": 0.5},
         {"type": "haptic", "effect": "Custom", "keys": [[0, 0.5], [60, 0]]},
         {"type": "cue", "sfx": "points_throw"}

@@ -1,0 +1,33 @@
+{
+ "sheet": [
+  1312,
+  756
+ ],
+ "megapixels": 0.99,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "lever drag: finger to knob, tick, commit, snap home, snapback",
+   "src": "/home/user/claude/trials/rr-game-feel/retrial/src/feel/preview/kit/lever.png",
+   "box": [
+    6,
+    24,
+    900,
+    300
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "kit: lever_commit with reduce motion, then the other events",
+   "src": "/home/user/claude/trials/rr-game-feel/retrial/src/feel/preview/kit/_grid.png",
+   "box": [
+    6,
+    348,
+    1300,
+    401
+   ],
+   "scale": "fit x0.86"
+  }
+ ]
+}

@@ -7,6 +7,8 @@ rubric (before "Shared blocks") and adds F5 to the House style block and F2 to t
 
 Judge the preview images as intent: shape, colour, value and readability. They are approximations of Roblox (the
 Limits line in Facts says how), so never score engine-exact pixels; do score what the preset data would plainly do.
+Judge signal from the player-view (POV) tiles and the per-effect visibility numbers in Facts; side strips are
+construction views for shape and timing. The train is a stand-in (livery open): judge looks and effects, not its paint.
 
 ### F1 Signal
 Does each effect or look say its game state at a glance from the player's view (crisis, speed, danger, fail)?

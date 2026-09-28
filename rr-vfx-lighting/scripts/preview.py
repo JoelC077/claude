@@ -116,8 +116,9 @@ def plan(model, a):
             ctx = loops if cam in ("roof3p", "door1p") else [x for x in loops if cam_of(x) == cam]
             povs.append({"name": f"pov_{b}", "presets": ctx + [b], "look": plain[0], "camera": cam,
                          "t": (p.get("preview") or {}).get("t", 0.4)})
-        renders = [l for l in looks if "@" in l] + [x for lk in plain for x in (lk, f"{lk}@door1p")]
-        phone = [p for p in (a.phone.split(",") if a.phone is not None else plain) if p]
+        named = [l for l in looks if "@" not in l] or ([] if looks else [hero])   # LOOK@cam alone renders just that view
+        renders = [l for l in looks if "@" in l] + [x for lk in named for x in (lk, f"{lk}@door1p")]
+        phone = [p for p in (a.phone.split(",") if a.phone is not None else named) if p]
     for pv in povs:
         renders.append(pv["look"] if pv["camera"] == "roof3p" else f"{pv['look']}@{pv['camera']}")
         if pv.get("phone") and pv["camera"] == "roof3p" and pv["look"] not in phone:
@@ -274,7 +275,7 @@ def seen(model, r, n):
     s = r["per_preset"].get(n, {})
     if not s.get("live"):   # lights or beams only
         return None
-    return s["covered"] >= SEEN_COVER * 0.5 or s["visible"] >= 3
+    return s["covered"] >= SEEN_COVER * 0.5   # a caption names only what covers at least 0.05% of the frame
 
 
 def caption(model, r, long=False):
@@ -288,13 +289,15 @@ def caption(model, r, long=False):
         tier = " PHONE (phone rates; no shadows, Bloom, SunRays)" if long else " PHONE"
     else:
         tier = ""
-    sh = (lambda n: n) if long else short_name(r["presets"])
-    txt = f"{look} {cam}{tier}: " + (", ".join(sh(n) for n in shown) or "no effect")
-    if lights:
-        txt += f" +{','.join(sh(n) for n in lights)}"
+    sh = short_name(r["presets"])
+    if not long:
+        cam = {"roof3p": "roof", "door1p": "door", "cab1p": "cab", "coach1p": "coach"}.get(cam, cam)
+    txt = f"{look} {cam}{tier}: " + (", ".join(sh(n) for n in shown + lights) or "no effect")
     if unseen:
-        txt += f"; hidden {','.join(sh(n) for n in unseen)}"
-    return txt if long or len(txt) <= 46 else txt[:45] + "."   # grid captions must fit a 384 px tile
+        txt += f" | hid {','.join(sh(n) for n in unseen)}"
+    if long:
+        txt += " · stand-in train"
+    return txt if long or len(txt) <= 48 else txt[:47] + "."   # grid captions must fit a 384 px tile
 
 
 def short_name(names):
@@ -339,8 +342,8 @@ def visibility_warnings(model, names, povs, pack):
         faint = [r["name"].replace("pov_", "") for r in rs if r["per_preset"][n]["peak"] is not None
                  and r["per_preset"][n]["covered"] >= SEEN_COVER and r["per_preset"][n]["peak"] < 25]
         if faint:
-            out.append(f"- {n}: faint in {', '.join(faint)} (peak luma change under 25: its core barely differs from "
-                       "what is behind it; heuristic)")
+            out.append(f"- {n}: faint in {', '.join(faint)} (drawn alone, 90% of its pixels change luma by under 25: it "
+                       "barely differs from what is behind it; heuristic)")
     return out
 
 
@@ -359,22 +362,23 @@ def vfx_facts(model, names, stats, povs, notes, pack, title=True):
                      f"{cp['steady'] or cp['burst']:.0f} / {cc['steady'] or cc['burst']:.0f} | "
                      f"{'/'.join(str(x) for x in stats[n]['live'])} | {stats[n]['px_per_stud']} | {canon}{' · ' + p['oq'] if p.get('oq') else ''} |")
     if povs:
-        lines += ["", "POV composites (particles over the lookdev plate from the same camera; loops at steady state, "
-                  "Speed = gameplay.speed.fast; bursts fire after the loops warm up). Per preset: visible / live, hidden "
-                  "by the train or ground, off-screen, share of the screen, mean and peak (90th percentile) luma change over its "
-                  "own pixels:", "",
-                  "| POV | look | cam | tier | res | t s | overdraw max/p95 | screen | per preset |", "|---|---|---|---|---|---|---|---|---|"]
+        lines += ["", "POV composites: particles over the lookdev plate from the same camera (PC 768x432, phone 844x390 at "
+                  "phone rates); loops at steady state at Speed gameplay.speed.fast, bursts shown t s after they fire. "
+                  "Per preset: visible/live, h = hidden by the train or ground, o = off-screen, share of the screen, "
+                  "then drawn alone over the plate: mean luma change / 90th-percentile luma change.", "",
+                  "| POV | look | cam | tier | overdraw max/p95 | screen | per preset |", "|---|---|---|---|---|---|---|"]
         for r in povs:
+            sh = short_name(r["presets"])
             per = []
             for n in r["presets"]:
-                s = r["per_preset"][n]
-                if not s["live"]:
-                    per.append(f"{n} (light/beam)")
+                s_ = r["per_preset"][n]
+                if not s_["live"]:
+                    per.append(f"{sh(n)} light")
                     continue
-                per.append(f"{n} {s['visible']}/{s['live']}, hid {s['hidden']}, off {s['offscreen']}, "
-                           f"{s['covered'] * 100:.2f}%" + (f", Δluma {s['dluma']:+} peak {s['peak']}" if s["dluma"] is not None else ""))
-            lines.append(f"| {r['name']} | {r['look']} | {r.get('camera')} | {r['tier']} | {'x'.join(str(x) for x in r['res'])} | "
-                         f"{r['t']} | {r['overdraw_max']}/{r['overdraw_p95']} | {r['screen_covered'] * 100:.1f}% | {'; '.join(per)} |")
+                per.append(f"{sh(n)} {s_['visible']}/{s_['live']} h{s_['hidden']} o{s_['offscreen']} {s_['covered'] * 100:.2f}%"
+                           + (f" {s_['dluma']:+.0f}/{s_['peak']}" if s_["dluma"] is not None else ""))
+            lines.append(f"| {r['name'].replace('pov_', '')} | {r['look']} | {r.get('camera')} | {r['tier']} | "
+                         f"{r['overdraw_max']}/{r['overdraw_p95']} | {r['screen_covered'] * 100:.1f}% | {'; '.join(per)} |")
     warn = visibility_warnings(model, names, povs, pack)
     if warn or notes:
         lines += ["", "Visibility (warnings are for the maker to fix before the critic; hidden counts are facts):"] + warn + \
@@ -383,17 +387,25 @@ def vfx_facts(model, names, stats, povs, notes, pack, title=True):
 
 
 def budget_lines(model, names=None):
+    """Per tier: every set over budget in full, else one line naming the tightest set (token-cheap)."""
     B = model.budget_raw
-    lines = [f"Budgets ({B.get('status', '')}); sets holding {'a pack preset' if names else 'any preset'}:"]
+    sets = {k: v for k, v in B.get("sets", {}).items() if not names or set(v["presets"]) & set(names)}
+    lines = [f"Budgets ({B.get('status', '')}); {len(sets)} sets {'holding a pack preset' if names else ''}:"]
     for tier in ("phone", "pc"):
-        for s, sd in B.get("sets", {}).items():
-            if names and not set(sd["presets"]) & set(names):
-                continue
+        cfg = vfx.tier_cfg(model, tier)
+        rows = []
+        for s_, sd in sets.items():
             tot = vfx.set_cost(model, sd["presets"], tier)
             bad, _ = vfx.over_budget(model, tot, tier)
-            lines.append(f"- {tier} {s}: steady {tot['steady']:.0f}, peak {tot['steady'] + tot['burst']:.0f}, emitters "
-                         f"{tot['emitters']}, fill {tot['fill']:.0f} stud^2, lights {tot['lights']} -> "
-                         f"{'OVER: ' + ', '.join(w for w, _, _ in bad) if bad else 'within'}")
+            rows.append((tot["steady"] / cfg["live_particles"], s_, tot, bad))
+        over = [r for r in rows if r[3]]
+        for _, s_, tot, bad in over:
+            lines.append(f"- {tier} {s_}: OVER {', '.join(f'{w} {v:.0f} > {lim}' for w, v, lim in bad)}")
+        if rows:
+            _, s_, tot, _ = max(rows)
+            lines.append(f"- {tier}: {len(rows) - len(over)} of {len(rows)} sets within; tightest {s_}: steady "
+                         f"{tot['steady']:.0f} of {cfg['live_particles']}, peak {tot['steady'] + tot['burst']:.0f} of "
+                         f"{cfg['burst_peak']}, emitters {tot['emitters']} of {cfg['emitters']}, lights {tot['lights']} of {cfg['lights_view']}")
     return lines
 
 
@@ -497,20 +509,20 @@ def brief(model, group, man=None):
     v = lambda k, d="?": b.value(k, d) if b.ok() else d
     speeds = "/".join(str(int(x)) for x in model.meta["speeds"].values())
     if man and man.get("pack"):
-        what = (f"a look-dev pack: effects {', '.join(man['presets']) or 'none'}; looks {', '.join(man['looks'])} "
-                "(Lighting, Atmosphere, ColorCorrection, Bloom, SunRays)")
+        what = (f"look-dev pack (effects: {', '.join(man['presets']) or 'none'}; looks: {', '.join(man['looks'])}, set "
+                "through Lighting, Atmosphere, ColorCorrection, Bloom and SunRays)")
         uses = "; ".join(f"{n}: {model.presets[n]['use']}" for n in man["presets"])
     elif group == "lighting":
-        what, uses = "lighting looks per biome and time of day (Lighting, Atmosphere, ColorCorrection, Bloom, SunRays)", ""
+        what, uses = "set of lighting looks per biome and time of day (Lighting, Atmosphere, ColorCorrection, Bloom, SunRays)", ""
     else:
-        what, uses = "effect presets (particles, beams, trails, lights) for crises, fails and running", ""
+        what, uses = "set of effect presets (particles, beams, trails, lights) for crises, fails and running", ""
     oqs = (man or {}).get("oqs") or ["OQ-026", "OQ-027", "OQ-028", "OQ-029"]
     def oq_line(o):
         q = b.oq(o) or {}
         return f"{o} {q.get('title', '')} (default {(q.get('fields') or {}).get('default', '?').split(' (')[0]})"
     oq_txt = "; ".join(oq_line(o) for o in oqs) if b.ok() else ", ".join(oqs)
     lines = [f"# Risky Rails {'look-dev pack' if man and man.get('pack') else group + ' presets'} (rr-vfx-lighting)",
-             f"- Purpose: Roblox-native {what} that make each game state read at a glance on a phone."
+             f"- Purpose: a Roblox-native {what} that makes each game state read at a glance on a phone."
              + (f" What each effect is for: {uses}." if uses else ""),
              f"- Audience: {v('identity.audience.launch')}; {v('identity.audience.devices')} (phone {v('tech.ui_platform.phone')} landscape).",
              f"- Player view: players stay on the train (roofs, coaches, cab); third-person eye {v('tech.camera.eye_3p')} studs "

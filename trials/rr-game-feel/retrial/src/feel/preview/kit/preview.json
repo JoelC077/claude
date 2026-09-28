@@ -1,0 +1,13 @@
+{
+ "group": "kit",
+ "hero": "lever_commit",
+ "events": [
+  "lever_commit",
+  "hard_brake",
+  "alert_crate_landed",
+  "alert_coal_low",
+  "alert_fare_banked"
+ ],
+ "rm": false,
+ "peak_t": 0.11666666666666667
+}

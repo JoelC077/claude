@@ -19,17 +19,26 @@ Previews exist to compare presets and catch bad ideas cheaply. They are not Robl
 | ColorCorrection | brightness, contrast, saturation, tint in display space | close |
 | phone fallback | no shadows, no Bloom or SunRays | assumed from tech.lighting.post_low_quality |
 | local lights | spot/point lights at Brightness x LIGHT_K x Range^2 W, no Range cutoff | rough |
-Calibration constants print in `canon_used.json`. Cameras: roof3p (coach B roof, eye tech.camera.eye_3p) and
-door1p (leaning out of coach A's doorway, eye tech.camera.eye_1p), FOV tech.camera.fov_v. The stand is a
-blockout (train 165 studs, poles every 128, ballast 24, tunnel bore from world.prefabs.10); livery colours are
-test-stand choices (OQ-025 open), not canon.
+Calibration constants print in `canon_used.json`. Cameras (lookdev_bpy.py `CAMERAS`; an unknown name is an error):
+roof3p (coach B roof, eye tech.camera.eye_3p), door1p (leaning out of coach A's doorway, eye tech.camera.eye_1p,
+looking along the train), cab1p (loco cab facing the firebox, eye tech.camera.cab_view above rail), coach1p (inside
+coach A facing the power-box end); FOV tech.camera.fov_v. Phone fallbacks render at tech.ui_platform.phone
+(844 x 390) with their own view and depth, so phone POVs are true phone framing. The stand is a blockout built
+from canon's proposed envelope (tech.units.gauge, stock_width, stock_roof, stock_floor; OQ-030): two coaches with
+cream interiors and a doorway (tech.units.train_doorway), hazard-yellow capped-post roof rails (style.form.rails),
+an open cab shell with backhead, firebox neon and the canon cab lamp and firebox lights; poles every 128, ballast
+24, tunnel bore from world.prefabs.10. The train paint is a stand-in (navy, cream band): livery is open (OQ-025).
 
 ## Effects (`fxsim.py`: Pillow)
 Faithful to the data: rates, bursts, ranges, spread, acceleration, drag half-life, GlobalWind drift at train
 speed, sequences with envelopes, LightEmission blend, LightInfluence/Brightness, VelocityParallel streaks, box
 emitters, debris under Roblox gravity 196.2 x gravity_scale. Approximate: textures (procedural stand-ins),
 Squash shape, particles lit only by a scene factor, fog on particles, depth test at particle centres, lights shown
-as glow dots, no ground collision. Overdraw is measured on the POV frame (layers per pixel), a proxy for phone cost.
+as glow dots (effect lights do not light the stand's surfaces), no ground collision. Overdraw is measured on the POV
+frame (layers per pixel), a proxy for phone cost. Per preset and POV: visible = particle centres in frame and in
+front of the depth plate; hidden = behind the train or ground; off-screen; share of the screen its sprites cover;
+mean and 90th-percentile luma change over those pixels. Loops run at steady state (Speed gameplay.speed.fast);
+bursts fire after the loops warm up. Phone POVs use the phone tier's rate scale.
 
 ## What only Studio can settle (hand to the owner)
 Real texture look, Future/Realistic light falloff, the sun's real heading, post effects on a phone, particle

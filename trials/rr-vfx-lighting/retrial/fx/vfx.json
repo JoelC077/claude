@@ -62,7 +62,7 @@
     "width/2-1.5"
    ],
    "WindowPane": [
-    -50,
+    -5,
     "floor+5",
     "width/2+0.1"
    ],
@@ -93,7 +93,7 @@
    "Axle": "door1p",
    "Bogie": "door1p",
    "BrakeShoe": "door1p",
-   "WindowPane": "roof3p",
+   "WindowPane": "door1p",
    "about": "which preview camera sees an anchor best (players' views: tech.camera.*)"
   }
  },
@@ -539,8 +539,8 @@
      1.1
     ],
     "emit": [
-     6,
-     14
+     10,
+     20
     ],
     "flash": {
      "peak": 3,
@@ -586,11 +586,11 @@
       "Size": [
        [
         0,
-        0.35
+        1.1
        ],
        [
         1,
-        0.1
+        0.35
        ]
       ],
       "Transparency": [
@@ -672,20 +672,20 @@
       0
      ],
      "dir": [
-      -0.6,
+      -0.35,
       0.5,
-      0.65
+      0.8
      ],
      "props": {
       "Texture": "rbxasset://textures/particles/sparkles_main.dds",
       "Rate": 60,
       "Lifetime": [
-       0.3,
-       0.7
+       0.4,
+       0.8
       ],
       "Speed": [
-       16,
-       26
+       28,
+       40
       ],
       "SpreadAngle": [
        25,
@@ -696,16 +696,16 @@
        -30,
        0
       ],
-      "Drag": 0.8,
+      "Drag": 0.4,
       "WindAffectsDrag": true,
       "Size": [
        [
         0,
-        0.8
+        1.8
        ],
        [
         1,
-        0.25
+        0.6
        ]
       ],
       "Transparency": [

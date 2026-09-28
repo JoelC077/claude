@@ -430,7 +430,8 @@ class Plate:
         size = (self.W, self.H)
         near = float(self.r["meta"]["near_depth_studs"])
         far = float(self.r["meta"]["far_depth_studs"])
-        dx = -self.pv.deg_px(cam["yaw"]) * (1 if cam["yaw"] >= 0 else -1)
+        # Roblox camera space: + yaw turns the view left, so the world moves right on screen; + pitch looks up
+        dx = self.pv.deg_px(cam["yaw"]) * (1 if cam["yaw"] >= 0 else -1)
         dy = self.pv.deg_px(cam["pitch"]) * (1 if cam["pitch"] >= 0 else -1)
         tx_far, ty_far = self.pv.focal * cam["x"] / far, self.pv.focal * cam["y"] / far
         tx_n, ty_n = self.pv.focal * cam["x"] / near, self.pv.focal * cam["y"] / near
@@ -840,7 +841,7 @@ def facts(model, names, hero, d, tpk):
     for n in names:
         m, rm = metrics(model, n), metrics(model, n, reduce_motion=True)
         lines.append(f"- {n} (tier {m['tier']}, {model.events[n]['who']}): camera {m['cam_px']} px (roll {m['roll_deg']} deg, "
-                     f"kick {m['kick_deg']} deg), FOV {m['fov_deg']}, hit-stop {m['hitstop_ms']} ms, screen flash "
+                     f"kick {m['kick_deg']} deg), FOV {m['fov_signed']:+g} deg, hit-stop {m['hitstop_ms']} ms, screen flash "
                      f"{m['flash_peak']}{' red' if m['flash_red'] else ''}, haptic {m['haptic_peak']} for {m['haptic_ms']} ms, "
                      f"UI punch {m['punch_scale']:.0%} / {m['punch_px']} px, lasts {m['total_s']} s{' + loop' if m['loops'] else ''}, "
                      f"loudness {m['loudness']}. Reduce motion: camera {rm['cam_px']} px; reads through "

@@ -221,9 +221,9 @@
      78
     ],
     "Ambient": [
-     30,
-     34,
-     42
+     38,
+     42,
+     52
     ],
     "ColorShift_Top": [
      10,
@@ -577,7 +577,7 @@
      "glass_burst"
     ],
     "look": "hero",
-    "camera": "roof3p",
+    "camera": "door1p",
     "t": 0.25
    },
    {

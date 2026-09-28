@@ -1,0 +1,539 @@
+{
+  "version": 1,
+  "about": "Risky Rails feel presets: the one source for RR_Feel.lua, FEEL_SPEC.md, plots and previews. Format: references/schema.md. Numbers are knobs unless written {v, canon}; colours are @bible.key tokens or neutral #FFFFFF/#000000.",
+  "meta": {
+    "phone": {"v": "844 x 390", "canon": "tech.ui_platform.phone"},
+    "fov_deg": {"v": 70, "canon": "tech.camera.fov_v"},
+    "near_depth_studs": 8,
+    "near_depth_note": "about half the cab width (tech.units.cab_inside): where near geometry sits from a player's eye",
+    "far_depth_studs": {"v": 128, "canon": "tech.units.pole_spacing"},
+    "speed_fast": {"v": 50, "canon": "gameplay.speed.fast"},
+    "speed_normal": {"v": 35, "canon": "gameplay.speed.normal"}
+  },
+  "roles": {
+    "camera": "workspace.CurrentCamera; implicit for shake, camkick and fov",
+    "screen": "full-screen overlay Frame that RR_Feel creates (ScreenGui RR_FeelOverlay, IgnoreGuiInset)",
+    "button": "the pressed GuiButton",
+    "panel": "a Frame or CanvasGroup that opens or closes (terminal, results, settings)",
+    "ticket": "the HUD ticket's moving content (NotificationHud parts.mover); RR_Feel must be its only animator (delete the controller's slide and shake)",
+    "stamp": "a value stamp or merge badge on a ticket (parts.stamp or parts.badge)",
+    "halo": "the red halo Frame on the newest crisis ticket (parts.haloRed), designed opacity 1 (BackgroundTransparency 0): the pulse sets min..max of it",
+    "gauge": "fuel or pressure gauge GuiObject",
+    "cash": "TextLabel showing the fare being banked",
+    "lever_panel": "the lever console Frame (ui.lever)",
+    "lever_knob": "the lever knob GuiObject",
+    "lamp": "the side lamp on the lever console (ui.lever.commit)",
+    "timer": "the lever timer bar (ui.lever.timer)",
+    "report": "the Incident Report card on the results screen",
+    "report_stamp": "the YOU'RE FIRED stamp on the Incident Report (av.vfx.boiler_fail)"
+  },
+  "shake": {
+    "about": "trauma model: events add trauma, it decays linearly on the feel clock; shake = trauma^power; offsets and angles are max x shake x noise(t x freq)",
+    "power": 2,
+    "decay_per_s": 1.4,
+    "max_trauma": 1.0,
+    "freq_hz": 14,
+    "max_angle_deg": [2.2, 2.2, 1.2],
+    "max_offset_studs": [0.3, 0.3, 0],
+    "sustain_cap": 0.29
+  },
+  "sustain": {
+    "about": "continuous trauma floors from game state; the sum is capped at shake.sustain_cap; the train never moves, so keep these tiny (identity.pillars.stable_train)",
+    "speed": {"gain": 0.22, "ref": {"v": 50, "canon": "gameplay.speed.fast"}, "canon_link": "av.vfx.speed_link",
+              "about": "floor = gain x Speed / ref; call Feel.setSpeed(speed) on every throttle change"},
+    "pressure": {"gain": 0.22, "threshold": 0.8, "oq": "OQ-013",
+                 "about": "floor = gain x clamp((p - threshold) / (1 - threshold)); p = pressure as 0..1 of the gauge, 1 = redline; numbers are the OQ-013 default"}
+  },
+  "lever": {
+    "about": "drag feel for the two-way lever console: the knob lags the finger (heavy); the detent tick at notch, the commit once at detent (then snap home with an overshoot); a new junction (ctx.fork) re-arms it",
+    "notch": 0.6,
+    "detent": 0.7,
+    "resist": 1.6,
+    "snap": {"style": "Back", "dir": "Out", "dur": 0.18},
+    "snapback": {"style": "Back", "dir": "Out", "dur": 0.25},
+    "throw_deg": 35,
+    "knob_px_1080p": {"v": 64, "canon": "ui.lever.size_1080p", "match": "64 px"},
+    "detent_event": "lever_detent_tick",
+    "commit_event": "lever_commit",
+    "snapback_event": "lever_snapback",
+    "oq": ["OQ-006"]
+  },
+  "a11y": {
+    "about": "reduce motion defaults from GuiService.ReducedMotionEnabled; numbers scale a channel, words change it; a channel's own rm beats this table",
+    "reduce_motion": {"shake": 0, "camkick": 0, "fovkick": 0, "punch": 0.3, "pulse": 1, "hitstop": 1, "flash": 0.5,
+                      "haptic": 1, "tween_x": "fade", "tween_y": "fade", "tween_rot": 0.3, "tween_scale": 0.3,
+                      "tween_alpha": 1, "tween_count": 1},
+    "flash": {"per_second_max": {"v": 3, "canon": "av.feel.flash_limit", "match": "3 per second"},
+              "screen_peak_max": {"v": 0.35, "canon": "av.feel.flash_limit", "match": "peak opacity 0.35"},
+              "red_peak_max": {"v": 0.25, "canon": "av.feel.flash_limit", "match": "red 0.25"},
+              "about": "WCAG 2.3.1 three-flash rule, applied to full-screen flashes; the runtime limiter enforces it across stacked events; flashes off skips screen and vignette flashes, element lamps stay"},
+    "settings": {"reduce_motion": "GuiService.ReducedMotionEnabled", "shake": 1.0, "flashes": true, "haptics": true,
+                 "profile": "default"},
+    "oq": ["OQ-032"]
+  },
+  "profiles": {
+    "about": "global intensity multipliers per channel type; flashes and hit-stop never go above default (safety caps)",
+    "subtle": {"shake": 0.6, "camkick": 0.6, "punch": 0.7, "fovkick": 0.6, "haptic": 0.7, "flash": 0.7},
+    "default": {},
+    "loud": {"shake": 1.25, "camkick": 1.25, "punch": 1.2, "fovkick": 1.2, "haptic": 1.0}
+  },
+  "limits": {
+    "tiers": {"1": "fail", "2": "crisis", "3": "commit", "4": "reward", "5": "ui"},
+    "tier_shake_px": {"1": 40, "2": 28, "3": 18, "4": 10, "5": 4},
+    "sustain_px_max": 3,
+    "hitstop_ms_max": {"v": 150, "canon": "av.feel.hitstop_local", "match": "150 ms"},
+    "hitstop_cooldown_s": 0.25,
+    "kick_deg_max": 4,
+    "kick_px_min": 1.5,
+    "punch_px_min": 1.5,
+    "visible_scale_min": 0.03,
+    "roll_deg_max": 2,
+    "fov_delta_max": 12,
+    "punch_scale_amp_max": 0.3,
+    "punch_freq_hz": [2, 14],
+    "camkick_freq_hz": [0.5, 8],
+    "damping": [0.05, 0.95],
+    "haptic_ms_max": 1500,
+    "event_s_max": 3.0,
+    "fail_s_max": {"v": 3, "canon": "gameplay.crisis.fail_cinematic"},
+    "loudness_weights": {"shake": 1.0, "camkick": 0.5, "hitstop": 0.8, "flash": 0.6, "fovkick": 0.4, "haptic": 0.4,
+                         "punch": 0.3, "hud": 0.6},
+    "hud_px_ref": 5
+  },
+  "preview": {
+    "about": "mock phone plate for previews only (not a game asset)",
+    "sky": "@style.world.cream",
+    "ground": "@style.ground.pasture",
+    "ballast": "@style.ground.ballast",
+    "rail": "@style.ground.rail",
+    "pole": "@style.world.walnut",
+    "cab": "@style.world.navy",
+    "trim": "@style.world.brass",
+    "paper": "@ui.hud_kinds.paper_top",
+    "ink": "@style.brand.ink",
+    "scroll_speed": {"v": 35, "canon": "gameplay.speed.normal"},
+    "pole_spacing": {"v": 128, "canon": "tech.units.pole_spacing"},
+    "ticket_px": {"v": "290 x 64", "canon": "ui.hud.ticket_size"},
+    "heroes": {"ui": "hud_ticket_enter", "crisis": "alert_breakdown", "info": "alert_fare_banked",
+               "lever": "lever_commit", "actions": "shovel_coal", "fail": "boiler_burst"}
+  },
+  "events": {
+    "ui_button_press": {
+      "group": "ui", "priority": 5, "who": "local", "trigger": "GuiButton pressed (MouseButton1Down / touch began)",
+      "intent": "the button gives under the thumb before anything happens",
+      "rm_reads": "the button pressed look and the action it starts",
+      "channels": [
+        {"type": "tween", "target": "button", "prop": "scale", "from": 1, "to": 0.94, "dur": 0.06, "style": "Quad",
+         "dir": "Out"},
+        {"type": "haptic", "effect": "UIClick", "keys": [[0, 0.35], [30, 0]]}
+      ]
+    },
+    "ui_button_release": {
+      "group": "ui", "priority": 5, "who": "local", "trigger": "GuiButton released (Activated)",
+      "intent": "a springy return that confirms the press",
+      "rm_reads": "the action the press starts (a panel opens, an order goes in)",
+      "channels": [
+        {"type": "tween", "target": "button", "prop": "scale", "from": 0.94, "to": 1, "dur": 0.22, "style": "Back",
+         "dir": "Out"}
+      ]
+    },
+    "ui_panel_open": {
+      "group": "ui", "priority": 5, "who": "local", "trigger": "a panel opens (supply terminal, results, settings)",
+      "intent": "panels pop in like a stamped card, fast enough never to block play",
+      "channels": [
+        {"type": "tween", "target": "panel", "prop": "scale", "from": 0.85, "to": 1, "dur": 0.22, "style": "Back",
+         "dir": "Out"},
+        {"type": "tween", "target": "panel", "prop": "alpha", "from": 0, "to": 1, "dur": 0.12, "style": "Quad",
+         "dir": "Out"}
+      ]
+    },
+    "ui_panel_close": {
+      "group": "ui", "priority": 5, "who": "local", "trigger": "a panel closes",
+      "intent": "gets out of the way quicker than it arrived",
+      "channels": [
+        {"type": "tween", "target": "panel", "prop": "scale", "from": 1, "to": 0.92, "dur": 0.14, "style": "Quad",
+         "dir": "In"},
+        {"type": "tween", "target": "panel", "prop": "alpha", "from": 1, "to": 0, "dur": 0.14, "style": "Quad",
+         "dir": "In"}
+      ]
+    },
+    "hud_ticket_enter": {
+      "group": "ui", "priority": 5, "who": "all",
+      "trigger": "a HUD ticket is shown (NotificationController, show alert)",
+      "intent": "the ticket slides in from the right edge with a small overshoot and fades up",
+      "canon": ["ui.hud.motion"],
+      "channels": [
+        {"type": "tween", "target": "ticket", "prop": "x",
+         "from": {"v": 1.25, "canon": "ui.hud.motion", "scale": 100, "match": "125%"}, "to": 0, "dur": 0.28,
+         "style": "Back", "dir": "Out", "note": "0.28 s Back Out as in the HUD export (HUDM)"},
+        {"type": "tween", "target": "ticket", "prop": "alpha", "from": 0, "to": 1, "dur": 0.18, "style": "Quad",
+         "dir": "Out"}
+      ]
+    },
+    "hud_ticket_leave": {
+      "group": "ui", "priority": 5, "who": "all", "trigger": "a HUD ticket expires or is resolved",
+      "intent": "slides back out and is gone; never lingers", "canon": ["ui.hud.motion"],
+      "channels": [
+        {"type": "tween", "target": "ticket", "prop": "x", "from": 0,
+         "to": {"v": 1.25, "canon": "ui.hud.motion", "scale": 100, "match": "125%"},
+         "dur": {"v": 0.32, "canon": "ui.hud.motion", "scale": 1000, "match": "320 ms"}, "style": "Quad", "dir": "In"},
+        {"type": "tween", "target": "ticket", "prop": "alpha", "from": 1, "to": 0, "dur": 0.32, "style": "Quad",
+         "dir": "In"}
+      ]
+    },
+    "hud_merge_bump": {
+      "group": "ui", "priority": 5, "who": "all", "trigger": "a repeat alert merges into an existing ticket",
+      "intent": "the count or cash stamp bumps so the repeat is noticed without a new ticket",
+      "canon": ["ui.hud.motion"], "rm_reads": "the count or cash text on the stamp changes",
+      "channels": [
+        {"type": "tween", "target": "stamp", "prop": "scale",
+         "from": {"v": 1.07, "canon": "ui.hud.motion", "match": "1.07"}, "to": 1,
+         "dur": {"v": 0.32, "canon": "ui.hud.motion", "match": "0.32 s"}, "style": "Quad", "dir": "Out"}
+      ]
+    },
+    "hud_crisis_arrival": {
+      "group": "crisis", "priority": 2, "who": "all",
+      "trigger": "a crisis ticket lands (included by every crisis alert)",
+      "intent": "one hard shake says 'this one is bad', then the halo keeps breathing until it is fixed",
+      "canon": ["ui.hud.crisis_extra"],
+      "channels": [
+        {"type": "punch", "target": "ticket", "prop": "x_px", "shape": "sin",
+         "amp": {"v": -5, "canon": "ui.hud.crisis_extra", "match": "+-5 px"}, "freq_hz": 4, "damping": 0.05,
+         "dur": {"v": 0.5, "canon": "ui.hud.crisis_extra", "match": "0.5 s"}, "delay": 0.3,
+         "note": "approximates the HUD export shake (-5, +5, -4, +3 px over 0.5 s, HUDM): starts left, 4 lobes, ends at rest"},
+        {"type": "pulse", "target": "halo", "prop": "alpha",
+         "min": {"v": 0.3, "canon": "ui.hud.crisis_extra", "match": "pulsing 0.3"},
+         "max": {"v": 0.95, "canon": "ui.hud.crisis_extra", "match": "0.95"}, "period": 1.2,
+         "note": "1.2 s loop as in the HUD export (HUDM); runs until the crisis clears"}
+      ]
+    },
+    "alert_coal_low": {
+      "group": "crisis", "priority": 2, "who": "all", "alert": "gameplay.alerts.coal_low",
+      "trigger": "server show alert CoalLow (gameplay.alerts.transport)",
+      "intent": "urgent but not a catastrophe: the fuel gauge jumps and the ticket shakes once",
+      "include": [{"event": "hud_ticket_enter"}, {"event": "hud_crisis_arrival"}],
+      "channels": [
+        {"type": "punch", "target": "gauge", "prop": "scale", "amp": 0.077, "freq_hz": 5, "damping": 0.3, "dur": 0.7,
+         "delay": 0.1},
+        {"type": "haptic", "effect": "UINotification", "keys": [[0, 0.5], [60, 0], [140, 0.5], [200, 0]]},
+        {"type": "cue", "sfx": "alarm_coal"}
+      ]
+    },
+    "alert_pressure_high": {
+      "group": "crisis", "priority": 2, "who": "all", "alert": "gameplay.alerts.pressure_high",
+      "trigger": "server show alert PressureHigh; pressure sustain rises separately (Feel.setPressure)",
+      "intent": "the boiler is about to blow: a red pulse at the screen edge, a heartbeat in the hand, the cab starts to rattle",
+      "canon": ["av.vfx.pressure_shake"], "include": [{"event": "hud_ticket_enter"}, {"event": "hud_crisis_arrival"}],
+      "channels": [
+        {"type": "shake", "trauma": 0.3},
+        {"type": "flash", "scope": "vignette", "color": "@style.brand.danger_red", "peak": 0.22, "in": 0.05,
+         "hold": 0.1, "out": 0.5},
+        {"type": "haptic", "effect": "Custom", "keys": [[0, 0.7], [80, 0], [220, 0.5], [300, 0]]},
+        {"type": "cue", "sfx": "alarm_pressure", "vfx": "steam_valve"}
+      ]
+    },
+    "alert_breakdown": {
+      "group": "crisis", "priority": 2, "who": "all", "alert": "gameplay.alerts.breakdown",
+      "trigger": "server show alert Breakdown",
+      "intent": "something snapped: a jolt through the whole train, then the ticket",
+      "include": [{"event": "hud_ticket_enter", "delay": 0.1}, {"event": "hud_crisis_arrival", "delay": 0.1}],
+      "channels": [
+        {"type": "shake", "trauma": 0.45},
+        {"type": "camkick", "angles_deg": [0.66, 0.0, 0.44], "freq_hz": 5, "damping": 0.4, "dur": 0.6},
+        {"type": "flash", "scope": "screen", "color": "#FFFFFF", "peak": 0.2, "in": 0.03, "hold": 0.0, "out": 0.25},
+        {"type": "haptic", "effect": "GameplayCollision", "keys": [[0, 0.9], [120, 0.3], [300, 0]]},
+        {"type": "cue", "sfx": "breakdown_bang", "vfx": "sparks_powerbox"}
+      ]
+    },
+    "alert_passengers_upset": {
+      "group": "crisis", "priority": 2, "who": "all", "alert": "gameplay.alerts.passengers_upset",
+      "trigger": "server show alert PassengersUpset",
+      "intent": "a people problem, not a mechanical one: no camera jolt, the ticket and the hand carry it",
+      "include": [{"event": "hud_ticket_enter"}, {"event": "hud_crisis_arrival"}],
+      "channels": [
+        {"type": "haptic", "effect": "UINotification",
+         "keys": [[0, 0.45], [50, 0], [120, 0.45], [170, 0], [240, 0.45], [290, 0]]},
+        {"type": "cue", "sfx": "passengers_scream"}
+      ]
+    },
+    "alert_junction_ahead": {
+      "group": "info", "priority": 3, "who": "all", "alert": "gameplay.alerts.junction_ahead",
+      "trigger": "server show alert JunctionAhead (the junction lamp starts flashing, gameplay.fork.warning_lamp)",
+      "intent": "heads up, a bet is coming: a confident tick, not an alarm", "canon": ["av.feel.fork_loudest"],
+      "include": [{"event": "hud_ticket_enter"}],
+      "quiet_ok": "its weight is the junction_beep and the gantry warning lamp, not camera or haptics",
+      "channels": [
+        {"type": "punch", "target": "ticket", "prop": "scale", "amp": 0.048, "freq_hz": 6, "damping": 0.35,
+         "dur": 0.5, "delay": 0.28},
+        {"type": "haptic", "effect": "UINotification", "keys": [[0, 0.4], [40, 0]]},
+        {"type": "cue", "sfx": "junction_beep"}
+      ]
+    },
+    "alert_risky_route": {
+      "group": "info", "priority": 3, "who": "all", "alert": "gameplay.alerts.risky_route",
+      "trigger": "server show alert RiskyRoute after the lever commits risky",
+      "intent": "the multiplier stamp slams down: greedy and funny", "include": [{"event": "hud_ticket_enter"}],
+      "channels": [
+        {"type": "tween", "target": "stamp", "prop": "scale", "from": 1.6, "to": 1, "dur": 0.2, "style": "Quad",
+         "dir": "In", "delay": 0.25, "before": "hidden"},
+        {"type": "tween", "target": "stamp", "prop": "rot", "from": -20, "to": -8, "dur": 0.2, "style": "Quad",
+         "dir": "In", "delay": 0.25, "before": "hidden",
+         "note": "rest angle -8 deg is the stamp's canon pose (ui.hud.stamp)"},
+        {"type": "camkick", "angles_deg": [0.51, 0.0, 0.0], "freq_hz": 6, "damping": 0.45, "dur": 0.4, "delay": 0.45},
+        {"type": "haptic", "effect": "Custom", "keys": [[450, 0.7], [500, 0]]},
+        {"type": "cue", "sfx": "stamp_slam"}
+      ]
+    },
+    "alert_fare_banked": {
+      "group": "info", "priority": 4, "who": "all", "alert": "gameplay.alerts.fare_banked",
+      "trigger": "server show alert FareBanked at a station (gameplay.station.bank)",
+      "intent": "the payoff: the cash stamp lands, the number counts up, a double tick in the hand",
+      "include": [{"event": "hud_ticket_enter"}],
+      "channels": [
+        {"type": "tween", "target": "stamp", "prop": "scale", "from": 1.8, "to": 1, "dur": 0.2, "style": "Quad",
+         "dir": "In", "delay": 0.2, "before": "hidden"},
+        {"type": "tween", "target": "cash", "prop": "count", "from": 0, "to": 1, "dur": 0.6, "style": "Quad",
+         "dir": "Out", "delay": 0.2,
+         "note": "fraction of the banked amount; the label format comes from ctx (currency naming is OQ-003)"},
+        {"type": "punch", "target": "ticket", "prop": "scale", "amp": 0.036, "freq_hz": 6, "damping": 0.35,
+         "dur": 0.4, "delay": 0.4},
+        {"type": "haptic", "effect": "Custom", "keys": [[400, 0.4], [440, 0], [490, 0.6], [540, 0]]},
+        {"type": "cue", "sfx": "cash_register"}
+      ]
+    },
+    "alert_crate_landed": {
+      "group": "info", "priority": 4, "who": "all", "alert": "gameplay.alerts.crate_landed",
+      "trigger": "server show alert CrateLanded when the crate hits the coach roof (gameplay.supplies.flow)",
+      "intent": "a thump on the roof you feel through the floor",
+      "include": [{"event": "hud_ticket_enter", "delay": 0.1}],
+      "channels": [
+        {"type": "camkick", "angles_deg": [-0.7, 0, 0.2], "freq_hz": 6, "damping": 0.45, "dur": 0.4,
+         "note": "the thump from above dips the view; a 0.2 shake here measured 0.4 px (invisible)"},
+        {"type": "haptic", "effect": "GameplayCollision", "keys": [[0, 0.6], [90, 0]]},
+        {"type": "cue", "sfx": "crate_thump"}
+      ]
+    },
+    "alert_crew_joined": {
+      "group": "info", "priority": 5, "who": "all", "alert": "gameplay.alerts.crew_joined",
+      "trigger": "server show alert CrewJoined", "intent": "information only: the ticket arrives, nothing else",
+      "include": [{"event": "hud_ticket_enter"}],
+      "channels": []
+    },
+    "alert_crew_left": {
+      "group": "info", "priority": 5, "who": "all", "alert": "gameplay.alerts.crew_left",
+      "trigger": "server show alert CrewLeft", "intent": "information only: the ticket arrives, nothing else",
+      "include": [{"event": "hud_ticket_enter"}],
+      "channels": []
+    },
+    "fork_countdown_tick": {
+      "group": "lever", "priority": 3, "who": "all",
+      "trigger": "each of the last 3 whole seconds of the lever countdown (gantry countdown, gameplay.fork.lever)",
+      "intent": "the loudest countdown in the game: the timer bar thumps every second",
+      "canon": ["av.feel.fork_loudest", "ui.lever.timer"],
+      "quiet_ok": "the loudest countdown is the countdown_tick sound (av.feel.fork_loudest); the bar thump only marks it",
+      "channels": [
+        {"type": "punch", "target": "timer", "prop": "scale", "amp": 0.06, "freq_hz": 8, "damping": 0.35, "dur": 0.35},
+        {"type": "haptic", "effect": "Custom", "keys": [[0, 0.35], [25, 0]]},
+        {"type": "cue", "sfx": "countdown_tick"}
+      ]
+    },
+    "lever_detent_tick": {
+      "group": "lever", "priority": 5, "who": "actor",
+      "trigger": "the dragged knob crosses the detent (lever.detent), just before the commit",
+      "intent": "a notch you feel: the lever gives",
+      "rm_reads": "the knob keeps tracking the finger toward the detent",
+      "channels": [
+        {"type": "punch", "target": "lever_knob", "prop": "scale", "amp": 0.044, "freq_hz": 9, "damping": 0.4,
+         "dur": 0.2},
+        {"type": "haptic", "effect": "Custom", "keys": [[0, 0.5], [20, 0]]}
+      ]
+    },
+    "lever_commit": {
+      "group": "lever", "priority": 3, "who": "actor",
+      "trigger": "the puller's knob passes the detent; plays at once on their client, the server confirms the lock",
+      "intent": "a heavy clunk that locks the bet: freeze, jolt toward the pulled side, the lamp lights",
+      "canon": ["gameplay.fork.lever", "ui.lever.commit", "identity.pillars.physical_loud"],
+      "oq": ["OQ-006", "OQ-031"],
+      "channels": [
+        {"type": "hitstop", "ms": 70},
+        {"type": "camkick", "angles_deg": [0.2, -0.82, -0.51], "side_sign": true, "freq_hz": 5, "damping": 0.45,
+         "dur": 0.5},
+        {"type": "punch", "target": "lever_panel", "prop": "scale", "amp": 0.059, "freq_hz": 6, "damping": 0.35,
+         "dur": 0.5},
+        {"type": "flash", "scope": "element", "target": "lamp", "color": "@style.brand.hazard_yellow", "peak": 1.0,
+         "in": 0.02, "hold": 0.25, "out": 0.3},
+        {"type": "haptic", "effect": "GameplayCollision", "keys": [[0, 1.0], [50, 0.6], [140, 0]]},
+        {"type": "cue", "sfx": "lever_clunk"}
+      ]
+    },
+    "lever_commit_crew": {
+      "group": "lever", "priority": 4, "who": "crew",
+      "trigger": "the server confirms the route lock; every client except the puller's",
+      "intent": "everyone feels the points throw under the train", "canon": ["gameplay.fork.lock"],
+      "channels": [
+        {"type": "camkick", "angles_deg": [0, -0.36, -0.2], "side_sign": true, "freq_hz": 4, "damping": 0.45,
+         "dur": 0.5},
+        {"type": "haptic", "effect": "Custom", "keys": [[0, 0.5], [60, 0]]},
+        {"type": "cue", "sfx": "points_throw"}
+      ]
+    },
+    "lever_snapback": {
+      "group": "lever", "priority": 5, "who": "actor",
+      "trigger": "the knob is released before the detent (lever.snapback tween runs on the knob)",
+      "intent": "nope: the lever springs back with a small wiggle of the console",
+      "rm_reads": "the knob returns home (lever.snapback on the knob is state, not reduced)",
+      "channels": [
+        {"type": "punch", "target": "lever_panel", "prop": "x_px", "shape": "sin", "amp": 3, "freq_hz": 12,
+         "damping": 0.3, "dur": 0.25, "note": "a quick side wiggle; delivered peak 3 px"},
+        {"type": "haptic", "effect": "Custom", "keys": [[0, 0.25], [30, 0]]}
+      ]
+    },
+    "route_locked": {
+      "group": "lever", "priority": 4, "who": "all",
+      "trigger": "the route commits (gameplay.fork.lock): the console leaves",
+      "intent": "decision made, get the console off the screen", "canon": ["gameplay.fork.lock", "ui.lever.commit"],
+      "channels": [
+        {"type": "tween", "target": "timer", "prop": "alpha", "from": 1, "to": 0, "dur": 0.2, "style": "Quad",
+         "dir": "Out"},
+        {"type": "tween", "target": "lever_panel", "prop": "y", "from": 0, "to": 1.2, "dur": 0.35, "style": "Back",
+         "dir": "In", "delay": 0.6},
+        {"type": "tween", "target": "lever_panel", "prop": "alpha", "from": 1, "to": 0, "dur": 0.3, "style": "Quad",
+         "dir": "In", "delay": 0.65}
+      ]
+    },
+    "shovel_coal": {
+      "group": "actions", "priority": 4, "who": "actor",
+      "trigger": "one shovel load lands in the firebox (gameplay.crisis.firebox)",
+      "intent": "a chunky thud that makes shovelling satisfying on the 40th load too",
+      "canon": ["identity.pillars.physical_loud"],
+      "channels": [
+        {"type": "hitstop", "ms": 30},
+        {"type": "camkick", "angles_deg": [0.47, 0.0, 0.0], "freq_hz": 4, "damping": 0.5, "dur": 0.35},
+        {"type": "punch", "target": "gauge", "prop": "scale", "amp": 0.044, "freq_hz": 6, "damping": 0.4, "dur": 0.4,
+         "delay": 0.05},
+        {"type": "haptic", "effect": "Custom", "keys": [[0, 0.5], [60, 0]]},
+        {"type": "cue", "sfx": "shovel_thud", "vfx": "coal_dust"}
+      ]
+    },
+    "repair_fixed": {
+      "group": "actions", "priority": 4, "who": "actor", "trigger": "a breakdown task completes (wrench, wire match)",
+      "intent": "relief with a clank: the fix lands",
+      "channels": [
+        {"type": "hitstop", "ms": 40},
+        {"type": "camkick", "angles_deg": [0.41, 0.0, 0.2], "freq_hz": 5, "damping": 0.45, "dur": 0.4},
+        {"type": "haptic", "effect": "Custom", "keys": [[0, 0.6], [40, 0], [90, 0.3], [120, 0]]},
+        {"type": "cue", "sfx": "wrench_clank"}
+      ]
+    },
+    "windows_smash": {
+      "group": "crisis", "priority": 2, "who": "all", "trigger": "a coach window smashes (gameplay.crisis.windows)",
+      "intent": "a sharp crack: a white flick and a short shake",
+      "channels": [
+        {"type": "shake", "trauma": 0.35},
+        {"type": "flash", "scope": "screen", "color": "#FFFFFF", "peak": 0.18, "in": 0.02, "hold": 0.0, "out": 0.2},
+        {"type": "haptic", "effect": "GameplayCollision", "keys": [[0, 0.8], [100, 0]]},
+        {"type": "cue", "sfx": "glass_smash", "vfx": "glass_burst"}
+      ]
+    },
+    "coupling_snap": {
+      "group": "crisis", "priority": 2, "who": "all",
+      "trigger": "a coupling snaps and a carriage is lost (gameplay.crisis.coupling)",
+      "intent": "the train lurches as the weight goes: pitch forward, a tug of the FOV",
+      "channels": [
+        {"type": "shake", "trauma": 0.6},
+        {"type": "camkick", "angles_deg": [-0.89, 0.0, 0.36], "freq_hz": 3, "damping": 0.35, "dur": 0.9},
+        {"type": "fovkick", "delta_deg": -4, "in": 0.08, "hold": 0.1, "out": 0.6, "style_in": "Quad",
+         "style_out": "Sine"},
+        {"type": "haptic", "effect": "GameplayCollision", "keys": [[0, 1.0], [150, 0.5], [400, 0]]},
+        {"type": "cue", "sfx": "coupling_snap"}
+      ]
+    },
+    "boiler_burst": {
+      "group": "fail", "priority": 1, "who": "all",
+      "trigger": "boiler explosion hard fail (gameplay.crisis.fail_states); the 3-second clip moment starts here",
+      "intent": "the biggest hit in the game, slapstick not horror: freeze, bang, blowback, then the camera moment",
+      "canon": ["gameplay.crisis.fail_cinematic", "av.vfx.boiler_fail", "identity.pillars.funny_failure"],
+      "channels": [
+        {"type": "hitstop", "ms": 120},
+        {"type": "shake", "trauma": 1.0},
+        {"type": "camkick", "angles_deg": [-1.92, 0.0, 0.96], "freq_hz": 3, "damping": 0.3, "dur": 1.2},
+        {"type": "fovkick", "delta_deg": 8, "in": 0.06, "hold": 0.1, "out": 1.2, "style_in": "Quad",
+         "style_out": "Sine"},
+        {"type": "flash", "scope": "screen", "color": "#FFFFFF", "peak": 0.35, "in": 0.02, "hold": 0.06, "out": 0.5},
+        {"type": "flash", "scope": "vignette", "color": "@style.brand.danger_red", "peak": 0.25, "in": 0.1,
+         "hold": 0.3, "out": 0.9, "delay": 0.45},
+        {"type": "haptic", "effect": "GameplayExplosion", "keys": [[0, 1.0], [200, 0.8], [600, 0.3], [1000, 0]]},
+        {"type": "cue", "sfx": "boiler_boom", "vfx": "boiler_burst"}
+      ]
+    },
+    "fired_stamp": {
+      "group": "fail", "priority": 3, "who": "all",
+      "trigger": "the YOU'RE FIRED stamp lands on the Incident Report after a fail (av.vfx.boiler_fail)",
+      "intent": "the punchline: the stamp drops, freezes on contact, the card jumps",
+      "canon": ["av.vfx.boiler_fail", "identity.pillars.funny_failure"],
+      "loud_ok": "the punchline of the fail sequence, on the results screen after boiler_burst: never beside a crisis",
+      "channels": [
+        {"type": "tween", "target": "report_stamp", "prop": "scale", "from": 2.4, "to": 1, "dur": 0.18,
+         "style": "Quad", "dir": "In"},
+        {"type": "tween", "target": "report_stamp", "prop": "rot", "from": -30, "to": -8, "dur": 0.18,
+         "style": "Quad", "dir": "In"},
+        {"type": "hitstop", "ms": 60, "delay": 0.18},
+        {"type": "shake", "trauma": 0.3, "delay": 0.18},
+        {"type": "punch", "target": "report", "prop": "scale", "amp": 0.03, "freq_hz": 5, "damping": 0.35, "dur": 0.5,
+         "delay": 0.18},
+        {"type": "haptic", "effect": "Custom", "keys": [[180, 0.9], [260, 0]]},
+        {"type": "cue", "sfx": "stamp_slam"}
+      ]
+    },
+    "depart": {
+      "group": "actions", "priority": 4, "who": "all",
+      "trigger": "the whistle blows and the world starts to scroll (gameplay.run.depart); Feel.setSpeed ramps the rumble",
+      "intent": "the train takes the strain: a slow lean back and a rumble that builds",
+      "canon": ["gameplay.run.depart", "av.vfx.speed_link"],
+      "channels": [
+        {"type": "camkick", "angles_deg": [0.47, 0.0, 0.0], "freq_hz": 1.5, "damping": 0.5, "dur": 1.2},
+        {"type": "haptic", "effect": "Custom", "keys": [[0, 0], [300, 0.4], [1200, 0]]},
+        {"type": "cue", "sfx": "whistle"}
+      ]
+    },
+    "throttle_notch": {
+      "group": "actions", "priority": 5, "who": "all",
+      "trigger": "the throttle moves a notch (gameplay.train.cab_controls)",
+      "intent": "a small nod so the crew notices the speed change",
+      "rm_reads": "the throttle handle and the speed readout change in the world",
+      "channels": [
+        {"type": "camkick", "angles_deg": [-0.33, 0.0, 0.0], "freq_hz": 3, "damping": 0.5, "dur": 0.4},
+        {"type": "haptic", "effect": "Custom", "keys": [[0, 0.3], [30, 0]]}
+      ]
+    },
+    "station_arrive": {
+      "group": "actions", "priority": 4, "who": "all",
+      "trigger": "the train stops at the StopMarker (gameplay.run.arrival)",
+      "intent": "the game exhales: a lean forward as it stops, the view relaxes",
+      "canon": ["av.feel.station_exhale", "gameplay.run.arrival"],
+      "channels": [
+        {"type": "camkick", "angles_deg": [-0.32, 0.0, 0.0], "freq_hz": 1.2, "damping": 0.6, "dur": 1.5},
+        {"type": "fovkick", "delta_deg": -3, "in": 1.0, "hold": 0.5, "out": 1.5, "style_in": "Sine",
+         "style_out": "Sine"},
+        {"type": "cue", "sfx": "brake_hiss"}
+      ]
+    },
+    "hard_brake": {
+      "group": "actions", "priority": 3, "who": "all",
+      "trigger": "the server starts a brake harder than the station brake: the communication-cord emergency stop or a redline brake; Feel.setSpeed keeps following Speed down, so the rumble fades as it stops",
+      "intent": "the train digs in: everyone lurches forward, the wheels judder through the floor, then the view settles",
+      "canon": ["gameplay.run.brake_formula", "identity.pillars.stable_train"], "oq": ["OQ-TBD-hard-brake", "OQ-018"],
+      "channels": [
+        {"type": "camkick", "angles_deg": [-0.7, 0, 0], "freq_hz": 1.8, "damping": 0.55, "dur": 1.2,
+         "note": "delivered 0.7 deg: the view dips forward (Roblox: - pitch looks down)"},
+        {"type": "fovkick", "delta_deg": -4, "in": 0.2, "hold": 0.5, "out": 1.4, "style_in": "Quad",
+         "style_out": "Sine"},
+        {"type": "flash", "scope": "vignette", "color": "#000000", "peak": 0.12, "in": 0.15, "hold": 0.3, "out": 0.8,
+         "note": "tunnel vision with the FOV squeeze; the part reduce motion keeps on screen"},
+        {"type": "haptic", "effect": "Custom",
+         "keys": [[0, 0.6], [70, 0.25], [140, 0.55], [210, 0.2], [290, 0.45], [380, 0.2], [480, 0.4], [600, 0]]},
+        {"type": "cue", "sfx": "brake_hiss"}
+      ]
+    }
+  }
+}

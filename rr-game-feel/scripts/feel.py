@@ -526,6 +526,11 @@ def validate(model, strict=False):
                                  f"(shake = trauma^{r['shake']['power']}): invisible; raise it or use a camkick")
             if ch["type"] == "punch" and ch["prop"] in ("x_px", "y_px") and abs(ch["amp"]) < lim.get("punch_px_min", 0):
                 warns.append(f"{where}.channels[{i}]: punch of {abs(ch['amp'])} px is under {lim['punch_px_min']} px: invisible")
+            if ch["type"] == "camkick" and ch.get("side_sign") and re.search(r"toward (?:the )?(?:pulled |chosen )?(?:side|branch)",
+                                                                           str(ev.get("intent", "")).lower()):
+                if ch["angles_deg"][1] > 0 or ch["angles_deg"][2] > 0:
+                    warns.append(f"{where}.channels[{i}]: 'toward the side' needs negative yaw and roll with side_sign "
+                                 "(Roblox: + yaw turns left, + roll tilts left; side -1 = left)")
             if ch["type"] == "camkick" and ch["angles_deg"][0]:
                 txt = f"{ev.get('intent', '')} {ev.get('trigger', '')}".lower()
                 p = ch["angles_deg"][0]
@@ -727,7 +732,7 @@ def fmt(x):
 
 def channel_line(ch, d, pv):
     t = ch["type"]
-    tgt = ch.get("target", "camera" if t in ("shake", "camkick", "fovkick") else "screen" if t == "flash" else "-")
+    tgt = ch.get("target", "camera" if t in ("shake", "camkick", "fovkick") else ch.get("scope", "screen") if t == "flash" else "-")
     if t == "tween":
         what = f"{ch['prop']} {fmt(ch['from'])} -> {fmt(ch['to'])}, {ch.get('style', 'Quad')} {ch.get('dir', 'Out')}"
         span = ch["dur"]
@@ -736,7 +741,7 @@ def channel_line(ch, d, pv):
         span = ch["dur"]
     elif t == "camkick":
         p, y, rr = ch["angles_deg"]
-        what = (f"kick peak pitch {fmt(p)} ({'view up' if p > 0 else 'view down' if p < 0 else '-'}) yaw {fmt(y)} roll {fmt(rr)} deg"
+        what = (f"kick peak pitch {fmt(p)} ({'view up' if p > 0 else 'view down' if p < 0 else '-'}) yaw {fmt(y)} roll {fmt(rr)} deg (+ = left)"
                 f"{' toward the pulled side' if ch.get('side_sign') else ''}, {fmt(ch['freq_hz'])} Hz")
         span = ch["dur"]
     elif t == "shake":
@@ -784,7 +789,7 @@ def spec_event(model, name):
     out += ["", "| start s | end s | channel | target | what |", "|---|---|---|---|---|"]
     out += [channel_line(ch, d, pv) for ch, d in fm.expand(r, name)]
     out += ["", f"- **Measured (phone {r['meta']['phone']}, FOV {r['meta']['fov_deg']}):** camera {m['cam_px']} px "
-            f"(roll {m['roll_deg']} deg), kick {m['kick_deg']} deg, FOV {m['fov_deg']} deg, hit-stop {m['hitstop_ms']} ms, "
+            f"(roll {m['roll_deg']} deg), kick {m['kick_deg']} deg, FOV {m['fov_signed']:+g} deg, hit-stop {m['hitstop_ms']} ms, "
             f"screen flash {m['flash_peak']}, haptic {m['haptic_peak']} for {m['haptic_ms']} ms, lasts {m['total_s']} s"
             f"{' + loop' if m['loops'] else ''}, loudness {m['loudness']}.",
             f"- **Reduce motion:** camera {rm['cam_px']} px, FOV {rm['fov_deg']}; still reads through: "

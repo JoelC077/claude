@@ -6,7 +6,11 @@
 -- ReplicatedStorage. It returns either a function (one test) or a table of name -> function.
 -- A test passes when it returns without error; use assert(). Returns one JSON-able table.
 -- release.py replaces the EXPECTED line below; in Studio leave it and read `version` in the output.
+-- LIVE DATA: on Open Cloud this runs in the production universe, where DataStores are the real ones. Specs must
+-- not call DataStoreService/ProfileStore/MessagingService/MemoryStoreService; data modules should check
+-- _G.RR_RELEASE_TEST and stub themselves while it is true (release gate G6 fails a spec that names them).
 local EXPECTED = "{{EXPECTED_VERSION}}"
+_G.RR_RELEASE_TEST = true
 
 local result = { expected = EXPECTED, version = nil, specs = 0, tests = 0, passed = 0, failed = 0, failures = {} }
 
@@ -59,6 +63,7 @@ for _, serviceName in ipairs({ "ServerScriptService", "ServerStorage", "Replicat
 	end
 end
 
+_G.RR_RELEASE_TEST = nil
 local versionOk = (EXPECTED == "{{" .. "EXPECTED_VERSION}}") or (result.version == EXPECTED)
 result.versionOk = versionOk
 result.ok = versionOk and result.failed == 0

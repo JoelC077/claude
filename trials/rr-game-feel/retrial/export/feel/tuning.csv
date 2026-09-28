@@ -1,0 +1,137 @@
+event,tier_who,channel_index,channel,knob,value,safe_range,source
+lever_commit,t3 actor,0,hitstop,ms,70,"<= 150 ms, cooldown 0.25 s; not on crew events",knob
+lever_commit,t3 actor,1,camkick,angles_deg,"[0.2, -0.82, -0.51]","delivered peak deg: kick <= 4, roll <= 2, >= 1.5 px on the phone; + pitch = view up",knob
+lever_commit,t3 actor,1,camkick,side_sign,true,,knob
+lever_commit,t3 actor,1,camkick,freq_hz,5,0.5-8 Hz,knob
+lever_commit,t3 actor,1,camkick,damping,0.45,0.05-0.95,knob
+lever_commit,t3 actor,1,camkick,dur,0.5,,knob
+lever_commit,t3 actor,2,punch lever_panel.scale,amp,0.059,"delivered peak, <= 0.3",knob
+lever_commit,t3 actor,2,punch lever_panel.scale,freq_hz,6,2-14 Hz,knob
+lever_commit,t3 actor,2,punch lever_panel.scale,damping,0.35,0.05-0.95 (spring ends under 5% of its peak),knob
+lever_commit,t3 actor,2,punch lever_panel.scale,dur,0.5,,knob
+lever_commit,t3 actor,3,flash lamp,scope,"""element""",,knob
+lever_commit,t3 actor,3,flash lamp,color,"""@style.brand.hazard_yellow""",,knob
+lever_commit,t3 actor,3,flash lamp,peak,1.0,screen/vignette <= 0.35 (red 0.25); element exempt,knob
+lever_commit,t3 actor,3,flash lamp,in,0.02,,knob
+lever_commit,t3 actor,3,flash lamp,hold,0.25,,knob
+lever_commit,t3 actor,3,flash lamp,out,0.3,,knob
+lever_commit,t3 actor,4,haptic,effect,"""GameplayCollision""",,knob
+lever_commit,t3 actor,4,haptic,keys,"[[0, 1.0], [50, 0.6], [140, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+lever_commit,t3 actor,5,cue,sfx,"""lever_clunk""",,knob
+lever_detent_tick,t5 actor,0,punch lever_knob.scale,amp,0.044,"delivered peak, <= 0.3",knob
+lever_detent_tick,t5 actor,0,punch lever_knob.scale,freq_hz,9,2-14 Hz,knob
+lever_detent_tick,t5 actor,0,punch lever_knob.scale,damping,0.4,0.05-0.95 (spring ends under 5% of its peak),knob
+lever_detent_tick,t5 actor,0,punch lever_knob.scale,dur,0.2,,knob
+lever_detent_tick,t5 actor,1,haptic,effect,"""Custom""",,knob
+lever_detent_tick,t5 actor,1,haptic,keys,"[[0, 0.5], [20, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+lever_snapback,t5 actor,0,punch lever_panel.x_px,shape,"""sin""",,knob
+lever_snapback,t5 actor,0,punch lever_panel.x_px,amp,3,"delivered px, >= 1.5",knob
+lever_snapback,t5 actor,0,punch lever_panel.x_px,freq_hz,12,2-14 Hz,knob
+lever_snapback,t5 actor,0,punch lever_panel.x_px,damping,0.3,0.05-0.95 (spring ends under 5% of its peak),knob
+lever_snapback,t5 actor,0,punch lever_panel.x_px,dur,0.25,,knob
+lever_snapback,t5 actor,1,haptic,effect,"""Custom""",,knob
+lever_snapback,t5 actor,1,haptic,keys,"[[0, 0.25], [30, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+lever_commit_crew,t4 crew,0,camkick,angles_deg,"[0, -0.36, -0.2]","delivered peak deg: kick <= 4, roll <= 2, >= 1.5 px on the phone; + pitch = view up",knob
+lever_commit_crew,t4 crew,0,camkick,side_sign,true,,knob
+lever_commit_crew,t4 crew,0,camkick,freq_hz,4,0.5-8 Hz,knob
+lever_commit_crew,t4 crew,0,camkick,damping,0.45,0.05-0.95,knob
+lever_commit_crew,t4 crew,0,camkick,dur,0.5,,knob
+lever_commit_crew,t4 crew,1,haptic,effect,"""Custom""",,knob
+lever_commit_crew,t4 crew,1,haptic,keys,"[[0, 0.5], [60, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+lever_commit_crew,t4 crew,2,cue,sfx,"""points_throw""",,knob
+hard_brake,t3 all,0,camkick,angles_deg,"[-0.7, 0, 0]","delivered peak deg: kick <= 4, roll <= 2, >= 1.5 px on the phone; + pitch = view up",knob
+hard_brake,t3 all,0,camkick,freq_hz,1.8,0.5-8 Hz,knob
+hard_brake,t3 all,0,camkick,damping,0.55,0.05-0.95,knob
+hard_brake,t3 all,0,camkick,dur,1.2,,knob
+hard_brake,t3 all,1,fovkick,delta_deg,-4,|delta| <= 12 deg (- zooms in),knob
+hard_brake,t3 all,1,fovkick,in,0.2,,knob
+hard_brake,t3 all,1,fovkick,hold,0.5,,knob
+hard_brake,t3 all,1,fovkick,out,1.4,,knob
+hard_brake,t3 all,1,fovkick,style_in,"""Quad""",,knob
+hard_brake,t3 all,1,fovkick,style_out,"""Sine""",,knob
+hard_brake,t3 all,2,flash,scope,"""vignette""",,knob
+hard_brake,t3 all,2,flash,color,"""#000000""",,knob
+hard_brake,t3 all,2,flash,peak,0.12,screen/vignette <= 0.35 (red 0.25); element exempt,knob
+hard_brake,t3 all,2,flash,in,0.15,,knob
+hard_brake,t3 all,2,flash,hold,0.3,,knob
+hard_brake,t3 all,2,flash,out,0.8,,knob
+hard_brake,t3 all,3,haptic,effect,"""Custom""",,knob
+hard_brake,t3 all,3,haptic,keys,"[[0, 0.6], [70, 0.25], [140, 0.55], [210, 0.2], [290, 0.45], [380, 0.2], [480, 0.4], [600, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+hard_brake,t3 all,4,cue,sfx,"""brake_hiss""",,knob
+alert_crate_landed,t4 all,0,camkick,angles_deg,"[-0.7, 0, 0.2]","delivered peak deg: kick <= 4, roll <= 2, >= 1.5 px on the phone; + pitch = view up",knob
+alert_crate_landed,t4 all,0,camkick,freq_hz,6,0.5-8 Hz,knob
+alert_crate_landed,t4 all,0,camkick,damping,0.45,0.05-0.95,knob
+alert_crate_landed,t4 all,0,camkick,dur,0.4,,knob
+alert_crate_landed,t4 all,1,haptic,effect,"""GameplayCollision""",,knob
+alert_crate_landed,t4 all,1,haptic,keys,"[[0, 0.6], [90, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+alert_crate_landed,t4 all,2,cue,sfx,"""crate_thump""",,knob
+hud_crisis_arrival,t2 all,0,punch ticket.x_px,shape,"""sin""",,knob
+hud_crisis_arrival,t2 all,0,punch ticket.x_px,amp,-5,"delivered px, >= 1.5",canon ui.hud.crisis_extra
+hud_crisis_arrival,t2 all,0,punch ticket.x_px,freq_hz,4,2-14 Hz,knob
+hud_crisis_arrival,t2 all,0,punch ticket.x_px,damping,0.05,0.05-0.95 (spring ends under 5% of its peak),knob
+hud_crisis_arrival,t2 all,0,punch ticket.x_px,dur,0.5,,canon ui.hud.crisis_extra
+hud_crisis_arrival,t2 all,0,punch ticket.x_px,delay,0.3,,knob
+hud_crisis_arrival,t2 all,1,pulse halo.alpha,min,0.3,,canon ui.hud.crisis_extra
+hud_crisis_arrival,t2 all,1,pulse halo.alpha,max,0.95,,canon ui.hud.crisis_extra
+hud_crisis_arrival,t2 all,1,pulse halo.alpha,period,1.2,>= 0.5 s,knob
+alert_coal_low,t2 all,0,punch gauge.scale,amp,0.077,"delivered peak, <= 0.3",knob
+alert_coal_low,t2 all,0,punch gauge.scale,freq_hz,5,2-14 Hz,knob
+alert_coal_low,t2 all,0,punch gauge.scale,damping,0.3,0.05-0.95 (spring ends under 5% of its peak),knob
+alert_coal_low,t2 all,0,punch gauge.scale,dur,0.7,,knob
+alert_coal_low,t2 all,0,punch gauge.scale,delay,0.1,,knob
+alert_coal_low,t2 all,1,haptic,effect,"""UINotification""",,knob
+alert_coal_low,t2 all,1,haptic,keys,"[[0, 0.5], [60, 0], [140, 0.5], [200, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+alert_coal_low,t2 all,2,cue,sfx,"""alarm_coal""",,knob
+alert_pressure_high,t2 all,0,shake,trauma,0.3,0-1; camera <= 28 px (tier 2); visible from about 0.3,knob
+alert_pressure_high,t2 all,1,flash,scope,"""vignette""",,knob
+alert_pressure_high,t2 all,1,flash,color,"""@style.brand.danger_red""",,knob
+alert_pressure_high,t2 all,1,flash,peak,0.22,screen/vignette <= 0.35 (red 0.25); element exempt,knob
+alert_pressure_high,t2 all,1,flash,in,0.05,,knob
+alert_pressure_high,t2 all,1,flash,hold,0.1,,knob
+alert_pressure_high,t2 all,1,flash,out,0.5,,knob
+alert_pressure_high,t2 all,2,haptic,effect,"""Custom""",,knob
+alert_pressure_high,t2 all,2,haptic,keys,"[[0, 0.7], [80, 0], [220, 0.5], [300, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+alert_pressure_high,t2 all,3,cue,sfx,"""alarm_pressure""",,knob
+alert_pressure_high,t2 all,3,cue,vfx,"""steam_valve""",,knob
+alert_breakdown,t2 all,0,shake,trauma,0.45,0-1; camera <= 28 px (tier 2); visible from about 0.3,knob
+alert_breakdown,t2 all,1,camkick,angles_deg,"[0.66, 0.0, 0.44]","delivered peak deg: kick <= 4, roll <= 2, >= 1.5 px on the phone; + pitch = view up",knob
+alert_breakdown,t2 all,1,camkick,freq_hz,5,0.5-8 Hz,knob
+alert_breakdown,t2 all,1,camkick,damping,0.4,0.05-0.95,knob
+alert_breakdown,t2 all,1,camkick,dur,0.6,,knob
+alert_breakdown,t2 all,2,flash,scope,"""screen""",,knob
+alert_breakdown,t2 all,2,flash,color,"""#FFFFFF""",,knob
+alert_breakdown,t2 all,2,flash,peak,0.2,screen/vignette <= 0.35 (red 0.25); element exempt,knob
+alert_breakdown,t2 all,2,flash,in,0.03,,knob
+alert_breakdown,t2 all,2,flash,hold,0.0,,knob
+alert_breakdown,t2 all,2,flash,out,0.25,,knob
+alert_breakdown,t2 all,3,haptic,effect,"""GameplayCollision""",,knob
+alert_breakdown,t2 all,3,haptic,keys,"[[0, 0.9], [120, 0.3], [300, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+alert_breakdown,t2 all,4,cue,sfx,"""breakdown_bang""",,knob
+alert_breakdown,t2 all,4,cue,vfx,"""sparks_powerbox""",,knob
+alert_passengers_upset,t2 all,0,haptic,effect,"""UINotification""",,knob
+alert_passengers_upset,t2 all,0,haptic,keys,"[[0, 0.45], [50, 0], [120, 0.45], [170, 0], [240, 0.45], [290, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+alert_passengers_upset,t2 all,1,cue,sfx,"""passengers_scream""",,knob
+alert_fare_banked,t4 all,0,tween stamp.scale,from,1.8,,knob
+alert_fare_banked,t4 all,0,tween stamp.scale,to,1,,knob
+alert_fare_banked,t4 all,0,tween stamp.scale,dur,0.2,> 0 s,knob
+alert_fare_banked,t4 all,0,tween stamp.scale,style,"""Quad""",Enum.EasingStyle,knob
+alert_fare_banked,t4 all,0,tween stamp.scale,dir,"""In""",,knob
+alert_fare_banked,t4 all,0,tween stamp.scale,delay,0.2,,knob
+alert_fare_banked,t4 all,1,tween cash.count,from,0,,knob
+alert_fare_banked,t4 all,1,tween cash.count,to,1,,knob
+alert_fare_banked,t4 all,1,tween cash.count,dur,0.6,> 0 s,knob
+alert_fare_banked,t4 all,1,tween cash.count,style,"""Quad""",Enum.EasingStyle,knob
+alert_fare_banked,t4 all,1,tween cash.count,dir,"""Out""",,knob
+alert_fare_banked,t4 all,1,tween cash.count,delay,0.2,,knob
+alert_fare_banked,t4 all,2,punch ticket.scale,amp,0.036,"delivered peak, <= 0.3",knob
+alert_fare_banked,t4 all,2,punch ticket.scale,freq_hz,6,2-14 Hz,knob
+alert_fare_banked,t4 all,2,punch ticket.scale,damping,0.35,0.05-0.95 (spring ends under 5% of its peak),knob
+alert_fare_banked,t4 all,2,punch ticket.scale,dur,0.4,,knob
+alert_fare_banked,t4 all,2,punch ticket.scale,delay,0.4,,knob
+alert_fare_banked,t4 all,3,haptic,effect,"""Custom""",,knob
+alert_fare_banked,t4 all,3,haptic,keys,"[[400, 0.4], [440, 0], [490, 0.6], [540, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+alert_fare_banked,t4 all,4,cue,sfx,"""cash_register""",,knob
+lever,,,drag,notch,0.6,,knob
+lever,,,drag,detent,0.7,,knob
+lever,,,drag,resist,1.6,,knob
+lever,,,drag,throw_deg,35,,knob

@@ -7,26 +7,30 @@ budgeted for phones, judged by multiuse-critic.
 
 ## Pipeline
 ```
-bible get (canon slice) -> presets/*.json (source of truth)
-  -> vfx.py validate   schema + Roblox ranges, canon refs, colour gate, OQ refs, per-preset budget
+bible get (canon slice) -> vfx init WORK (copy of presets/, the source of truth for this run; --presets WORK after)
+  -> vfx.py validate   schema + Roblox ranges, canon values (number next to the property), colour gate, OQ refs,
+                       every look x override, budget-set membership, flash safety
   -> vfx.py budget     concurrency sets (worst crisis at once) vs phone/PC tiers
-  -> vfx.py preview    lighting: lookdev_bpy.py (Cycles + numpy post: fog, bloom, sun rays, colour correction)
-                       vfx: fxsim.py (Roblox particle semantics re-implemented, Pillow) -> strips + POV composite
-                       -> contact sheets via multiuse-critic/contact_sheet.py + facts.md (measured)
-  -> vfx.py crit       CRIT/rubric.md = critic rubric + Profile F (effects and lighting); brief from canon
+  -> vfx.py preview all NAMES   lookdev_bpy.py plates per look x camera (roof3p, door1p, near: cab1p, coach1p) + phone
+                       plates at 844x390; fxsim.py strips + POV composites (PC and phone rates) with per-preset
+                       visibility; ONE board: contact.png (phone POV 1:1 + views), closeups.png (strips 1:1),
+                       facts.md, manifest.json. `preview vfx NAMES` rebuilds POVs + board over existing plates.
+  -> vfx.py crit --from PREVIEW   CRIT/rubric.md = critic rubric + Profile F; brief from the manifest (one critic)
   -> critic_kit.py build --profile F -> independent critic (never self-scored)
-  -> vfx.py build      RR_FXPresets.lua + RR_LightingPresets.lua (generated) + RR_VFX.lua, RR_Lighting.lua,
-                       RR_FXDemo.client.lua, studio_lighting_setup.lua; luaparse + bible check gates
+  -> vfx.py build [--only NAMES]  RR_FXPresets.lua + RR_LightingPresets.lua (generated) + RR_VFX.lua, RR_Lighting.lua,
+                       RR_FXDemo.client.lua, studio_lighting_setup.lua, README with wiring; luaparse + bible check
+  -> luatest.py        runtime logic in Lua 5.1 (lupa) against Roblox stubs
 ```
 
 ## Files
-- `presets/vfx.json` 12 presets (steam x2, smoke, sparks x2, coal dust, firebox glow, headlamp, glass,
-  derail explosion, boiler burst, rain) + 2 trails + declared effect colours.
-- `presets/lighting.json` base + 4 times (day, golden, night, storm) + 5 biomes (grassland, cutting, viaduct,
-  yard, depot) + 2 overrides (tunnel_under canon, overbridge_flash proposed).
+- `presets/vfx.json` 13 presets (steam x2, smoke, sparks x3 incl. brake, coal dust, firebox glow, headlamp, glass,
+  derail explosion, boiler burst, rain) + 2 trails + declared effect colours + the preview stand (anchors as canon
+  envelope expressions, near cameras).
+- `presets/lighting.json` base + 5 times (day, golden, dusk on grassland only, night, storm) + 5 biomes + 2 overrides
+  (tunnel_under canon, overbridge_flash proposed, marked flash) + preview sets (default looks, POV sets).
 - `presets/budgets.json` phone and PC tiers, per-priority rate scale, concurrency sets. Default of OQ-029.
-- `scripts/vfx.py` (stdlib CLI), `preview.py` (orchestration for preview and crit), `fxsim.py` (Pillow),
-  `lookdev_bpy.py` (bpy + numpy), `selftest.py`.
+- `scripts/vfx.py` (stdlib CLI), `preview.py` (plan, board, crit), `fxsim.py` (Pillow), `lookdev_bpy.py` (bpy + numpy),
+  `luatest.py` (lupa), `selftest.py`.
 - `assets/luau/` hand-written runtime modules; `references/` presets.md, fidelity.md, rubric-fx.md.
 
 ## Decisions (with why)
@@ -48,11 +52,21 @@ bible get (canon slice) -> presets/*.json (source of truth)
    streamer spawn edge, train-vs-world value contrast, ground saturation vs canon, frame-mean band check,
    particle overdraw on the POV. `references/fidelity.md` lists every mapping and what to verify in Studio.
 8. **Critic Profile F** (signal, form and motion, colour and value, phone read, style match, polish) is
-   merged into CRIT/rubric.md so critic_kit.py works unchanged.
+   merged into CRIT/rubric.md so critic_kit.py works unchanged. One board and one critic per pack
+   (rr-mission-control: one critic per mission).
+9. **Visibility is measured, not eyeballed** (trial 2026-09-28: brake sparks were invisible from every roof view and
+   nothing said so): per-preset visible / hidden / covered per POV, a WARN under 0.1% of the screen, cameras near
+   each anchor (cab, coach, door) so every crisis signal has a player view.
+10. **Work copy always**: runs never edit the shipped library; every command prints the folder it read.
+11. **Runtime start rules**: crisis and event loops start off; look-driven presets follow the look even when
+    attached late; burst lights are owned by the burst (a refresh used to switch flashes off mid-burst).
+12. **Flash safety**: one flashes setting softens pulses, freezes flicker and skips flash overrides
+    (av.feel.flash_limit, OQ-032), matching rr-game-feel.
 
 ## Canon plugged in (read at run time, never copied)
-tech.camera.* (eyes, FOV), tech.units.* (segment, poles, train length, ballast), tech.streaming.window,
-gameplay.speed.*, tech.lighting.*, style.* tokens, style.dont.*, av.vfx.*, world.prefabs.10 (tunnel bore).
+tech.camera.* (eyes, FOV, cab_view), tech.units.* (segment, poles, train length, ballast, gauge, stock_width,
+stock_roof, stock_floor, train_doorway), tech.ui_platform.phone, tech.streaming.window, gameplay.speed.*,
+tech.lighting.*, style.* tokens (incl. style.form.rails, style.thumb.glow), style.dont.*, av.vfx.*, world.prefabs.10.
 
 ## Open decisions recorded in the bible
 OQ-026 time of day (default C: looks change only with biome or fork modifier), OQ-027 weather (default A:

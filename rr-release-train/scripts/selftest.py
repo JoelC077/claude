@@ -3,12 +3,17 @@
 
   selftest.py [--keep]      run everything; prints one line per check and "all N passed"; --keep keeps the temp dir
 
-Covers: semver rules, placefile (binary LZ4, ZSTD when the zstandard module exists, XML), collect (conventional
-commits, trailers, tooling vs game repo, missions, script diff), mark/version/changelog, notes-check failures and
-pass, gates (pending -> GO), owner-only refusals, approval voiding, publish dry-run and --live against a local mock
-of the Open Cloud endpoints (Saved -> Luau tests -> Published -> restart), a failing Luau test that stops a publish,
-the Studio route + record, smoke -> rollback advice, live rollback, abandon, and run_tests.lua in Lua 5.1 (lupa,
-optional: pip install --target ~/.cache/rr-tools/py lupa). Canon is read from the real rr-bible (read-only).
+Covers: semver rules, placefile (binary LZ4, ZSTD when the zstandard module exists, XML), mission discovery,
+collect (conventional commits, trailers, tooling vs game repo, missions, script diff), mark --via, version
+(proposal/apply/owner-named/--after seed), changelog [Unreleased] -> dated at publish, notes-check (every line
+traced, promises, sidings, outputs only on PASS), gates (security binding, fresh critic ledgers, hygiene: debug
+names, blank asset ids, demo scripts; G10 channel block), owner-only refusals incl. security self-certification,
+approval voiding (files, Luau-tests setting, a changed security verdict caught by the live re-gate), key
+introspection, publish dry-run and --live against a local mock of Open Cloud (Saved -> Luau tests -> Published ->
+restart with the canon bleed-off), a failing Luau test that stops a publish, smoke validation and rollback advice,
+live rollback (target, no second rollback without --to, logs kept apart), the Studio route + record, abandon, and
+run_tests.lua in Lua 5.1 (lupa, optional: pip install --target ~/.cache/rr-tools/py lupa). Canon is read from the
+real rr-bible (read-only).
 """
 import http.server
 import importlib.util
@@ -37,7 +42,7 @@ def check(name, cond, detail=""):
 
 
 # ---------------------------------------------------------------- fixtures
-def make_place(path, version, grow=False, union=False, debug=False, spec_ok=True):
+def make_place(path, version, grow=False, union=False, debug=False, spec_ok=True, junk=False):
     I, r = [], [0]
 
     def add(cls, parent, **props):
@@ -50,7 +55,14 @@ def make_place(path, version, grow=False, union=False, debug=False, spec_ok=True
     sss = add("ServerScriptService", None, Name="ServerScriptService")
     add("ModuleScript", rs, Name="RR_Version", Source=f'return {{ version = "{version}", channel = "alpha" }}\n')
     add("ModuleScript", sss, Name="Coal", Source=f"local DEBUG = {'true' if debug else 'false'}\n"
+        "local antiCheatEnabled = true\nlocal CHEAT_DETECTION = true\n"
         'local Store = ProfileStore.New("PlayerData_alpha1", {})\nreturn {}\n')
+    add("Script", sss, Name="Main", Source="local Coal = require(script.Parent.Coal)\n")
+    if junk:
+        add("ModuleScript", rs, Name="Icons", Source='return { Sheet = "rbxassetid://0" }\n')
+        sp = add("StarterPlayer", None, Name="StarterPlayer")
+        add("LocalScript", sp, Name="AlertDemo", Source="local I = require(game.ReplicatedStorage.Icons)\n")
+        add("Decal", ws, Name="Sign", Texture="rbxassetid://0")
     add("ModuleScript", sss, Name="Coal.spec", Source="return { a = function() assert(%s) end }\n" % str(spec_ok).lower())
     train = add("Model", ws, Name="Train")
     for i in range(40 if grow else 20):
@@ -98,9 +110,14 @@ def make_git(repo):
 def make_mission(root, slug, kind, agent, score):
     d = root / slug
     (d / "critique-x").mkdir(parents=True)
+    (d / "export").mkdir()
     (d / "state.json").write_text(json.dumps({"slug": slug, "kind": kind, "status": "done", "bar": 8}))
     (d / "mission.md").write_text(f"# Mission\nObjective: Build the {slug} thing, to 8/10, exported\n")
-    (d / "critique-x" / "ledger.json").write_text(json.dumps([{"pass": 1, "agent": agent, "scores": {"A1": score}}]))
+    (d / "critique-x" / "ledger.json").write_text(json.dumps([{"pass": 1, "kind": "full", "agent": agent,
+                                                               "scores": {"A1": score}}]))
+    (d / "export" / "ASSETS.md").write_text("| src/AlertDemo.client.lua | StarterPlayerScripts | LocalScript (Studio "
+                                            "test; delete for release) |\n- Watch: overflow chip position after UIScale.\n")
+    return d
 
 
 class Mock(http.server.BaseHTTPRequestHandler):
@@ -131,7 +148,7 @@ class Mock(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
         s = self.state
         body = self.rfile.read(int(self.headers.get("Content-Length", 0)))
-        if self.headers.get("x-api-key") != "test-key":
+        if self.headers.get("x-api-key") != "test-key" and self.path != "/api-keys/v1/introspect":
             return self._send(401, {"error": "bad key"})
         m = re.match(r"^/universes/v1/(\d+)/places/(\d+)/versions\?versionType=(Saved|Published)$", self.path)
         if m:
@@ -147,6 +164,13 @@ class Mock(http.server.BaseHTTPRequestHandler):
             s["calls"].append(("Luau", m.group(2), ver, None))
             return self._send(200, {"path": f"universes/{m.group(1)}/places/{m.group(2)}/versions/{m.group(3)}/"
                                             f"luau-execution-sessions/s1/tasks/{tid}", "state": "QUEUED"})
+        if self.path == "/api-keys/v1/introspect":
+            ok = json.loads(body).get("apiKey") == "test-key"
+            s["introspect"] = s.get("introspect", 0) + 1
+            return self._send(200 if ok else 401, {"name": "k", "enabled": True, "expired": s.get("expired", False),
+                                                   "scopes": [{"name": n, "operations": ["write"], "universeIds": ["100"]}
+                                                              for n in ("universe-places", "universe",
+                                                                        "universe.place.luau-execution-session")]})
         if re.match(r"^/cloud/v2/universes/\d+:restartServers$", self.path):
             s["calls"].append(("Restart", json.loads(body), None, None))
             return self._send(200, {})
@@ -184,11 +208,11 @@ def main():
         make_place(tmp / "a.rbxl", "0.1.0-alpha.1")
         P = placefile.load(tmp / "a.rbxl")
         a = placefile.audit(P)
-        check("placefile: binary LZ4 read", a["instances"] == 27 and a["stamp_version"] == "0.1.0-alpha.1", a["instances"])
+        check("placefile: binary LZ4 read", a["instances"] == 28 and a["stamp_version"] == "0.1.0-alpha.1", a["instances"])
         if importlib.util.find_spec("zstandard"):
             zstd_copy(tmp / "a.rbxl", tmp / "z.rbxl")
             Z = placefile.load(tmp / "z.rbxl")
-            check("placefile: ZSTD chunks read", len(Z.insts) == 27 and "zstd" in Z.compression, dict(Z.compression))
+            check("placefile: ZSTD chunks read", len(Z.insts) == 28 and "zstd" in Z.compression, dict(Z.compression))
         else:
             print("skip placefile ZSTD: zstandard not installed")
         (tmp / "x.rbxlx").write_text('<roblox version="4"><Item class="Workspace" referent="R0"><Properties>'
@@ -200,13 +224,22 @@ def main():
         # setup
         make_git(tmp / "game")
         ms = tmp / "missions"
-        make_mission(ms, "260101-hud", "ui", "independent-critic", 8)
+        hud = make_mission(ms, "260101-hud", "ui", "independent-critic", 8)
         make_mission(ms, "260102-wagon", "3d", "self-review", 8)
+        home = tmp / "home"
+        (home / ".rr-missions" / "260103-x").mkdir(parents=True)
+        (home / ".rr-missions" / "260103-x" / "state.json").write_text("{}")
+        p_ = subprocess.run([sys.executable, str(HERE / "rtlib.py"), "where"], capture_output=True, text=True,
+                            env=dict(env, HOME=str(home)), cwd=tmp)
+        check("missions: ~/.rr-missions (mission-control's default) is discovered", ".rr-missions" in p_.stdout, p_.stdout)
         make_place(tmp / "Lobby.rbxl", "0.1.0-alpha.1")
         make_place(tmp / "Trip.rbxl", "0.1.0-alpha.1")
-        R("config", "--place", "Lobby", "--universe", "100", "--place-id", "200", "--start", code=0)
+        c, o = R("config", "--place", "Lobby", "--universe", "100", "--place-id", "200", "--start", code=0)
+        check("config prints one line, not the JSON", o.count("\n") == 1 and "{" not in o, o)
         R("config", "--place", "Trip", "--universe", "100", "--place-id", "300", "--repo", str(tmp / "game"),
           "--missions", str(ms), code=0)
+        c, o = R("config", "--bleed", "0")
+        check("config refuses a 0-minute bleed-off", c == 2)
         R("init", "--channel", "alpha", code=0)
         c, o = R("init", code=2)
         check("init refuses a second release in flight", c == 2)
@@ -222,31 +255,42 @@ def main():
         check("collect: refactor and Release-Note skip are internal",
               ch["Split module"]["audience"] == "internal" and ch["Tweak seat colours"]["audience"] == "internal")
         check("collect: missions need in-build confirmation",
-              sum(1 for x in rel["changes"] if x["in_build"] == "unknown") == 2 and "mark" in o)
+              sum(1 for x in rel["changes"] if x["in_build"] == "unknown") == 2 and "--via" in o)
         ids = {x["src"].split(":")[1]: x["id"] for x in rel["changes"] if x["src"].startswith("mission:")}
         R("mark", ids["260101-hud"], "--in-build", "yes", "--title", "New HUD alerts", code=0)
         R("mark", ids["260102-wagon"], "--in-build", "no", code=0)
+        c, o = R("collect", code=0)
+        check("collect stops asking to retitle a retitled mission", "retitle" not in o, o[-300:])
         c, o = R("version", code=0)
-        check("version: 0.1.0-alpha.1", "0.1.0-alpha.1" in o, o)
+        check("version: sets 0.1.0-alpha.1 when none is set", "0.1.0-alpha.1" in o, o)
         R("changelog", "--apply", code=0)
         R("changelog", "--apply", code=0)
         cl = (tmp / "rel/CHANGELOG.md").read_text()
-        check("changelog --apply is idempotent", cl.count("## [0.1.0-alpha.1]") == 1 and "### Fixed" in cl)
+        check("changelog --apply: one [Unreleased] section, not dated on draft day",
+              cl.count("## [Unreleased]") == 1 and "## [0.1.0-alpha.1]" not in cl and "### Fixed" in cl, cl[:400])
         c, o = R("notes", code=0)
-        check("notes brief carries canon voice", "identity.tone.company" in o and "D-007" in o, o[-400:])
+        brief = (tmp / "rel/next/NOTES_BRIEF.md").read_text()
+        check("notes: brief holds template + canon voice; stdout is one summary line",
+              "identity.tone.company" in brief and "D-007" in brief and "# Risky Rails" in brief
+              and o.count("\n") <= 2, o[-300:])
         player = [x for x in json.loads((tmp / "rel/next/release.json").read_text())["changes"]
                   if x["audience"] == "player" and x["in_build"] == "yes"]
         internal = next(x["id"] for x in rel["changes"] if x["audience"] == "internal")
         nd = tmp / "rel/next"
-        (nd / "PATCH_NOTES.src.md").write_text(f"# Notes\n- untagged claim\n- Buy the pass for better odds! [{player[0]['id']}]\n"
-                                               f"- Refactored stuff [{internal}]\n- Flight or Die crossover [C-99]\n")
+        (nd / "PATCH_NOTES.src.md").write_text(f"# Notes: 50% off everything\nA notice from Management.\n"
+                                               f"- untagged claim\n- Buy the pass for better odds! [{player[0]['id']}]\n"
+                                               f"- Refactored stuff [{internal}]\n- Flight or Die crossover [C-99]\n"
+                                               "The diesel train arrives next week.\n")
         (nd / "STORE_UPDATE.src.txt").write_text("Free coins giveaway this week\n")
         c, o = R("notes-check", code=1)
         check("notes-check catches untagged, D-007, internal, unknown tag, banned name, store rules, coverage",
               all(k in o for k in ("no [C-n] tag", "D-007", "is internal", "C-99", "Flight or Die", "free",
                                    "do not cover")), o[-900:])
+        check("notes-check traces non-bullet lines: untraced notice, number, promise, parked siding",
+              all(k in o for k in ("untraced line", "number 50%", "promises future content", "parked siding")), o[-900:])
+        check("notes-check FAIL writes no 'clean' outputs", not (nd / "PATCH_NOTES.md").exists())
         tags = " ".join(f"[{x['id']}]" for x in player)
-        (nd / "PATCH_NOTES.src.md").write_text("# Risky Rails 0.1.0-alpha.1\n\nA notice from Management.\n\n"
+        (nd / "PATCH_NOTES.src.md").write_text("# Risky Rails 0.1.0-alpha.1: the company regrets nothing\n\n"
                                                + "".join(f"- {x['title']}. [{x['id']}]\n" for x in player)
                                                + "\nMind the gap.\n")
         (nd / "STORE_UPDATE.src.txt").write_text(f"UPDATE: coal-low firebox flicker, new HUD alerts. {tags}\n"
@@ -254,47 +298,93 @@ def main():
         c, o = R("notes-check", code=0)
         check("notes-check passes clean notes and strips tags", c == 0 and "[C-" not in (nd / "PATCH_NOTES.md").read_text(), o)
         c, o = R("gate")
+        g = (nd / "GATES.md").read_text()
         check("gate: NO-GO while security and bug bash are pending", c == 1 and "G5   security        PENDING" in o, o)
+        check("gate: agent-marked in-build change is flagged (no --via)", "agent's word" in g, g[:600])
+        check("gate: debug names: DEBUG-style flags only (antiCheatEnabled, CHEAT_DETECTION pass)",
+              "antiCheatEnabled" not in g and "CHEAT_DETECTION" not in g)
+        check("gate: G7 first release asks for phone evidence", "no baseline" in g, g[:900])
+        R("mark", ids["260101-hud"], "--via", "chat selftest", code=0)
         c, o = R("evidence", "bugbash", "--result", "pass", "--by", "claude")
         check("evidence refuses a non-owner", c == 2 and "owner" in o)
+        c, o = R("evidence", "security", "--result", "pass")
+        check("security cannot be self-certified (no --by owner, no verdict file)", c == 2, o)
+        (tmp / "bogus.json").write_text(json.dumps({"verdict": "PASS"}))
+        c, o = R("evidence", "security", "--file", str(tmp / "bogus.json"))
+        check("security evidence file must be an rr-exploit-guard verdict", c == 1 and "rr-exploit-guard" in o, o)
         R("evidence", "bugbash", "--result", "pass", "--by", "owner", "--note", "selftest", code=0)
-        (nd / "security").mkdir()
-        (nd / "security/SECURITY_GATE.json").write_text(json.dumps({"verdict": "PASS", "blocking": [], "hold": [],
-                                                                     "stage": "static+review", "scanned_at": now()}))
+
+        def sec(verdict, stage="alpha", d=nd):
+            r = json.loads((d / "release.json").read_text())
+            (d / "security").mkdir(exist_ok=True)
+            (d / "security/SECURITY_GATE.json").write_text(json.dumps({
+                "skill": "rr-exploit-guard", "verdict": verdict, "blocking": [], "hold": [], "stage": stage,
+                "scanned_at": now(), "places": {f"{n}:{Path(i['file']).name}": i["sha256"] for n, i in r["places"].items()}}))
+        sec("PASS", stage="beta")
         c, o = R("gate")
-        check("gate: GO once evidence is in (G6 deferred to Luau tests, G8 certified)",
+        check("G5: a verdict for another stage is not accepted", "G5   security        PENDING" in o, o)
+        sec("PASS")
+        c, o = R("gate")
+        check("G8: independent 8/8 without a final pass is not certified", "G8   visuals         WARN" in o, o)
+        led = hud / "critique-x" / "ledger.json"
+        led.write_text(json.dumps(json.loads(led.read_text()) + [{"pass": 2, "kind": "final", "agent": "critic-2",
+                                                                    "scores": {"A1": 8}}]))
+        c, o = R("gate")
+        check("gate: GO once evidence is in (G6 deferred, G8 re-reads the ledger: final pass agrees)",
               c == 0 and "G8   visuals         PASS" in o and "deferred" in (nd / "GATES.md").read_text(), o)
         c, o = R("approve", "--by", "claude", "--via", "x")
         check("approve refuses a non-owner", c == 2)
         R("approve", "--by", "owner", "--via", "selftest", code=0)
+        R("config", "--luau-tests", "off", code=0)
+        c, o = R("status", code=0)
+        check("turning Luau tests off after approval voids it", "void" in o and "luau_tests" in o, o)
+        R("config", "--luau-tests", "on", code=0)
+        sec("FAIL")
+        n0 = len(Mock.state["calls"])
+        c, o = R("publish", "--live", "--confirm", "0.1.0-alpha.1")
+        check("live publish re-runs the gates: a FAIL verdict after approval stops it",
+              c == 1 and "NO-GO" in o and len(Mock.state["calls"]) == n0, o[-300:])
         make_place(tmp / "Trip.rbxl", "0.1.0-alpha.1", debug=True)
         R("attach", "Trip", str(tmp / "Trip.rbxl"), code=0)
+        sec("PASS")
         c, o = R("status", code=0)
         check("re-attaching voids the approval", "void" in o, o)
-        c, o = R("publish", "--live", "--confirm", "0.1.0-alpha.1")
-        check("live publish refused with a void approval", c == 1 and "approval" in o)
         R("gate", code=0)
         R("approve", "--by", "owner", "--via", "selftest", code=0)
         c, o = R("publish", code=0)
-        check("publish without --live is a dry run", "DRY RUN" in o and not Mock.state["calls"], o[-300:])
+        check("publish without --live is a dry run (key introspected, nothing published)",
+              "DRY RUN" in o and "Ready" in o and not Mock.state["calls"] and Mock.state.get("introspect"), o[-300:])
         c, o = R("publish", "--live", "--confirm", "0.9.9")
         check("live publish needs --confirm VERSION", c == 1 and "--confirm" in o)
+        Mock.state["expired"] = True
+        c, o = R("publish", "--live", "--confirm", "0.1.0-alpha.1")
+        check("live publish refused on an expired key (introspect)", c == 1 and "expired" in o, o[-300:])
+        Mock.state["expired"] = False
         c, o = R("publish", "--live", "--confirm", "0.1.0-alpha.1", "--restart", code=0)
         kinds = [x[0] for x in Mock.state["calls"]]
         check("live publish: Saved x2 -> Luau x2 -> Published x2 -> restart",
               kinds == ["Saved", "Saved", "Luau", "Luau", "Published", "Published", "Restart"], kinds)
+        check("restart bleed-off comes from canon (trip + results + boarding)",
+              Mock.state["calls"][-1][1].get("bleedOffDurationMinutes") == 14, Mock.state["calls"][-1])
         check("start place published last", [x[1] for x in Mock.state["calls"] if x[0] == "Published"] == ["300", "200"])
         hist = json.loads((tmp / "rel/history.json").read_text())
-        check("history records the release and next/ is archived",
+        cl = (tmp / "rel/CHANGELOG.md").read_text()
+        check("history records the release, next/ is archived, CHANGELOG dated at publish",
               hist[-1]["version"] == "0.1.0-alpha.1" and (tmp / "rel/0.1.0-alpha.1/release.json").is_file()
-              and not (tmp / "rel/next").exists())
-        c, o = R("smoke", "--result", "S1=pass,S2=fail", "--by", "owner")
-        check("smoke: P0 fail recommends rollback", c == 1 and "ROLLBACK RECOMMENDED" in o, o)
-        # release 2: patch, script diff, growth, failing then passing Luau tests
+              and not (tmp / "rel/next").exists() and "## [0.1.0-alpha.1] - " in cl and "## [Unreleased]" in cl, cl[:300])
+        c, o = R("status", code=0)
+        check("status after a publish points at the open smoke checks", "smoke open" in o and "S1" in o, o)
+        c, o = R("smoke", "--result", "S1=pss", "--by", "owner")
+        check("smoke rejects a result that is not pass/fail/skip", c == 2)
+        c, o = R("smoke", "--result", "S99=pass", "--by", "owner")
+        check("smoke rejects an unknown id", c == 2)
+        c, o = R("smoke", "--result", "S1=pass,s2=fail", "--by", "owner")
+        check("smoke: ids normalised; P0 fail recommends rollback", c == 1 and "ROLLBACK RECOMMENDED" in o, o)
+        # release 2: patch, script diff, growth, junk, failing then passing Luau tests
         subprocess.run(["git", "-C", str(tmp / "game"), "commit", "-q", "--allow-empty", "-m", "fix: coal counter"],
                        check=True)
         make_place(tmp / "Trip2.rbxl", "0.1.0-alpha.2", grow=True, debug=True)
-        make_place(tmp / "Lobby2.rbxl", "0.1.0-alpha.2")
+        make_place(tmp / "Lobby2.rbxl", "0.1.0-alpha.2", junk=True)
         R("init", code=0)
         R("attach", "Lobby", str(tmp / "Lobby2.rbxl"), code=0)
         R("attach", "Trip", str(tmp / "Trip2.rbxl"), code=0)
@@ -310,43 +400,78 @@ def main():
         pid = [x["id"] for x in rel["changes"] if x["audience"] == "player" and x["in_build"] == "yes"]
         (tmp / "rel/next/PATCH_NOTES.src.md").write_text("# Fixes\n" + "".join(f"- Coal counter fixed. [{i}]\n" for i in pid))
         R("notes-check", code=0)
-        (tmp / "rel/next/security").mkdir()
-        (tmp / "rel/next/security/SECURITY_GATE.json").write_text(json.dumps({"verdict": "HOLD", "scanned_at": now()}))
+        sec("HOLD", d=tmp / "rel/next")
         c, o = R("gate", code=0)
         g = (tmp / "rel/next/GATES.md").read_text()
         check("gate: HOLD warns in alpha, growth and debug flag warn", "G5   security        WARN" in o
               and "parts 20->40" in g and "debug flag DEBUG" in g, o)
+        check("G9: blank asset ids (script + property), demo script, demo-only module",
+              all(k in g for k in ("blank asset id rbxassetid://0", "blank asset ids in properties", "AlertDemo",
+                                   "only a demo script requires: Icons")), g[-1500:])
         R("approve", "--by", "owner", "--via", "selftest", code=0)
         Mock.state["fail_tests"], n0 = True, len(Mock.state["calls"])
         c, o = R("publish", "--live", "--confirm", "0.1.0-alpha.2")
         check("failing Luau tests stop the publish before anything goes live",
               c == 1 and "Published" not in [x[0] for x in Mock.state["calls"][n0:]], o[-300:])
         Mock.state["fail_tests"] = False
+        R("gate", code=0)
+        R("approve", "--by", "owner", "--via", "selftest", code=0)
         R("publish", "--live", "--confirm", "0.1.0-alpha.2", code=0)
         c, o = R("rollback", code=0)
-        check("rollback dry run targets the previous release", "0.1.0-alpha.2 -> 0.1.0-alpha.1" in o and "DRY RUN" in o, o)
+        check("rollback dry run: previous release, publish-only requests",
+              "0.1.0-alpha.2 -> 0.1.0-alpha.1" in o and "DRY RUN" in o and "Saved" not in o, o)
         c, o = R("rollback", "--live", "--confirm", "0.1.0-alpha.1")
         check("live rollback needs --by owner", c == 2)
         n0 = len(Mock.state["calls"])
         R("rollback", "--live", "--confirm", "0.1.0-alpha.1", "--by", "owner", code=0)
         hist = json.loads((tmp / "rel/history.json").read_text())
-        check("live rollback re-publishes archived files and marks the release",
-              hist[-1]["status"] == "rolled_back" and [x[0] for x in Mock.state["calls"][n0:]] == ["Published", "Published"])
-        # release 3: Studio route (union) + record, then abandon
-        make_place(tmp / "Lobby3.rbxl", "0.1.1-alpha.1", union=True)
+        plog = json.loads((tmp / "rel/0.1.0-alpha.2/publish-log.json").read_text())
+        check("live rollback re-publishes archived files, marks the release, keeps the publish log",
+              hist[-1]["status"] == "rolled_back" and [x[0] for x in Mock.state["calls"][n0:]] == ["Published", "Published"]
+              and any(x["step"] == "published" for x in plog) and (tmp / "rel/0.1.0-alpha.2/rollback-log.json").is_file())
+        c, o = R("rollback")
+        check("no second rollback without the owner naming --to", c == 1 and "--to" in o, o)
+        # release 3: rolled-back changes come back; ROLLBACK.md targets what is live; Studio route + record
+        make_place(tmp / "Lobby3.rbxl", "0.1.0-alpha.3", union=True)
         R("init", code=0)
         c, o = R("attach", "Lobby", str(tmp / "Lobby3.rbxl"), code=0)
         check("unions force the Studio route", "route studio" in o, o)
-        R("add", "Seats are comfier", "--section", "Changed", code=0)
-        R("version", code=0)
-        c, o = R("publish", "--live", "--confirm", "0.1.1-alpha.1")
+        c, o = R("collect", code=0)
+        check("changes of a rolled-back release come back", "Coal counter" in o, o[-600:])
+        R("add", "Seats are comfier", "--section", "Changed", "--via", "chat selftest", code=0)
+        c, o = R("version", code=0)
+        R("plan", code=0)
+        rb = (tmp / "rel/next/ROLLBACK.md").read_text()
+        check("ROLLBACK.md targets the live content (alpha.1 restored), not the rolled-back build",
+              "Target: 0.1.0-alpha.1" in rb and "rollback of 0.1.0-alpha.2" in rb, rb[:500])
+        c, o = R("publish", "--live", "--confirm", "0.1.0-alpha.3")
         check("live publish refused on the Studio route", c == 1)
         c, o = R("record", "--place", "Lobby=77", "--by", "owner", code=0)
         hist = json.loads((tmp / "rel/history.json").read_text())
-        check("record logs a Studio publish", hist[-1]["route"] == "studio" and hist[-1]["places"]["Lobby"]["version_number"] == 77)
+        check("record logs a Studio publish; an unapproved one is marked in history",
+              hist[-1]["route"] == "studio" and hist[-1]["places"]["Lobby"]["version_number"] == 77
+              and hist[-1].get("unapproved_publish"))
         R("init", code=0)
+        R("add", "Placeholder", code=0)
+        R("version", code=0)
+        R("changelog", "--apply", code=0)
         R("abandon", "--reason", "selftest", code=0)
-        check("abandon shelves next/", any((tmp / "rel/abandoned").iterdir()) and not (tmp / "rel/next").exists())
+        cl = (tmp / "rel/CHANGELOG.md").read_text()
+        check("abandon shelves next/ and drops its [Unreleased] section",
+              any((tmp / "rel/abandoned").iterdir()) and not (tmp / "rel/next").exists()
+              and "Placeholder" not in cl, cl[:300])
+        # owner-named version, history seed, live-channel open-question block
+        seed = ["--root", str(tmp / "rel-seed")]
+        R(*seed, "init", "--channel", "live", code=0)
+        R(*seed, "add", "Bigger depot", "--bump", "minor", "--via", "chat selftest", code=0)
+        c, o = R(*seed, "version", "--after", "0.3.2", code=0)
+        check("version --after seeds history: the next minor is 0.4.0", "0.4.0" in o and "seeded" in o, o)
+        R(*seed, "version", "--set", "0.5.0", code=0)
+        c, o = R(*seed, "version", "--apply")
+        check("version --apply refuses to replace an owner-named version without --force", c == 2 and "owner" in o, o)
+        c, o = R(*seed, "gate")
+        check("G10 fails a live release while an OQ blocks the live channel (OQ-040)",
+              c == 1 and "G10  open questions  FAIL" in o and "OQ-040" in (tmp / "rel-seed/next/GATES.md").read_text(), o)
         # other CLIs
         for s in ("opencloud.py", "gates.py", "placefile.py", "rtlib.py"):
             p = subprocess.run([sys.executable, str(HERE / s), "--help"], capture_output=True, text=True)

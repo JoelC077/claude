@@ -459,7 +459,8 @@ def runtime(presets_lua, model, verbose=False):
           f"lever: left drag gives a negative knob ({v:.3f}); the detent tick plays at the notch, before the commit")
     rt.F.leverDrag(-0.9, ctx)
     yaws = [rt.step()[1] for _ in range(6)]
-    check(rt.cues.count("lever_commit") == 1 and min(yaws) < 0, f"lever: left commit kicks the camera to the left (yaw {min(yaws):.3f})")
+    check(rt.cues.count("lever_commit") == 1 and max(yaws) > 0 and min(yaws) >= 0,
+          f"lever: a left commit turns the view left, toward the pull (Roblox + yaw = left; peak {max(yaws):.3f})")
     check(rt.F.leverRelease(ctx) == "committed" and rt.F.leverDrag(0.9, ctx) == -1, "lever: stays committed to its side")
     ctx2 = rt.L.table_from({"fork": 2})
     ctx2.targets = ctx.targets

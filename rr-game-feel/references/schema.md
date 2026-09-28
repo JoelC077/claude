@@ -1,14 +1,19 @@
 # Preset format (presets/feel.json)
 
-Read before editing presets. `feel.py validate --strict` enforces every rule here.
+Read before editing presets. `feel.py validate --strict` enforces every rule here. Edit with
+`feel.py set 'PATH=VALUE' --presets F` (keeps canon bindings and the layout) or by hand, then `feel.py fmt`.
 
 ## Values
 - A plain number is a knob: tune it freely within `limits`.
-- `{"v": 0.5, "canon": "ui.hud.crisis_extra"}` is a canon number: validate fails unless the number (x `scale`,
-  e.g. 0.32 s x 1000 = 320 ms) appears in that rr-bible fact. Strings must equal the fact (`"844 x 390"`).
+- `{"v": 0.5, "canon": "ui.hud.crisis_extra", "match": "0.5 s"}` is a canon number: `match` is the phrase of the
+  fact (value or note) that holds it, and its first number must equal v x `scale` (e.g. 0.32 s x 1000 = 320 ms;
+  sign ignored). Without `match` the number only has to appear, and validate warns when the fact holds several
+  numbers (a 0.5 would pass against "0.5 s, +-5 px"). Strings must equal the fact (`"844 x 390"`).
 - `"@style.brand.hazard_yellow"` is a colour token resolved through rr-bible; `#FFFFFF`/`#000000` are neutral.
   Red (hue within ~15 deg of 0, saturated) is refused on events above tier 2 (style.dont.red_decoration).
-- Missing canon: `bible.py add-question` (options + default), cite the OQ in the event's `oq` list.
+- Missing canon: record the question (SKILL.md, Canon first) and cite it in the event's `oq` list; unrecorded (a
+  trial, or parallel skills writing the bible) = `OQ-TBD-<slug>`, a NOTE for the owner. validate warns when an
+  OQ's title shares no word with the event that cites it (a wrong number).
 
 ## Event
 ```json
@@ -16,7 +21,12 @@ Read before editing presets. `feel.py validate --strict` enforces every rule her
   "canon": ["ui.lever.commit"], "oq": ["OQ-031"], "alert": "gameplay.alerts.x",
   "include": [{"event": "hud_ticket_enter", "delay": 0.1}], "channels": [ ... ]}
 ```
-- `priority` tier: 1 fail, 2 crisis, 3 commit, 4 reward, 5 UI. Loudness must not exceed the loudest of a higher tier.
+- `priority` tier: 1 fail, 2 crisis, 3 commit, 4 reward, 5 UI. Loudness (camera, hit-stop, flash, FOV, haptic, UI
+  punch, and HUD alarm: pixel shake x length, halo pulse depth, stamp scale travel) must not exceed the median of
+  any higher tier. `quiet_ok: "why"` leaves a quiet-on-purpose event (its weight is sound or the world) out of its
+  tier's median; `loud_ok: "why"` lets an event exceed it. Single pairs are listed by `show` and in facts.md.
+- `rm_reads: "what"`: what still shows the event with Reduce Motion on when no feel channel does (the knob moves,
+  the world stops); printed in the spec and facts.
 - `who`: `local` (the pressing player), `actor` (only the acting player's client: hit-stop lives here), `crew`
   (everyone but the actor; no hit-stop), `all`.
 - `group` decides the preview folder and critic group; keep a group at 7 events or fewer (two images per critic).
@@ -26,10 +36,10 @@ Read before editing presets. `feel.py validate --strict` enforces every rule her
 | type | fields | runtime |
 |---|---|---|
 | tween | target, prop (scale, x, y, x_px, y_px, rot, alpha, count), from, to, dur, style, dir, before (from, rest, hidden) | engine easing (TweenService:GetValue) stepped on the feel clock |
-| punch | target, prop (scale, rot, x_px, y_px), amp, freq_hz, damping, dur, shape (sin, cos, noise) | damped spring or decaying noise, additive |
+| punch | target, prop (scale, rot, x_px, y_px), amp (delivered peak; sign = first direction), freq_hz, damping, dur, shape (sin, cos, noise) | damped spring or decaying noise normalised so its peak is amp, additive |
 | pulse | target, prop (alpha, scale), min, max, period, dur (omit = loop until handle:Stop()) | sine loop starting at min |
 | shake | trauma (0..1) | adds camera trauma |
-| camkick | angles_deg [pitch, yaw, roll], freq_hz, damping, dur, side_sign | spring on the camera; yaw and roll follow ctx.side |
+| camkick | angles_deg [pitch, yaw, roll] (delivered peak deg), freq_hz (limits.camkick_freq_hz), damping, dur, side_sign | normalised spring on the camera; yaw and roll follow ctx.side |
 | fovkick | delta_deg, in, hold, out, style_in, style_out | FOV offset envelope (named so no line reads as a FOV value) |
 | hitstop | ms | freezes this client's feel clock, character animation, registered emitters |
 | flash | scope (screen, vignette, element), color, peak, in, hold, out, target (element) | overlay; element = child frame |
@@ -44,16 +54,35 @@ GroupTransparency, else every transparency in the subtree); `count` 0..1 of `ctx
 hides the element until it starts). Motion channels run on the feel clock (they hold during hit-stop); flash,
 haptic, hit-stop and cue run on real time.
 
+Camera sign (Roblox `CFrame.Angles`, applied in camera space): pitch + tips the view up, - down; yaw + turns
+the view left; roll + tilts it left. side_sign multiplies yaw and roll by ctx.side (-1 = left), so "toward the
+pulled side" is a negative yaw and roll. A lurch forward, a nod or a thump from above is a negative pitch; a lean
+back is positive. validate warns when the intent's words and the pitch sign disagree.
+Visibility on a phone: camera kicks and shakes under `limits.kick_px_min` px and pixel punches under
+`limits.punch_px_min` are warned (nobody sees them); shake = trauma^power, so a trauma under about 0.3 is invisible.
+
 ## Reduce motion (`a11y.reduce_motion`, channel `rm` overrides)
 Numbers scale the channel (0 removes it); `fade` keeps the resting end and fades instead of sliding; `snap` jumps
 to `to`; `skip` drops it; `keep` = 1. Tween keys are `tween_<prop>`. Element flashes are never reduced (a lamp is
-state). Every event must still read with reduce motion on (haptic, flash, alpha, punch, scale tween or a cue).
+state). Every event must still read with reduce motion on, on every device (av.feel.reduce_motion): a visible
+channel (alpha, a flash, a scale change of at least `limits.visible_scale_min`, a punch of at least
+`limits.punch_px_min` px) or a sound cue; a haptic alone fails (PC and most tablets have none) unless `rm_reads`
+names what still shows it.
+
+## Adding an event (a moment canon does not have yet)
+1. `bible.py search` the moment; cite what exists in `canon`, the question in `oq` (OQ-TBD-<slug> if unrecorded).
+2. Pick the tier by importance, `who` by who must feel it, a group of 7 or fewer; write `trigger` (what fires it
+   in code) and `intent` (what the player should feel; its words drive the pitch check).
+3. Copy the closest event's channels, then `feel show` it: tune delivered peaks against the tier's limits and
+   `feel list` neighbours; keep one signature channel. Then validate, plot, preview it as `ev_<event>`.
 
 ## Global sections
 - `shake`: power, decay_per_s, max_trauma, freq_hz, max_angle_deg [p, y, r], max_offset_studs [x, y, z], sustain_cap.
 - `sustain`: speed (floor = gain x Speed / ref) and pressure (floor above threshold); sum capped; keep it tiny.
-- `lever`: detent, resist, snap and snapback eases, throw_deg, the three lever events.
-- `a11y`: reduce_motion table, flash limits (per_second_max, screen_peak_max, red_peak_max), default settings.
+- `lever`: notch (detent tick, felt before the commit), detent (commit), resist, snap and snapback eases,
+  throw_deg, the three lever events. The runtime takes a signed finger travel (- left, + right).
+- `a11y`: reduce_motion table, flash limits (bound to av.feel.flash_limit), default settings.
 - `profiles`: subtle/default/loud multipliers per channel type; flashes and hit-stop never above 1.
-- `limits`: tier camera px, sustain px, hit-stop, kick, roll, FOV, punch, haptic, durations, loudness weights.
+- `limits`: tier camera px, sustain px, hit-stop (bound to av.feel.hitstop_local), kick, visibility minimums,
+  roll, FOV, punch and camkick frequencies, haptic, durations, HUD px reference, loudness weights.
 - `preview`: mock plate colours (tokens), scroll speed, pole spacing, ticket size, the hero event per group.

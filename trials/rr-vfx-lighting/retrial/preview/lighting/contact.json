@@ -79,7 +79,7 @@
   },
   {
    "n": 7,
-   "label": "grassland.night: luma 27, train/world 1.51",
+   "label": "grassland.night: luma 29, train/world 1.57",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/lighting/grassland.night.png",
    "box": [
     396,
@@ -91,7 +91,7 @@
   },
   {
    "n": 8,
-   "label": "grassland.night PHONE: luma 28, train/world 1.49",
+   "label": "grassland.night PHONE: luma 30, train/world 1.55",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/lighting/grassland.night.phone.png",
    "box": [
     6,
@@ -103,7 +103,7 @@
   },
   {
    "n": 9,
-   "label": "grassland.night@door1p: luma 43, train/world 1.1",
+   "label": "grassland.night@door1p: luma 48, train/world 1.05",
    "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/lighting/grassland.night_door1p.png",
    "box": [
     396,

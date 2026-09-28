@@ -4,6 +4,7 @@
 # Needs: python3 + Pillow, rr-game-feel, rr-bible, multiuse-critic (found by glob), optional ~/.cache/rr-tools
 # (luaparse, luau-compile, luau-lsp + globalTypes.None.d.luau) for the Luau gates.
 set -euo pipefail
+export PYTHONDONTWRITEBYTECODE=1   # never leave __pycache__ in the shared skill folder
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then sed -n 2,5p "$0"; exit 0; fi
 PASS=1; [[ "${1:-}" == "--pass" ]] && PASS="$2"
 M="$(cd "$(dirname "$0")/.." && pwd)"
