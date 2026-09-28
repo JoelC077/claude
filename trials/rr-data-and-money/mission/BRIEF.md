@@ -4,6 +4,24 @@ Everything here runs on **synthetic** inputs made for the trial (`synthetic/make
 `econ/proposal-v0.json`). None of it is Risky Rails data. Numbers are quoted from script output; the owner decides every price.
 Data root for the run: `data/` (`RR_DATA_ROOT`).
 
+**Errata after independent review (2026-09-28; the skill was fixed afterwards):**
+- Missing hooks do not make funnels start at zero: Roblox marks skipped earlier steps complete, so queue/board/depart
+  and terminal-open would read as 100% pass-through (no visible drop); only `fetched` stays at 0.
+- This copy's `crateResolved` logs `fetched` on the fetcher with the orderer's session: wrong in co-op. The step
+  belongs to the orderer (the skill's hooks now do that; first_fork is logged for the whole crew). `granted` for game
+  passes never comes from ProcessReceipt (developer products only). Trip Start, fare-pack and promo sources, the
+  recovery-fee sink and line_2 had no hook or plan entry.
+- Problem 6: the sink/source fall comes from the unlock curve (sweep 0.44 -> 0.33), not the crate prices (0.30-0.33).
+- Problems 2 and 5 assume every player pays the whole difficulty kit; split over a crew of 3, Insane nets +230 (`econ.py sim --set kit_paid=split`; reviewer estimate +214),
+  not -306. The inversion at Hard/Insane holds either way.
+- v1 still starts 40% of runs short of supplies and its first upgrade is WATCH; it is not "fixed" without
+  `start_coins` 100 (the sweep: 2% short, PASS at 2.0 runs / 27 min).
+- Ladder: launch passes total 747 R$ (horn 49 + Double Fare 299 + First Class 399), 1,253 below the canon whale
+  total; the 1,544 figure included post-launch and cut items. The 49 R$ horn needs the open question's option A
+  (default B): an owner option, not the entry step. The Toolbelt verdict rests on D-007 (fewer trips per crisis),
+  not on the carry-one-thing hand rule, which hotbar tools do not touch.
+- Memo headline: payer conversion "is" 0.71% (CI 0.4-1.2%), below the 1.5% gate; it did not "fall" (p = 0.12).
+
 ## 1 Instrument: tracking plan + Luau
 - Plan: `track/tracking-plan.json` (a copy of the skill preset plus `crate_resolved(kind, outcome, difficulty)`, value =
   seconds from landing to fetch or slide-off). `track.py validate`: PASS, 1 warning (currency name is OQ-003, labelled assumed).

@@ -14,8 +14,9 @@ bible get (targets, funnel, prices, rules) -------------------------------------
 presets/tracking-plan.json -> track.py validate|build|doc|scan -> RR_AnalyticsPlan.lua    |
                                + assets/luau/RR_Analytics.lua (server; pcall-safe; luatest in Lua 5.1)
 Creator Dashboard CSVs -> dash.py inspect|ingest -> metrics.json -> dash.py memo -> memo.md/.html + SVG charts
-experiment idea -> abtest.py plan (pre-registered, hashed; days needed from traffic) -> run whole weeks
-               -> abtest.py analyze (refuses before the horizon; SRM; CI; guardrails; planned looks only)
+experiment idea -> abtest.py plan (pre-registered once, hashed; days needed from traffic; --native for Roblox
+               Experiments) -> run whole weeks -> analyze (custom: refuses before the horizon; SRM; CI; guardrails;
+               planned looks read once) | record (native Results tab) | compare --plan (thumbnail bandit, descriptive)
 presets/economy.json -> econ.py validate|sim (population + engaged-pacing cohorts, sweeps) -> ECON_REPORT + charts
 presets/catalogue.json -> econ.py ladder (value ladder, USD per sale) | guard -> MONEY_GATE.md/.json
 ```
@@ -27,18 +28,32 @@ presets/catalogue.json -> econ.py ladder (value ladder, USD per sale) | guard ->
 2. **Stdlib only.** Normal/t/chi-square/Fisher, Wilson/Newcombe CIs, sample size, O'Brien-Fleming bounds by
    seeded simulation, SVG charts: all Python stdlib, so it runs in cloud, Cowork and on the owner's PC.
    lupa + node luaparse (already cached by sibling skills) test the Luau; missing tools skip loudly.
-3. **No peeking is enforced, not advised.** A plan is written before launch and hashed; analyze refuses a verdict
-   before the planned sample (or at an unplanned look) and flags edited plans. SRM is checked first.
+3. **No peeking is enforced, not advised.** A plan is written once before launch and hashed (re-planning is kept
+   in history and voids data already seen); analyze checks the date against today, refuses a verdict before the
+   planned sample, reads each planned look once and shows no estimate until a boundary is crossed; the final look
+   uses the planned final boundary. SRM is checked first. Roblox Experiments are the default for config-expressible
+   in-game changes (native per-variant D1/D7/ARPU); abtest.py keeps sizing, pre-registration and readout discipline.
 4. **Traffic realism.** Plans convert sample size to days at the owner's real traffic and say "not testable" when
    it takes over 6 weeks; small games test bold changes or accept a pre/post read labelled as such.
-5. **Analytics never breaks gameplay.** Every AnalyticsService call is pcall-wrapped, rate-limited, schema-checked
+5. **Funnels see every step.** Roblox marks skipped funnel steps complete, so a missing hook reads as 100%
+   pass-through, not zero. The hooks log every planned step on the player who owns the session (crew-wide steps
+   for the whole crew; supply steps on the orderer), and `track.py scan` fails on any planned step, event, status or
+   SKU no code logs. Purchases are "granted" where the benefit is saved: receipts for products, the Finished
+   handler for passes.
+5b. **Analytics never breaks gameplay.** Every AnalyticsService call is pcall-wrapped, rate-limited, schema-checked
    against the generated plan (unknown events dropped, enums and numeric buckets bound cardinality), and the
    experiment hash is identical in Python and Luau (tested on thousands of ids).
-6. **Money gate like the security gate.** guard.py rules turn D-007 (time, status, identity only), co-op
-   pay-to-win, paid random items, prompt rules and fare-pack rules into PASS/HOLD/FAIL; only the owner waives;
-   rr-release-train can read MONEY_GATE.json.
+6. **Money gate like the security gate.** econ.py guard turns D-007 (time, status, identity only), co-op
+   pay-to-win, paid random items, prompt rules, fare-pack rules and departures from canon prices into
+   PASS/HOLD/FAIL (`--gate` exit codes); only the owner waives. rr-release-train does not read it yet (proposed
+   extra check in SKILL.md).
+6b. **Mission copies, never skill edits.** Presets are copied to `<R>/presets/` and picked up there; a value that
+   was canon in the skill's preset and is "assumed" in a copy is reported as an override. The data root defaults to
+   the project repo so plans and history survive a fresh cloud machine.
 7. **Two sim cohorts.** A churned population (installs x days, retention fitted to canon D1/D7/D30) answers
-   day-0 reach, inflation and revenue; an engaged cohort answers pacing (hours to each unlock), which churn hides.
+   day-0 reach, inflation, short-of-kit runs and revenue; an engaged cohort answers pacing (hours to each unlock)
+   and net coins per run by difficulty, which churn hides. The trial's biggest misses (an inverted difficulty
+   ladder, 40-52% of runs short of supplies) are now checks, not table rows.
 8. **Visual judgement stays with multiuse-critic.** Thumbnail/icon quality is risky-rails-thumbnail-ideas plus the
    critic; this skill only measures which one players click and keep playing. Roblox thumbnail personalization is a
    bandit, so it gets a descriptive `compare` (CIs, clear losers), never an A/B verdict.
@@ -51,7 +66,9 @@ presets/catalogue.json -> econ.py ladder (value ladder, USD per sale) | guard ->
 - rr-bible: canon read via bible.py (found by glob or RR_BIBLE_SKILL); gaps become add-question/add-fact commands
   (proposals for this build: `trials/rr-data-and-money/bible-proposals.sh`, replayed by the orchestrator).
 - rr-exploit-guard: owns ProcessReceipt/price-trust code review; money gate points to it.
-- rr-release-train: may read MONEY_GATE.json and the memo's gate table (release.gates.*).
+- rr-release-train: no money gate yet; proposed `extra_checks` entry running `econ.py guard --gate`.
+- rr-mission-control: no data kind (mixed = UI + 3D with a critic loop); data/money work runs standalone or uses its
+  ledger with this skill's gates as pre-flight.
 - risky-rails-mechanic-reviewer: every gameplay-touching product (HOLD) goes through it before the owner.
 - risky-rails-thumbnail-ideas + multiuse-critic: make and judge variants; abtest.py plans and reads the test.
 

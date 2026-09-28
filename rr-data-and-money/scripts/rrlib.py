@@ -8,7 +8,7 @@ Canon refs in presets:  {"v": 40, "canon": "economy.supplies.coal"}  -> number m
 A path that is canon in the skill's preset but 'assumed' in a mission copy is reported as an override of canon.
 Presets: rrlib.preset(name) = --flag, $ENV, <data root>/presets/NAME (mission copy), else the skill's preset.
 """
-import json, os, re, subprocess, sys
+import copy, json, os, re, subprocess, sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -143,19 +143,26 @@ def close(a, b, rel=1e-6):
     return abs(a - b) <= rel * max(1.0, abs(a), abs(b))
 
 
-def canon_paths(node, where=""):
-    """{path: canon key} for every {v, canon} node (paths as Refs prints them)."""
+def canon_paths(node, where="", field="canon"):
+    """{path: canon key} for every {v, canon} node (paths as Refs prints them); field="in" gives {path: "note"}."""
     out = {}
     if isinstance(node, dict) and "v" in node and "canon" in node:
-        out[where] = node["canon"]
+        if field in node:
+            out[where] = node[field]
     elif isinstance(node, dict):
         for k, v in node.items():
             if not k.startswith("_"):
-                out.update(canon_paths(v, f"{where}.{k}" if where else k))
+                out.update(canon_paths(v, f"{where}.{k}" if where else k, field))
     elif isinstance(node, list):
         for i, v in enumerate(node):
-            out.update(canon_paths(v, f"{where}[{_tag(v, i)}]"))
+            out.update(canon_paths(v, f"{where}[{_tag(v, i)}]", field))
     return out
+
+
+def base_refs(preset_file):
+    """(canon keys, 'in' flags) of the skill's own preset: the reference for mission copies."""
+    raw = load_json(preset_file)
+    return canon_paths(raw), canon_paths(raw, field="in")
 
 
 def _tag(v, i):
@@ -168,9 +175,10 @@ class Refs:
     base = {path: canon key} of the skill's own preset: a path that was canon there and is 'assumed' here is an
     override of canon and is reported (self.overrides + a warning), never silent."""
 
-    def __init__(self, bible=None, base=None):
+    def __init__(self, bible=None, base=None, base_in=None):
         self.bible = bible or Bible()
         self.base = base or {}
+        self.base_in = base_in or {}  # where the skill's preset says a number lives ("note"); copies inherit it
         self.errors, self.warnings, self.assumed, self.canon, self.overrides = [], [], [], [], []
 
     def is_ref(self, node):
@@ -213,13 +221,14 @@ class Refs:
         vals = node["v"] if isinstance(node["v"], list) else [node["v"]]
         # numbers must come from the canon value itself; "in": "note" opts into the note (e.g. a cap stated there).
         # Matching the whole text let placeholders in a note ("10 R$ placeholder") pass for a coin price.
-        text = f.get("note") or "" if node.get("in") == "note" else f.get("value", "")
+        where_in = node.get("in") or self.base_in.get(where)
+        text = f.get("note") or "" if where_in == "note" else f.get("value", "")
         have = numbers_in(text)
         for v in vals:
             if isinstance(v, bool) or not isinstance(v, (int, float)):
                 continue
             if not any(close(v, h) for h in have):
-                self.errors.append(f"{where}: {v} not found in canon {key} {'note' if node.get('in') == 'note' else 'value'}"
+                self.errors.append(f"{where}: {v} not found in canon {key} {'note' if where_in == 'note' else 'value'}"
                                    f" = \"{text}\"")
 
 
@@ -236,6 +245,14 @@ class PathError(ValueError):
     pass
 
 
+def _has(cur, p):
+    try:
+        _step(cur, p, "")
+        return True
+    except PathError:
+        return False
+
+
 def _step(cur, p, dotted):
     if isinstance(cur, list):
         if p.isdigit() and int(p) < len(cur):
@@ -250,15 +267,24 @@ def _step(cur, p, dotted):
     raise PathError(f"--set/--sweep path {dotted}: no key '{p}'" + (f" (have {', '.join(keys)})" if keys else ""))
 
 
-def set_path(obj, dotted, value):
+def set_path(obj, dotted, value, template=None):
     """--set a.b.0.c=value on a nested dict/list (list items also by id: unlocks.loco_2.price); value parsed as
-    JSON when possible. Every key must already exist (a typo raises PathError instead of adding an unused key).
+    JSON when possible. Every key must already exist, or exist in `template` (the skill's preset: an older copy
+    may lack a newer key); a typo raises PathError instead of adding an unused key.
     A canon ref keeps its node and becomes {v, assumed: override ...}."""
     parts = dotted.split(".")
-    cur = obj
-    for p in parts[:-1]:
-        cur = cur[_step(cur, p, dotted)]
-    k = _step(cur, parts[-1], dotted)
+    cur, tpl = obj, template
+    for i, p in enumerate(parts):
+        try:
+            k = _step(cur, p, dotted)
+        except PathError:
+            if not (isinstance(cur, dict) and isinstance(tpl, dict) and p in tpl):
+                raise
+            cur[p], k = copy.deepcopy(tpl[p]), p
+        if i == len(parts) - 1:
+            break
+        tpl = tpl[_step(tpl, p, dotted)] if isinstance(tpl, (dict, list)) and _has(tpl, p) else None
+        cur = cur[k]
     try:
         val = json.loads(value)
     except ValueError:

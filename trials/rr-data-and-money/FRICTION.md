@@ -16,7 +16,8 @@ Severity: H = wrong or missing result a real mission would ship, M = wasted work
    - trip: `queued`, `boarded`, `departed`
    - supply: `opened`, `fetched`
 
-   Live trip funnels would show 0 at steps 1-3 while `first_fork` has counts, and supply would show 0 opened and 0 fetched.
+   [Corrected after review: Roblox marks skipped earlier funnel steps complete, so steps 1-3 would equal `first_fork` and
+   `opened` would equal `ordered`: 100% pass-through that hides the drop. Only `fetched` would read 0.]
    `track.py scan` compares only funnel *names* (`planned["funnel"] = set(plan["funnels"])`, around line 304), so it
    printed `PASS ... 0 issues`. The workaround was to add `tripStep`, `terminalOpened` and `crateResolved` to the mission
    copy (`mission/track/src/RR_AnalyticsHooks.lua`). Fix: ship those hooks, and make scan collect the step argument of

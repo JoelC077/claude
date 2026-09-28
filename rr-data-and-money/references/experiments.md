@@ -8,6 +8,22 @@ users per arm; at 150 eligible players a day that is 7+ weeks. When `plan` says 
 test a bolder change, pick a higher-traffic metric (plays per impression beats D7), or ship and read pre/post,
 labelled "pre/post, not an experiment" (seasonality, updates and featuring confound it).
 
+## Which tool
+- **Roblox Experiments** (Creator Hub > Experiments, with Configs; creator-docs production/experiments.md, read
+  2026-09-28) for any in-game change a Config value can express. The game reads the value with
+  `ConfigService:GetConfigForPlayerAsync(player)` then `:GetValue(key)` where the change is seen (the first
+  GetValue enrols the player; `GetConfigAsync` ignores experiments). Limits: 14-60 days; a control and at most two
+  variants; the config key and its conditions are locked while it runs; configuration cannot change once
+  scheduled; target new players by tenure for onboarding tests. Results per variant with CIs of the % change: D1,
+  D7, playtime, ARPU, ARPPU, payer conversion, session time (the custom path cannot split D1 per arm from
+  dashboard exports). Roblox: under 1,000 DAU experiments struggle; the Overview is for checking it runs, not for
+  acting. `abtest.py plan --native --primary <metric>` sizes and pre-registers it (guardrail margins relative, in %);
+  `abtest.py record` reads it at the end (SRM on enrolled counts, verdict from the pre-registered primary).
+  Launching it in Creator Hub is the owner's.
+- **Custom** (`RR_Analytics.expose` hash + `abtest.py analyze`) for what a config cannot express, for crew/server
+  randomisation (shared crew mechanics), and for planned O'Brien-Fleming looks (native tests have none).
+- **Thumbnail personalization** (below) for thumbnails: descriptive `compare --plan`, never analyze.
+
 ## Design checklist (abtest.py plan writes it down and hashes it)
 - One hypothesis, one change per variant (thumbnails: canon `release.thumbs.variant_rule`).
 - Primary metric chosen before launch; guardrails with a non-inferiority margin (`--guardrail d1:0.01`).
@@ -18,10 +34,14 @@ labelled "pre/post, not an experiment" (seasonality, updates and featuring confo
   grows by the design effect 1 + (m - 1) x ICC (m = crew size). Personal UI (a hint only you see) is fine per user.
 - Exposure at the moment the change is seen (not at join); exposure logged once per player.
 - alpha 0.05 two-sided, power 0.8, whole weeks (min 7 days) to cover weekday/weekend and update cycles.
-- No peeking. `analyze` refuses a verdict before the planned sample and readout date and hides interim estimates.
-  If an early stop matters (a price test losing money), plan `--looks K`: O'Brien-Fleming boundaries (simulated,
-  any spacing; the sample grows x1.01-1.03). `abtest.py peek --looks 14` shows why: 14 daily peeks at p < 0.05
-  give about a 22% false-win rate.
+- No peeking. A plan is written once (re-running `plan NAME` refuses; `--replace` keeps the old plan in history/
+  and, if data was already seen, analyze then refuses: start a fresh test). `analyze` checks the readout date
+  against today unless `--asof`, refuses a verdict before the planned sample and date, and at a planned look
+  prints only CONTINUE until a boundary is crossed (no effect, CI or per-arm label). Each look is recorded in
+  looks.json and read once. If an early stop matters (a price test losing money), plan `--looks K`:
+  O'Brien-Fleming boundaries (simulated, any spacing; the sample grows x1.01-1.03); the final look uses the last
+  printed boundary, not p < 0.05. `abtest.py peek --looks 14` shows why: 14 daily peeks at p < 0.05 give about a
+  22% false-win rate.
 - SRM first: arm counts that miss the planned split (chi-square p < 0.001) mean assignment or logging is broken;
   the result is void whatever it says.
 
@@ -31,8 +51,9 @@ labelled "pre/post, not an experiment" (seasonality, updates and featuring confo
   thumbnails): a bandit that shows each to random users, then gives more Home impressions to the winner per user
   group while still exploring. It reports impressions, qualified plays, session time per qualified play and
   qualified play-through rate (QPTR) per thumbnail. Adaptive traffic means no SRM and no fair head-to-head verdict:
-  read it with `abtest.py compare` (Wilson CIs, flags a thumbnail clearly below the best once it has enough
-  impressions). Roblox's advice: keep several active, test new ones with each major update, swap losers at the next
+  read it with `abtest.py compare --plan <R>/experiments/NAME --data export.csv` (Wilson CIs, flags a thumbnail
+  clearly below the best once it has enough impressions, prints guardrail columns, records result.json that the
+  memo reads; `analyze` refuses thumbnail plans). Roblox's advice: keep several active, test new ones with each major update, swap losers at the next
   update. Guardrail: D1/bounce of the players a thumbnail brings (`release.kpi.bounce_60s`); honest thumbnails only
   (`release.thumbs.formula`). One change per variant (`release.thumbs.variant_rule`).
 - **Icons.** No native icon personalization in the docs (2026-09-28). A rotation (one icon per whole week) is
@@ -44,8 +65,9 @@ labelled "pre/post, not an experiment" (seasonality, updates and featuring confo
   ship the canon price and watch the memo. When it is testable: one developer product per price, same benefit, with
   "Allow external purchases" off so the Store tab cannot leak the cheaper price (passes are always on the Store tab:
   avoid pass price tests). Primary: Robux per exposed player (`--metric rpu`, exact for once-per-player items);
-  guardrail: payer conversion. Stay inside the canon ladder, never test a money-gate FAIL, and the owner sets every
-  live price in Creator Hub.
+  guardrail: payer conversion. With Roblox Experiments a Config can hold which developer product (price) to prompt,
+  and ARPU / payer conversion come per variant. Stay inside the canon ladder, never test a money-gate FAIL, and the
+  owner sets every live price in Creator Hub.
 - **Onboarding.** New players only (expose on their first join), primary D1 or `first_bank` reached, guardrail
   session length; tag the onboarding funnel with the experiment in the tracking plan so the dashboard splits it.
 
@@ -54,7 +76,7 @@ labelled "pre/post, not an experiment" (seasonality, updates and featuring confo
   control or the cheaper option. A CI that excludes zero but sits below the MDE is real and small.
 - More than two arms: Holm-adjusted p-values (analyze does it); the plan sized them with Bonferroni.
 - Segments (platform, country, age) found after the fact are hypotheses for the next test, not results.
-- Small counts switch to Fisher's exact test automatically (any expected cell under 10).
+- Small counts switch to Fisher's exact test automatically (any expected cell under 10), including guardrails.
 - Revenue per user with repeat purchases is heavy-tailed: use per-user rows (arm,value) for Welch + bootstrap.
 
 ## Methods (for audit)

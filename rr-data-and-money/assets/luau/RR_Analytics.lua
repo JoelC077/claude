@@ -14,7 +14,7 @@
 --
 -- Rules it enforces: only planned ids are sent (unknown ids are dropped with one warning each); enum fields
 -- outside their list become "other"; numeric fields become bucket labels; amounts must be finite and > 0;
--- per-player and per-server rate limits (platform budget 120 + 20 x CCU per minute); every AnalyticsService call
+-- per-player and per-server rate limits (20 x players per server; platform 120 + 20 x CCU); every AnalyticsService call
 -- is pcall-wrapped so analytics can never break gameplay.
 -- In Studio (or opts.debug) calls are printed, not sent. Written in the Lua 5.1 subset so it is tested in a VM.
 
@@ -133,8 +133,9 @@ local function allow(player, key, perMin)
 	return true
 end
 
--- Roblox allows 120 + 20 x CCU AnalyticsService requests per minute across the experience; each server keeps
--- itself under 20 x its players + 20 so the whole experience stays inside the budget.
+-- Roblox documents 120 + 20 x CCU AnalyticsService requests per minute without saying whether that is per server
+-- or experience-wide. Each server spends at most 20 x its players (+ opts.serverExtra, default 0), which sums to
+-- 20 x CCU across all servers and so stays inside the limit under either reading, however many small servers run.
 local global = {}
 local function allowGlobal()
 	local n = 1
@@ -145,7 +146,7 @@ local function allowGlobal()
 			n = #game:GetService("Players"):GetPlayers()
 		end)
 	end
-	local perMin = 20 * math.max(1, n) + 20
+	local perMin = 20 * math.max(1, n) + (opts.serverExtra or 0)
 	local t = now()
 	if not global.at then
 		global.tokens, global.at = perMin, t
@@ -404,6 +405,20 @@ function A.event(player, eventId, value, values)
 		return false
 	end
 	return call("LogCustomEvent", player, eventId, value or 1, buildFields(ev.fields, values, tagFor(player, eventId)))
+end
+
+-- index of a level name in a progression path (nil when the plan does not define it)
+function A.levelIndex(pathId, levelName)
+	local p = plan and plan.progression[pathId]
+	if not p then
+		return nil
+	end
+	for i, name in ipairs(p.levels) do
+		if name == levelName then
+			return i
+		end
+	end
+	return nil
 end
 
 function A.stats()

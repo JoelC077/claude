@@ -30,7 +30,7 @@ fi
 B add-fact tech.analytics.server_only "AnalyticsService events only from the server in published games; never from the client or Studio" \
   --src RBXM --status platform --title "Analytics platform facts" --note "RR_Analytics prints instead of sending in Studio"
 B add-fact tech.analytics.rate_limit "120 + 20 x CCU AnalyticsService requests per minute" --src RBXM --status platform \
-  --note "limits reset daily; RR_Analytics keeps each server under 20 x players + 20"
+  --note "limits reset daily; scope (per server or experience) not stated; RR_Analytics spends at most 20 x a server's players, which sums to 20 x CCU"
 B add-fact tech.analytics.limits "3 custom fields (8,000 combined values, then Other); 10 funnels x 100 steps; 100 custom event names; 20 transaction types and 100 SKUs (then Other)" \
   --src RBXM --status platform --note "currencies: 10 in the guide, 5 in the API reference: use one (Coins)"
 B add-fact tech.analytics.delay "charts populate within about 24 h; events roll off 90 days after the last data" --src RBXM --status platform
@@ -87,10 +87,29 @@ B add-question "Auto Stoker (economy.passes.auto_stoker) vs D-007" \
   --option "C: an unlock earned with fare, for everyone" \
   --default "A (money gate: sells power and changes the crew's run = co-op pay-to-win)" --src PLAN \
   --affects economy.passes.auto_stoker --blocks "post-launch monetisation"
-B add-question "Conductor's Toolbelt +2 tool slots vs carry one thing in hand" \
+B add-question "Conductor's Toolbelt: +2 hotbar tool slots vs D-007" \
   --option "A: make it cosmetic (tool skins, belt model) at the same price" \
   --option "B: keep +2 slots after risky-rails-mechanic-reviewer and an owner reading of D-007" --option "C: drop it" \
-  --default "A (gameplay.supplies.hand and pillars.reuse_verbs; +2 slots changes crisis handling)" --src PLAN \
+  --default "A (+2 hotbar slots = fewer trips per crisis, convenience that acts as survival power under D-007; gameplay.supplies.tools)" --src PLAN \
+  --context "The carry-one-thing hand rule (gameplay.supplies.hand) is separate from hotbar tools; the base hotbar slot count is not in canon." \
   --affects economy.passes.toolbelt --blocks "money gate HOLD"
 
+# 3. added after the trial review (2026-09-28): platform facts the skill now relies on, and two economy gaps
+B add-fact tech.analytics.funnel_rules "funnels are per player; a step logged without the earlier steps marks them complete; a repeated step counts once; recurring funnels keep a player's 10 most recent funnelSessionIds" \
+  --src RBXM --status platform --note "a missing hook reads as 100% pass-through, not as zero (production/analytics/funnel-events.md)"
+B add-fact economy.platform.pass_grant "game pass purchases never reach ProcessReceipt (developer products only): the server applies the pass on PromptGamePassPurchaseFinished and checks UserOwnsGamePassAsync" \
+  --src RBXM --status platform
+B add-fact tech.analytics.experiments "Roblox Experiments: in-game A/B tests of Config values read with ConfigService:GetConfigForPlayerAsync; 14-60 days; a control and up to 2 variants; the config key is locked while it runs; results per variant with CIs: D1, D7, playtime, ARPU, ARPPU, payer conversion, session time" \
+  --src RBXM --status platform --note "Roblox: games under 1,000 DAU struggle to get useful data (production/experiments.md, configs.md)"
+B add-question "Who pays for a crew's supply order?" \
+  --option "A: the player who orders pays the whole crate (the crew shares the cost over time)" \
+  --option "B: the cost is split across the crew automatically" --option "C: the company pays (free supplies)" \
+  --default "A (economy.supplies.server_prices: the server takes the coins from the orderer)" --src PLAN \
+  --context "One Depotron order at a time per train (gameplay.supplies.one_order). The economy sim assumes kit / crew_mean per player; with every player paying the whole kit, Insane nets below zero." \
+  --affects economy.supplies.coal,economy.supplies.toolbox --blocks "economy sim kit_paid, difficulty rewards"
+B add-question "Starting coins for a new player (the petty-cash float is superseded)" \
+  --option "A: 100 coins, enough for the first run's supplies" --option "B: 0 (first runs start short of supplies)" \
+  --option "C: a free starter kit on the first run instead of coins" \
+  --default "A (sim: runs started short of the supply kit 40% -> 2%, first upgrade WATCH -> PASS)" --src PLAN \
+  --affects economy.currency.float --blocks "economy sim start_coins, first-session flow"
 B lint

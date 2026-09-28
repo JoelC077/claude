@@ -5,8 +5,8 @@
    "sells": "time", "effect": "2x banked fare for the buyer only", "fare_mult": 2, "rank": "unboosted",
    "prompt": {"where": "results", "after_run": 3, "trigger": "best run so far", "once": true}},
   {"id": "toolbelt", "kind": "pass", "price_rs": {"v": 149, "canon": "economy.passes.toolbelt"}, "state": "proposed",
-   "sells": "convenience", "effect": "Conductor's Toolbelt: +2 tool slots", "gameplay": true,
-   "touches": ["gameplay.supplies.hand"]},
+   "sells": "convenience", "effect": "Conductor's Toolbelt: +2 hotbar tool slots (fewer trips per crisis)", "gameplay": true,
+   "touches": ["gameplay.supplies.tools", "D-007"]},
   {"id": "first_class", "kind": "pass", "price_rs": {"v": 399, "canon": "economy.passes.first_class"}, "state": "proposed",
    "sells": "identity", "effect": "golden coach livery, gold name tag, unique whistle, VIP lounge"},
   {"id": "express_depot", "kind": "pass", "price_rs": {"v": 199, "canon": "economy.passes.express_depot"}, "state": "proposed",
@@ -29,7 +29,7 @@
    "sells": "identity", "effect": "livery / horn / headlamp colour (cheapest)", "also_fare": true},
   {"id": "livery_high", "kind": "pass", "price_rs": {"v": 199, "canon": "economy.passes.liveries"}, "state": "post_launch",
    "sells": "identity", "effect": "livery / horn / headlamp colour (top)", "also_fare": true},
-  {"id": "supplies_robux", "kind": "product", "price_rs": {"v": 10, "canon": "economy.supplies.coal"}, "state": "hidden",
+  {"id": "supplies_robux", "kind": "product", "price_rs": {"v": 10, "canon": "economy.supplies.coal", "in": "note"}, "state": "hidden",
    "sells": "survival", "effect": "buy coal and tools mid-run with Robux (terminal USE ROBUX option)", "question": "OQ-010",
    "gameplay": true, "affects_crew": true}
  ]

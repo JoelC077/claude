@@ -9,11 +9,12 @@
                                                         memo.md + memo.html + facts.json + charts/*.svg
   dash.py demo    OUT_DIR                               SYNTHETIC exports in the formats the parser handles
 
-Metrics: dau, mau, new_users, visits, avg_session_min, playtime_min_per_dau, d1, d7, d30, revenue (Robux),
+Metrics: dau, wau, mau, new_users, visits, avg_session_min, playtime_min_per_dau, d1, d7, d30, revenue (Robux),
 paying_users, payer_conversion, arpdau, arppu, ccu_peak, qptr, impressions, bounce. Rates are stored as
 fractions, durations in minutes. Derived: ARPDAU = revenue / DAU, payer conversion = payers / DAU,
 R$ per visit = revenue / visits. Targets come from rr-bible at run time (presets/targets.json maps metric ->
-canon key). Store default: $RR_DATA_ROOT/metrics.json (else ~/.rr-data). Memo default: <root>/memos/<week-end>/.
+canon key). Store default: <data root>/metrics.json. Memo default: <data root>/memos/<week-end>/. Inputs named
+SYNTHETIC_* stamp the memo as synthetic. A WAU export (weekly unique players) sharpens the payer-conversion CI.
 Header names in real exports vary: run `inspect` on the first real file and pass --map for anything unmapped.
 """
 import argparse, csv, datetime as dt, io, math, re, statistics, sys
@@ -35,6 +36,7 @@ METRICS = [
     ("paying_users", [r"paying users?", r"\bpayers\b"], "count"),
     ("dau", [r"\bdau\b", r"daily active"], "count"),
     ("mau", [r"\bmau\b", r"monthly active"], "count"),
+    ("wau", [r"\bwau\b", r"weekly active", r"weekly unique"], "count"),
     ("ccu_peak", [r"peak concurrent", r"\bccu\b", r"concurrent"], "count"),
     ("revenue", [r"revenue", r"robux earned", r"earnings", r"\bearned\b", r"total robux", r"\bsales\b"], "money"),
     ("avg_session_min", [r"session (length|time|duration)", r"avg session", r"average session"], "duration"),
@@ -49,6 +51,7 @@ LABEL = {"dau": "DAU (daily avg)", "new_users": "New users", "avg_session_min": 
          "d7": "D7 retention", "d30": "D30 retention", "revenue": "Revenue", "arpdau": "ARPDAU", "arppu": "ARPPU",
          "payer_conversion": "Payer conversion", "robux_per_visit": "R$ per visit", "qptr": "Qualified play-through",
          "bounce": "Bounce"}
+REPEAT = 1.5  # assumed active days per weekly player when no WAU export exists (low-retention game)
 ADDITIVE = {"dau", "new_users", "visits", "revenue", "paying_users", "impressions"}
 DFMTS = ["%Y-%m-%d", "%Y/%m/%d", "%b %d, %Y", "%B %d, %Y", "%d %b %Y", "%d %B %Y", "%Y%m%d"]
 
@@ -113,13 +116,21 @@ def parse_date(s, order=None):
     return None
 
 
+class DashError(Exception):
+    pass
+
+
 def read_table(path):
+    if not Path(path).is_file():
+        raise DashError(f"{path}: no such file")
     raw = Path(path).read_text(encoding="utf-8-sig", errors="replace")
     try:
         dialect = csv.Sniffer().sniff(raw[:4096], delimiters=",;\t")
     except csv.Error:
         dialect = csv.excel
     rows = [r for r in csv.reader(io.StringIO(raw), dialect) if any(c.strip() for c in r)]
+    if not rows:
+        raise DashError(f"{path}: empty file (no header, no rows)")
     dc = dialect.delimiter == ";" and len(re.findall(r"\d,\d{1,2}(?!\d)", raw)) > len(re.findall(r"\d\.\d{1,2}(?!\d)", raw))
     hi = 0
     for i in range(min(len(rows) - 1, 10)):
@@ -255,6 +266,9 @@ def extract(info):
             out["economy"].append({"date": d.isoformat() if d else None, "flow": r[flow_i].strip().lower(),
                                    "type": r[type_i].strip() if type_i is not None else "",
                                    "sku": r[sku_i].strip() if sku_i is not None else "", "amount": v})
+        return out
+    if not rows:
+        info["notes"].append("header only, no data rows: nothing ingested")
         return out
     if dcol is None:
         info["notes"].append("no date column: nothing ingested")
@@ -400,7 +414,12 @@ def summarize(daily, days, ret=None):
     elif g("arpdau"):
         s["arpdau"] = statistics.mean(g("arpdau"))
     if pay and dau and len(pay) == len(dau):
-        s["payer_conversion"], s["_payer_conversion_n"] = sum(pay) / sum(dau), sum(dau)
+        # player-days count returning players again and again: the CI uses weekly unique players when an export has
+        # them (WAU on the week's last day), else player-days / REPEAT (assumed active days per weekly player)
+        wau = [daily[d]["wau"] for d in days if d in daily and daily[d].get("wau")]
+        n_eff = wau[-1] if wau else sum(dau) / REPEAT
+        s["payer_conversion"], s["_payer_conversion_n"] = sum(pay) / sum(dau), max(1.0, n_eff)
+        s["_payer_conversion_src"] = "WAU" if wau else f"player-days / {REPEAT} (assumed)"
     elif g("payer_conversion"):
         s["payer_conversion"] = statistics.mean(g("payer_conversion"))
     if rev and pay and sum(pay) > 0:
@@ -475,7 +494,10 @@ def fmt_metric(m, v):
 
 def cmd_memo(a):
     sp = store_path(a.store)
+    if not sp.is_file():
+        raise DashError(f"no metrics store at {sp}: run dash.py ingest <exports> first (or pass --store)")
     st = rrlib.load_json(sp)
+    synthetic = any("SYNTHETIC" in Path(f["file"]).name.upper() for f in st.get("files", []))
     daily = st["daily"]
     if not daily:
         print("store has no daily data: ingest exports first")
@@ -538,12 +560,19 @@ def cmd_memo(a):
         blocks = []
         for k in range(4):
             days = [(last - dt.timedelta(days=i + 7 * k)).isoformat() for i in range(6, -1, -1)]
-            v = summarize(daily, days, ret_windows(daily, last, k)).get("d1")
-            if v is not None:
-                blocks.append(v)
-        ok = sum(1 for v in blocks if v >= d1t["value"])
-        gate_rows.append(("spend", "weekly D1 cohorts at/above the gate (need 2; point estimates)", f"{ok} of last {len(blocks)}",
-                          f">= {rrlib.pct(d1t['value'])}", "PASS" if ok >= 2 else "MISS", f"`{d1t['canon']}`"))
+            sk = summarize(daily, days, ret_windows(daily, last, k))
+            if sk.get("d1") is not None:
+                n = sk.get("_d1_n")
+                lo, hi = S.wilson(round(sk["d1"] * n), n) if n else (sk["d1"], sk["d1"])
+                blocks.append((lo, hi, bool(n)))
+        need = d1t["value"]
+        clear = sum(1 for lo, hi, _ in blocks if lo >= need)
+        maybe = sum(1 for lo, hi, _ in blocks if lo < need <= hi)
+        st_ = "PASS" if clear >= 2 else ("MISS" if clear + maybe < 2 else "UNCLEAR")
+        ci_note = "cohorts whose 95% CI clears the gate" if all(x[2] for x in blocks) else \
+            "cohorts at/above the gate (some without new-user counts: point estimates)"
+        gate_rows.append(("spend", f"weekly D1 {ci_note} (need 2)", f"{clear} of last {len(blocks)}"
+                          + (f" (+{maybe} unclear)" if maybe else ""), f">= {rrlib.pct(need)}", st_, f"`{d1t['canon']}`"))
     # anomalies (trailing 14 days)
     alld = sorted(daily)
     for m in ("dau", "revenue", "new_users"):
@@ -579,6 +608,10 @@ def cmd_memo(a):
     # economy
     eco_lines = []
     eco = [r for r in st.get("economy", []) if r["date"] is None or r["date"] in wk]
+    if a.sim and not eco:
+        eco_lines.append("sim comparison skipped: no economy rows for this week (ingest the economy export)")
+    elif a.sim and not Path(a.sim).is_file():
+        eco_lines.append(f"sim comparison skipped: {a.sim} not found")
     if eco:
         src = sum(r["amount"] for r in eco if r["flow"] == "source")
         snk = sum(r["amount"] for r in eco if r["flow"] == "sink")
@@ -600,9 +633,18 @@ def cmd_memo(a):
     for pj in sorted(exroot.glob("*/plan.json")) if exroot.is_dir() else []:
         pl = rrlib.load_json(pj)
         due, st0 = dt.date.fromisoformat(pl["readout"]), dt.date.fromisoformat(pl["start"])
-        state = ("readout due: run abtest.py analyze" if due <= last else
-                 f"planned, starts {pl['start']}" if st0 > last else
-                 f"running, day {(last - st0).days + 1} of {pl['days']}, readout {pl['readout']}")
+        rj = pj.parent / "result.json"
+        res = rrlib.load_json(rj) if rj.is_file() else {}
+        tool = {"personalization": f"abtest.py compare --plan {pj.parent} --data <export>",
+                "roblox-experiments": f"abtest.py record {pj.parent} --metric ... (Creator Hub Results tab)"}.get(
+            pl.get("source") or ("personalization" if pl["surface"] == "thumbnail" else ""), f"abtest.py analyze {pj.parent}")
+        if res.get("final") and due <= last:
+            state = f"read: {res.get('status', '?').split(':')[0]} (RESULT.md)"
+        elif due <= last:
+            state = f"readout due: run {tool}"
+        else:
+            state = (f"planned, starts {pl['start']}" if st0 > last else
+                     f"running, day {(last - st0).days + 1} of {pl['days']}, readout {pl['readout']}")
         exp_lines.append(f"{pl['name']} ({pl['surface']}): {state}")
     # charts
     labs28 = [(last - dt.timedelta(days=i)).isoformat() for i in range(27, -1, -1)]
@@ -641,16 +683,22 @@ def cmd_memo(a):
         (out / "charts" / f"{name}.svg").write_text(svg, encoding="utf-8")
     assumed = [f"{m.upper()} = mature cohorts {s[f'_{m}_cohorts']}" for m in ("d1", "d7", "d30") if s.get(f"_{m}_cohorts")]
     assumed += [f"revenue treated as {'earned (net)' if a.revenue_is == 'earned' else 'gross, converted with economy.platform.creator_share'} Robux",
-                "payer conversion CI treats each DAU-day as one trial (approximate)"]
+                f"payer conversion CI: n = {s.get('_payer_conversion_src', 'n/a')} (player-days repeat players; a WAU "
+                "export replaces the assumption)"]
     for f in st.get("files", [])[-12:]:
         assumed += [f"{Path(f['file']).name}: {n}" for n in f.get("notes", [])]
     facts = {"week_ending": last.isoformat(), "this_week": s, "last_week": p, "kpis": kpi_rows, "gates": gate_rows,
              "flags": flags, "funnels": fun_lines, "economy": eco_lines, "experiments": exp_lines, "notes": assumed}
     rrlib.save_json(out / "facts.json", facts)
+    if synthetic:
+        assumed.insert(0, "SYNTHETIC DATA: inputs named SYNTHETIC_* were ingested; nothing here describes real players")
     head = a.headline or "<!-- Claude: one line - the most important change this week and what to do about it -->"
+    if synthetic and not head.startswith("<!--") and "SYNTHETIC" not in head.upper():
+        head = "SYNTHETIC DATA: " + head
     acts = a.action or ["<!-- Claude: at most 3 actions, each tied to a flag or gate above; the owner decides -->"]
-    md = [f"# Risky Rails weekly memo · week ending {last.isoformat()}", "", f"**{head}**", "",
-          "## KPIs vs canon targets", "", rrlib.md_table(["metric", "this week", "last week", "change", "95% CI", "target", "status"], kpi_rows)]
+    md = [f"# Risky Rails weekly memo · week ending {last.isoformat()}" + (" (SYNTHETIC DATA)" if synthetic else ""), "",
+          f"**{head}**", "",
+          "## KPIs vs canon targets", "", rrlib.md_table(KPI_HEAD, [kpi_view(r) for r in kpi_rows])]
     if gate_rows:
         md += ["", "## Release gates", "", rrlib.md_table(["gate", "check", "now", "needs", "status", "canon"], gate_rows)]
     md += ["", "## What moved", ""] + ([f"- {x}" for x in flags] or ["- nothing beyond noise"])
@@ -678,6 +726,14 @@ def cmd_memo(a):
     return 0
 
 
+KPI_HEAD = ["metric", "this week", "status", "target", "last week", "change", "95% CI"]
+
+
+def kpi_view(r):
+    """Display order: the decision (status) sits next to the value so it never scrolls out of view."""
+    return (r[0], r[1], r[6], r[5], r[2], r[3], r[4])
+
+
 def html_memo(last, head, acts, kpis, gates, flags, funs, ecos, exps, svgs, notes, s, p):
     from xml.sax.saxutils import escape as e
     icon = {"PASS": "✓", "OK": "✓", "MISS": "✕", "ALERT": "✕", "UNCLEAR": "?", "WATCH": "?"}
@@ -687,9 +743,11 @@ def html_memo(last, head, acts, kpis, gates, flags, funs, ecos, exps, svgs, note
         cls = {"PASS": "good", "OK": "good", "MISS": "bad", "ALERT": "bad"}.get(k, "warn" if k in icon else "")
         return f'<span class="b {cls}">{icon.get(k, "")} {e(t)}</span>' if cls else e(t)
 
-    def table(hd, rows, badge_col=None):
+    def table(hd, rows, badge_col=None, wrap_col=None):
         h = "".join(f"<th>{e(x)}</th>" for x in hd)
-        b = "".join("<tr>" + "".join(f"<td>{badge(str(c)) if i == badge_col else e(str(c)).replace('`', '')}</td>"
+        wrap = ' class="w"'
+        b = "".join("<tr>" + "".join(f"<td{wrap if i == wrap_col else ''}>"
+                                     f"{badge(str(c)) if i == badge_col else e(str(c)).replace('`', '')}</td>"
                                      for i, c in enumerate(r)) + "</tr>" for r in rows)
         return f'<div class="tw"><table><thead><tr>{h}</tr></thead><tbody>{b}</tbody></table></div>'
 
@@ -718,13 +776,14 @@ main{{max-width:880px;margin:0 auto;padding:24px 16px 48px}} h1{{font-size:22px;
 .v{{font-size:26px;font-weight:600}} .d{{font-size:12px;color:var(--ink2)}}
 .tw{{overflow-x:auto}} table{{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}}
 th,td{{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}} th{{color:var(--ink2);font-weight:600}}
+td.w{{white-space:normal;min-width:9em}}
 .b{{font-weight:600}} .b.good{{color:var(--good)}} .b.bad{{color:var(--bad)}} .b.warn{{color:var(--warn)}}
 svg{{max-width:100%;height:auto;display:block;margin:12px 0}} li{{margin:4px 0}} .note{{color:var(--mut);font-size:12px}}
 </style></head><body><main>
 <h1>Risky Rails weekly memo</h1><div class="note">week ending {last.isoformat()} · numbers from dash.py; targets read from rr-bible</div>
 <div class="head">{e(head) if not head.startswith("<!--") else "Headline pending"}</div>
 <div class="tiles">{tiles}</div>
-<h2>KPIs vs canon targets</h2>{table(["metric", "this week", "last week", "change", "95% CI", "target", "status"], kpis, 6)}
+<h2>KPIs vs canon targets</h2>{table(KPI_HEAD, [kpi_view(r) for r in kpis], 2, 3)}
 {"<h2>Release gates</h2>" + table(["gate", "check", "now", "needs", "status", "canon"], gates, 4) if gates else ""}
 {sec("What moved", flags or ["nothing beyond noise"])}{sec("Funnels", funs)}{sec("Economy", ecos)}{sec("Experiments (status only)", exps)}
 <h2>Charts</h2>{"".join(svgs)}
@@ -807,7 +866,11 @@ def main():
     if not a.cmd:
         ap.print_help()
         return 2
-    return {"inspect": cmd_inspect, "ingest": cmd_ingest, "memo": cmd_memo, "demo": cmd_demo}[a.cmd](a)
+    try:
+        return {"inspect": cmd_inspect, "ingest": cmd_ingest, "memo": cmd_memo, "demo": cmd_demo}[a.cmd](a)
+    except DashError as e:
+        print(f"FAIL {e}")
+        return 1
 
 
 if __name__ == "__main__":
