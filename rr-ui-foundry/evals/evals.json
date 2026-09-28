@@ -1,0 +1,65 @@
+{
+ "skill_name": "rr-ui-foundry",
+ "budget": {
+  "skill_md_max_lines": 138,
+  "skill_md_max_chars": 12132
+ },
+ "triggers": [
+  {
+   "query": "turn this claude design HUD into roblox UI",
+   "should_trigger": true
+  },
+  {
+   "query": "build the lobby create-match panel for phone and console",
+   "should_trigger": true
+  },
+  {
+   "query": "reskin all the buttons with the new palette",
+   "should_trigger": true
+  },
+  {
+   "query": "make the ticket HUD safe for notched phones and gamepad",
+   "should_trigger": true
+  },
+  {
+   "query": "export the modal as luau for rojo",
+   "should_trigger": true
+  },
+  {
+   "query": "score this HUD mockup out of 10",
+   "should_trigger": false
+  },
+  {
+   "query": "add punch and bounce to the ticket popup",
+   "should_trigger": false
+  },
+  {
+   "query": "make a scrolling inventory list with a search box",
+   "should_trigger": false
+  }
+ ],
+ "checks": [
+  {
+   "id": "validate-hud",
+   "run": "python3 {skill}/scripts/ui.py validate {skill}/specs/hud_tickets.json --strict",
+   "stdout_has": [
+    "PASS"
+   ]
+  },
+  {
+   "id": "list",
+   "run": "python3 {skill}/scripts/ui.py list",
+   "exit": 0
+  },
+  {
+   "id": "selftest",
+   "run": "python3 {skill}/scripts/selftest.py",
+   "timeout": 900,
+   "slow": true,
+   "stdout_has": [
+    "passed"
+   ]
+  }
+ ],
+ "evals": []
+}

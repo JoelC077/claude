@@ -1,0 +1,65 @@
+{
+ "skill_name": "rr-soundsmith",
+ "budget": {
+  "skill_md_max_lines": 138,
+  "skill_md_max_chars": 12947
+ },
+ "triggers": [
+  {
+   "query": "the crisis alarm is too loud compared to the whistle, fix the mix",
+   "should_trigger": true
+  },
+  {
+   "query": "I dropped some wav files in, check their loudness and loop seams",
+   "should_trigger": true
+  },
+  {
+   "query": "make placeholder sfx for the junction lever",
+   "should_trigger": true
+  },
+  {
+   "query": "can I use creator store audio in risky rails?",
+   "should_trigger": true
+  },
+  {
+   "query": "set up soundgroups and ducking for the train",
+   "should_trigger": true
+  },
+  {
+   "query": "add rumble and haptics to the brake",
+   "should_trigger": false
+  },
+  {
+   "query": "make the chimney smoke particles",
+   "should_trigger": false
+  },
+  {
+   "query": "write patch notes for the audio update",
+   "should_trigger": false
+  }
+ ],
+ "checks": [
+  {
+   "id": "validate",
+   "run": "python3 {skill}/scripts/sound.py validate",
+   "stdout_has": [
+    "validate PASS"
+   ]
+  },
+  {
+   "id": "list",
+   "run": "python3 {skill}/scripts/sound.py list",
+   "exit": 0
+  },
+  {
+   "id": "selftest",
+   "run": "python3 {skill}/scripts/selftest.py",
+   "timeout": 900,
+   "slow": true,
+   "stdout_has": [
+    "passed"
+   ]
+  }
+ ],
+ "evals": []
+}

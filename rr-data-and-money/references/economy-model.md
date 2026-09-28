@@ -27,7 +27,7 @@ carried in the preset (`economy.rules.no_early_prompts`, `economy.passes.double_
 |---|---|---|
 | time to first upgrade | `gameplay.progress.first_unlock` | median runs/minutes to loco 2 too slow |
 | day-0 reach (INFO) | same | share of all installs who unlock anything before leaving; the lever for D1 |
-| runs started short of the supply kit | `economy.currency.float` (superseded) | 5%+ of runs (first runs shown apart); usually `start_coins` 0 |
+| runs started short of the supply kit | `OQ-049` (starting coins; the petty-cash float is superseded) | 5%+ of runs (first runs shown apart); usually `start_coins` 0 |
 | harder pays more | `gameplay.difficulty.band_*` | net coins per run (fare - kit - fees) falls or stays flat (< +5%) from one tier to the next |
 | failed trip rule | the open question named in `failed_trip` | the option differs from its default: label every result |
 | pacing per unlock | `gameplay.progress.pacing` | gap to the previous unlock outside 0.5-1.5x of the canon gap |

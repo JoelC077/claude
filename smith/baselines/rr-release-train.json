@@ -1,0 +1,135 @@
+{
+ "skill": "rr-release-train",
+ "dir": "/home/user/claude/rr-release-train",
+ "when": "2026-09-28T05:52Z",
+ "tree": "436785c7c3d3b6db",
+ "version": "0.0.0",
+ "results": [
+  {
+   "id": "builtin:validate",
+   "pass": true,
+   "why": "",
+   "tail": "Skill is valid!"
+  },
+  {
+   "id": "builtin:lean",
+   "pass": true,
+   "why": "",
+   "tail": "126 lines, 11733 chars (~2933 tokens)"
+  },
+  {
+   "id": "builtin:drift",
+   "pass": true,
+   "why": "",
+   "tail": "0 ERROR, 0 WARN"
+  },
+  {
+   "id": "help",
+   "pass": true,
+   "why": "",
+   "seconds": 0.1,
+   "tail": "  --root ROOT           releases root (default $RR_RELEASES_ROOT or <git |                         top>/releases) |   --dir DIR             release folder (default <root>/next)",
+   "covers": []
+  },
+  {
+   "id": "selftest",
+   "pass": true,
+   "why": "",
+   "seconds": 128.9,
+   "tail": "[RR tests] FAIL | version 0.0.9 (expected 0.1.0-alpha.1) | 3 tests, 3 passed, 0 failed | ok   run_tests.lua (Lua 5.1) catches a stamp mismatch | all 76 passed",
+   "covers": []
+  },
+  {
+   "id": "builtin:hygiene",
+   "pass": true,
+   "why": "",
+   "tail": ""
+  }
+ ],
+ "triggers": [
+  {
+   "id": "trigger:74368a",
+   "query": "ship it: release v0.5 of risky rails",
+   "should": true,
+   "rank": 1,
+   "top": "rr-release-train",
+   "pass": true
+  },
+  {
+   "id": "trigger:75feaf",
+   "query": "write the patch notes for this update",
+   "should": true,
+   "rank": 1,
+   "top": "rr-release-train",
+   "pass": true
+  },
+  {
+   "id": "trigger:47ebfc",
+   "query": "is the build ready to publish?",
+   "should": true,
+   "rank": 1,
+   "top": "rr-release-train",
+   "pass": true
+  },
+  {
+   "id": "trigger:842d38",
+   "query": "set up the open cloud api key for publishing the place",
+   "should": true,
+   "rank": 1,
+   "top": "rr-release-train",
+   "pass": true
+  },
+  {
+   "id": "trigger:dc13f7",
+   "query": "roll back the bad update",
+   "should": true,
+   "rank": 1,
+   "top": "rr-release-train",
+   "pass": true
+  },
+  {
+   "id": "trigger:308915",
+   "query": "bump the version and update the changelog",
+   "should": true,
+   "rank": 1,
+   "top": "rr-release-train",
+   "pass": true
+  },
+  {
+   "id": "trigger:4010f0",
+   "query": "scan the server scripts for exploits",
+   "should": false,
+   "rank": 2,
+   "top": "rr-exploit-guard",
+   "pass": true
+  },
+  {
+   "id": "trigger:437d6b",
+   "query": "design a new crisis event for the train",
+   "should": false,
+   "rank": 3,
+   "top": "rr-game-feel",
+   "pass": true
+  },
+  {
+   "id": "trigger:43347f",
+   "query": "make the release trailer thumbnail",
+   "should": false,
+   "rank": 1,
+   "top": "rr-release-train",
+   "pass": false
+  }
+ ],
+ "metrics": {
+  "skill_md_lines": 126,
+  "skill_md_chars": 11733,
+  "drift_warn": 0,
+  "drift_error": 0
+ },
+ "regressions": [],
+ "missing_evals": false,
+ "trigger_acc": 0.89,
+ "agent_pending": 0,
+ "ok": true,
+ "summary": "rr-release-train: PASS checks 6/6, triggers 8/9, 1 trigger miss(es)"
+}

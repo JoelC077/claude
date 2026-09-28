@@ -1,0 +1,135 @@
+{
+ "skill": "rr-soundsmith",
+ "dir": "/home/user/claude/rr-soundsmith",
+ "when": "2026-09-28T05:53Z",
+ "tree": "29f52c9146d3f37e",
+ "version": "0.0.0",
+ "results": [
+  {
+   "id": "builtin:validate",
+   "pass": true,
+   "why": "",
+   "tail": "Skill is valid!"
+  },
+  {
+   "id": "builtin:lean",
+   "pass": true,
+   "why": "",
+   "tail": "125 lines, 11770 chars (~2942 tokens)"
+  },
+  {
+   "id": "builtin:drift",
+   "pass": true,
+   "why": "",
+   "tail": "0 ERROR, 0 WARN"
+  },
+  {
+   "id": "validate",
+   "pass": true,
+   "why": "",
+   "seconds": 1.0,
+   "tail": "  note  feel parity: alert_crew_joined exists in rr-game-feel without a cue; add {\"type\": \"cue\", \"sfx\": \"ticket_chime\"} there to route it through Feel (then set via feel here) |   note  feel parity: alert_crew_left exists in rr-game-feel without a cue; add {\"type\": \"cue\", \"sfx\": \"ticket_chime\"} ther",
+   "covers": []
+  },
+  {
+   "id": "list",
+   "pass": true,
+   "why": "",
+   "seconds": 0.2,
+   "tail": "  any     horn               t4 Actions oneshot 3d    siding target  -15.0  Volume 0.446  unassigned |   any     ticket_chime       t5 UI      ui      2d    alpha  target  -19.0  Volume 0.561  unassigned |   any     ui_click           t5 UI      ui      2d    alpha  target  -19.0  Volume 0.561  unas",
+   "covers": []
+  },
+  {
+   "id": "selftest",
+   "pass": true,
+   "why": "",
+   "seconds": 55.6,
+   "tail": "selftest: 81/81 passed",
+   "covers": []
+  },
+  {
+   "id": "builtin:hygiene",
+   "pass": true,
+   "why": "",
+   "tail": ""
+  }
+ ],
+ "triggers": [
+  {
+   "id": "trigger:d6041b",
+   "query": "the crisis alarm is too loud compared to the whistle, fix the mix",
+   "should": true,
+   "rank": 1,
+   "top": "rr-soundsmith",
+   "pass": true
+  },
+  {
+   "id": "trigger:90fc4f",
+   "query": "I dropped some wav files in, check their loudness and loop seams",
+   "should": true,
+   "rank": 1,
+   "top": "rr-soundsmith",
+   "pass": true
+  },
+  {
+   "id": "trigger:f70c06",
+   "query": "make placeholder sfx for the junction lever",
+   "should": true,
+   "rank": 1,
+   "top": "rr-soundsmith",
+   "pass": true
+  },
+  {
+   "id": "trigger:e834f2",
+   "query": "can I use creator store audio in risky rails?",
+   "should": true,
+   "rank": 1,
+   "top": "rr-soundsmith",
+   "pass": true
+  },
+  {
+   "id": "trigger:68e6b4",
+   "query": "set up soundgroups and ducking for the train",
+   "should": true,
+   "rank": 1,
+   "top": "rr-soundsmith",
+   "pass": true
+  },
+  {
+   "id": "trigger:5db449",
+   "query": "add rumble and haptics to the brake",
+   "should": false,
+   "rank": 4,
+   "top": "rr-game-feel",
+   "pass": true
+  },
+  {
+   "id": "trigger:05e6d4",
+   "query": "make the chimney smoke particles",
+   "should": false,
+   "rank": 3,
+   "top": "rr-vfx-lighting",
+   "pass": true
+  },
+  {
+   "id": "trigger:389b9b",
+   "query": "write patch notes for the audio update",
+   "should": false,
+   "rank": 3,
+   "top": "rr-release-train",
+   "pass": true
+  }
+ ],
+ "metrics": {
+  "skill_md_lines": 125,
+  "skill_md_chars": 11770,
+  "drift_warn": 0,
+  "drift_error": 0
+ },
+ "regressions": [],
+ "missing_evals": false,
+ "trigger_acc": 1.0,
+ "agent_pending": 0,
+ "ok": true,
+ "summary": "rr-soundsmith: PASS checks 7/7, triggers 8/8"
+}

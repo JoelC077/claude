@@ -1,0 +1,63 @@
+{
+ "skill_name": "rr-mission-control",
+ "budget": {
+  "skill_md_max_lines": 120,
+  "skill_md_max_chars": 17046
+ },
+ "triggers": [
+  {
+   "query": "build the depot main hall in blender, get it to 8/10, export for roblox and send me progress updates",
+   "should_trigger": true
+  },
+  {
+   "query": "remake the ticket HUD from this design link, critic checked and roblox ready",
+   "should_trigger": true
+  },
+  {
+   "query": "mission status",
+   "should_trigger": true
+  },
+  {
+   "query": "resume the depot mission",
+   "should_trigger": true
+  },
+  {
+   "query": "make a new station building for risky rails with a score target of 8",
+   "should_trigger": true
+  },
+  {
+   "query": "just critique this render, don't change anything",
+   "should_trigger": false
+  },
+  {
+   "query": "what's the train's top speed in canon?",
+   "should_trigger": false
+  },
+  {
+   "query": "review this mechanic idea: passengers can fall off the roof",
+   "should_trigger": false
+  }
+ ],
+ "checks": [
+  {
+   "id": "intake-split",
+   "run": "python3 {skill}/scripts/intake.py split m --text \"Build the depot in Blender. Get it to 8/10 and export for Roblox.\" && test -s m/lines.md",
+   "stdout_has": [
+    "to cover"
+   ]
+  },
+  {
+   "id": "state-help",
+   "run": "python3 {skill}/scripts/mission_state.py --help",
+   "stdout_has": [
+    "resume"
+   ]
+  },
+  {
+   "id": "plan-help",
+   "run": "python3 {skill}/scripts/plan.py --help",
+   "exit": 0
+  }
+ ],
+ "evals": []
+}

@@ -1,0 +1,65 @@
+{
+ "skill_name": "rr-release-train",
+ "budget": {
+  "skill_md_max_lines": 139,
+  "skill_md_max_chars": 12906
+ },
+ "triggers": [
+  {
+   "query": "ship it: release v0.5 of risky rails",
+   "should_trigger": true
+  },
+  {
+   "query": "write the patch notes for this update",
+   "should_trigger": true
+  },
+  {
+   "query": "is the build ready to publish?",
+   "should_trigger": true
+  },
+  {
+   "query": "set up the open cloud api key for publishing the place",
+   "should_trigger": true
+  },
+  {
+   "query": "roll back the bad update",
+   "should_trigger": true
+  },
+  {
+   "query": "bump the version and update the changelog",
+   "should_trigger": true
+  },
+  {
+   "query": "scan the server scripts for exploits",
+   "should_trigger": false
+  },
+  {
+   "query": "design a new crisis event for the train",
+   "should_trigger": false
+  },
+  {
+   "query": "make the release trailer thumbnail",
+   "should_trigger": false
+  }
+ ],
+ "checks": [
+  {
+   "id": "help",
+   "run": "python3 {skill}/scripts/release.py --help",
+   "stdout_has": [
+    "gate",
+    "rollback"
+   ]
+  },
+  {
+   "id": "selftest",
+   "run": "python3 {skill}/scripts/selftest.py",
+   "timeout": 900,
+   "slow": true,
+   "stdout_has": [
+    "passed"
+   ]
+  }
+ ],
+ "evals": []
+}

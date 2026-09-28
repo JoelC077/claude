@@ -1,0 +1,127 @@
+{
+ "skill": "multiuse-critic",
+ "dir": "/home/user/claude/multiuse-critic",
+ "when": "2026-09-28T05:45Z",
+ "tree": "5080a615f6f11a6d",
+ "version": "0.0.0",
+ "results": [
+  {
+   "id": "builtin:validate",
+   "pass": true,
+   "why": "",
+   "tail": "Skill is valid!"
+  },
+  {
+   "id": "builtin:lean",
+   "pass": true,
+   "why": "",
+   "tail": "204 lines, 17327 chars (~4331 tokens)"
+  },
+  {
+   "id": "builtin:drift",
+   "pass": true,
+   "why": "",
+   "tail": "0 ERROR, 0 WARN"
+  },
+  {
+   "id": "kit-help",
+   "pass": true,
+   "why": "",
+   "seconds": 0.0,
+   "tail": " | options: |   -h, --help        show this help message and exit",
+   "covers": []
+  },
+  {
+   "id": "sheet-help",
+   "pass": true,
+   "why": "",
+   "seconds": 0.1,
+   "tail": "  --tile TILE |   --max-width MAX_WIDTH |   --max-mp MAX_MP",
+   "covers": []
+  },
+  {
+   "id": "builtin:hygiene",
+   "pass": true,
+   "why": "",
+   "tail": ""
+  }
+ ],
+ "triggers": [
+  {
+   "id": "trigger:49a9d6",
+   "query": "roast this lobby screen, is it good?",
+   "should": true,
+   "rank": 1,
+   "top": "multiuse-critic",
+   "pass": true
+  },
+  {
+   "id": "trigger:de34ef",
+   "query": "score my loco model out of 10 and tell me what to fix",
+   "should": true,
+   "rank": 1,
+   "top": "multiuse-critic",
+   "pass": true
+  },
+  {
+   "id": "trigger:929edd",
+   "query": "get this thumbnail mockup to 8/10",
+   "should": true,
+   "rank": 1,
+   "top": "multiuse-critic",
+   "pass": true
+  },
+  {
+   "id": "trigger:e281b0",
+   "query": "critique my claude design canvas for the HUD",
+   "should": true,
+   "rank": 1,
+   "top": "multiuse-critic",
+   "pass": true
+  },
+  {
+   "id": "trigger:c68079",
+   "query": "review this web page mockup honestly",
+   "should": true,
+   "rank": 1,
+   "top": "multiuse-critic",
+   "pass": true
+  },
+  {
+   "id": "trigger:867feb",
+   "query": "build me a signal box in blender",
+   "should": false,
+   "rank": 6,
+   "top": "rr-asset-foundry",
+   "pass": true
+  },
+  {
+   "id": "trigger:f964f5",
+   "query": "brainstorm thumbnail ideas for launch",
+   "should": false,
+   "rank": 4,
+   "top": "risky-rails-thumbnail-ideas",
+   "pass": true
+  },
+  {
+   "id": "trigger:636364",
+   "query": "review this mechanic idea against our design rules",
+   "should": false,
+   "rank": 3,
+   "top": "risky-rails-mechanic-reviewer",
+   "pass": true
+  }
+ ],
+ "metrics": {
+  "skill_md_lines": 204,
+  "skill_md_chars": 17327,
+  "drift_warn": 0,
+  "drift_error": 0
+ },
+ "regressions": [],
+ "missing_evals": false,
+ "trigger_acc": 1.0,
+ "agent_pending": 0,
+ "ok": true,
+ "summary": "multiuse-critic: PASS checks 6/6, triggers 8/8"
+}

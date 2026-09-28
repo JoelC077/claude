@@ -1,0 +1,135 @@
+{
+ "skill": "rr-skill-smith",
+ "dir": "/home/user/claude/rr-skill-smith",
+ "when": "2026-09-28T05:52Z",
+ "tree": "c211a64cd366a561",
+ "version": "0.0.0",
+ "results": [
+  {
+   "id": "builtin:validate",
+   "pass": true,
+   "why": "",
+   "tail": "Skill is valid!"
+  },
+  {
+   "id": "builtin:lean",
+   "pass": true,
+   "why": "",
+   "tail": "47 lines, 6292 chars (~1573 tokens)"
+  },
+  {
+   "id": "builtin:drift",
+   "pass": true,
+   "why": "",
+   "tail": "0 ERROR, 0 WARN"
+  },
+  {
+   "id": "selftest",
+   "pass": true,
+   "why": "",
+   "seconds": 3.4,
+   "tail": "ok   no __pycache__ in the smith | ok   smith validates | selftest: 73/73 passed",
+   "covers": []
+  },
+  {
+   "id": "drift-runs",
+   "pass": true,
+   "why": "",
+   "seconds": 1.3,
+   "tail": "",
+   "covers": []
+  },
+  {
+   "id": "builtin:hygiene",
+   "pass": true,
+   "why": "",
+   "tail": ""
+  }
+ ],
+ "triggers": [
+  {
+   "id": "trigger:a3ba36",
+   "query": "improve the skills based on last night's friction logs",
+   "should": true,
+   "rank": 1,
+   "top": "rr-skill-smith",
+   "pass": true
+  },
+  {
+   "id": "trigger:64c5c4",
+   "query": "web health report for JARVIS",
+   "should": true,
+   "rank": 1,
+   "top": "rr-skill-smith",
+   "pass": true
+  },
+  {
+   "id": "trigger:669eb7",
+   "query": "skill-smith: what's broken across the rr skills?",
+   "should": true,
+   "rank": 1,
+   "top": "rr-skill-smith",
+   "pass": true
+  },
+  {
+   "id": "trigger:593060",
+   "query": "upgrade rr-vfx-lighting using its trial frictions",
+   "should": true,
+   "rank": 2,
+   "top": "rr-vfx-lighting",
+   "pass": true
+  },
+  {
+   "id": "trigger:2a54bf",
+   "query": "the mission is done, fold the lessons back into the skills",
+   "should": true,
+   "rank": 1,
+   "top": "rr-skill-smith",
+   "pass": true
+  },
+  {
+   "id": "trigger:6ef6a9",
+   "query": "check the skills for hard-coded colours that drift from the bible",
+   "should": true,
+   "rank": 1,
+   "top": "rr-skill-smith",
+   "pass": true
+  },
+  {
+   "id": "trigger:a4129b",
+   "query": "create a brand new skill for making trailers",
+   "should": false,
+   "rank": 3,
+   "top": "skill-creator",
+   "pass": true
+  },
+  {
+   "id": "trigger:dcc08c",
+   "query": "fix this bug in the lever script",
+   "should": false,
+   "rank": 8,
+   "top": "rr-exploit-guard",
+   "pass": true
+  },
+  {
+   "id": "trigger:108402",
+   "query": "release the game update",
+   "should": false,
+   "rank": 7,
+   "top": "rr-release-train",
+   "pass": true
+  }
+ ],
+ "metrics": {
+  "skill_md_lines": 47,
+  "skill_md_chars": 6292,
+  "drift_warn": 0,
+  "drift_error": 0
+ },
+ "regressions": [],
+ "missing_evals": false,
+ "trigger_acc": 1.0,
+ "agent_pending": 0,
+ "ok": true,
+ "summary": "rr-skill-smith: PASS checks 6/6, triggers 9/9"
+}

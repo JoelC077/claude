@@ -100,7 +100,7 @@ def run_triggers(ev, name, router):
         score = next((s for s, n in ranked if n == name), 0)
         k = int(t.get("k", 1))
         ok = (pos <= k and score > 0) if t["should_trigger"] else pos != 1
-        res.append({"id": f"trigger:{i}", "query": t["query"], "should": t["should_trigger"], "rank": pos,
+        res.append({"id": f"trigger:{L.fp(t['query'])[:6]}", "query": t["query"], "should": t["should_trigger"], "rank": pos,
                     "top": ranked[0][1], "pass": ok})
     return res
 
@@ -163,7 +163,9 @@ def builtin_checks(name, d, ev, base, root, skills):
     res.append({"id": "builtin:lean", "pass": not why, "why": "; ".join(why),
                 "tail": f"{lines} lines, {chars} chars (~{L.toks(chars)} tokens)"})
     import drift  # noqa: E402  (sibling script)
-    fs = [f for f in drift.run(root, skills, {name}, None, {name: str(d)}) if f["skill"] == name]
+    sk2 = dict(skills)
+    sk2[name] = dict(skills[name], dir=Path(d))
+    fs = [f for f in drift.run(root, sk2, {name}, None, {name: str(d)}) if f["skill"] == name]
     err = [f for f in fs if f["level"] == "ERROR"]
     warn = sum(1 for f in fs if f["level"] == "WARN")
     b_warn = (base or {}).get("metrics", {}).get("drift_warn")
@@ -251,9 +253,10 @@ def save_run(home, out, baseline=False):
     L.save_json(home / "evals" / f"{name}.last.json", out)
     runs = home / "runs" / name
     runs.mkdir(parents=True, exist_ok=True)
-    (runs / "history.jsonl").open("a", encoding="utf-8").write(json.dumps(
-        {"when": out["when"], "version": out["version"], "ok": out["ok"], "trigger_acc": out["trigger_acc"],
-         "metrics": out["metrics"], "fails": [r["id"] for r in out["results"] if r.get("pass") is False]}) + "\n")
+    with (runs / "history.jsonl").open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps({"when": out["when"], "version": out["version"], "ok": out["ok"],
+                             "trigger_acc": out["trigger_acc"], "metrics": out["metrics"],
+                             "fails": [r["id"] for r in out["results"] if r.get("pass") is False]}) + "\n")
     if baseline:
         L.save_json(home / "baselines" / f"{name}.json", out)
 
@@ -427,6 +430,7 @@ def main(argv=None):
     p = sp.add_parser("record", help="store model-graded results")
     p.add_argument("skill")
     p.add_argument("results")
+    L.common_sub(sp)
     a = ap.parse_args(argv)
     root = L.find_root(a.root)
     home = L.ensure_home(L.smith_home(root, a.home))

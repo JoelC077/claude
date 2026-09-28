@@ -1,0 +1,2020 @@
+{
+ "when": "2026-09-28T05:56Z",
+ "root": "/home/user/claude",
+ "rows": [
+  {
+   "skill": "multiuse-critic",
+   "origin": "root",
+   "version": "unversioned",
+   "skill_md_tokens": 4331,
+   "desc_chars": 626,
+   "open": 9,
+   "open_h": 0,
+   "claimed": 0,
+   "claimed_h": 0,
+   "partial": 0,
+   "fixed": 0,
+   "critic_last": null,
+   "critic_last_src": "",
+   "critic_self_only": false,
+   "critic_series": [],
+   "review": null,
+   "missed": null,
+   "missed_high": null,
+   "critic_tokens": 0,
+   "mission_tokens": 0,
+   "tokens_estimated": false,
+   "drift_error": 0,
+   "drift_warn": 0,
+   "evals_ok": true,
+   "evals_missing": false,
+   "checks_pass": 6,
+   "checks_total": 6,
+   "eval_fails": [],
+   "regressions": [],
+   "trigger_acc": 1.0,
+   "clusters": [
+    {
+     "id": "multiuse-critic/token-sink",
+     "skill": "multiuse-critic",
+     "theme": "token-sink",
+     "owner": "",
+     "title": "Output or docs spend tokens for nothing",
+     "fix": "Print a summary by default (--full for the rest); read slices, not whole files.",
+     "n": 1,
+     "open": 1,
+     "sev": "M",
+     "score": 3.0,
+     "sources": [
+      "missions/260927-depot-buildings/SKILL-FRICTION.md"
+     ],
+     "items": [
+      "m:260927-depot-buildings#4"
+     ],
+     "web_skills": [
+      "multiuse-critic",
+      "rr-release-train",
+      "rr-soundsmith"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "multiuse-critic/critic-route",
+     "skill": "multiuse-critic",
+     "theme": "critic-route",
+     "owner": "rr-mission-control",
+     "title": "Critic independence and route when no Agent tool (self-review, remote, handoff)",
+     "fix": "One probe order in rr-mission-control, referenced (not restated) by every maker skill; never certify self scores.",
+     "n": 1,
+     "open": 1,
+     "sev": "M",
+     "score": 3.0,
+     "sources": [
+      "missions/260927-depot-buildings/SKILL-FRICTION.md"
+     ],
+     "items": [
+      "m:260927-depot-buildings#13"
+     ],
+     "web_skills": [
+      "multiuse-critic",
+      "rr-exploit-guard",
+      "rr-game-feel",
+      "rr-mission-control",
+      "rr-release-train",
+      "rr-soundsmith"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "multiuse-critic/critic-evidence",
+     "skill": "multiuse-critic",
+     "theme": "critic-evidence",
+     "owner": "multiuse-critic",
+     "title": "Critic evidence misses part of the deliverable (one close-up, hero only, no tiles)",
+     "fix": "Let the brief carry every deliverable (or a second evidence sheet) and label tiles; add an eval that counts deliverables vs tiles.",
+     "n": 1,
+     "open": 1,
+     "sev": "M",
+     "score": 3.0,
+     "sources": [
+      "missions/260927-depot-buildings/SKILL-FRICTION.md"
+     ],
+     "items": [
+      "m:260927-depot-buildings#14"
+     ],
+     "web_skills": [
+      "multiuse-critic",
+      "rr-game-feel",
+      "rr-mission-control",
+      "rr-soundsmith",
+      "rr-vfx-lighting"
+     ],
+     "recurring": true
+    }
+   ],
+   "skill_md_tokens_prev": 4331,
+   "md_series": [
+    4331,
+    4331
+   ],
+   "status": "warning",
+   "reasons": [
+    "9 open Medium/Low frictions"
+   ],
+   "next": "harvest.py patch multiuse-critic"
+  },
+  {
+   "skill": "risky-rails-mechanic-reviewer",
+   "origin": "installed",
+   "version": "unversioned",
+   "skill_md_tokens": 973,
+   "desc_chars": 120,
+   "open": 0,
+   "open_h": 0,
+   "claimed": 0,
+   "claimed_h": 0,
+   "partial": 0,
+   "fixed": 0,
+   "critic_last": null,
+   "critic_last_src": "",
+   "critic_self_only": false,
+   "critic_series": [],
+   "review": null,
+   "missed": null,
+   "missed_high": null,
+   "critic_tokens": 0,
+   "mission_tokens": 0,
+   "tokens_estimated": false,
+   "drift_error": 0,
+   "drift_warn": 0,
+   "evals_ok": null,
+   "evals_missing": null,
+   "checks_pass": 0,
+   "checks_total": 0,
+   "eval_fails": [],
+   "regressions": [],
+   "trigger_acc": null,
+   "clusters": [],
+   "skill_md_tokens_prev": 973,
+   "md_series": [
+    973,
+    973
+   ],
+   "status": "good",
+   "reasons": [],
+   "next": "installed copy: fix at its source"
+  },
+  {
+   "skill": "risky-rails-thumbnail-ideas",
+   "origin": "installed",
+   "version": "unversioned",
+   "skill_md_tokens": 6160,
+   "desc_chars": 240,
+   "open": 0,
+   "open_h": 0,
+   "claimed": 0,
+   "claimed_h": 0,
+   "partial": 0,
+   "fixed": 0,
+   "critic_last": null,
+   "critic_last_src": "",
+   "critic_self_only": false,
+   "critic_series": [],
+   "review": null,
+   "missed": null,
+   "missed_high": null,
+   "critic_tokens": 0,
+   "mission_tokens": 0,
+   "tokens_estimated": false,
+   "drift_error": 0,
+   "drift_warn": 1,
+   "evals_ok": null,
+   "evals_missing": null,
+   "checks_pass": 0,
+   "checks_total": 0,
+   "eval_fails": [],
+   "regressions": [],
+   "trigger_acc": null,
+   "clusters": [],
+   "skill_md_tokens_prev": 6160,
+   "md_series": [
+    6160,
+    6160
+   ],
+   "status": "warning",
+   "reasons": [
+    "1 drift WARN"
+   ],
+   "next": "installed copy: fix at its source"
+  },
+  {
+   "skill": "rr-asset-foundry",
+   "origin": "root",
+   "version": "unversioned",
+   "skill_md_tokens": 3095,
+   "desc_chars": 976,
+   "open": 0,
+   "open_h": 0,
+   "claimed": 12,
+   "claimed_h": 2,
+   "partial": 0,
+   "fixed": 0,
+   "critic_last": 7.0,
+   "critic_last_src": "trials/rr-asset-foundry/retrial/crit/pass-1/verdict.md",
+   "critic_self_only": false,
+   "critic_series": [
+    [
+     "2026-09-28",
+     7.0,
+     true,
+     "trials/rr-asset-foundry/retrial/crit/pass-1/verdict.md"
+    ]
+   ],
+   "review": [
+    7.0,
+    6.5
+   ],
+   "missed": null,
+   "missed_high": null,
+   "critic_tokens": 0,
+   "mission_tokens": 0,
+   "tokens_estimated": false,
+   "drift_error": 0,
+   "drift_warn": 0,
+   "evals_ok": true,
+   "evals_missing": false,
+   "checks_pass": 6,
+   "checks_total": 6,
+   "eval_fails": [],
+   "regressions": [],
+   "trigger_acc": 1.0,
+   "clusters": [
+    {
+     "id": "rr-asset-foundry/multi-deliverable",
+     "skill": "rr-asset-foundry",
+     "theme": "multi-deliverable",
+     "owner": "",
+     "title": "No path for jobs with several deliverables (screens, variants, effects, looks)",
+     "fix": "Accept a list of names end to end (render, sheet, crit, export) and test it with 2+ items.",
+     "n": 2,
+     "open": 0,
+     "sev": "M",
+     "score": 3.0,
+     "sources": [
+      "trials/rr-asset-foundry/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-asset-foundry#F4",
+      "t:rr-asset-foundry#F5"
+     ],
+     "web_skills": [
+      "rr-asset-foundry",
+      "rr-ui-foundry",
+      "rr-vfx-lighting"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "rr-asset-foundry/wrong-measure",
+     "skill": "rr-asset-foundry",
+     "theme": "wrong-measure",
+     "owner": "",
+     "title": "A checker measures the wrong thing",
+     "fix": "Measure the delivered result (per piece / per frame) and plant a known-bad case in the selftest.",
+     "n": 1,
+     "open": 0,
+     "sev": "H",
+     "score": 2.2,
+     "sources": [
+      "trials/rr-asset-foundry/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-asset-foundry#F1"
+     ],
+     "web_skills": [
+      "rr-asset-foundry",
+      "rr-game-feel",
+      "rr-release-train",
+      "rr-soundsmith"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "rr-asset-foundry/canon-writes",
+     "skill": "rr-asset-foundry",
+     "theme": "canon-writes",
+     "owner": "rr-bible",
+     "title": "Canon writes lack a dry-run or sandbox route (trials, parallel lanes)",
+     "fix": "Name `bible.py ... --dry-run` plus the OQ-TBD-<slug> placeholder rule in the one step that records canon.",
+     "n": 1,
+     "open": 0,
+     "sev": "H",
+     "score": 2.2,
+     "sources": [
+      "trials/rr-asset-foundry/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-asset-foundry#F2"
+     ],
+     "web_skills": [
+      "rr-asset-foundry",
+      "rr-data-and-money",
+      "rr-game-feel",
+      "rr-soundsmith",
+      "rr-ui-foundry",
+      "rr-vfx-lighting"
+     ],
+     "recurring": true
+    }
+   ],
+   "skill_md_tokens_prev": 3095,
+   "md_series": [
+    3095,
+    3095
+   ],
+   "status": "warning",
+   "reasons": [
+    "critic 7 < bar 8",
+    "2 High fix(es) claimed, unverified"
+   ],
+   "next": "bar loop: fix verdict issues, fresh critic"
+  },
+  {
+   "skill": "rr-bible",
+   "origin": "root",
+   "version": "unversioned",
+   "skill_md_tokens": 2156,
+   "desc_chars": 966,
+   "open": 0,
+   "open_h": 0,
+   "claimed": 0,
+   "claimed_h": 0,
+   "partial": 0,
+   "fixed": 0,
+   "critic_last": null,
+   "critic_last_src": "",
+   "critic_self_only": false,
+   "critic_series": [],
+   "review": null,
+   "missed": null,
+   "missed_high": null,
+   "critic_tokens": 0,
+   "mission_tokens": 0,
+   "tokens_estimated": false,
+   "drift_error": 0,
+   "drift_warn": 0,
+   "evals_ok": true,
+   "evals_missing": false,
+   "checks_pass": 9,
+   "checks_total": 9,
+   "eval_fails": [],
+   "regressions": [],
+   "trigger_acc": 1.0,
+   "clusters": [],
+   "skill_md_tokens_prev": 2156,
+   "md_series": [
+    2156,
+    2156
+   ],
+   "status": "good",
+   "reasons": [],
+   "next": "-"
+  },
+  {
+   "skill": "rr-data-and-money",
+   "origin": "root",
+   "version": "unversioned",
+   "skill_md_tokens": 3175,
+   "desc_chars": 1014,
+   "open": 0,
+   "open_h": 0,
+   "claimed": 23,
+   "claimed_h": 5,
+   "partial": 0,
+   "fixed": 0,
+   "critic_last": null,
+   "critic_last_src": "",
+   "critic_self_only": false,
+   "critic_series": [],
+   "review": [
+    6.5,
+    6.0
+   ],
+   "missed": null,
+   "missed_high": null,
+   "critic_tokens": 0,
+   "mission_tokens": 0,
+   "tokens_estimated": false,
+   "drift_error": 0,
+   "drift_warn": 4,
+   "evals_ok": true,
+   "evals_missing": false,
+   "checks_pass": 7,
+   "checks_total": 7,
+   "eval_fails": [],
+   "regressions": [],
+   "trigger_acc": 0.89,
+   "clusters": [
+    {
+     "id": "rr-data-and-money/silent-pass",
+     "skill": "rr-data-and-money",
+     "theme": "silent-pass",
+     "owner": "",
+     "title": "Silent success or false PASS hides a problem",
+     "fix": "Fail loudly (non-zero exit, named item) and add the case to the selftest.",
+     "n": 2,
+     "open": 0,
+     "sev": "M",
+     "score": 2.2,
+     "sources": [
+      "trials/rr-data-and-money/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-data-and-money#8",
+      "t:rr-data-and-money#22"
+     ],
+     "web_skills": [
+      "rr-data-and-money",
+      "rr-exploit-guard",
+      "rr-game-feel",
+      "rr-release-train",
+      "rr-soundsmith",
+      "rr-ui-foundry",
+      "rr-vfx-lighting"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "rr-data-and-money/canon-drift",
+     "skill": "rr-data-and-money",
+     "theme": "canon-drift",
+     "owner": "rr-bible",
+     "title": "Skill values contradict canon (numbers, gauge, colours, strings)",
+     "fix": "Read the value from rr-bible at run time (key cited), and add a drift.py check or a `check:` regex to the fact.",
+     "n": 2,
+     "open": 0,
+     "sev": "M",
+     "score": 2.2,
+     "sources": [
+      "trials/rr-data-and-money/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-data-and-money#9",
+      "t:rr-data-and-money#16"
+     ],
+     "web_skills": [
+      "rr-data-and-money",
+      "rr-release-train",
+      "rr-ui-foundry",
+      "rr-vfx-lighting"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "rr-data-and-money/edits-skill",
+     "skill": "rr-data-and-money",
+     "theme": "edits-skill",
+     "owner": "",
+     "title": "Workflow tells missions to edit the shared skill instead of a mission copy",
+     "fix": "Default every write to the mission copy (env override such as RR_<X>_PRESETS); the skill folder is read-only at run time.",
+     "n": 1,
+     "open": 0,
+     "sev": "M",
+     "score": 1.5,
+     "sources": [
+      "trials/rr-data-and-money/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-data-and-money#4"
+     ],
+     "web_skills": [
+      "rr-data-and-money",
+      "rr-soundsmith",
+      "rr-ui-foundry",
+      "rr-vfx-lighting"
+     ],
+     "recurring": true
+    }
+   ],
+   "skill_md_tokens_prev": 3175,
+   "md_series": [
+    3175,
+    3175
+   ],
+   "status": "warning",
+   "reasons": [
+    "4 drift WARN",
+    "5 High fix(es) claimed, unverified"
+   ],
+   "next": "add evals that prove the claimed High fixes"
+  },
+  {
+   "skill": "rr-exploit-guard",
+   "origin": "root",
+   "version": "unversioned",
+   "skill_md_tokens": 3305,
+   "desc_chars": 1006,
+   "open": 11,
+   "open_h": 0,
+   "claimed": 18,
+   "claimed_h": 5,
+   "partial": 0,
+   "fixed": 0,
+   "critic_last": null,
+   "critic_last_src": "",
+   "critic_self_only": false,
+   "critic_series": [],
+   "review": [
+    7.0,
+    6.0
+   ],
+   "missed": 8,
+   "missed_high": 2,
+   "critic_tokens": 0,
+   "mission_tokens": 0,
+   "tokens_estimated": false,
+   "drift_error": 0,
+   "drift_warn": 1,
+   "evals_ok": true,
+   "evals_missing": false,
+   "checks_pass": 7,
+   "checks_total": 7,
+   "eval_fails": [],
+   "regressions": [],
+   "trigger_acc": 0.88,
+   "clusters": [
+    {
+     "id": "rr-exploit-guard/critic-route",
+     "skill": "rr-exploit-guard",
+     "theme": "critic-route",
+     "owner": "rr-mission-control",
+     "title": "Critic independence and route when no Agent tool (self-review, remote, handoff)",
+     "fix": "One probe order in rr-mission-control, referenced (not restated) by every maker skill; never certify self scores.",
+     "n": 3,
+     "open": 2,
+     "sev": "M",
+     "score": 4.5,
+     "sources": [
+      "trials/rr-exploit-guard/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-exploit-guard#b6",
+      "t:rr-exploit-guard#b22",
+      "t:rr-exploit-guard#b28"
+     ],
+     "web_skills": [
+      "multiuse-critic",
+      "rr-exploit-guard",
+      "rr-game-feel",
+      "rr-mission-control",
+      "rr-release-train",
+      "rr-soundsmith"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "rr-exploit-guard/toolchain",
+     "skill": "rr-exploit-guard",
+     "theme": "toolchain",
+     "owner": "",
+     "title": "Tool missing in the cloud image; no documented fallback",
+     "fix": "Name the cloud fallback (and its limits) next to the preferred tool.",
+     "n": 1,
+     "open": 1,
+     "sev": "L",
+     "score": 1.5,
+     "sources": [
+      "trials/rr-exploit-guard/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-exploit-guard#b8"
+     ],
+     "web_skills": [
+      "rr-exploit-guard",
+      "rr-game-feel",
+      "rr-mission-control"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "rr-exploit-guard/silent-pass",
+     "skill": "rr-exploit-guard",
+     "theme": "silent-pass",
+     "owner": "",
+     "title": "Silent success or false PASS hides a problem",
+     "fix": "Fail loudly (non-zero exit, named item) and add the case to the selftest.",
+     "n": 1,
+     "open": 1,
+     "sev": "L",
+     "score": 1.5,
+     "sources": [
+      "trials/rr-exploit-guard/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-exploit-guard#b24"
+     ],
+     "web_skills": [
+      "rr-data-and-money",
+      "rr-exploit-guard",
+      "rr-game-feel",
+      "rr-release-train",
+      "rr-soundsmith",
+      "rr-ui-foundry",
+      "rr-vfx-lighting"
+     ],
+     "recurring": true
+    }
+   ],
+   "skill_md_tokens_prev": 3305,
+   "md_series": [
+    3305,
+    3305
+   ],
+   "status": "critical",
+   "reasons": [
+    "independent review found 2 High issue(s) the skill missed",
+    "1 drift WARN",
+    "5 High fix(es) claimed, unverified",
+    "11 open Medium/Low frictions"
+   ],
+   "next": "harvest.py patch rr-exploit-guard"
+  },
+  {
+   "skill": "rr-game-feel",
+   "origin": "root",
+   "version": "unversioned",
+   "skill_md_tokens": 2904,
+   "desc_chars": 1002,
+   "open": 5,
+   "open_h": 0,
+   "claimed": 12,
+   "claimed_h": 4,
+   "partial": 0,
+   "fixed": 0,
+   "critic_last": 4.0,
+   "critic_last_src": "trials/rr-game-feel/retrial/critique-feel-kit/pass-1/verdict.md",
+   "critic_self_only": false,
+   "critic_series": [
+    [
+     "2026-09-28",
+     4.0,
+     true,
+     "trials/rr-game-feel/retrial/critique-feel-kit/pass-1/verdict.md"
+    ]
+   ],
+   "review": [
+    7.0,
+    6.5
+   ],
+   "missed": null,
+   "missed_high": null,
+   "critic_tokens": 0,
+   "mission_tokens": 0,
+   "tokens_estimated": false,
+   "drift_error": 0,
+   "drift_warn": 7,
+   "evals_ok": true,
+   "evals_missing": false,
+   "checks_pass": 6,
+   "checks_total": 6,
+   "eval_fails": [],
+   "regressions": [],
+   "trigger_acc": 1.0,
+   "clusters": [
+    {
+     "id": "rr-game-feel/critic-evidence",
+     "skill": "rr-game-feel",
+     "theme": "critic-evidence",
+     "owner": "multiuse-critic",
+     "title": "Critic evidence misses part of the deliverable (one close-up, hero only, no tiles)",
+     "fix": "Let the brief carry every deliverable (or a second evidence sheet) and label tiles; add an eval that counts deliverables vs tiles.",
+     "n": 2,
+     "open": 1,
+     "sev": "H",
+     "score": 3.8,
+     "sources": [
+      "trials/rr-game-feel/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-game-feel#4",
+      "t:rr-game-feel#16"
+     ],
+     "web_skills": [
+      "multiuse-critic",
+      "rr-game-feel",
+      "rr-mission-control",
+      "rr-soundsmith",
+      "rr-vfx-lighting"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "rr-game-feel/toolchain",
+     "skill": "rr-game-feel",
+     "theme": "toolchain",
+     "owner": "",
+     "title": "Tool missing in the cloud image; no documented fallback",
+     "fix": "Name the cloud fallback (and its limits) next to the preferred tool.",
+     "n": 1,
+     "open": 0,
+     "sev": "H",
+     "score": 2.2,
+     "sources": [
+      "trials/rr-game-feel/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-game-feel#1"
+     ],
+     "web_skills": [
+      "rr-exploit-guard",
+      "rr-game-feel",
+      "rr-mission-control"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "rr-game-feel/wrong-measure",
+     "skill": "rr-game-feel",
+     "theme": "wrong-measure",
+     "owner": "",
+     "title": "A checker measures the wrong thing",
+     "fix": "Measure the delivered result (per piece / per frame) and plant a known-bad case in the selftest.",
+     "n": 1,
+     "open": 0,
+     "sev": "H",
+     "score": 2.2,
+     "sources": [
+      "trials/rr-game-feel/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-game-feel#2"
+     ],
+     "web_skills": [
+      "rr-asset-foundry",
+      "rr-game-feel",
+      "rr-release-train",
+      "rr-soundsmith"
+     ],
+     "recurring": true
+    }
+   ],
+   "skill_md_tokens_prev": 2904,
+   "md_series": [
+    2904,
+    2904
+   ],
+   "status": "critical",
+   "reasons": [
+    "critic 4/10",
+    "7 drift WARN",
+    "4 High fix(es) claimed, unverified",
+    "5 open Medium/Low frictions"
+   ],
+   "next": "harvest.py patch rr-game-feel"
+  },
+  {
+   "skill": "rr-mission-control",
+   "origin": "root",
+   "version": "unversioned",
+   "skill_md_tokens": 3874,
+   "desc_chars": 484,
+   "open": 27,
+   "open_h": 1,
+   "claimed": 0,
+   "claimed_h": 0,
+   "partial": 0,
+   "fixed": 0,
+   "critic_last": 7.0,
+   "critic_last_src": "missions/260927-ticket-hud/critique-hud/ledger.json",
+   "critic_self_only": false,
+   "critic_series": [
+    [
+     "2026-09-27",
+     7.0,
+     true,
+     "missions/260927-depot-buildings/critique-depot-indep/ledger.json"
+    ],
+    [
+     "2026-09-27",
+     7.0,
+     true,
+     "missions/260927-depot-buildings/critique-hall-indep/ledger.json"
+    ],
+    [
+     "2026-09-27",
+     7.0,
+     true,
+     "missions/260927-ticket-hud/critique-hud/ledger.json"
+    ],
+    [
+     "2026-09-27",
+     7.0,
+     false,
+     "missions/260927-depot-buildings/critique-buildings/pass-3/verdict.md"
+    ],
+    [
+     "2026-09-27",
+     8.0,
+     false,
+     "missions/260927-ticket-hud/critique-hud/_selfreview-archive/pass-3/verdict.md"
+    ],
+    [
+     "2026-09-27",
+     7.0,
+     true,
+     "missions/260927-depot-buildings/critique-depot-indep/ledger.json"
+    ],
+    [
+     "2026-09-27",
+     7.0,
+     true,
+     "missions/260927-depot-buildings/critique-hall-indep/ledger.json"
+    ],
+    [
+     "2026-09-27",
+     7.0,
+     true,
+     "missions/260927-ticket-hud/critique-hud/ledger.json"
+    ],
+    [
+     "2026-09-27",
+     8.0,
+     false,
+     "missions/260927-depot-buildings/critique-buildings/pass-4/verdict.md"
+    ],
+    [
+     "2026-09-27",
+     7.0,
+     true,
+     "missions/260927-depot-buildings/critique-depot-indep/ledger.json"
+    ],
+    [
+     "2026-09-27",
+     7.0,
+     true,
+     "missions/260927-depot-buildings/critique-hall-indep/ledger.json"
+    ],
+    [
+     "2026-09-27",
+     7.0,
+     true,
+     "missions/260927-ticket-hud/critique-hud/ledger.json"
+    ]
+   ],
+   "review": null,
+   "missed": null,
+   "missed_high": null,
+   "critic_tokens": 115000,
+   "mission_tokens": 700000,
+   "tokens_estimated": true,
+   "drift_error": 0,
+   "drift_warn": 4,
+   "evals_ok": true,
+   "evals_missing": false,
+   "checks_pass": 7,
+   "checks_total": 7,
+   "eval_fails": [],
+   "regressions": [],
+   "trigger_acc": 1.0,
+   "clusters": [
+    {
+     "id": "rr-mission-control/critic-route",
+     "skill": "rr-mission-control",
+     "theme": "critic-route",
+     "owner": "rr-mission-control",
+     "title": "Critic independence and route when no Agent tool (self-review, remote, handoff)",
+     "fix": "One probe order in rr-mission-control, referenced (not restated) by every maker skill; never certify self scores.",
+     "n": 4,
+     "open": 4,
+     "sev": "H",
+     "score": 20.2,
+     "sources": [
+      "missions/260927-depot-buildings/SKILL-FRICTION.md",
+      "missions/260927-ticket-hud/SKILL-FRICTION.md"
+     ],
+     "items": [
+      "m:260927-depot-buildings#9",
+      "m:260927-depot-buildings#18",
+      "m:260927-ticket-hud#2",
+      "m:260927-ticket-hud#10"
+     ],
+     "web_skills": [
+      "multiuse-critic",
+      "rr-exploit-guard",
+      "rr-game-feel",
+      "rr-mission-control",
+      "rr-release-train",
+      "rr-soundsmith"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "rr-mission-control/roots",
+     "skill": "rr-mission-control",
+     "theme": "roots",
+     "owner": "rr-mission-control",
+     "title": "Workspace root or path convention is ambiguous",
+     "fix": "One env var + flag per root, recorded in state; resume reads it back.",
+     "n": 3,
+     "open": 3,
+     "sev": "M",
+     "score": 13.5,
+     "sources": [
+      "missions/260927-depot-buildings/SKILL-FRICTION.md",
+      "missions/260927-ticket-hud/SKILL-FRICTION.md"
+     ],
+     "items": [
+      "m:260927-depot-buildings#1",
+      "m:260927-ticket-hud#1",
+      "m:260927-ticket-hud#13"
+     ],
+     "web_skills": [
+      "rr-mission-control",
+      "rr-release-train"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "rr-mission-control/owner-away",
+     "skill": "rr-mission-control",
+     "theme": "owner-away",
+     "owner": "rr-mission-control",
+     "title": "Owner-away or gated-run behaviour undefined",
+     "fix": "State the default (proceed on best match, persist questions to the mission file, mark fallback).",
+     "n": 2,
+     "open": 2,
+     "sev": "M",
+     "score": 9.0,
+     "sources": [
+      "missions/260927-depot-buildings/SKILL-FRICTION.md",
+      "missions/260927-ticket-hud/SKILL-FRICTION.md"
+     ],
+     "items": [
+      "m:260927-depot-buildings#3",
+      "m:260927-ticket-hud#4"
+     ],
+     "web_skills": [
+      "rr-asset-foundry",
+      "rr-mission-control"
+     ],
+     "recurring": true
+    }
+   ],
+   "skill_md_tokens_prev": 3874,
+   "md_series": [
+    3874,
+    3874
+   ],
+   "status": "critical",
+   "reasons": [
+    "1 open High friction",
+    "critic 7 < bar 8",
+    "4 drift WARN",
+    "26 open Medium/Low frictions"
+   ],
+   "next": "harvest.py patch rr-mission-control"
+  },
+  {
+   "skill": "rr-release-train",
+   "origin": "root",
+   "version": "unversioned",
+   "skill_md_tokens": 2933,
+   "desc_chars": 1013,
+   "open": 6,
+   "open_h": 0,
+   "claimed": 14,
+   "claimed_h": 5,
+   "partial": 0,
+   "fixed": 0,
+   "critic_last": null,
+   "critic_last_src": "",
+   "critic_self_only": false,
+   "critic_series": [],
+   "review": [
+    7.0,
+    6.0
+   ],
+   "missed": null,
+   "missed_high": null,
+   "critic_tokens": 0,
+   "mission_tokens": 0,
+   "tokens_estimated": false,
+   "drift_error": 0,
+   "drift_warn": 0,
+   "evals_ok": true,
+   "evals_missing": false,
+   "checks_pass": 5,
+   "checks_total": 5,
+   "eval_fails": [],
+   "regressions": [],
+   "trigger_acc": 0.89,
+   "clusters": [
+    {
+     "id": "rr-release-train/wrong-measure",
+     "skill": "rr-release-train",
+     "theme": "wrong-measure",
+     "owner": "",
+     "title": "A checker measures the wrong thing",
+     "fix": "Measure the delivered result (per piece / per frame) and plant a known-bad case in the selftest.",
+     "n": 2,
+     "open": 0,
+     "sev": "H",
+     "score": 4.5,
+     "sources": [
+      "trials/rr-release-train/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-release-train#1",
+      "t:rr-release-train#2"
+     ],
+     "web_skills": [
+      "rr-asset-foundry",
+      "rr-game-feel",
+      "rr-release-train",
+      "rr-soundsmith"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "rr-release-train/oq-ids",
+     "skill": "rr-release-train",
+     "theme": "oq-ids",
+     "owner": "rr-bible",
+     "title": "Open-question ids collide, go stale or are hard-coded",
+     "fix": "Cite OQ ids read at run time (`bible get questions --json`), check the title matches, never keep an OQ list in code.",
+     "n": 2,
+     "open": 0,
+     "sev": "H",
+     "score": 4.5,
+     "sources": [
+      "trials/rr-release-train/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-release-train#3",
+      "t:rr-release-train#4"
+     ],
+     "web_skills": [
+      "rr-asset-foundry",
+      "rr-data-and-money",
+      "rr-game-feel",
+      "rr-release-train",
+      "rr-soundsmith"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "rr-release-train/silent-pass",
+     "skill": "rr-release-train",
+     "theme": "silent-pass",
+     "owner": "",
+     "title": "Silent success or false PASS hides a problem",
+     "fix": "Fail loudly (non-zero exit, named item) and add the case to the selftest.",
+     "n": 2,
+     "open": 0,
+     "sev": "H",
+     "score": 3.8,
+     "sources": [
+      "trials/rr-release-train/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-release-train#5",
+      "t:rr-release-train#10"
+     ],
+     "web_skills": [
+      "rr-data-and-money",
+      "rr-exploit-guard",
+      "rr-game-feel",
+      "rr-release-train",
+      "rr-soundsmith",
+      "rr-ui-foundry",
+      "rr-vfx-lighting"
+     ],
+     "recurring": true
+    }
+   ],
+   "skill_md_tokens_prev": 2933,
+   "md_series": [
+    2933,
+    2933
+   ],
+   "status": "warning",
+   "reasons": [
+    "5 High fix(es) claimed, unverified",
+    "6 open Medium/Low frictions"
+   ],
+   "next": "add evals that prove the claimed High fixes"
+  },
+  {
+   "skill": "rr-skill-smith",
+   "origin": "root",
+   "version": "1.0.0",
+   "skill_md_tokens": 1573,
+   "desc_chars": 960,
+   "open": 0,
+   "open_h": 0,
+   "claimed": 0,
+   "claimed_h": 0,
+   "partial": 0,
+   "fixed": 0,
+   "critic_last": null,
+   "critic_last_src": "",
+   "critic_self_only": false,
+   "critic_series": [],
+   "review": null,
+   "missed": null,
+   "missed_high": null,
+   "critic_tokens": 0,
+   "mission_tokens": 0,
+   "tokens_estimated": false,
+   "drift_error": 0,
+   "drift_warn": 0,
+   "evals_ok": true,
+   "evals_missing": false,
+   "checks_pass": 6,
+   "checks_total": 6,
+   "eval_fails": [],
+   "regressions": [],
+   "trigger_acc": 1.0,
+   "clusters": [],
+   "skill_md_tokens_prev": 1573,
+   "md_series": [
+    1573,
+    1573
+   ],
+   "status": "good",
+   "reasons": [],
+   "next": "-"
+  },
+  {
+   "skill": "rr-soundsmith",
+   "origin": "root",
+   "version": "unversioned",
+   "skill_md_tokens": 2942,
+   "desc_chars": 1015,
+   "open": 0,
+   "open_h": 0,
+   "claimed": 15,
+   "claimed_h": 2,
+   "partial": 2,
+   "fixed": 0,
+   "critic_last": 5.0,
+   "critic_last_src": "trials/rr-soundsmith/critique-sound/pass-1/verdict.md",
+   "critic_self_only": false,
+   "critic_series": [
+    [
+     "2026-09-28",
+     5.0,
+     true,
+     "trials/rr-soundsmith/critique-sound/pass-1/verdict.md"
+    ]
+   ],
+   "review": [
+    7.0,
+    6.5
+   ],
+   "missed": null,
+   "missed_high": null,
+   "critic_tokens": 0,
+   "mission_tokens": 0,
+   "tokens_estimated": false,
+   "drift_error": 0,
+   "drift_warn": 0,
+   "evals_ok": true,
+   "evals_missing": false,
+   "checks_pass": 6,
+   "checks_total": 6,
+   "eval_fails": [],
+   "regressions": [],
+   "trigger_acc": 1.0,
+   "clusters": [
+    {
+     "id": "rr-soundsmith/oq-ids",
+     "skill": "rr-soundsmith",
+     "theme": "oq-ids",
+     "owner": "rr-bible",
+     "title": "Open-question ids collide, go stale or are hard-coded",
+     "fix": "Cite OQ ids read at run time (`bible get questions --json`), check the title matches, never keep an OQ list in code.",
+     "n": 3,
+     "open": 0,
+     "sev": "H",
+     "score": 5.2,
+     "sources": [
+      "trials/rr-soundsmith/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-soundsmith#F2",
+      "t:rr-soundsmith#F11",
+      "t:rr-soundsmith#F12"
+     ],
+     "web_skills": [
+      "rr-asset-foundry",
+      "rr-data-and-money",
+      "rr-game-feel",
+      "rr-release-train",
+      "rr-soundsmith"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "rr-soundsmith/critic-route",
+     "skill": "rr-soundsmith",
+     "theme": "critic-route",
+     "owner": "rr-mission-control",
+     "title": "Critic independence and route when no Agent tool (self-review, remote, handoff)",
+     "fix": "One probe order in rr-mission-control, referenced (not restated) by every maker skill; never certify self scores.",
+     "n": 2,
+     "open": 0,
+     "sev": "M",
+     "score": 3.0,
+     "sources": [
+      "trials/rr-soundsmith/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-soundsmith#F3",
+      "t:rr-soundsmith#F16"
+     ],
+     "web_skills": [
+      "multiuse-critic",
+      "rr-exploit-guard",
+      "rr-game-feel",
+      "rr-mission-control",
+      "rr-release-train",
+      "rr-soundsmith"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "rr-soundsmith/critic-evidence",
+     "skill": "rr-soundsmith",
+     "theme": "critic-evidence",
+     "owner": "multiuse-critic",
+     "title": "Critic evidence misses part of the deliverable (one close-up, hero only, no tiles)",
+     "fix": "Let the brief carry every deliverable (or a second evidence sheet) and label tiles; add an eval that counts deliverables vs tiles.",
+     "n": 2,
+     "open": 0,
+     "sev": "H",
+     "score": 3.0,
+     "sources": [
+      "trials/rr-soundsmith/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-soundsmith#F9",
+      "t:rr-soundsmith#F17"
+     ],
+     "web_skills": [
+      "multiuse-critic",
+      "rr-game-feel",
+      "rr-mission-control",
+      "rr-soundsmith",
+      "rr-vfx-lighting"
+     ],
+     "recurring": true
+    }
+   ],
+   "skill_md_tokens_prev": 2942,
+   "md_series": [
+    2942,
+    2942
+   ],
+   "status": "critical",
+   "reasons": [
+    "critic 5/10",
+    "2 High fix(es) claimed, unverified"
+   ],
+   "next": "bar loop: fix verdict issues, fresh critic"
+  },
+  {
+   "skill": "rr-ui-foundry",
+   "origin": "root",
+   "version": "unversioned",
+   "skill_md_tokens": 2757,
+   "desc_chars": 1020,
+   "open": 13,
+   "open_h": 3,
+   "claimed": 0,
+   "claimed_h": 0,
+   "partial": 0,
+   "fixed": 0,
+   "critic_last": 7.0,
+   "critic_last_src": "trials/rr-ui-foundry/retrial/crit/pass-1/verdict.md",
+   "critic_self_only": false,
+   "critic_series": [
+    [
+     "2026-09-28",
+     7.0,
+     true,
+     "trials/rr-ui-foundry/retrial/crit/pass-1/verdict.md"
+    ]
+   ],
+   "review": null,
+   "missed": null,
+   "missed_high": null,
+   "critic_tokens": 0,
+   "mission_tokens": 0,
+   "tokens_estimated": false,
+   "drift_error": 0,
+   "drift_warn": 2,
+   "evals_ok": true,
+   "evals_missing": false,
+   "checks_pass": 6,
+   "checks_total": 6,
+   "eval_fails": [],
+   "regressions": [],
+   "trigger_acc": 0.88,
+   "clusters": [
+    {
+     "id": "rr-ui-foundry/canon-drift",
+     "skill": "rr-ui-foundry",
+     "theme": "canon-drift",
+     "owner": "rr-bible",
+     "title": "Skill values contradict canon (numbers, gauge, colours, strings)",
+     "fix": "Read the value from rr-bible at run time (key cited), and add a drift.py check or a `check:` regex to the fact.",
+     "n": 2,
+     "open": 2,
+     "sev": "H",
+     "score": 7.5,
+     "sources": [
+      "trials/rr-ui-foundry/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-ui-foundry#2",
+      "t:rr-ui-foundry#4"
+     ],
+     "web_skills": [
+      "rr-data-and-money",
+      "rr-release-train",
+      "rr-ui-foundry",
+      "rr-vfx-lighting"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "rr-ui-foundry/silent-pass",
+     "skill": "rr-ui-foundry",
+     "theme": "silent-pass",
+     "owner": "",
+     "title": "Silent success or false PASS hides a problem",
+     "fix": "Fail loudly (non-zero exit, named item) and add the case to the selftest.",
+     "n": 2,
+     "open": 2,
+     "sev": "H",
+     "score": 6.0,
+     "sources": [
+      "trials/rr-ui-foundry/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-ui-foundry#1",
+      "t:rr-ui-foundry#7"
+     ],
+     "web_skills": [
+      "rr-data-and-money",
+      "rr-exploit-guard",
+      "rr-game-feel",
+      "rr-release-train",
+      "rr-soundsmith",
+      "rr-ui-foundry",
+      "rr-vfx-lighting"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "rr-ui-foundry/multi-deliverable",
+     "skill": "rr-ui-foundry",
+     "theme": "multi-deliverable",
+     "owner": "",
+     "title": "No path for jobs with several deliverables (screens, variants, effects, looks)",
+     "fix": "Accept a list of names end to end (render, sheet, crit, export) and test it with 2+ items.",
+     "n": 1,
+     "open": 1,
+     "sev": "H",
+     "score": 4.5,
+     "sources": [
+      "trials/rr-ui-foundry/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-ui-foundry#3"
+     ],
+     "web_skills": [
+      "rr-asset-foundry",
+      "rr-ui-foundry",
+      "rr-vfx-lighting"
+     ],
+     "recurring": true
+    }
+   ],
+   "skill_md_tokens_prev": 2757,
+   "md_series": [
+    2757,
+    2757
+   ],
+   "status": "critical",
+   "reasons": [
+    "3 open High friction",
+    "critic 7 < bar 8",
+    "2 drift WARN",
+    "10 open Medium/Low frictions"
+   ],
+   "next": "harvest.py patch rr-ui-foundry"
+  },
+  {
+   "skill": "rr-vfx-lighting",
+   "origin": "root",
+   "version": "unversioned",
+   "skill_md_tokens": 2860,
+   "desc_chars": 1024,
+   "open": 4,
+   "open_h": 0,
+   "claimed": 12,
+   "claimed_h": 2,
+   "partial": 2,
+   "fixed": 0,
+   "critic_last": 4.0,
+   "critic_last_src": "trials/rr-vfx-lighting/retrial/crit/pass-1/verdict.md",
+   "critic_self_only": false,
+   "critic_series": [
+    [
+     "2026-09-28",
+     4.0,
+     true,
+     "trials/rr-vfx-lighting/retrial/crit/pass-1/verdict.md"
+    ]
+   ],
+   "review": [
+    5.0,
+    6.0
+   ],
+   "missed": null,
+   "missed_high": null,
+   "critic_tokens": 0,
+   "mission_tokens": 0,
+   "tokens_estimated": false,
+   "drift_error": 0,
+   "drift_warn": 2,
+   "evals_ok": true,
+   "evals_missing": false,
+   "checks_pass": 7,
+   "checks_total": 7,
+   "eval_fails": [],
+   "regressions": [],
+   "trigger_acc": 0.88,
+   "clusters": [
+    {
+     "id": "rr-vfx-lighting/silent-pass",
+     "skill": "rr-vfx-lighting",
+     "theme": "silent-pass",
+     "owner": "",
+     "title": "Silent success or false PASS hides a problem",
+     "fix": "Fail loudly (non-zero exit, named item) and add the case to the selftest.",
+     "n": 3,
+     "open": 2,
+     "sev": "H",
+     "score": 6.8,
+     "sources": [
+      "trials/rr-vfx-lighting/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-vfx-lighting#2",
+      "t:rr-vfx-lighting#4",
+      "t:rr-vfx-lighting#15"
+     ],
+     "web_skills": [
+      "rr-data-and-money",
+      "rr-exploit-guard",
+      "rr-game-feel",
+      "rr-release-train",
+      "rr-soundsmith",
+      "rr-ui-foundry",
+      "rr-vfx-lighting"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "rr-vfx-lighting/multi-deliverable",
+     "skill": "rr-vfx-lighting",
+     "theme": "multi-deliverable",
+     "owner": "",
+     "title": "No path for jobs with several deliverables (screens, variants, effects, looks)",
+     "fix": "Accept a list of names end to end (render, sheet, crit, export) and test it with 2+ items.",
+     "n": 2,
+     "open": 0,
+     "sev": "M",
+     "score": 2.2,
+     "sources": [
+      "trials/rr-vfx-lighting/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-vfx-lighting#6",
+      "t:rr-vfx-lighting#14"
+     ],
+     "web_skills": [
+      "rr-asset-foundry",
+      "rr-ui-foundry",
+      "rr-vfx-lighting"
+     ],
+     "recurring": true
+    },
+    {
+     "id": "rr-vfx-lighting/edits-skill",
+     "skill": "rr-vfx-lighting",
+     "theme": "edits-skill",
+     "owner": "",
+     "title": "Workflow tells missions to edit the shared skill instead of a mission copy",
+     "fix": "Default every write to the mission copy (env override such as RR_<X>_PRESETS); the skill folder is read-only at run time.",
+     "n": 1,
+     "open": 0,
+     "sev": "M",
+     "score": 1.5,
+     "sources": [
+      "trials/rr-vfx-lighting/FRICTION.md"
+     ],
+     "items": [
+      "t:rr-vfx-lighting#1"
+     ],
+     "web_skills": [
+      "rr-data-and-money",
+      "rr-soundsmith",
+      "rr-ui-foundry",
+      "rr-vfx-lighting"
+     ],
+     "recurring": true
+    }
+   ],
+   "skill_md_tokens_prev": 2860,
+   "md_series": [
+    2860,
+    2860
+   ],
+   "status": "critical",
+   "reasons": [
+    "critic 4/10",
+    "2 drift WARN",
+    "2 High fix(es) claimed, unverified",
+    "4 open Medium/Low frictions"
+   ],
+   "next": "harvest.py patch rr-vfx-lighting"
+  }
+ ],
+ "web_themes": {
+  "critic-route": {
+   "title": "Critic independence and route when no Agent tool (self-review, remote, handoff)",
+   "fix": "One probe order in rr-mission-control, referenced (not restated) by every maker skill; never certify self scores.",
+   "skills": [
+    "multiuse-critic",
+    "rr-exploit-guard",
+    "rr-game-feel",
+    "rr-mission-control",
+    "rr-release-train",
+    "rr-soundsmith"
+   ],
+   "n": 12
+  },
+  "roots": {
+   "title": "Workspace root or path convention is ambiguous",
+   "fix": "One env var + flag per root, recorded in state; resume reads it back.",
+   "skills": [
+    "rr-mission-control",
+    "rr-release-train"
+   ],
+   "n": 4
+  },
+  "owner-away": {
+   "title": "Owner-away or gated-run behaviour undefined",
+   "fix": "State the default (proceed on best match, persist questions to the mission file, mark fallback).",
+   "skills": [
+    "rr-asset-foundry",
+    "rr-mission-control"
+   ],
+   "n": 3
+  },
+  "toolchain": {
+   "title": "Tool missing in the cloud image; no documented fallback",
+   "fix": "Name the cloud fallback (and its limits) next to the preferred tool.",
+   "skills": [
+    "rr-exploit-guard",
+    "rr-game-feel",
+    "rr-mission-control"
+   ],
+   "n": 4
+  },
+  "canon-drift": {
+   "title": "Skill values contradict canon (numbers, gauge, colours, strings)",
+   "fix": "Read the value from rr-bible at run time (key cited), and add a drift.py check or a `check:` regex to the fact.",
+   "skills": [
+    "rr-data-and-money",
+    "rr-release-train",
+    "rr-ui-foundry",
+    "rr-vfx-lighting"
+   ],
+   "n": 6
+  },
+  "silent-pass": {
+   "title": "Silent success or false PASS hides a problem",
+   "fix": "Fail loudly (non-zero exit, named item) and add the case to the selftest.",
+   "skills": [
+    "rr-data-and-money",
+    "rr-exploit-guard",
+    "rr-game-feel",
+    "rr-release-train",
+    "rr-soundsmith",
+    "rr-ui-foundry",
+    "rr-vfx-lighting"
+   ],
+   "n": 13
+  },
+  "oq-ids": {
+   "title": "Open-question ids collide, go stale or are hard-coded",
+   "fix": "Cite OQ ids read at run time (`bible get questions --json`), check the title matches, never keep an OQ list in code.",
+   "skills": [
+    "rr-asset-foundry",
+    "rr-data-and-money",
+    "rr-game-feel",
+    "rr-release-train",
+    "rr-soundsmith"
+   ],
+   "n": 8
+  },
+  "wrong-measure": {
+   "title": "A checker measures the wrong thing",
+   "fix": "Measure the delivered result (per piece / per frame) and plant a known-bad case in the selftest.",
+   "skills": [
+    "rr-asset-foundry",
+    "rr-game-feel",
+    "rr-release-train",
+    "rr-soundsmith"
+   ],
+   "n": 5
+  },
+  "multi-deliverable": {
+   "title": "No path for jobs with several deliverables (screens, variants, effects, looks)",
+   "fix": "Accept a list of names end to end (render, sheet, crit, export) and test it with 2+ items.",
+   "skills": [
+    "rr-asset-foundry",
+    "rr-ui-foundry",
+    "rr-vfx-lighting"
+   ],
+   "n": 5
+  },
+  "critic-evidence": {
+   "title": "Critic evidence misses part of the deliverable (one close-up, hero only, no tiles)",
+   "fix": "Let the brief carry every deliverable (or a second evidence sheet) and label tiles; add an eval that counts deliverables vs tiles.",
+   "skills": [
+    "multiuse-critic",
+    "rr-game-feel",
+    "rr-mission-control",
+    "rr-soundsmith",
+    "rr-vfx-lighting"
+   ],
+   "n": 7
+  },
+  "token-sink": {
+   "title": "Output or docs spend tokens for nothing",
+   "fix": "Print a summary by default (--full for the rest); read slices, not whole files.",
+   "skills": [
+    "multiuse-critic",
+    "rr-release-train",
+    "rr-soundsmith"
+   ],
+   "n": 4
+  },
+  "cost-accounting": {
+   "title": "Token or cost numbers are estimated but not labelled",
+   "fix": "Label every non-measured token figure est. in ledgers and debriefs (a flag on the logging command).",
+   "skills": [
+    "multiuse-critic",
+    "rr-mission-control"
+   ],
+   "n": 2
+  },
+  "edits-skill": {
+   "title": "Workflow tells missions to edit the shared skill instead of a mission copy",
+   "fix": "Default every write to the mission copy (env override such as RR_<X>_PRESETS); the skill folder is read-only at run time.",
+   "skills": [
+    "rr-data-and-money",
+    "rr-soundsmith",
+    "rr-ui-foundry",
+    "rr-vfx-lighting"
+   ],
+   "n": 4
+  },
+  "canon-writes": {
+   "title": "Canon writes lack a dry-run or sandbox route (trials, parallel lanes)",
+   "fix": "Name `bible.py ... --dry-run` plus the OQ-TBD-<slug> placeholder rule in the one step that records canon.",
+   "skills": [
+    "rr-asset-foundry",
+    "rr-data-and-money",
+    "rr-game-feel",
+    "rr-soundsmith",
+    "rr-ui-foundry",
+    "rr-vfx-lighting"
+   ],
+   "n": 6
+  },
+  "generic-brief": {
+   "title": "Generated critic brief is generic instead of job-specific",
+   "fix": "Fill Purpose/audience from the job (mission R-lines or --purpose), and refuse a brief that still holds a placeholder.",
+   "skills": [
+    "rr-asset-foundry",
+    "rr-game-feel",
+    "rr-release-train",
+    "rr-soundsmith",
+    "rr-ui-foundry",
+    "rr-vfx-lighting"
+   ],
+   "n": 7
+  },
+  "pycache": {
+   "title": "Scripts leave __pycache__ in the skill folder",
+   "fix": "Put `import sys; sys.dont_write_bytecode = True` before local imports in every entry script; add a hygiene eval.",
+   "skills": [
+    "rr-exploit-guard",
+    "rr-game-feel",
+    "rr-soundsmith",
+    "rr-ui-foundry"
+   ],
+   "n": 4
+  },
+  "relative-paths": {
+   "title": "Relative paths leak into prompts and handoffs",
+   "fix": "Resolve every path to absolute before printing it into a spawn prompt or brief.",
+   "skills": [
+    "rr-ui-foundry",
+    "rr-vfx-lighting"
+   ],
+   "n": 2
+  }
+ },
+ "open_h": [
+  {
+   "id": "m:260927-depot-buildings#9",
+   "fp": "378c3aa2bd",
+   "skill": "rr-mission-control",
+   "also": [
+    "multiuse-critic"
+   ],
+   "sev": "H",
+   "title": "BLOCKER: the run brief said \"You have the Agent tool\" and critic passes MUST be independent subagents, but this subagent's toolset had no Ag",
+   "text": "BLOCKER: the run brief said \"You have the Agent tool\" and critic passes MUST be independent subagents, but this subagent's toolset had no Agent/Task tool (only SendMessage via ToolSearch; ToolSearch \"select:Agent\" returned nothing). rr-mission-control's fallback (\"self-review, labelled self-assessed\") was followed, so every critic score in this mission is SELF-ASSESSED by the maker, the exact case multiuse-critic calls \"the least neutral judge\". The skill should make the environment probe fail loudly (\"critic independence impossible -> bar cannot be certified\") instead of silently degrading, and should offer a real alternative (e.g. a fresh Claude Code Remote session with files published as an artifact).",
+   "source": "missions/260927-depot-buildings/SKILL-FRICTION.md",
+   "line": 11,
+   "date": "2026-09-27",
+   "status": "open",
+   "theme": "critic-route",
+   "where": []
+  },
+  {
+   "id": "t:rr-ui-foundry#1",
+   "fp": "fe57064ff2",
+   "skill": "rr-ui-foundry",
+   "also": [],
+   "sev": "H",
+   "title": "BUILD PASS can't be reached for any lobby spec that differs from the shipped example: 2 false FAILs in luatest",
+   "text": "**BUILD PASS can't be reached for any lobby spec that differs from the shipped example: 2 false FAILs in luatest.** - `ui build` reported `FAIL luatest parity` and `BUILD FAIL`. Parity itself matched 1628/1628; the two failures came from runtime checks: - `luatest.py:438` loads the lobby spec from `U.SKILL / \"specs\"` instead of the specs passed with `--specs` (`h.spec_paths`). The resize check therefore compares my package with the example's geometry: \"resize phone -> PC re-lays out to the PC board (max err 257.528)\". - `luatest.py:406-407` hard-codes the example's node ids and design: `diff_plate.Text == \"HARD\"` and the `diff_plate` fill = `diff.hard`. My plate follows canon `ui.rules.one_accent`: the accent fill, a child `diff_value` and a `diff_pip`. So the check fails even though the behaviour is right. - Screens are picked by a name substring (`\"Lobby\" in n`, `\"Hud\" in n`, `luatest.py:388-389`), so a screen with a different name skips its runtime tests without saying so. - Evidence: I patched those two lines in a scratch copy of the scripts only (`$SCRATCH/skillcopy`) and ran it on the same package. It gave `runtime: 43/43 passed`, `parity: 1628/1628`, `luatest: all passed`. - Why it matters: SKILL.md step 6 says \"BUILD PASS is required before handover\". As shipped, only the example spec can pass. - Fix: use `h.spec_paths`. Derive the difficulty check from the spec (the node whose text binds `{difficulty}` and the node whose role binds `diff.{difficulty|lower}`). Otherwi",
+   "source": "trials/rr-ui-foundry/FRICTION.md",
+   "line": 10,
+   "date": "2026-09-28",
+   "status": "open",
+   "theme": "silent-pass",
+   "where": [
+    "luatest.py:438",
+    "luatest.py:406",
+    "luatest.py:388",
+    "SKILL.md"
+   ]
+  },
+  {
+   "id": "t:rr-ui-foundry#2",
+   "fp": "97a7e6f2b4",
+   "skill": "rr-ui-foundry",
+   "also": [],
+   "sev": "H",
+   "title": "Notched phones fall below canon minimums while validate still passes",
+   "text": "**Notched phones fall below canon minimums while validate still passes.** - SKILL.md step 2 applies min text and targets \"on the phone (warnings on other devices)\", and `phone_notch` counts as another device. - The layout rule uses one global `s = min(areaW/844, areaH/332)`. The 59 px notch insets (`tech.ui_platform.notch_inset`) give s = 0.86, even for a 360 px centred panel that has room to spare. - Results with the shipped kit and specs: - `panel.close`, p1-p3, `diff_prev` and `diff_next` are 37.8 px, under the 44 px `tech.ui_platform.touch_target_px`. - HUD compact titles are 15.5 px, and the \"+N MORE\" chip and count badge are 13.8 px, under the 16 px of `ui.rules.min_text`. That is 8 warnings, and validate still says PASS. - Notched phones are most current phones, and phones are most of the audience (`identity.audience.devices`). - Workaround in the trial: Create Match targets are drawn at 52 design px, and in the trial kit copy the panel header is 56 and the close button 52. Result: 44.7 px on the notched phone, 0 warnings. - I left the HUD's 8 notched-phone warnings alone. It is the mission's critic-approved design, and changing the type sizes needs a critic pass. - Fix: gate phone_notch like the phone. Or give centred and pinned groups their own fit: shrink only when the group itself does not fit the area.",
+   "source": "trials/rr-ui-foundry/FRICTION.md",
+   "line": 19,
+   "date": "2026-09-28",
+   "status": "open",
+   "theme": "canon-drift",
+   "where": [
+    "SKILL.md"
+   ]
+  },
+  {
+   "id": "t:rr-ui-foundry#3",
+   "fp": "34352ba109",
+   "skill": "rr-ui-foundry",
+   "also": [
+    "multiuse-critic"
+   ],
+   "sev": "H",
+   "title": "A kit job covering 2 or more screens has no path through render and crit",
+   "text": "**A kit job covering 2 or more screens has no path through render and crit.** - `ui render` and `ui crit` take one spec each. `brief_md` describes one screen. multiuse-critic wants one `critic.md`, one `contact.png` and at most one close-up, and two specs give 20 boards. - To show the kit's main claim (two screens, one token set) on a single sheet, I had to do these by hand: - build `contact.png` and `closeups.png` with `contact_sheet.py`. On the way I learned that `--tile` must be `WxH` (a plain number crashes) and that `--max-width` also caps the height (my 856 px cap tripped the warning, exit 2). - crop the PC frames to true size myself. - merge the two `facts.md` files and rewrite `brief.md`. - Cost: about 7 extra tool calls and about 6k tokens. - The PC frame sits on the auto contact sheet at x0.31 (16 px text shows as 5 px). The task asked for PC frames, and nothing shows PC at true size unless you crop it by hand. - Fix: `ui render A.json B.json --out DIR` (a shared sheet with each screen's phone frame @1 and a true-size PC crop per screen), and `ui crit --spec A,B`.",
+   "source": "trials/rr-ui-foundry/FRICTION.md",
+   "line": 30,
+   "date": "2026-09-28",
+   "status": "open",
+   "theme": "multi-deliverable",
+   "where": [
+    "critic.md",
+    "contact_sheet.py",
+    "facts.md",
+    "brief.md",
+    "A.json",
+    "B.json"
+   ]
+  }
+ ],
+ "drift": [
+  {
+   "skill": "risky-rails-thumbnail-ideas",
+   "file": "SKILL.md",
+   "line": 81,
+   "kind": "hex",
+   "level": "WARN",
+   "msg": "22 canon colour(s) restated in instructions: #15171C=style.brand.ink, #E23A2E=style.brand.danger_red, #F2C230=style.brand.hazard_yellow, #FFF6C8=style.thumb.glow +18",
+   "fix": "cite the keys (or a palette name) and read values with bible get/tokens"
+  },
+  {
+   "skill": "rr-data-and-money",
+   "file": "presets/economy.json",
+   "line": 45,
+   "kind": "oq",
+   "level": "WARN",
+   "msg": "hard-coded OQ list (4 ids)",
+   "fix": "read `bible get questions --json` at run time"
+  },
+  {
+   "skill": "rr-data-and-money",
+   "file": "presets/economy.json",
+   "line": 65,
+   "kind": "oq",
+   "level": "WARN",
+   "msg": "OQ-052 cited for '{\"id\": \"loco_4\", \"price\": {\"v\": 12000, \"assumed\": \"about 2 h later; OQ' but it is 'Locomotive 3-5 and Line 2 prices (missing canon)'",
+   "fix": "check the id (parallel lanes collided on OQ numbers)"
+  },
+  {
+   "skill": "rr-data-and-money",
+   "file": "references/economy-model.md",
+   "line": 30,
+   "kind": "keys",
+   "level": "WARN",
+   "msg": "`economy.currency.float` is superseded",
+   "fix": "cite the current key"
+  },
+  {
+   "skill": "rr-data-and-money",
+   "file": "scripts/econ.py",
+   "line": 337,
+   "kind": "keys",
+   "level": "WARN",
+   "msg": "`economy.currency.float` is superseded",
+   "fix": "cite the current key"
+  },
+  {
+   "skill": "rr-exploit-guard",
+   "file": "references/fixes.md",
+   "line": 119,
+   "kind": "oq",
+   "level": "WARN",
+   "msg": "OQ-010 cited for '`NotProcessedYet` when the player, the profile or the grant is missing' but it is 'Robux in the supply terminal'",
+   "fix": "check the id (parallel lanes collided on OQ numbers)"
+  },
+  {
+   "skill": "rr-game-feel",
+   "file": "SKILL.md",
+   "line": 30,
+   "kind": "oq",
+   "level": "WARN",
+   "msg": "OQ-TBD placeholder not reconciled",
+   "fix": "record it with bible add-question; cite the id it gets"
+  },
+  {
+   "skill": "rr-game-feel",
+   "file": "references/schema.md",
+   "line": 15,
+   "kind": "oq",
+   "level": "WARN",
+   "msg": "OQ-TBD placeholder not reconciled",
+   "fix": "record it with bible add-question; cite the id it gets"
+  },
+  {
+   "skill": "rr-game-feel",
+   "file": "references/schema.md",
+   "line": 73,
+   "kind": "oq",
+   "level": "WARN",
+   "msg": "OQ-TBD placeholder not reconciled",
+   "fix": "record it with bible add-question; cite the id it gets"
+  },
+  {
+   "skill": "rr-game-feel",
+   "file": "scripts/feel.py",
+   "line": 476,
+   "kind": "oq",
+   "level": "WARN",
+   "msg": "OQ-TBD placeholder not reconciled",
+   "fix": "record it with bible add-question; cite the id it gets"
+  },
+  {
+   "skill": "rr-game-feel",
+   "file": "scripts/feel.py",
+   "line": 492,
+   "kind": "oq",
+   "level": "WARN",
+   "msg": "OQ-TBD placeholder not reconciled",
+   "fix": "record it with bible add-question; cite the id it gets"
+  },
+  {
+   "skill": "rr-game-feel",
+   "file": "scripts/feel.py",
+   "line": 787,
+   "kind": "oq",
+   "level": "WARN",
+   "msg": "OQ-TBD placeholder not reconciled",
+   "fix": "record it with bible add-question; cite the id it gets"
+  },
+  {
+   "skill": "rr-game-feel",
+   "file": "scripts/feel.py",
+   "line": 1080,
+   "kind": "oq",
+   "level": "WARN",
+   "msg": "hard-coded OQ list (4 ids)",
+   "fix": "read `bible get questions --json` at run time"
+  },
+  {
+   "skill": "rr-mission-control",
+   "file": "references/examples/mission-p1.md",
+   "line": 39,
+   "kind": "hex",
+   "level": "WARN",
+   "msg": "8 canon colour(s) restated in instructions: #9A9384=style.depot_kit.stone, #7D776B=style.depot_kit.stone_dark, #CABB8A=style.lobby.concrete, #8F5A2A=style.depot_kit.timber_dark +4",
+   "fix": "cite the keys (or a palette name) and read values with bible get/tokens"
+  },
+  {
+   "skill": "rr-mission-control",
+   "file": "references/roblox-export.md",
+   "line": 11,
+   "kind": "hex",
+   "level": "WARN",
+   "msg": "1 canon colour(s) restated in instructions: #9A9384=style.depot_kit.stone",
+   "fix": "cite the keys (or a palette name) and read values with bible get/tokens"
+  },
+  {
+   "skill": "rr-mission-control",
+   "file": "references/rr-profile.md",
+   "line": 6,
+   "kind": "studs",
+   "level": "WARN",
+   "msg": "'9.5 studs' restates tech.camera.eye_3p = 9.5",
+   "fix": "cite `tech.camera.eye_3p` instead of the number"
+  },
+  {
+   "skill": "rr-mission-control",
+   "file": "references/rr-profile.md",
+   "line": 7,
+   "kind": "studs",
+   "level": "WARN",
+   "msg": "'5 studs' restates tech.units.avatar_h = 5",
+   "fix": "cite `tech.units.avatar_h` instead of the number"
+  },
+  {
+   "skill": "rr-ui-foundry",
+   "file": "specs/hud_tickets.json",
+   "line": 2,
+   "kind": "oq",
+   "level": "WARN",
+   "msg": "hard-coded OQ list (5 ids)",
+   "fix": "read `bible get questions --json` at run time"
+  },
+  {
+   "skill": "rr-ui-foundry",
+   "file": "specs/lobby_create_match.json",
+   "line": 2,
+   "kind": "oq",
+   "level": "WARN",
+   "msg": "hard-coded OQ list (4 ids)",
+   "fix": "read `bible get questions --json` at run time"
+  },
+  {
+   "skill": "rr-vfx-lighting",
+   "file": "references/presets.md",
+   "line": 91,
+   "kind": "studs",
+   "level": "WARN",
+   "msg": "'120 studs' restates tech.lighting.light_range_max = 120",
+   "fix": "cite `tech.lighting.light_range_max` instead of the number"
+  },
+  {
+   "skill": "rr-vfx-lighting",
+   "file": "scripts/preview.py",
+   "line": 512,
+   "kind": "oq",
+   "level": "WARN",
+   "msg": "hard-coded OQ list (4 ids)",
+   "fix": "read `bible get questions --json` at run time"
+  }
+ ],
+ "snapshots": 2,
+ "sources": 10,
+ "items": 185
+}

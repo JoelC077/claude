@@ -1,0 +1,135 @@
+{
+ "skill": "rr-vfx-lighting",
+ "dir": "/home/user/claude/rr-vfx-lighting",
+ "when": "2026-09-28T05:54Z",
+ "tree": "0e3d8b029214bd6a",
+ "version": "0.0.0",
+ "results": [
+  {
+   "id": "builtin:validate",
+   "pass": true,
+   "why": "",
+   "tail": "Skill is valid!"
+  },
+  {
+   "id": "builtin:lean",
+   "pass": true,
+   "why": "",
+   "tail": "124 lines, 11440 chars (~2860 tokens)"
+  },
+  {
+   "id": "builtin:drift",
+   "pass": true,
+   "why": "",
+   "tail": "0 ERROR, 2 WARN"
+  },
+  {
+   "id": "validate",
+   "pass": true,
+   "why": "",
+   "seconds": 0.5,
+   "tail": "presets: /home/user/claude/rr-vfx-lighting/presets (shipped library: read-only; `vfx.py init DIR` + --presets DIR before editing) | validate PASS: 13 presets, 2 trails, 19 looks (+57 override combos), 2 overrides; 0 errors, 0 warnings; 34 canon refs, 3 OQ refs",
+   "covers": []
+  },
+  {
+   "id": "budget",
+   "pass": true,
+   "why": "",
+   "seconds": 0.2,
+   "tail": "ok   arrival_brake  steady 211, peak 211, emitters 5, fill 5050, lights 4 (1 shadowed), beams 0, debris 0 | ok   pressure_brake steady 247, peak 267, emitters 8, fill 5402, lights 5 (1 shadowed), beams 1, debris 0 | budget PASS: 0 set(s) over",
+   "covers": []
+  },
+  {
+   "id": "selftest",
+   "pass": true,
+   "why": "",
+   "seconds": 17.2,
+   "tail": "ok   crit writes rubric with Profile F and brief; absolute paths in the command | ok   critic_kit builds a Profile F pass | selftest: 47/47 passed",
+   "covers": []
+  },
+  {
+   "id": "builtin:hygiene",
+   "pass": true,
+   "why": "",
+   "tail": ""
+  }
+ ],
+ "triggers": [
+  {
+   "id": "trigger:e76940",
+   "query": "brake sparks and dusk lighting for the risky rails train",
+   "should": true,
+   "rank": 1,
+   "top": "rr-vfx-lighting",
+   "pass": true
+  },
+  {
+   "id": "trigger:4a78ed",
+   "query": "make the chimney steam follow the train speed",
+   "should": true,
+   "rank": 1,
+   "top": "rr-vfx-lighting",
+   "pass": true
+  },
+  {
+   "id": "trigger:d5ac5d",
+   "query": "does the derail explosion run ok on phones?",
+   "should": true,
+   "rank": 1,
+   "top": "rr-vfx-lighting",
+   "pass": true
+  },
+  {
+   "id": "trigger:205737",
+   "query": "the tunnel lighting looks too dark, fix the look",
+   "should": true,
+   "rank": 1,
+   "top": "rr-vfx-lighting",
+   "pass": true
+  },
+  {
+   "id": "trigger:9a8982",
+   "query": "add rain and fog for a storm biome",
+   "should": true,
+   "rank": 1,
+   "top": "rr-vfx-lighting",
+   "pass": true
+  },
+  {
+   "id": "trigger:5bffe4",
+   "query": "camera shake when the train derails",
+   "should": false,
+   "rank": 2,
+   "top": "rr-game-feel",
+   "pass": true
+  },
+  {
+   "id": "trigger:b5efa5",
+   "query": "the lobby menu button colours",
+   "should": false,
+   "rank": 3,
+   "top": "rr-ui-foundry",
+   "pass": true
+  },
+  {
+   "id": "trigger:09702d",
+   "query": "boiler explosion sound effect",
+   "should": false,
+   "rank": 1,
+   "top": "rr-vfx-lighting",
+   "pass": false
+  }
+ ],
+ "metrics": {
+  "skill_md_lines": 124,
+  "skill_md_chars": 11440,
+  "drift_warn": 2,
+  "drift_error": 0
+ },
+ "regressions": [],
+ "missing_evals": false,
+ "trigger_acc": 0.88,
+ "agent_pending": 0,
+ "ok": true,
+ "summary": "rr-vfx-lighting: PASS checks 7/7, triggers 7/8, 1 trigger miss(es)"
+}

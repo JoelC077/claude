@@ -334,7 +334,7 @@ def simulate(c, n_engaged=800, bible=None):
     add("runs started short of the supply kit", "PASS" if sh < 0.05 else ("WATCH" if sh < 0.15 else "MISS"),
         f"{sh:.0%} of runs (first runs {sh1:.0%}); start_coins {c.get('start_coins', 0):,.0f}; kit paid "
         + (f"split over a crew of {kit_split(c):g} (assumed)" if kit_split(c) > 1 else "in full by every player (assumed)")
-        + "; target under 5%", "economy.currency.float")
+        + "; target under 5%", "OQ-049")
     # risk/reward: net coins per run by difficulty (engaged non-payers: base fare - kit - recovery fees)
     bd = est["by_diff"]
     net = {d: (bd[d][1] - bd[d][2] - bd[d][3]) / bd[d][0] for d in DIFFS if d in bd and bd[d][0] >= 50}

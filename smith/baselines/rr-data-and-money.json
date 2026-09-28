@@ -1,0 +1,143 @@
+{
+ "skill": "rr-data-and-money",
+ "dir": "/home/user/claude/rr-data-and-money",
+ "when": "2026-09-28T05:49Z",
+ "tree": "c6858c625964b3e9",
+ "version": "0.0.0",
+ "results": [
+  {
+   "id": "builtin:validate",
+   "pass": true,
+   "why": "",
+   "tail": "Skill is valid!"
+  },
+  {
+   "id": "builtin:lean",
+   "pass": true,
+   "why": "",
+   "tail": "139 lines, 12700 chars (~3175 tokens)"
+  },
+  {
+   "id": "builtin:drift",
+   "pass": true,
+   "why": "",
+   "tail": "0 ERROR, 4 WARN"
+  },
+  {
+   "id": "tracking-plan",
+   "pass": true,
+   "why": "",
+   "seconds": 0.2,
+   "tail": "W currency 'Coins': canon economy.currency.name is a conflict (OQ-003); label it assumed | PASS tracking plan: 0 errors, 1 warnings",
+   "covers": []
+  },
+  {
+   "id": "abtest-help",
+   "pass": true,
+   "why": "",
+   "seconds": 0.1,
+   "tail": " | options: |   -h, --help            show this help message and exit",
+   "covers": []
+  },
+  {
+   "id": "selftest",
+   "pass": true,
+   "why": "",
+   "seconds": 13.5,
+   "tail": "data root for real work: /root/.rr-data  (outside a project repo: in the cloud a new session will not find it; set RR_DATA_ROOT to a folder in the repo) | selftest: 71/71 passed",
+   "covers": []
+  },
+  {
+   "id": "builtin:hygiene",
+   "pass": true,
+   "why": "",
+   "tail": ""
+  }
+ ],
+ "triggers": [
+  {
+   "id": "trigger:2f16d8",
+   "query": "set up analytics events for the risky rails onboarding funnel",
+   "should": true,
+   "rank": 1,
+   "top": "rr-data-and-money",
+   "pass": true
+  },
+  {
+   "id": "trigger:ee7dfb",
+   "query": "here's my creator dashboard csv export, write the weekly memo",
+   "should": true,
+   "rank": 1,
+   "top": "rr-data-and-money",
+   "pass": true
+  },
+  {
+   "id": "trigger:76f73f",
+   "query": "how many days do I need to run the thumbnail A/B test to get significance?",
+   "should": true,
+   "rank": 1,
+   "top": "rr-data-and-money",
+   "pass": true
+  },
+  {
+   "id": "trigger:07aa38",
+   "query": "what should the locomotive gamepass cost in robux?",
+   "should": true,
+   "rank": 3,
+   "top": "multiuse-critic",
+   "pass": false
+  },
+  {
+   "id": "trigger:0e9b3a",
+   "query": "simulate the coin economy: are players reaching their first upgrade too slowly?",
+   "should": true,
+   "rank": 1,
+   "top": "rr-data-and-money",
+   "pass": true
+  },
+  {
+   "id": "trigger:047d44",
+   "query": "is selling crate odds for robux ok in risky rails?",
+   "should": true,
+   "rank": 1,
+   "top": "rr-data-and-money",
+   "pass": true
+  },
+  {
+   "id": "trigger:7f0b2c",
+   "query": "brainstorm new thumbnail concepts for risky rails",
+   "should": false,
+   "rank": 2,
+   "top": "risky-rails-thumbnail-ideas",
+   "pass": true
+  },
+  {
+   "id": "trigger:c07483",
+   "query": "audit my ProcessReceipt code for exploits",
+   "should": false,
+   "rank": 6,
+   "top": "rr-exploit-guard",
+   "pass": true
+  },
+  {
+   "id": "trigger:3c1109",
+   "query": "make the fare banked popup bounce",
+   "should": false,
+   "rank": 2,
+   "top": "rr-game-feel",
+   "pass": true
+  }
+ ],
+ "metrics": {
+  "skill_md_lines": 139,
+  "skill_md_chars": 12700,
+  "drift_warn": 4,
+  "drift_error": 0
+ },
+ "regressions": [],
+ "missing_evals": false,
+ "trigger_acc": 0.89,
+ "agent_pending": 0,
+ "ok": true,
+ "summary": "rr-data-and-money: PASS checks 7/7, triggers 8/9, 1 trigger miss(es)"
+}

@@ -1,0 +1,135 @@
+{
+ "skill": "rr-game-feel",
+ "dir": "/home/user/claude/rr-game-feel",
+ "when": "2026-09-28T05:50Z",
+ "tree": "95dc15560d1bd432",
+ "version": "0.0.0",
+ "results": [
+  {
+   "id": "builtin:validate",
+   "pass": true,
+   "why": "",
+   "tail": "Skill is valid!"
+  },
+  {
+   "id": "builtin:lean",
+   "pass": true,
+   "why": "",
+   "tail": "127 lines, 11617 chars (~2904 tokens)"
+  },
+  {
+   "id": "builtin:drift",
+   "pass": true,
+   "why": "",
+   "tail": "0 ERROR, 7 WARN"
+  },
+  {
+   "id": "validate-strict",
+   "pass": true,
+   "why": "",
+   "seconds": 0.7,
+   "tail": "presets: /home/user/claude/rr-game-feel/presets/feel.json (skill default copy: read-only, copy it into the project to edit) | NOTE hierarchy: 40 single pairs where a lower tier outshouts a higher-tier event (feel.py show EVENT lists them; never claim 'quieter than every X' without checking) | valida",
+   "covers": []
+  },
+  {
+   "id": "list",
+   "pass": true,
+   "why": "",
+   "seconds": 0.2,
+   "tail": "  depart                   actions  t4 all    loud 0.05  camkick,cue,haptic |   throttle_notch           actions  t5 all    loud 0.01  camkick,haptic |   station_arrive           actions  t4 all    loud 0.03  camkick,cue,fovkick",
+   "covers": []
+  },
+  {
+   "id": "selftest",
+   "pass": true,
+   "why": "",
+   "seconds": 38.8,
+   "tail": "ok   build --no-check | ok   luatest: RR_FeelMath parity + RR_Feel runtime in Lua 5.1 | selftest: all 61 passed",
+   "covers": []
+  },
+  {
+   "id": "builtin:hygiene",
+   "pass": true,
+   "why": "",
+   "tail": ""
+  }
+ ],
+ "triggers": [
+  {
+   "id": "trigger:c8dc63",
+   "query": "the lever pull feels floaty, make it snappier",
+   "should": true,
+   "rank": 1,
+   "top": "rr-game-feel",
+   "pass": true
+  },
+  {
+   "id": "trigger:d95061",
+   "query": "add screen shake and hit-stop when the crate lands",
+   "should": true,
+   "rank": 1,
+   "top": "rr-game-feel",
+   "pass": true
+  },
+  {
+   "id": "trigger:beb8c8",
+   "query": "the crisis camera shake makes people motion sick, tone it down with reduce motion",
+   "should": true,
+   "rank": 1,
+   "top": "rr-game-feel",
+   "pass": true
+  },
+  {
+   "id": "trigger:2d87dc",
+   "query": "phone haptics and rumble for the hard brake in risky rails",
+   "should": true,
+   "rank": 1,
+   "top": "rr-game-feel",
+   "pass": true
+  },
+  {
+   "id": "trigger:fd5ec4",
+   "query": "give the fare banked popup some juice: punch and bounce",
+   "should": true,
+   "rank": 1,
+   "top": "rr-game-feel",
+   "pass": true
+  },
+  {
+   "id": "trigger:e71bc0",
+   "query": "make brake spark particles under the train",
+   "should": false,
+   "rank": 2,
+   "top": "rr-vfx-lighting",
+   "pass": true
+  },
+  {
+   "id": "trigger:504420",
+   "query": "the alarm sound is too loud",
+   "should": false,
+   "rank": 3,
+   "top": "rr-soundsmith",
+   "pass": true
+  },
+  {
+   "id": "trigger:faba35",
+   "query": "lay out the lobby panel buttons for phone",
+   "should": false,
+   "rank": 5,
+   "top": "rr-ui-foundry",
+   "pass": true
+  }
+ ],
+ "metrics": {
+  "skill_md_lines": 127,
+  "skill_md_chars": 11617,
+  "drift_warn": 7,
+  "drift_error": 0
+ },
+ "regressions": [],
+ "missing_evals": false,
+ "trigger_acc": 1.0,
+ "agent_pending": 0,
+ "ok": true,
+ "summary": "rr-game-feel: PASS checks 7/7, triggers 8/8"
+}

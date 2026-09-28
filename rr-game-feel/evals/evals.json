@@ -1,0 +1,67 @@
+{
+ "skill_name": "rr-game-feel",
+ "budget": {
+  "skill_md_max_lines": 140,
+  "skill_md_max_chars": 12779
+ },
+ "triggers": [
+  {
+   "query": "the lever pull feels floaty, make it snappier",
+   "should_trigger": true
+  },
+  {
+   "query": "add screen shake and hit-stop when the crate lands",
+   "should_trigger": true
+  },
+  {
+   "query": "the crisis camera shake makes people motion sick, tone it down with reduce motion",
+   "should_trigger": true
+  },
+  {
+   "query": "phone haptics and rumble for the hard brake in risky rails",
+   "should_trigger": true
+  },
+  {
+   "query": "give the fare banked popup some juice: punch and bounce",
+   "should_trigger": true
+  },
+  {
+   "query": "make brake spark particles under the train",
+   "should_trigger": false
+  },
+  {
+   "query": "the alarm sound is too loud",
+   "should_trigger": false
+  },
+  {
+   "query": "lay out the lobby panel buttons for phone",
+   "should_trigger": false
+  }
+ ],
+ "checks": [
+  {
+   "id": "validate-strict",
+   "run": "python3 {skill}/scripts/feel.py validate --strict",
+   "stdout_has": [
+    "validate PASS"
+   ]
+  },
+  {
+   "id": "list",
+   "run": "python3 {skill}/scripts/feel.py list",
+   "stdout_has": [
+    "lever"
+   ]
+  },
+  {
+   "id": "selftest",
+   "run": "python3 {skill}/scripts/selftest.py",
+   "timeout": 900,
+   "slow": true,
+   "stdout_has": [
+    "passed"
+   ]
+  }
+ ],
+ "evals": []
+}

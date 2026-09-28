@@ -1,0 +1,70 @@
+{
+ "skill_name": "rr-data-and-money",
+ "budget": {
+  "skill_md_max_lines": 153,
+  "skill_md_max_chars": 13970
+ },
+ "triggers": [
+  {
+   "query": "set up analytics events for the risky rails onboarding funnel",
+   "should_trigger": true
+  },
+  {
+   "query": "here's my creator dashboard csv export, write the weekly memo",
+   "should_trigger": true
+  },
+  {
+   "query": "how many days do I need to run the thumbnail A/B test to get significance?",
+   "should_trigger": true
+  },
+  {
+   "query": "what should the locomotive gamepass cost in robux?",
+   "should_trigger": true
+  },
+  {
+   "query": "simulate the coin economy: are players reaching their first upgrade too slowly?",
+   "should_trigger": true
+  },
+  {
+   "query": "is selling crate odds for robux ok in risky rails?",
+   "should_trigger": true
+  },
+  {
+   "query": "brainstorm new thumbnail concepts for risky rails",
+   "should_trigger": false
+  },
+  {
+   "query": "audit my ProcessReceipt code for exploits",
+   "should_trigger": false
+  },
+  {
+   "query": "make the fare banked popup bounce",
+   "should_trigger": false
+  }
+ ],
+ "checks": [
+  {
+   "id": "tracking-plan",
+   "run": "python3 {skill}/scripts/track.py validate",
+   "stdout_has": [
+    "PASS tracking plan"
+   ]
+  },
+  {
+   "id": "abtest-help",
+   "run": "python3 {skill}/scripts/abtest.py --help",
+   "stdout_has": [
+    "A/B"
+   ]
+  },
+  {
+   "id": "selftest",
+   "run": "python3 {skill}/scripts/selftest.py",
+   "timeout": 300,
+   "stdout_has": [
+    "passed"
+   ]
+  }
+ ],
+ "evals": []
+}

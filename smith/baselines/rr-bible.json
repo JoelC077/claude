@@ -1,0 +1,163 @@
+{
+ "skill": "rr-bible",
+ "dir": "/home/user/claude/rr-bible",
+ "when": "2026-09-28T05:49Z",
+ "tree": "cb6bec1f0d107cad",
+ "version": "0.0.0",
+ "results": [
+  {
+   "id": "builtin:validate",
+   "pass": true,
+   "why": "",
+   "tail": "Skill is valid!"
+  },
+  {
+   "id": "builtin:lean",
+   "pass": true,
+   "why": "",
+   "tail": "98 lines, 8627 chars (~2156 tokens)"
+  },
+  {
+   "id": "builtin:drift",
+   "pass": true,
+   "why": "",
+   "tail": "0 ERROR, 0 WARN"
+  },
+  {
+   "id": "get-key",
+   "pass": true,
+   "why": "",
+   "seconds": 0.1,
+   "tail": "gameplay.crew.max = 6",
+   "covers": []
+  },
+  {
+   "id": "lint",
+   "pass": true,
+   "why": "",
+   "seconds": 0.1,
+   "tail": "lint OK: 734 facts, 56 open questions, 22 decisions, 50 sources",
+   "covers": []
+  },
+  {
+   "id": "gate-catches-off-palette",
+   "pass": true,
+   "why": "",
+   "seconds": 0.1,
+   "tail": "ERROR hex L1: #123456: off-palette; nearest style.brand.night_bg_top #1B2540 (dE 9.0) | check FAIL: t.css: 1 errors, 0 warnings, 0 colours and 0 fonts on canon",
+   "covers": []
+  },
+  {
+   "id": "question-dry-run",
+   "pass": true,
+   "why": "",
+   "seconds": 0.1,
+   "tail": "  - B: y | - default: A (probe) | - blocks: none",
+   "covers": [
+    "t:rr-ui-foundry#9",
+    "t:rr-vfx-lighting#3",
+    "t:rr-game-feel#5"
+   ]
+  },
+  {
+   "id": "selftest",
+   "pass": true,
+   "why": "",
+   "seconds": 2.0,
+   "tail": "selftest: 39/39 passed",
+   "covers": []
+  },
+  {
+   "id": "builtin:hygiene",
+   "pass": true,
+   "why": "",
+   "tail": ""
+  }
+ ],
+ "triggers": [
+  {
+   "id": "trigger:db1168",
+   "query": "what's the exact hex for hazard yellow in risky rails?",
+   "should": true,
+   "rank": 1,
+   "top": "rr-bible",
+   "pass": true
+  },
+  {
+   "id": "trigger:df6371",
+   "query": "how many players can be in one Risky Rails crew?",
+   "should": true,
+   "rank": 1,
+   "top": "rr-bible",
+   "pass": true
+  },
+  {
+   "id": "trigger:480e70",
+   "query": "Joel decided the currency is called Fares, record that decision in the risky rails canon",
+   "should": true,
+   "rank": 1,
+   "top": "rr-bible",
+   "pass": true
+  },
+  {
+   "id": "trigger:9ead30",
+   "query": "export the risky rails palette tokens as a Luau module",
+   "should": true,
+   "rank": 1,
+   "top": "rr-bible",
+   "pass": true
+  },
+  {
+   "id": "trigger:a4b552",
+   "query": "what questions are still open for Risky Rails?",
+   "should": true,
+   "rank": 1,
+   "top": "rr-bible",
+   "pass": true
+  },
+  {
+   "id": "trigger:25f140",
+   "query": "is this HUD html on-brand? check its colours and fonts against canon",
+   "should": true,
+   "rank": 1,
+   "top": "rr-bible",
+   "pass": true
+  },
+  {
+   "id": "trigger:b84f18",
+   "query": "roast my risky rails lobby screen and score it out of 10",
+   "should": false,
+   "rank": 4,
+   "top": "multiuse-critic",
+   "pass": true
+  },
+  {
+   "id": "trigger:fd843d",
+   "query": "write a python function that merges two dicts",
+   "should": false,
+   "rank": 15,
+   "top": "pdf",
+   "pass": true
+  },
+  {
+   "id": "trigger:586cd4",
+   "query": "release the new risky rails update tonight",
+   "should": false,
+   "rank": 7,
+   "top": "rr-release-train",
+   "pass": true
+  }
+ ],
+ "metrics": {
+  "skill_md_lines": 98,
+  "skill_md_chars": 8627,
+  "drift_warn": 0,
+  "drift_error": 0
+ },
+ "regressions": [],
+ "missing_evals": false,
+ "trigger_acc": 1.0,
+ "agent_pending": 0,
+ "ok": true,
+ "summary": "rr-bible: PASS checks 9/9, triggers 9/9"
+}

@@ -386,6 +386,16 @@ def oq_ids(model):
     return out
 
 
+def oq_summary(model):
+    """Every OQ the presets cite, with the bible's title and default (never a hard-coded list)."""
+    b, parts = model.bible, []
+    for o in dict.fromkeys(oid for _, oid, _ in oq_ids(model)):
+        q = b.oq(o) if b.ok() and not o.startswith("OQ-TBD") else None
+        parts.append(f"{o} {q.get('title', '')} (default {(q.get('fields') or {}).get('default', '?').split(' (')[0]})"
+                     if q else o)
+    return "; ".join(parts) or "none cited by the presets"
+
+
 def validate(model, strict=False):
     r, raw, b, notes = model.r, model.raw, model.bible, model.notes
     for name, ev in raw.get("events", {}).items():
@@ -1083,8 +1093,7 @@ Or keep the controller's motion and pass only the other roles (gauge, stamp, cas
 - Camera effects run after the camera scripts (BindToRenderStep, Camera + 1) and never accumulate; FOV kicks
   are applied as a delta, so a fail camera that sets its own FOV mid-kick keeps it.
 - Camera pitch: + tips the view up, - down (a lurch forward or a nod is negative).
-- Open decisions in use: OQ-031 lever input (default drag console), OQ-032 feel settings (default: Roblox's own
-  Reduce Motion for the alpha), OQ-013 pressure numbers, OQ-006 who may pull.
+- Open decisions in use (from the presets, via rr-bible): {oq_summary(model)}.
 """
 
 
@@ -1119,8 +1128,7 @@ def brief(model, group, events=None):
         f"signal. Flashes: {v('av.feel.flash_limit')} ({b.fact('av.feel.flash_limit')['note'] if b.ok() and b.fact('av.feel.flash_limit') else ''}). "
         f"Reduce motion: {v('av.feel.reduce_motion')}. Hit-stop: {v('av.feel.hitstop_local')}.",
         "- Owner worries / already decided: feel must scale by tier (fail > crisis > commit > reward > UI); the lever "
-        "is the signature moment (identity.pillars.fork_bet). Open, on defaults: OQ-031 lever input (drag console), "
-        "OQ-032 feel settings (Roblox Reduce Motion only for the alpha), OQ-013 pressure numbers. Sound is not in "
+        "is the signature moment (identity.pillars.fork_bet). Open, on defaults: " + oq_summary(model) + ". Sound is not in "
         "these images (cues name sounds for a later skill); judge the visual and haptic channels only.",
         *([f"- Events in this pass: {', '.join(events)}."] if events else []),
         "step 2: pre-answered (canon via rr-bible; owner away)"]) + "\n"

@@ -1,0 +1,66 @@
+{
+ "skill_name": "rr-vfx-lighting",
+ "budget": {
+  "skill_md_max_lines": 136,
+  "skill_md_max_chars": 12584
+ },
+ "triggers": [
+  {
+   "query": "brake sparks and dusk lighting for the risky rails train",
+   "should_trigger": true
+  },
+  {
+   "query": "make the chimney steam follow the train speed",
+   "should_trigger": true
+  },
+  {
+   "query": "does the derail explosion run ok on phones?",
+   "should_trigger": true
+  },
+  {
+   "query": "the tunnel lighting looks too dark, fix the look",
+   "should_trigger": true
+  },
+  {
+   "query": "add rain and fog for a storm biome",
+   "should_trigger": true
+  },
+  {
+   "query": "camera shake when the train derails",
+   "should_trigger": false
+  },
+  {
+   "query": "the lobby menu button colours",
+   "should_trigger": false
+  },
+  {
+   "query": "boiler explosion sound effect",
+   "should_trigger": false
+  }
+ ],
+ "checks": [
+  {
+   "id": "validate",
+   "run": "python3 {skill}/scripts/vfx.py validate",
+   "stdout_has": [
+    "validate PASS"
+   ]
+  },
+  {
+   "id": "budget",
+   "run": "python3 {skill}/scripts/vfx.py budget",
+   "stdout_has": [
+    "budget PASS"
+   ]
+  },
+  {
+   "id": "selftest",
+   "run": "python3 {skill}/scripts/selftest.py",
+   "timeout": 300,
+   "stdout_has": [
+    "passed"
+   ]
+  }
+ ],
+ "evals": []
+}

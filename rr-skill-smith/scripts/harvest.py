@@ -259,7 +259,10 @@ def where_refs(text):
 
 # ---------------------------------------------------------------- report claims
 def report_claims(report_text):
-    t = report_text
+    t = re.sub(r"(?m)^Fresh critic.*$", "", report_text)          # critic criteria (F1..F6) are not friction ids
+    t = re.sub(r"'[A-Z]\d+':\s*[\d.]+", "", t)
+    t = re.sub(r"\bF(\d+)\s*[–-]\s*F(\d+)\b",
+               lambda m: ", ".join(f"F{k}" for k in range(int(m.group(1)), int(m.group(2)) + 1)), t)
     blanket = set()
     if re.search(r"(?i)all \d* ?friction items (are|were) (fixed|addressed)|every friction item", t):
         blanket |= {"H", "M", "L"}
@@ -297,8 +300,7 @@ def claim_status(item, claims):
 def scan(root, home, skills):
     index = L.file_index(skills)
     themes = load_themes()
-    old = L.load_json(home / "frictions.json", {}) or {}
-    manual = old.get("manual", {})
+    manual = L.closed(home)
     items, sources = [], []
     bases = all_bases(root)
     for base in bases:
@@ -334,8 +336,7 @@ def scan(root, home, skills):
                     rec["status"] = manual[key]["status"]
                     rec["closed_by"] = manual[key].get("by", "")
                 items.append(rec)
-    L.save_json(home / "frictions.json", {"scanned": L.now(), "root": str(root), "sources": sources,
-                                          "items": items, "manual": manual})
+    L.save_json(home / "frictions.json", {"scanned": L.now(), "root": str(root), "sources": sources, "items": items})
     scores, costs = scan_scores(root, skills)
     L.save_json(home / "scores.json", {"scanned": L.now(), "scores": scores, "costs": costs})
     clusters = make_clusters(items, themes)
@@ -366,9 +367,10 @@ def scan_scores(root, skills):
             if re.search(r"(?m)^R\d+\s*\|\s*(SAFE|VULN|UNSURE)", t):
                 vuln = len(re.findall(r"(?m)^R\d+\s*\|\s*VULN", t))
                 new = len(re.findall(r"(?m)^NEW:", t))
+                new_high = len(re.findall(r"(?mi)^NEW:[^|\n]*\|\s*(high|critical)\s*\|", t))
                 safe = len(re.findall(r"(?m)^R\d+\s*\|\s*SAFE", t))
                 indep = bool(re.search(r"(?mi)^independent:\s*yes", t))
-                scores.append({"skill": skill, "kind": "security", "vuln": vuln, "new": new, "safe": safe,
+                scores.append({"skill": skill, "kind": "security", "vuln": vuln, "new": new, "new_high": new_high, "safe": safe,
                                "independent": indep, "source": L.rel(v, root), "date": date, "tag": tag})
                 continue
             crits = {}
@@ -473,7 +475,7 @@ def make_clusters(items, themes):
         n_open = sum(1 for g in grp if g["status"] == "open")
         score = sum(L.SEV_W[g["sev"]] * (1.0 if g["status"] == "open" else 0.5) for g in grp) * (
             1 + 0.5 * (len(srcs) - 1)) * (1.5 if len(web_themes.get(theme, ())) > 1 else 1)
-        out.append({"id": f"{skill}/{theme}", "skill": skill, "theme": theme,
+        out.append({"id": f"{skill}/{theme}", "skill": skill, "theme": theme, "owner": t.get("owner", ""),
                     "title": t.get("title") or grp[0]["title"], "fix": t.get("fix", ""), "n": len(grp),
                     "open": n_open, "sev": sev, "score": round(score, 1), "sources": srcs,
                     "items": [g["id"] for g in grp], "web_skills": sorted(web_themes.get(theme, {skill})),
@@ -502,14 +504,10 @@ def cmd_scan(a, root, home, skills):
         rows.append([name, st["open"], hopen, st["claimed"], st["partial"], ls,
                      "; ".join(f"{c['theme']} x{c['n']}" for c in cl) or "-"])
     print(L.md_table(["skill", "open", "open H", "claimed", "partial", "last critic", "top recurring"], rows))
-    web = [c for c in clusters if len(c["web_skills"]) > 1]
-    seen = []
-    for c in web:
-        if c["theme"] not in seen:
-            seen.append(c["theme"])
-    if seen:
-        print("web-wide themes: " + ", ".join(f"{t} ({len(next(c for c in web if c['theme'] == t)['web_skills'])} skills)"
-                                              for t in seen[:8]))
+    web = {c["theme"]: len(c["web_skills"]) for c in clusters if len(c["web_skills"]) > 1}
+    if web:
+        print("web-wide themes: " + ", ".join(f"{t} ({n} skills)" for t, n in
+                                              sorted(web.items(), key=lambda kv: -kv[1])[:8]))
     print("next: harvest.py clusters --skill S | harvest.py patch S | drift.py | health.py")
     return 0
 
@@ -574,15 +572,20 @@ def cmd_patch(a, root, home, skills):
         out += [f"## P{k} {c['title']} ({c['id']}, n={c['n']}, open {c['open']}, sev {c['sev']})",
                 f"Fix hint: {c['fix'] or 'derive from the evidence; keep it minimal'}"]
         if len(c["web_skills"]) > 1:
-            out.append(f"Web-wide: also in {', '.join(s for s in c['web_skills'] if s != a.skill)}; "
-                       "prefer one shared fix (in the owning skill) over copies.")
+            others = ", ".join(s for s in c["web_skills"] if s != a.skill)
+            if c.get("owner") and c["owner"] != a.skill:
+                out.append(f"Web-wide (also {others}): the shared part belongs in {c['owner']}; reference it, do not copy it.")
+            elif c.get("owner") == a.skill:
+                out.append(f"Web-wide (also {others}): this skill owns the shared fix; make it once so the others can cite it.")
+            else:
+                out.append(f"Web-wide (also {others}): reuse the same fix pattern; check their claimed fixes first.")
         out.append("Evidence:")
         refs = []
         for iid in c["items"]:
             i = byid.get(iid)
             if not i:
                 continue
-            out.append(f"- [{i['sev']}] {iid} ({i['status']}): {i['title'][:120]} :: {i['text'][len(i['title']):][:220].strip()}")
+            out.append(f"- [{i['sev']}] {iid} ({i['status']}): {i['title'][:120]} :: {body_of(i)[:220]}")
             refs += i["where"]
         named = []
         for r in refs:
@@ -607,9 +610,18 @@ def cmd_patch(a, root, home, skills):
     return 0
 
 
+def body_of(i):
+    """item text without its leading tag and title, for evidence lines"""
+    t = re.sub(r"^\s*(\[[^\]]*\]\s*)?(\*\*.*?\*\*\s*)?", "", i["text"])
+    core = i["title"].split(" (")[0]
+    k = t.find(core[:40]) if core else -1
+    if 0 <= k < 80:
+        t = t[k + len(core):]
+    return t.strip(" .:—-")
+
+
 def cmd_close(a, root, home, skills):
     fr = load_state(home)
-    manual = fr.setdefault("manual", {})
     byid = {i["id"]: i for i in fr["items"]}
     n = 0
     for iid in a.ids:
@@ -617,7 +629,7 @@ def cmd_close(a, root, home, skills):
         if not i:
             print(f"unknown id {iid}", file=sys.stderr)
             continue
-        manual[i["fp"]] = {"status": a.status, "by": a.by, "date": L.today(), "id": iid}
+        L.set_closed(home, i["fp"], {"status": a.status, "by": a.by, "date": L.today(), "id": iid})
         i["status"], i["closed_by"] = a.status, a.by
         n += 1
     L.save_json(home / "frictions.json", fr)
@@ -649,6 +661,7 @@ def main(argv=None):
     p.add_argument("ids", nargs="+")
     p.add_argument("--by", required=True, help="evidence, e.g. 'eval fr-pycache passes (rr-ui-foundry 1.1.0)'")
     p.add_argument("--status", default="fixed", choices=["fixed", "wontfix", "dup", "open"])
+    L.common_sub(sp)
     a = ap.parse_args(argv)
     root = L.find_root(a.root)
     home = L.ensure_home(L.smith_home(root, a.home))

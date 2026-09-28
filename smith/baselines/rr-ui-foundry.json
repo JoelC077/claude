@@ -1,0 +1,135 @@
+{
+ "skill": "rr-ui-foundry",
+ "dir": "/home/user/claude/rr-ui-foundry",
+ "when": "2026-09-28T05:54Z",
+ "tree": "f13321aca2a106cf",
+ "version": "0.0.0",
+ "results": [
+  {
+   "id": "builtin:validate",
+   "pass": true,
+   "why": "",
+   "tail": "Skill is valid!"
+  },
+  {
+   "id": "builtin:lean",
+   "pass": true,
+   "why": "",
+   "tail": "125 lines, 11029 chars (~2757 tokens)"
+  },
+  {
+   "id": "builtin:drift",
+   "pass": true,
+   "why": "",
+   "tail": "0 ERROR, 2 WARN"
+  },
+  {
+   "id": "validate-hud",
+   "pass": true,
+   "why": "",
+   "seconds": 0.6,
+   "tail": "  tablet       k=1.398 min text 19.6 px (stack.t7.body), min target -; stack {'routine': '3 visible, +0 more', 'crisis': '3 visible, +1 more', 'overflow': '3 visible, +3 more'} |   pc           k=1.160 min text 16.2 px (stack.t3.body), min target -; stack {'routine': '3 visible, +0 more', 'crisis': ",
+   "covers": []
+  },
+  {
+   "id": "list",
+   "pass": true,
+   "why": "",
+   "seconds": 0.4,
+   "tail": "  lobby_create_match       LobbyCreateMatch     106 nodes  boards: open, insane, joining | templates: ticket (runtime), ticket_compact (runtime), more_chip (runtime), button, chip, panel | skins: A, B, C (main C: assumed (OQ-001 default))  devices: phone, phone_notch, tablet, pc, console",
+   "covers": []
+  },
+  {
+   "id": "selftest",
+   "pass": true,
+   "why": "",
+   "seconds": 42.1,
+   "tail": "selftest: 88/88 passed -- all passed",
+   "covers": []
+  },
+  {
+   "id": "builtin:hygiene",
+   "pass": true,
+   "why": "",
+   "tail": ""
+  }
+ ],
+ "triggers": [
+  {
+   "id": "trigger:026734",
+   "query": "turn this claude design HUD into roblox UI",
+   "should": true,
+   "rank": 1,
+   "top": "rr-ui-foundry",
+   "pass": true
+  },
+  {
+   "id": "trigger:61910b",
+   "query": "build the lobby create-match panel for phone and console",
+   "should": true,
+   "rank": 1,
+   "top": "rr-ui-foundry",
+   "pass": true
+  },
+  {
+   "id": "trigger:866722",
+   "query": "reskin all the buttons with the new palette",
+   "should": true,
+   "rank": 1,
+   "top": "rr-ui-foundry",
+   "pass": true
+  },
+  {
+   "id": "trigger:3e7a7a",
+   "query": "make the ticket HUD safe for notched phones and gamepad",
+   "should": true,
+   "rank": 1,
+   "top": "rr-ui-foundry",
+   "pass": true
+  },
+  {
+   "id": "trigger:eafbca",
+   "query": "export the modal as luau for rojo",
+   "should": true,
+   "rank": 1,
+   "top": "rr-ui-foundry",
+   "pass": true
+  },
+  {
+   "id": "trigger:bfd4d6",
+   "query": "score this HUD mockup out of 10",
+   "should": false,
+   "rank": 3,
+   "top": "multiuse-critic",
+   "pass": true
+  },
+  {
+   "id": "trigger:be585d",
+   "query": "add punch and bounce to the ticket popup",
+   "should": false,
+   "rank": 2,
+   "top": "rr-game-feel",
+   "pass": true
+  },
+  {
+   "id": "trigger:b2808c",
+   "query": "make a scrolling inventory list with a search box",
+   "should": false,
+   "rank": 1,
+   "top": "rr-ui-foundry",
+   "pass": false
+  }
+ ],
+ "metrics": {
+  "skill_md_lines": 125,
+  "skill_md_chars": 11029,
+  "drift_warn": 2,
+  "drift_error": 0
+ },
+ "regressions": [],
+ "missing_evals": false,
+ "trigger_acc": 0.88,
+ "agent_pending": 0,
+ "ok": true,
+ "summary": "rr-ui-foundry: PASS checks 7/7, triggers 7/8, 1 trigger miss(es)"
+}

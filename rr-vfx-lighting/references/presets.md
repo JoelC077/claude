@@ -88,7 +88,7 @@ optional `duration` (self-popping). `studio` holds Studio-only settings for `stu
   WindAffectsDrag follows Workspace.GlobalWind only when Drag > 0; LightEmission 0 normal .. 1 additive and
   does not light surfaces (use a light); LightInfluence 0..1 (Instance.new default 0, Studio insert 1);
   Brightness scales emission when LightInfluence is 0. Emission follows an Attachment's orientation.
-- Light Range is clamped to 120 studs (tech.lighting.light_range_max).
+- Light Range is clamped at `tech.lighting.light_range_max` (read from rr-bible; validate flags longer ranges).
 - Lighting.Technology is deprecated and not scriptable; LightingStyle + PrioritizeLightingQuality replace it
   (tech.lighting.technology_api). Ambient must not exceed OutdoorAmbient (Roblox clamps OutdoorAmbient up).
 - Post effects may not render at low quality levels (tech.lighting.post_low_quality): judge the phone fallback.

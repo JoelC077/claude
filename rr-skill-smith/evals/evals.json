@@ -1,0 +1,61 @@
+{
+ "skill_name": "rr-skill-smith",
+ "budget": {
+  "skill_md_max_lines": 120,
+  "skill_md_max_chars": 6921
+ },
+ "triggers": [
+  {
+   "query": "improve the skills based on last night's friction logs",
+   "should_trigger": true
+  },
+  {
+   "query": "web health report for JARVIS",
+   "should_trigger": true
+  },
+  {
+   "query": "skill-smith: what's broken across the rr skills?",
+   "should_trigger": true
+  },
+  {
+   "query": "upgrade rr-vfx-lighting using its trial frictions",
+   "should_trigger": true,
+   "k": 2
+  },
+  {
+   "query": "the mission is done, fold the lessons back into the skills",
+   "should_trigger": true
+  },
+  {
+   "query": "check the skills for hard-coded colours that drift from the bible",
+   "should_trigger": true
+  },
+  {
+   "query": "create a brand new skill for making trailers",
+   "should_trigger": false
+  },
+  {
+   "query": "fix this bug in the lever script",
+   "should_trigger": false
+  },
+  {
+   "query": "release the game update",
+   "should_trigger": false
+  }
+ ],
+ "checks": [
+  {
+   "id": "selftest",
+   "run": "python3 {skill}/scripts/selftest.py",
+   "stdout_has": [
+    "passed"
+   ],
+   "timeout": 300
+  },
+  {
+   "id": "drift-runs",
+   "run": "python3 {skill}/scripts/drift.py --level ERROR > out.txt; test $? -le 1 && grep -q 'skill' out.txt"
+  }
+ ],
+ "evals": []
+}

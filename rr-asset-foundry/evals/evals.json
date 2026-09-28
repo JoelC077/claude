@@ -1,0 +1,68 @@
+{
+ "skill_name": "rr-asset-foundry",
+ "budget": {
+  "skill_md_max_lines": 120,
+  "skill_md_max_chars": 13619
+ },
+ "triggers": [
+  {
+   "query": "make me 12 freight wagon variants overnight for risky rails",
+   "should_trigger": true
+  },
+  {
+   "query": "I need a longer passenger coach, same family as the last one",
+   "should_trigger": true
+  },
+  {
+   "query": "same signal box hut but taller, export the fbx for roblox",
+   "should_trigger": true
+  },
+  {
+   "query": "generate a few more supply crates and oil drums for the yard",
+   "should_trigger": true
+  },
+  {
+   "query": "add a new asset family to the foundry: platform benches",
+   "should_trigger": true
+  },
+  {
+   "query": "critique this 3d render of the loco and score it",
+   "should_trigger": false
+  },
+  {
+   "query": "make the chimney steam thicker and darker at night",
+   "should_trigger": false
+  },
+  {
+   "query": "build the ticket HUD for phones",
+   "should_trigger": false
+  }
+ ],
+ "checks": [
+  {
+   "id": "list",
+   "run": "python3 {skill}/scripts/foundry.py list",
+   "stdout_has": [
+    "wagon",
+    "coach"
+   ]
+  },
+  {
+   "id": "show-wagon",
+   "run": "python3 {skill}/scripts/foundry.py show wagon",
+   "stdout_has": [
+    "presets"
+   ]
+  },
+  {
+   "id": "selftest",
+   "run": "python3 {skill}/scripts/selftest.py",
+   "timeout": 1200,
+   "slow": true,
+   "stdout_has": [
+    "passed"
+   ]
+  }
+ ],
+ "evals": []
+}

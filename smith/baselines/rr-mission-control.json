@@ -1,0 +1,135 @@
+{
+ "skill": "rr-mission-control",
+ "dir": "/home/user/claude/rr-mission-control",
+ "when": "2026-09-28T05:50Z",
+ "tree": "e5e958db5e13fc4f",
+ "version": "0.0.0",
+ "results": [
+  {
+   "id": "builtin:validate",
+   "pass": true,
+   "why": "",
+   "tail": "Skill is valid!"
+  },
+  {
+   "id": "builtin:lean",
+   "pass": true,
+   "why": "",
+   "tail": "106 lines, 15496 chars (~3874 tokens)"
+  },
+  {
+   "id": "builtin:drift",
+   "pass": true,
+   "why": "",
+   "tail": "0 ERROR, 4 WARN"
+  },
+  {
+   "id": "intake-split",
+   "pass": true,
+   "why": "",
+   "seconds": 0.0,
+   "tail": "-- 2 lines, 0 noise, 2 to cover -> m/lines.md",
+   "covers": []
+  },
+  {
+   "id": "state-help",
+   "pass": true,
+   "why": "",
+   "seconds": 0.0,
+   "tail": " | options: |   -h, --help            show this help message and exit",
+   "covers": []
+  },
+  {
+   "id": "plan-help",
+   "pass": true,
+   "why": "",
+   "seconds": 0.0,
+   "tail": " | options: |   -h, --help     show this help message and exit",
+   "covers": []
+  },
+  {
+   "id": "builtin:hygiene",
+   "pass": true,
+   "why": "",
+   "tail": ""
+  }
+ ],
+ "triggers": [
+  {
+   "id": "trigger:12d4c9",
+   "query": "build the depot main hall in blender, get it to 8/10, export for roblox and send me progress updates",
+   "should": true,
+   "rank": 1,
+   "top": "rr-mission-control",
+   "pass": true
+  },
+  {
+   "id": "trigger:e7059d",
+   "query": "remake the ticket HUD from this design link, critic checked and roblox ready",
+   "should": true,
+   "rank": 1,
+   "top": "rr-mission-control",
+   "pass": true
+  },
+  {
+   "id": "trigger:1d080e",
+   "query": "mission status",
+   "should": true,
+   "rank": 1,
+   "top": "rr-mission-control",
+   "pass": true
+  },
+  {
+   "id": "trigger:2f4bd4",
+   "query": "resume the depot mission",
+   "should": true,
+   "rank": 1,
+   "top": "rr-mission-control",
+   "pass": true
+  },
+  {
+   "id": "trigger:acac43",
+   "query": "make a new station building for risky rails with a score target of 8",
+   "should": true,
+   "rank": 1,
+   "top": "rr-mission-control",
+   "pass": true
+  },
+  {
+   "id": "trigger:5bc898",
+   "query": "just critique this render, don't change anything",
+   "should": false,
+   "rank": 7,
+   "top": "multiuse-critic",
+   "pass": true
+  },
+  {
+   "id": "trigger:7b4dbe",
+   "query": "what's the train's top speed in canon?",
+   "should": false,
+   "rank": 13,
+   "top": "rr-bible",
+   "pass": true
+  },
+  {
+   "id": "trigger:e35e5c",
+   "query": "review this mechanic idea: passengers can fall off the roof",
+   "should": false,
+   "rank": 2,
+   "top": "risky-rails-mechanic-reviewer",
+   "pass": true
+  }
+ ],
+ "metrics": {
+  "skill_md_lines": 106,
+  "skill_md_chars": 15496,
+  "drift_warn": 4,
+  "drift_error": 0
+ },
+ "regressions": [],
+ "missing_evals": false,
+ "trigger_acc": 1.0,
+ "agent_pending": 0,
+ "ok": true,
+ "summary": "rr-mission-control: PASS checks 7/7, triggers 8/8"
+}

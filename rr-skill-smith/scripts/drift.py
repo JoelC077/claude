@@ -318,14 +318,17 @@ def check_refs(c, skill, relp, text, skill_dir):
                          r"((?:" + SUBDIRS + r"|SKILL\.md)(?:/[\w.-]+)*)", text):
         target = ph_map.get(m.group(1)) if m.group(1) else m.group(2)
         path = m.group(3).rstrip(".,:;)")
-        if not target or target not in c.skills or "*" in path:
+        if not target or target not in c.skills or "*" in path or is_template(path):
             continue
         if not (Path(c.skills[target]["dir"]) / path).exists():
             c.add(skill, relp, line_at(text, m.start()), "refs", "ERROR", f"{target}/{path} does not exist",
                   "fix the path (renamed or removed file)")
     if relp.suffix == ".md":
+        fenced = [(x.start(), x.end()) for x in re.finditer(r"```.*?```", text, re.S)]
         for m in re.finditer(r"(?<![\w/<>.$-])((?:" + SUBDIRS + r")/[\w.-]+(?:/[\w.-]+)*)", text):
             path = m.group(1).rstrip(".,:;)")
+            if is_template(path) or any(a <= m.start() < b for a, b in fenced):
+                continue  # placeholders (NAME.py, x.py) and examples in fenced blocks
             if "." not in Path(path).name and not (skill_dir / path).exists():
                 continue  # a bare folder word like assets/icons is checked only when it exists as a file path
             if (skill_dir / path).exists() or (skill_dir / relp.parent / path).exists():
@@ -345,6 +348,11 @@ def check_refs(c, skill, relp, text, skill_dir):
                 continue
             c.add(skill, relp, line_at(text, m.start()), "refs", "ERROR", f"{path} does not exist in {skill}",
                   "fix the path or drop the reference")
+
+
+def is_template(path):
+    stem = Path(path).stem
+    return bool(re.fullmatch(r"[A-Z][A-Z_]*|[a-z]|[A-Z]", stem)) or "NAME" in path or "<" in path
 
 
 # ---------------------------------------------------------------- script flags
@@ -411,10 +419,11 @@ def run(root, skills, only=None, kinds=None, dirs=None):
         d = Path((dirs or {}).get(name) or s["dir"])
         for p in L.skill_files(d):
             relp = p.relative_to(d)
-            if relp.parts[0] == "evals" or (name == "rr-skill-smith" and relp.parts[0] == "assets"):
+            if relp.parts[0] == "evals":
                 continue
             text = L.read(p)
-            canon_skill = name == "rr-bible"
+            # the canon itself, and the smith's own checker code (its patterns look like drift), skip content kinds
+            canon_skill = name == "rr-bible" or (name == "rr-skill-smith" and relp.parts[0] in ("scripts", "assets"))
             notes = relp.name in ("design-notes.md", "CHANGELOG.md")
             before = len(c.findings)
             if not canon_skill and not notes:

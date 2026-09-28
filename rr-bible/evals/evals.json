@@ -1,0 +1,89 @@
+{
+ "skill_name": "rr-bible",
+ "budget": {
+  "skill_md_max_lines": 120,
+  "skill_md_max_chars": 9490
+ },
+ "triggers": [
+  {
+   "query": "what's the exact hex for hazard yellow in risky rails?",
+   "should_trigger": true
+  },
+  {
+   "query": "how many players can be in one Risky Rails crew?",
+   "should_trigger": true
+  },
+  {
+   "query": "Joel decided the currency is called Fares, record that decision in the risky rails canon",
+   "should_trigger": true
+  },
+  {
+   "query": "export the risky rails palette tokens as a Luau module",
+   "should_trigger": true
+  },
+  {
+   "query": "what questions are still open for Risky Rails?",
+   "should_trigger": true
+  },
+  {
+   "query": "is this HUD html on-brand? check its colours and fonts against canon",
+   "should_trigger": true
+  },
+  {
+   "query": "roast my risky rails lobby screen and score it out of 10",
+   "should_trigger": false
+  },
+  {
+   "query": "write a python function that merges two dicts",
+   "should_trigger": false
+  },
+  {
+   "query": "release the new risky rails update tonight",
+   "should_trigger": false
+  }
+ ],
+ "checks": [
+  {
+   "id": "get-key",
+   "run": "python3 {skill}/scripts/bible.py get gameplay.crew.max --values",
+   "stdout_re": "gameplay\\.crew\\.max = \\d+"
+  },
+  {
+   "id": "lint",
+   "run": "python3 {skill}/scripts/bible.py lint",
+   "stdout_has": [
+    "lint OK"
+   ]
+  },
+  {
+   "id": "gate-catches-off-palette",
+   "run": "printf 'a{color:#123456}' > t.css && python3 {skill}/scripts/bible.py check t.css",
+   "exit": 1,
+   "stdout_has": [
+    "off-palette"
+   ]
+  },
+  {
+   "id": "question-dry-run",
+   "run": "python3 {skill}/scripts/bible.py add-question \"Smith eval probe?\" --option \"A: x\" --option \"B: y\" --default \"A (probe)\" --src owner --dry-run",
+   "stdout_has": [
+    "dry run",
+    "OQ-TBD"
+   ],
+   "covers": [
+    "t:rr-ui-foundry#9",
+    "t:rr-vfx-lighting#3",
+    "t:rr-game-feel#5"
+   ]
+  },
+  {
+   "id": "selftest",
+   "run": "python3 {skill}/scripts/selftest.py",
+   "stdout_has": [
+    "passed"
+   ],
+   "timeout": 300
+  }
+ ],
+ "evals": []
+}

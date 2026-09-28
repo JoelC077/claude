@@ -1,0 +1,135 @@
+{
+ "skill": "rr-asset-foundry",
+ "dir": "/home/user/claude/rr-asset-foundry",
+ "when": "2026-09-28T05:49Z",
+ "tree": "bf55f463ae40fced",
+ "version": "0.0.0",
+ "results": [
+  {
+   "id": "builtin:validate",
+   "pass": true,
+   "why": "",
+   "tail": "Skill is valid!"
+  },
+  {
+   "id": "builtin:lean",
+   "pass": true,
+   "why": "",
+   "tail": "97 lines, 12381 chars (~3095 tokens)"
+  },
+  {
+   "id": "builtin:drift",
+   "pass": true,
+   "why": "",
+   "tail": "0 ERROR, 0 WARN"
+  },
+  {
+   "id": "list",
+   "pass": true,
+   "why": "",
+   "seconds": 0.6,
+   "tail": "  presets: straight, straight_long, buffer_stop | wagon: Freight wagons (flat with crates, open coal wagon, box van, oval tank) on two axles or bogies. |   presets: open_coal, open_bogie, flat_crates, box_van, tank_long",
+   "covers": []
+  },
+  {
+   "id": "show-wagon",
+   "pass": true,
+   "why": "",
+   "seconds": 0.3,
+   "tail": "  lobby: ASSUMED (OQ-045 option B): Depot Lobby yard dressing, seen on foot at walking distance. |   coupled: CONTRADICTS canon (gameplay.train.layout is cab + coach; D-013 no tender car): only if the owner picks OQ-045 option C (wagons in the crew's train); seen from the next vehicle's end platform",
+   "covers": []
+  },
+  {
+   "id": "selftest",
+   "pass": true,
+   "why": "",
+   "seconds": 207.7,
+   "tail": "PASS make the scaffolded family (4s) | PASS POV premise switch re-renders the player views (20s) | 18/18 passed",
+   "covers": []
+  },
+  {
+   "id": "builtin:hygiene",
+   "pass": true,
+   "why": "",
+   "tail": ""
+  }
+ ],
+ "triggers": [
+  {
+   "id": "trigger:f0d2f4",
+   "query": "make me 12 freight wagon variants overnight for risky rails",
+   "should": true,
+   "rank": 1,
+   "top": "rr-asset-foundry",
+   "pass": true
+  },
+  {
+   "id": "trigger:eb8066",
+   "query": "I need a longer passenger coach, same family as the last one",
+   "should": true,
+   "rank": 1,
+   "top": "rr-asset-foundry",
+   "pass": true
+  },
+  {
+   "id": "trigger:381036",
+   "query": "same signal box hut but taller, export the fbx for roblox",
+   "should": true,
+   "rank": 1,
+   "top": "rr-asset-foundry",
+   "pass": true
+  },
+  {
+   "id": "trigger:7dc88b",
+   "query": "generate a few more supply crates and oil drums for the yard",
+   "should": true,
+   "rank": 1,
+   "top": "rr-asset-foundry",
+   "pass": true
+  },
+  {
+   "id": "trigger:9ea8d3",
+   "query": "add a new asset family to the foundry: platform benches",
+   "should": true,
+   "rank": 1,
+   "top": "rr-asset-foundry",
+   "pass": true
+  },
+  {
+   "id": "trigger:1ce3d1",
+   "query": "critique this 3d render of the loco and score it",
+   "should": false,
+   "rank": 16,
+   "top": "multiuse-critic",
+   "pass": true
+  },
+  {
+   "id": "trigger:21a554",
+   "query": "make the chimney steam thicker and darker at night",
+   "should": false,
+   "rank": 14,
+   "top": "rr-vfx-lighting",
+   "pass": true
+  },
+  {
+   "id": "trigger:937b61",
+   "query": "build the ticket HUD for phones",
+   "should": false,
+   "rank": 8,
+   "top": "rr-ui-foundry",
+   "pass": true
+  }
+ ],
+ "metrics": {
+  "skill_md_lines": 97,
+  "skill_md_chars": 12381,
+  "drift_warn": 0,
+  "drift_error": 0
+ },
+ "regressions": [],
+ "missing_evals": false,
+ "trigger_acc": 1.0,
+ "agent_pending": 0,
+ "ok": true,
+ "summary": "rr-asset-foundry: PASS checks 7/7, triggers 8/8"
+}

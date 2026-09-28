@@ -516,11 +516,16 @@ def brief(model, group, man=None):
         what, uses = "set of lighting looks per biome and time of day (Lighting, Atmosphere, ColorCorrection, Bloom, SunRays)", ""
     else:
         what, uses = "set of effect presets (particles, beams, trails, lights) for crises, fails and running", ""
-    oqs = (man or {}).get("oqs") or ["OQ-026", "OQ-027", "OQ-028", "OQ-029"]
+    if man is not None and "oqs" in man:
+        oqs = man["oqs"]
+    else:  # no pack manifest: every OQ the preset data cites (never a hard-coded list)
+        oqs = sorted({x.get("oq") for x in [model.budget_raw, *model.presets.values(),
+                                             *model.light_raw.get("times", {}).values()]
+                      if isinstance(x, dict) and x.get("oq")})
     def oq_line(o):
         q = b.oq(o) or {}
         return f"{o} {q.get('title', '')} (default {(q.get('fields') or {}).get('default', '?').split(' (')[0]})"
-    oq_txt = "; ".join(oq_line(o) for o in oqs) if b.ok() else ", ".join(oqs)
+    oq_txt = ("; ".join(oq_line(o) for o in oqs) if b.ok() else ", ".join(oqs)) or "none cited by this pack"
     lines = [f"# Risky Rails {'look-dev pack' if man and man.get('pack') else group + ' presets'} (rr-vfx-lighting)",
              f"- Purpose: a Roblox-native {what} that makes each game state read at a glance on a phone."
              + (f" What each effect is for: {uses}." if uses else ""),

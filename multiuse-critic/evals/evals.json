@@ -1,0 +1,58 @@
+{
+ "skill_name": "multiuse-critic",
+ "budget": {
+  "skill_md_max_lines": 224,
+  "skill_md_max_chars": 19060
+ },
+ "triggers": [
+  {
+   "query": "roast this lobby screen, is it good?",
+   "should_trigger": true
+  },
+  {
+   "query": "score my loco model out of 10 and tell me what to fix",
+   "should_trigger": true
+  },
+  {
+   "query": "get this thumbnail mockup to 8/10",
+   "should_trigger": true
+  },
+  {
+   "query": "critique my claude design canvas for the HUD",
+   "should_trigger": true
+  },
+  {
+   "query": "review this web page mockup honestly",
+   "should_trigger": true
+  },
+  {
+   "query": "build me a signal box in blender",
+   "should_trigger": false
+  },
+  {
+   "query": "brainstorm thumbnail ideas for launch",
+   "should_trigger": false
+  },
+  {
+   "query": "review this mechanic idea against our design rules",
+   "should_trigger": false
+  }
+ ],
+ "checks": [
+  {
+   "id": "kit-help",
+   "run": "python3 {skill}/scripts/critic_kit.py --help",
+   "stdout_has": [
+    "build",
+    "log",
+    "show"
+   ]
+  },
+  {
+   "id": "sheet-help",
+   "run": "python3 {skill}/scripts/contact_sheet.py --help",
+   "exit": 0
+  }
+ ],
+ "evals": []
+}
