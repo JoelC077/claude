@@ -1,9 +1,9 @@
 {
  "sheet": [
   856,
-  1140
+  1380
  ],
- "megapixels": 0.98,
+ "megapixels": 1.18,
  "tiles": [
   {
    "n": 1,
@@ -84,6 +84,18 @@
    "box": [
     396,
     918,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 8,
+   "label": "night roof3p: steam_chimney, smoke_chimney, sparks_brake +..",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.night_roof3p.png",
+   "box": [
+    6,
+    1158,
     384,
     216
    ],

@@ -3,7 +3,8 @@
 
 preview lighting [LOOKS]  -> lookdev_bpy.py renders (+ phone fallbacks at the phone resolution), sheets, facts.md
                              in OUT/lighting/
-preview vfx [PRESETS]     -> fxsim.py strips + POV composites over the OUT/lighting plates, sheets, facts.md in OUT/vfx/
+preview vfx [NAMES]       -> fxsim.py strips + POV composites over the OUT/lighting plates, sheets, facts.md in OUT/vfx/;
+                             with plates already there (an earlier preview all) it also rebuilds OUT/board/ in seconds
 preview all [NAMES]       -> both, plus OUT/board/: contact.png (phone POV at 1:1 + player views), closeups.png (effect
                              strips at 1:1), one facts.md and manifest.json: the one board `vfx.py crit` judges
 NAMES may mix looks and presets (a pack): POVs put the named loops (+ each look's fx_on) over every named look from
@@ -460,9 +461,12 @@ def run(model, a):
     if a.what in ("lighting", "all"):
         lfacts = lighting(model, P, a, out / "lighting")
         rc |= 1 if lfacts is None else 0
+    if a.what == "vfx":   # effect tuning: reuse the plates and their facts, so the board is rebuilt in seconds
+        fs = [out / "lighting" / f"{slug(n)}{sfx}.facts.json" for n in P["renders"] for sfx in ("", ".phone")]
+        lfacts = [json.loads(f.read_text()) for f in fs if f.is_file()] or None
     if a.what in ("vfx", "all") and P["presets"]:
         stats, povs, notes = effects(model, P, a, out / "vfx", out / "lighting")
-    if a.what == "all" and not rc:
+    if not rc and (a.what == "all" or (a.what == "vfx" and lfacts and povs)):
         board(model, P, a, out, lfacts, stats, povs, notes)
     return rc
 

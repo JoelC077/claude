@@ -98,7 +98,7 @@
     "fail_s_max": {"v": 3, "canon": "gameplay.crisis.fail_cinematic"},
     "loudness_weights": {"shake": 1.0, "camkick": 0.5, "hitstop": 0.8, "flash": 0.6, "fovkick": 0.4, "haptic": 0.4,
                          "punch": 0.3, "hud": 0.6},
-    "hud_px_ref": 5
+    "hud_px_ref": 10
   },
   "preview": {
     "about": "mock phone plate for previews only (not a game asset)",
@@ -261,6 +261,7 @@
       "trigger": "server show alert JunctionAhead (the junction lamp starts flashing, gameplay.fork.warning_lamp)",
       "intent": "heads up, a bet is coming: a confident tick, not an alarm", "canon": ["av.feel.fork_loudest"],
       "include": [{"event": "hud_ticket_enter"}],
+      "quiet_ok": "its weight is the junction_beep and the gantry warning lamp, not camera or haptics",
       "channels": [
         {"type": "punch", "target": "ticket", "prop": "scale", "amp": 0.048, "freq_hz": 6, "damping": 0.35,
          "dur": 0.5, "delay": 0.28},
@@ -329,6 +330,7 @@
       "trigger": "each of the last 3 whole seconds of the lever countdown (gantry countdown, gameplay.fork.lever)",
       "intent": "the loudest countdown in the game: the timer bar thumps every second",
       "canon": ["av.feel.fork_loudest", "ui.lever.timer"],
+      "quiet_ok": "the loudest countdown is the countdown_tick sound (av.feel.fork_loudest); the bar thump only marks it",
       "channels": [
         {"type": "punch", "target": "timer", "prop": "scale", "amp": 0.06, "freq_hz": 8, "damping": 0.35, "dur": 0.35},
         {"type": "haptic", "effect": "Custom", "keys": [[0, 0.35], [25, 0]]},
@@ -469,6 +471,7 @@
       "trigger": "the YOU'RE FIRED stamp lands on the Incident Report after a fail (av.vfx.boiler_fail)",
       "intent": "the punchline: the stamp drops, freezes on contact, the card jumps",
       "canon": ["av.vfx.boiler_fail", "identity.pillars.funny_failure"],
+      "loud_ok": "the punchline of the fail sequence, on the results screen after boiler_burst: never beside a crisis",
       "channels": [
         {"type": "tween", "target": "report_stamp", "prop": "scale", "from": 2.4, "to": 1, "dur": 0.18,
          "style": "Quad", "dir": "In"},

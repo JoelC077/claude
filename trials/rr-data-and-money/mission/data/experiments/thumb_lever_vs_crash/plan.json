@@ -1,0 +1,51 @@
+{
+ "name": "thumb_lever_vs_crash",
+ "created": "2026-09-28",
+ "surface": "thumbnail",
+ "hypothesis": "SYNTHETIC: B (same scene, boiler mid-explosion instead of calm lever pull; one change per release.thumbs.variant_rule) raises qualified play-through vs A (current LEVER thumbnail)",
+ "metric": {
+  "kind": "prop",
+  "base": 0.03,
+  "target": 0.034499999999999996,
+  "sd": null,
+  "price_a": null,
+  "price_b": null,
+  "better": "higher"
+ },
+ "arms": [
+  "A",
+  "B"
+ ],
+ "weights": [
+  1.0,
+  1.0
+ ],
+ "control": "A",
+ "alpha": 0.05,
+ "alpha_per_comparison": 0.05,
+ "power": 0.8,
+ "n_per_arm": [
+  24193,
+  24193
+ ],
+ "daily_eligible": 4000.0,
+ "days": 14,
+ "start": "2026-09-14",
+ "readout": "2026-09-28",
+ "looks": [
+  1.0
+ ],
+ "bounds": [
+  1.9599639845400538
+ ],
+ "inflation": 1.0,
+ "guardrails": [
+  {
+   "name": "bounce",
+   "margin": 0.02
+  }
+ ],
+ "salt": "thumb_lever_vs_crash-2026-09-14",
+ "testable": true,
+ "hash": "d66f3f9ba4db0798"
+}

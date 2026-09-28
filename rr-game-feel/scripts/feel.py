@@ -548,14 +548,20 @@ def validate(model, strict=False):
         lm = metrics(model, name, profile="loud")
         if lm["cam_px"] > lim["tier_shake_px"][tier] * 1.25:
             warns.append(f"{where}: loud profile moves the camera {lm['cam_px']} px (tier {tier} limit x1.25)")
-    # hierarchy: a lower tier may beat single events of a higher tier, never most of it (median); pairs are noted
+    # hierarchy: a lower tier may beat single events of a higher tier, never most of it (median); pairs are noted.
+    # quiet_ok (its weight lives in sound or the world) leaves an event out of its tier's median; loud_ok lets an
+    # event exceed it; both say why and are shown to critics
     pairs, _ = hierarchy(model, loud)
+    evs = r["events"]
     for hi in sorted({t for t, _ in loud.values()}):
-        med = statistics.median(l for t, l in loud.values() if t == hi)
+        base = [l for n, (t, l) in loud.items() if t == hi and not evs[n].get("quiet_ok")]
+        if not base:
+            continue
+        med = statistics.median(base)
         for name, (t, l) in loud.items():
-            if t > hi and l > med + 1e-9:
+            if t > hi and l > med + 1e-9 and not evs[name].get("loud_ok"):
                 warns.append(f"hierarchy: {name} (tier {t}, loudness {l}) is louder than most tier {hi} events "
-                             f"(median {med:.3f})")
+                             f"(median {med:.3f}): make it quieter, or say why in loud_ok")
     n_pairs = sum(len(v) for v in pairs.values())
     if n_pairs:
         notes.append(f"hierarchy: {n_pairs} single pairs where a lower tier outshouts a higher-tier event "
@@ -788,10 +794,12 @@ def spec_event(model, name):
 def hier_line(model, name, pairs=None):
     pairs = pairs or hierarchy(model)[0]
     beats = pairs.get(name, [])
+    ev = model.events[name]
+    why = "".join(f" {k}: {ev[k]}." for k in ("loud_ok", "quiet_ok") if ev.get(k))
     if not beats:
-        return "quieter than every event of a higher tier."
+        return f"quieter than every event of a higher tier.{why}"
     return ("louder than " + ", ".join(f"{o} (tier {model.events[o]['priority']}, {lo:.2f})" for o, lo in beats)
-            + f" at {metrics(model, name)['loudness']:.2f}; quieter than the rest of the higher tiers.")
+            + f" at {metrics(model, name)['loudness']:.2f}; quieter than the rest of the higher tiers.{why}")
 
 
 def spec(model, sel="all"):
