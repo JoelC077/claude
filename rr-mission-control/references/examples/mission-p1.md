@@ -36,7 +36,7 @@ Blocking: none (depot starts immediately; hall starts on A1 default).
 ## Spec
 ### Depot
 Footprint 24x14 at plan (18,76), long side facing north; two gables; stone walls, timber gable boards, slate roof, iron gutters; moss/ivy heaviest near base (blueprint "heaviest near building").
-Palette cells: stone #9a9384 / #7d776b, mortar #cabb8a, timber #8f5a2a/#b87a3d, slate #4a4f57, iron #2b2f36, moss #6d7d43.
+Palette cells: `style.depot_kit.*` tokens (stone, stone_dark, mortar, timber_dark, timber_light, slate_roof, iron, moss); hexes from `bible.py tokens --prefix style.depot_kit`.
 ### Main Hall
 ~24x12 behind the platform at north edge, single storey, same kit (T0) for coherence; main facade faces spawn.
 Cameras (both, never moved): Cam_POV_3P from spawn (30,60) toward each building at eye 9.5; Cam_Game (3/4, 400x225); Cam_34, Cam_Side, Cam_EndE, Cam_EndW, Cam_Door closeup; 5-stud avatars at doors.

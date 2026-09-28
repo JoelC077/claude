@@ -11,7 +11,7 @@ Read this at step 3 when the work is flat. It ends with the same three things as
 
    The result names the folder it saved into: that's ROOT.
 3. Uploaded images and fonts: `grep -oh '/_blob/[0-9a-f]\{32\}' -r ROOT/project | sort -u`, then `read` each id as the `path`. They land in ROOT too.
-4. Run `python3 <skill>/scripts/render_design.py ROOT OUT --boards Main.dc.html,Pricing.dc.html`, or leave out `--boards` to render all of them. It needs Python Playwright, Pillow and Chromium (else `pip install playwright pillow --break-system-packages`). If Playwright's own browser is missing, it falls back to a Chromium already on the machine; set `CHROMIUM_PATH` to point it at one. Google Fonts are blocked in the sandbox, so the script pulls the same families from npm (@fontsource).
+4. Run `python3 <skill>/scripts/render_design.py ROOT OUT --boards Main.dc.html,Pricing.dc.html`, or leave out `--boards` to render all of them. A fixed-size board saved as plain .html (a HUD at 844x390) takes `--fixed 844x390`: no fluid full-page capture and no extra 390x844 mobile render. Decoration clipped by an `overflow:hidden` scene is not reported as outside the artboard. It needs Python Playwright, Pillow and Chromium (else `pip install playwright pillow --break-system-packages`). If Playwright's own browser is missing, it falls back to a Chromium already on the machine; set `CHROMIUM_PATH` to point it at one. Google Fonts are blocked in the sandbox, so the script pulls the same families from npm (@fontsource).
 5. What lands in OUT:
    - `<board>.png` at true size
    - `.squint.png`, greyscale and blurred

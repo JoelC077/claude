@@ -17,6 +17,7 @@ trip through every hook that exists with nothing dropped.
 Needs lupa (pip install --target ~/.cache/rr-tools/py lupa); node luaparse is optional (npm i --prefix
 ~/.cache/rr-tools luaparse). Missing tools are reported as SKIP. Exit 0 = all passed. Stubs prove logic, not Roblox.
 """
+import sys; sys.dont_write_bytecode = True  # never write __pycache__ into the skill
 import argparse, shutil, subprocess, sys
 from pathlib import Path
 

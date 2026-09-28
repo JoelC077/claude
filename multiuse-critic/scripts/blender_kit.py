@@ -12,6 +12,8 @@ Units: 1 Blender unit = 1 stud unless you pass stud=.
   verify_palette(objs, img, hexes)                             cells exact; each face in one cell, on a palette colour
   backfaces(cam, objs=None, res=(400, 225), mask_path=None)    pixels Roblox would cull (back faces in view)
   tris(objs=None)                                              triangles per mesh vs the 10k target / 20k cap
+  floating_parts(objs=None, ground_z=None)                     parts not connected (bbox contact) to the ground
+  coplanar_overlaps(objs=None)                                 overlapping coplanar faces (z-fighting, black acne)
   reimport(path, expect=None)                                  re-import an FBX/OBJ: size, tris, UVs, materials
   import_studio_obj(path)                                      Studio OBJ with its 90° X rotation baked
   studio_setup_lua(model, default, rules)                      command-bar setup script for Studio
@@ -288,6 +290,83 @@ def tris(objs=None, target=10000, cap=20000):
     print(f"tris: {len(rows)} meshes, {sum(t for _, t, _ in rows):,} total, {len(flagged)} over the {target // 1000}k target")
     for name, t, flag in flagged:
         print(f"  {name}: {t:,} tris {flag}")
+    return rows
+
+
+def _wbox(o):
+    pts = [o.matrix_world @ Vector(c) for c in o.bound_box]
+    return (Vector((min(p.x for p in pts), min(p.y for p in pts), min(p.z for p in pts))),
+            Vector((max(p.x for p in pts), max(p.y for p in pts), max(p.z for p in pts))))
+
+
+def floating_parts(objs=None, ground_z=None, tol=0.05):
+    """Heuristic "no floating parts" check (A7). Parts touch when their world bounding boxes overlap or lie within
+    tol studs. Every cluster that contains no part reaching ground_z (default: the lowest point of all parts) is
+    floating. Bounding boxes over-connect (a diagonal brace touches more than it should), so a clean result is a
+    lower bound; a flagged cluster is almost always real. Returns [[names of one floating cluster], ...]."""
+    objs = [o for o in (objs or bpy.context.scene.objects) if o.type == "MESH"]
+    if not objs:
+        return []
+    boxes = {o.name: _wbox(o) for o in objs}
+    gz = min(b[0].z for b in boxes.values()) if ground_z is None else ground_z
+    names = list(boxes)
+    parent = {n: n for n in names}
+
+    def find(n):
+        while parent[n] != n:
+            parent[n] = parent[parent[n]]
+            n = parent[n]
+        return n
+    for i, a in enumerate(names):
+        la, ha = boxes[a]
+        for b in names[i + 1:]:
+            lb, hb = boxes[b]
+            if all(la[k] - tol <= hb[k] and lb[k] - tol <= ha[k] for k in range(3)):
+                parent[find(a)] = find(b)
+    groups = {}
+    for n in names:
+        groups.setdefault(find(n), []).append(n)
+    floating = [sorted(g) for g in groups.values() if not any(boxes[n][0].z <= gz + tol for n in g)]
+    print(f"floating parts: {len(floating)} cluster(s)" + "".join(
+        f"\n  {', '.join(g[:6])}{' +' + str(len(g) - 6) if len(g) > 6 else ''} (lowest z "
+        f"{min(boxes[n][0].z for n in g):.2f})" for g in floating))
+    return floating
+
+
+def coplanar_overlaps(objs=None, tol=0.002, min_area=0.01):
+    """Faces that lie in the same plane, face the same way and overlap: Cycles renders them as black acne and
+    Roblox z-fights them (seen on overlapping ivy clusters and a doubled gable). backfaces() cannot see this.
+    Face overlap is judged on world bounding boxes of the faces, so treat hits on sloped faces as candidates.
+    Returns [(object A, object B, overlapping face pairs)]."""
+    objs = [o for o in (objs or bpy.context.scene.objects) if o.type == "MESH"]
+    dg = bpy.context.evaluated_depsgraph_get()
+    buckets = {}
+    for o in objs:
+        ev = o.evaluated_get(dg)
+        me = ev.to_mesh()
+        mw, nm = o.matrix_world, o.matrix_world.to_3x3().inverted_safe().transposed()
+        for f in me.polygons:
+            n = (nm @ f.normal).normalized()
+            if n.length < 0.5:
+                continue
+            pts = [mw @ me.vertices[v].co for v in f.vertices]
+            d = n.dot(pts[0])
+            lo = Vector((min(p.x for p in pts), min(p.y for p in pts), min(p.z for p in pts)))
+            hi = Vector((max(p.x for p in pts), max(p.y for p in pts), max(p.z for p in pts)))
+            key = (round(n.x, 2), round(n.y, 2), round(n.z, 2), round(d / tol))
+            buckets.setdefault(key, []).append((o.name, f.index, lo, hi))
+        ev.to_mesh_clear()
+    hits = {}
+    for (nx, ny, nz, dk), faces in buckets.items():
+        cand = faces + buckets.get((nx, ny, nz, dk + 1), [])
+        for i, (oa, fa, la, ha) in enumerate(faces):
+            for ob, fb, lb, hb in cand[i + 1:]:
+                ext = sorted(max(0.0, min(ha[k], hb[k]) - max(la[k], lb[k])) for k in range(3))
+                if ext[1] * ext[2] >= min_area and (oa != ob or fa != fb):
+                    key = tuple(sorted((oa, ob)))
+                    hits[key] = hits.get(key, 0) + 1
+    rows = sorted(((a, b, n) for (a, b), n in hits.items()), key=lambda r: -r[2])
+    print(f"coplanar overlaps: {len(rows)} object pair(s)" + "".join(f"\n  {a} / {b}: {n} face pair(s)" for a, b, n in rows[:12]))
     return rows
 
 

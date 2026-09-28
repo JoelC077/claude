@@ -3,8 +3,7 @@
 Overridden by `<project>/.rr-missions/memory/owner-prefs.md` (dated owner statements) when present.
 
 - Game: Roblox, trains on rails; players ride the train, the world scrolls past (in-run). Lobby (Depot Lobby) is walk-around, static.
-- Camera: third-person eye ~9.5 studs above the floor, first-person ~5, vertical FOV 70.
-- Scale: studs; avatar ~5 studs tall; doors >= 7 wide x 9 tall; 1 stud ~ 0.28 m.
+- Camera and scale: read live, never from here: `bible.py get tech.camera --values` (eye_3p, eye_1p, fov_v) and `get tech.units --values` (avatar_h, building_door, stud_m). Units are studs.
 - 3D budget: <= 10k tris per MeshPart (cap 20k); one 256px palette atlas, 32px cells, Closest filtering, one material; named separate parts.
 - UI devices: phone landscape 844x390 primary (true size), PC 1280x720 second; Scale + UIAspectRatioConstraint; avoid Roblox topbar, thumbstick (bottom-left) and jump button (bottom-right) zones.
 - Fonts: Luckiest Guy (titles, stamps), Montserrat 600-800 (body).

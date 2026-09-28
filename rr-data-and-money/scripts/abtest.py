@@ -25,6 +25,7 @@ edited after it was written; plan refuses to overwrite one (--replace keeps the 
 then refuses unless --accept-edit). Each interim look is recorded in looks.json and read once.
 Exit 0 = ran, 1 = invalid input/plan, 2 = usage.
 """
+import sys; sys.dont_write_bytecode = True  # never write __pycache__ into the skill
 import argparse, csv, datetime as dt, hashlib, json, math, sys
 from pathlib import Path
 

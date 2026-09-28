@@ -39,13 +39,23 @@ Plan 2 fix rounds (`"repeat": 2`) and delta+final per deliverable; the cap is 5 
 ```
 # T<n> <deliverable> v1  (mission <slug>)
 Goal: <one sentence>. Stage: draft for critic pass 1 at bar <bar>.
-Read only: <M>/refs/<x>.facts.md, <M>/mission.md sections Spec + Acceptance (<deliverable>). Kit API (3D): `blender_kit` functions palette_image, add cameras by name, render, tris, verify_palette, reimport; run `python3 -c "import sys; sys.path.insert(0,'<critic>/scripts'); import blender_kit; help(blender_kit)"` if you need signatures. Render sizes and contact-sheet layout: <orchestrator pastes from the critic pipeline doc>; do not read the pipeline docs yourself.
+Read only: <M>/refs/<x>.facts.md, <M>/mission.md sections Spec + Acceptance (<deliverable>). Kit API (3D): `blender_kit` functions palette_image, add cameras by name, render, tris, verify_palette, reimport, floating_parts, coplanar_overlaps; run `python3 -c "import sys; sys.path.insert(0,'<critic>/scripts'); import blender_kit; help(blender_kit)"` if you need signatures. Render sizes, contact-sheet layout and facts.md: run `python3 <critic>/scripts/critic_kit.py spec --profile <A|B>` (prints only what you must deliver); do not read the pipeline docs. 3D pre-flight adds `floating_parts()` and `coplanar_overlaps()`.
 Tools: 3D -> one build.py at <M>/src/<deliverable>/ that rebuilds from an empty scene in its own file (cloud) / in its own new collection RR_<slug> in a new file (live MCP), never clearing or saving over the owner's data, using <critic>/scripts/blender_kit.py (palette atlas, named cameras, kit.render). UI -> Claude Design canvas / HTML with boards: <list>.
 Must: every Acceptance line; every editable part a separate named object <Bldg>_<Part>_<Mat>_<nn>; cameras/frames exactly: <list>.
 Milestones: render Cam_POV_3P + Cam_34 at 640x360 after shell, roof, details, dressing -> <M>/progress/<deliverable>-<k>.png   (3D only; if a Blender MCP is attached, build through it instead and skip milestone renders)
 Pre-flight before you report: <list of kit checks / render_design.py>; fix objective failures.
 Outputs: working source in <M>/src/<deliverable>/ (never inside CRIT). The orchestrator copies it to <CRIT>/round-N/ before each fix round.
 Reply in <= 10 lines: what exists, pre-flight results, open doubts. No code, no narration.
+```
+
+### Maker v1, routed to a specialist (routing.md row)
+```
+# T<n> <deliverable> v1 via <skill>  (mission <slug>)
+Goal: <one sentence>. Stage: draft for critic pass 1 at bar <bar>.
+Read only: <skill folder>/SKILL.md (steps <list from routing.md>), its "Inside a mission" section, <M>/mission.md Spec + Acceptance (<deliverable>), listed facts.
+Work in <M>/src/<deliverable>/ with the skill's scripts (<commands from routing.md>); no hand-rolled substitute for anything the skill generates.
+Pre-flight: <gate column of routing.md>; fix objective failures. Stop before the critic hand-off; the orchestrator runs steps 7-8.
+Reply in <= 10 lines: what exists, gate results, OQ drafts, open doubts.
 ```
 
 ### Maker fix (SendMessage to the same maker)

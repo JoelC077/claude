@@ -1,6 +1,6 @@
 ---
 name: rr-game-feel
-description: "Risky Rails (Roblox) game feel, the juice: one client Luau runtime plus per-event presets for tweens and easing, trauma camera shake, camera kicks, hit-stop, UI punch and pop, screen and element flashes, FOV kicks, haptics (HapticEffect, HapticService fallback) and the two-way lever drag feel, with a strict-typed Luau entry module, a tuning table, reduce-motion and flash-safety rules, a feel spec per event, curve plots and mock phone previews made in the cloud, and hand-off to multiuse-critic. Use whenever Risky Rails work mentions feel, juice, game feel, screen shake, camera shake, hit-stop, freeze frame, punch, pop, bounce, easing, tween curves, flashes, rumble, vibration, haptics, lever feel, satisfying, impact, snappy, reduce motion or motion sickness; when a HUD, lever, crisis, brake, crate, fare, fail or reward moment needs to feel better; or for feel deliverables in rr-mission-control missions. Not for particles or lighting (rr-vfx-lighting), sound (cues only) or static UI layout."
+description: "Risky Rails juice runtime and presets: tweens, camera shake, hit-stop, UI punch, flashes, FOV kicks, haptics and lever drag feel, with reduce-motion and flash-safety rules. Not for particles, lighting, sound or layout. Sub-skill of rr-mission-control (JARVIS): any Risky Rails request, even a short one squarely in this area, goes to rr-mission-control first, which routes here; fire directly only when this skill is named or another rr-* skill invokes it."
 ---
 
 # RR Game Feel

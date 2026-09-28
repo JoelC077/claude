@@ -1,6 +1,6 @@
 ---
 name: rr-vfx-lighting
-description: "Risky Rails (Roblox) look-dev for effects and lighting. Keeps particle, beam, trail and light presets (chimney steam and smoke that follow Speed, valve jet, power-box, axle and brake sparks, coal dust, firebox glow, headlamp, glass, boiler burst, derail explosion, rain) and Lighting, Atmosphere, ColorCorrection, Bloom and SunRays looks per biome and time of day (day, golden, dusk, night, storm, tunnel, overbridge) as JSON; exports Luau modules; previews a pack as one board from the players' roof, door and cab views on PC and phone (Cycles plus a particle simulator, per-effect visibility facts); checks phone budgets, canon values, colours and Roblox ranges; hands judgement to multiuse-critic. Use whenever Risky Rails work touches VFX, particles, steam, smoke, sparks, explosions, weather, fog, haze, sky, time of day, dusk, night, tunnels, bloom, colour grading or lighting mood, or asks if effects run or read on phones; also for effects or lighting in rr-mission-control missions. Not for UI screens or 3D models."
+description: "Risky Rails particle, beam, light and Lighting/Atmosphere preset packs (steam, smoke, sparks, explosions, weather, time-of-day looks) as JSON to Luau, with roof/door/cab previews and phone budget checks. Not for UI or 3D models. Sub-skill of rr-mission-control (JARVIS): any Risky Rails request, even a short one squarely in this area, goes to rr-mission-control first, which routes here; fire directly only when this skill is named or another rr-* skill invokes it."
 ---
 
 # RR VFX and Lighting

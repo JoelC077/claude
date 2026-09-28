@@ -52,6 +52,51 @@
    "id": "sheet-help",
    "run": "python3 {skill}/scripts/contact_sheet.py --help",
    "exit": 0
+  },
+  {
+   "id": "fr-maker-spec",
+   "run": "python3 {skill}/scripts/critic_kit.py spec --profile A",
+   "stdout_has": [
+    "Maker evidence spec",
+    "## Cameras",
+    "facts.md"
+   ],
+   "covers": [
+    "m:260927-depot-buildings#14",
+    "m:260927-depot-buildings#8"
+   ]
+  },
+  {
+   "id": "fr-log-est",
+   "run": "sh -c 'd=$(mktemp -d); python3 {skill}/scripts/critic_kit.py log $d --pass 1 --kind full --scores A1=6 --tokens 9 --agent a --est --mode self && python3 {skill}/scripts/critic_kit.py log $d --pass 2 --kind delta --scores A1=7 --tokens 20 --agent a --mode self; rm -rf $d'",
+   "stdout_has": [
+    "9 est.",
+    "| 20 | 20 |",
+    "includes estimates"
+   ],
+   "covers": [
+    "m:260927-depot-buildings#13",
+    "m:260927-ticket-hud#9"
+   ]
+  },
+  {
+   "id": "fr-fixed-board",
+   "run": "python3 {skill}/scripts/render_design.py --help",
+   "stdout_has": [
+    "--fixed"
+   ],
+   "covers": [
+    "m:260927-ticket-hud#7"
+   ]
+  },
+  {
+   "id": "fr-float",
+   "run": "python3 -c \"import ast,sys; t=ast.parse(open('{skill}/scripts/blender_kit.py').read()); n={f.name for f in t.body if isinstance(f,ast.FunctionDef)}; sys.exit(0 if {'floating_parts','coplanar_overlaps'}<=n else 1)\"",
+   "exit": 0,
+   "covers": [
+    "m:260927-depot-buildings#17",
+    "m:260927-depot-buildings#15"
+   ]
   }
  ],
  "evals": []

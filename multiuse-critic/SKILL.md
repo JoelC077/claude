@@ -1,9 +1,11 @@
 ---
 name: multiuse-critic
-description: "Honest, fresh-eyes critique by an independent critic agent that scores a game UI, design or 3D model against a fixed rubric (overall = lowest criterion), gives ranked fixes with a done-when check, and can loop fix → re-check until every criterion hits the bar, at a controlled token cost (one brief file per pass, the same critic continued between passes, a cost ledger). Use when asked to critique, review, roast, score or polish a Claude Design canvas, Roblox UI, HUD or screen, web page, mockup, thumbnail, or a 3D model, build or render (Risky Rails and other Roblox assets), including 'is this good?' or 'get it to 8/10'."
+description: "Independent critic agent that scores a game UI, design, thumbnail or 3D model against a fixed rubric (overall = lowest criterion), gives ranked fixes with done-when checks, and loops fix then re-check to a bar at controlled token cost. Anything that is (or may be) Risky Rails work, such as a depot, wagon, train, HUD or thumbnail, goes to rr-mission-control first, which chains this critic; fire directly only when this skill is named, another skill invokes it, or the design is clearly for a different project."
 ---
 
 # Design critique
+
+v2.1 (2026-09-28): `critic_kit.py spec --profile A|B` (maker evidence spec), `log --est/--mode`, `blender_kit.floating_parts()` and `coplanar_overlaps()`, `render_design.py --fixed WxH`.
 
 Get a straight-talking, rubric-scored critique from a critic agent that didn't make the work. It judges real renders and measured facts, not source code, which is what makes its feedback worth acting on. One flow covers both kinds of work; only step 3 differs:
 - **Profile B, flat work:** UI and HUD screens, Claude Design canvases, HTML pages, mockups, thumbnails, and PNG or PDF exports.
@@ -87,7 +89,7 @@ Give it only the files, not the conversation or the rationale: a critic that has
 
 Then:
 - Copy its SCORES lines into `pass-1/verdict.md`.
-- Log the pass: `critic_kit.py log CRIT --pass 1 --kind full --agent critic-1 --model <m> --scores "A1=7,..." --tokens T --tools U --minutes M`. Take tokens, tool calls and duration from the Agent result.
+- Log the pass: `critic_kit.py log CRIT --pass 1 --kind full --agent critic-1 --model <m> --scores "A1=7,..." --tokens T --tools U --minutes M`. Take tokens, tool calls and duration from the Agent result; figures you estimated get `--est` (shown "est."), and a self-review or handoff pass gets `--mode self|handoff` (nothing is subtracted as carried).
 - Log every pass of a continued critic under the same `--agent` name. The Agent result then reports its whole carried context, and the kit works out what the pass added.
 - The kit warns when a pass goes **over 120k tokens**. Tell the owner straight away, with the likely cause.
 

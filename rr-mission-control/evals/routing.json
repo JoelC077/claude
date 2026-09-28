@@ -1,0 +1,302 @@
+{
+ "skill": "rr-mission-control",
+ "cases": [
+  {
+   "id": 1,
+   "prompt": "make me a coal wagon",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "single",
+   "expected_route": [
+    "rr-asset-foundry",
+    "multiuse-critic"
+   ]
+  },
+  {
+   "id": 2,
+   "prompt": "why does my hud look off on phone",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "single",
+   "expected_route": [
+    "rr-ui-foundry",
+    "multiuse-critic"
+   ]
+  },
+  {
+   "id": 3,
+   "prompt": "is 20000 fare pack too much",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "single",
+   "expected_route": [
+    "rr-bible",
+    "rr-data-and-money"
+   ]
+  },
+  {
+   "id": 4,
+   "prompt": "add steam to the loco",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "single",
+   "expected_route": [
+    "rr-vfx-lighting",
+    "multiuse-critic"
+   ]
+  },
+  {
+   "id": 5,
+   "prompt": "lever pull feels weak",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "single",
+   "expected_route": [
+    "rr-game-feel"
+   ]
+  },
+  {
+   "id": 6,
+   "prompt": "can exploiters give themselves money",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "single",
+   "expected_route": [
+    "rr-exploit-guard"
+   ]
+  },
+  {
+   "id": 7,
+   "prompt": "ship v0.5",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "single",
+   "expected_route": [
+    "rr-release-train",
+    "rr-exploit-guard",
+    "multiuse-critic"
+   ]
+  },
+  {
+   "id": 8,
+   "prompt": "whats the teal hex",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "light",
+   "expected_route": [
+    "rr-bible"
+   ]
+  },
+  {
+   "id": 9,
+   "prompt": "thumbnail ideas for halloween update",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "single",
+   "expected_route": [
+    "risky-rails-thumbnail-ideas",
+    "multiuse-critic"
+   ]
+  },
+  {
+   "id": 10,
+   "prompt": "rate my depot",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "single",
+   "expected_route": [
+    "multiuse-critic"
+   ]
+  },
+  {
+   "id": 11,
+   "prompt": "remake the whole depot lobby in blender, make it look way better, get it to 8/10 and export for roblox. also the queue board ui and some ambient sound",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "mission",
+   "expected_route": [
+    "rr-bible",
+    "rr-ui-foundry",
+    "rr-soundsmith",
+    "multiuse-critic",
+    "rr-exploit-guard"
+   ]
+  },
+  {
+   "id": 12,
+   "prompt": "horn sounds too quiet compared to the alarms",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "single",
+   "expected_route": [
+    "rr-soundsmith"
+   ]
+  },
+  {
+   "id": 13,
+   "prompt": "idea: what if one crew member can uncouple the last wagon during a crisis to go faster",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "single",
+   "expected_route": [
+    "risky-rails-mechanic-reviewer"
+   ]
+  },
+  {
+   "id": 14,
+   "prompt": "need 12 wagon variants overnight, diff colours n lengths",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "single",
+   "expected_route": [
+    "rr-asset-foundry",
+    "multiuse-critic"
+   ]
+  },
+  {
+   "id": 15,
+   "prompt": "dusk looks too dark in tunnels on mobile",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "single",
+   "expected_route": [
+    "rr-vfx-lighting",
+    "multiuse-critic"
+   ]
+  },
+  {
+   "id": 16,
+   "prompt": "how many crew per train again",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "light",
+   "expected_route": [
+    "rr-bible"
+   ]
+  },
+  {
+   "id": 17,
+   "prompt": "write patch notes for the brake update",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "single",
+   "expected_route": [
+    "rr-release-train"
+   ]
+  },
+  {
+   "id": 18,
+   "prompt": "did d7 retention go up after the tutorial change, heres the csv",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "single",
+   "expected_route": [
+    "rr-data-and-money"
+   ]
+  },
+  {
+   "id": 19,
+   "prompt": "should i a/b test the new icon, how long would it take",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "single",
+   "expected_route": [
+    "rr-data-and-money"
+   ]
+  },
+  {
+   "id": 20,
+   "prompt": "make the crate pickup feel juicy with a pop sound and some sparks",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "mission",
+   "expected_route": [
+    "rr-game-feel",
+    "rr-soundsmith",
+    "rr-vfx-lighting",
+    "multiuse-critic"
+   ]
+  },
+  {
+   "id": 21,
+   "prompt": "new shop modal for gamepasses, has to work on console too",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "mission",
+   "expected_route": [
+    "rr-bible",
+    "rr-data-and-money",
+    "rr-ui-foundry",
+    "multiuse-critic",
+    "rr-exploit-guard"
+   ]
+  },
+  {
+   "id": 22,
+   "prompt": "mission status",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "light",
+   "expected_route": [
+    "rr-mission-control"
+   ]
+  },
+  {
+   "id": 23,
+   "prompt": "check my remotes folder before alpha",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "single",
+   "expected_route": [
+    "rr-exploit-guard"
+   ]
+  },
+  {
+   "id": 24,
+   "prompt": "what font do we use for the hud",
+   "should_trigger_jarvis": true,
+   "expected_first_skill": "rr-mission-control",
+   "expected_class": "light",
+   "expected_route": [
+    "rr-bible"
+   ]
+  },
+  {
+   "id": 25,
+   "prompt": "write me a cover letter for a barista job",
+   "should_trigger_jarvis": false,
+   "expected_first_skill": null,
+   "expected_class": "none",
+   "expected_route": []
+  },
+  {
+   "id": 26,
+   "prompt": "explain how python decorators work",
+   "should_trigger_jarvis": false,
+   "expected_first_skill": null,
+   "expected_class": "none",
+   "expected_route": [],
+   "note": "negative case: pass if rr-mission-control does not fire; generic skills like learn are fine",
+   "acceptable_first_skills": [
+    null,
+    "learn"
+   ]
+  },
+  {
+   "id": 27,
+   "prompt": "plan a 3 day trip to rome",
+   "should_trigger_jarvis": false,
+   "expected_first_skill": null,
+   "expected_class": "none",
+   "expected_route": []
+  },
+  {
+   "id": 28,
+   "prompt": "fix the null pointer in my java spring app",
+   "should_trigger_jarvis": false,
+   "expected_first_skill": null,
+   "expected_class": "none",
+   "expected_route": []
+  }
+ ]
+}

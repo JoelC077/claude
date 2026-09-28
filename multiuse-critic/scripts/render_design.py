@@ -85,7 +85,8 @@ MEASURE_JS = r"""
       out.clipped.push({el: say(el) || t, by: {w: el.scrollWidth - el.clientWidth, h: el.scrollHeight - el.clientHeight}, rect: R(r)});
     if ((cs.textOverflow === 'ellipsis' || cs.webkitLineClamp !== 'none') && (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1))
       out.clipped.push({el: say(el), by: 'truncated (ellipsis/line-clamp)', rect: R(r)});
-    if ((r.right > W + 1 || r.bottom > H + 1 || r.left < -1 || r.top < -1) && !out.offboard.some(o => o.node.contains(el)))
+    const shown = (r.right > W + 1 || r.bottom > H + 1 || r.left < -1 || r.top < -1) ? clipTo(el, R(r)) : null;   // decoration an overflow:hidden scene clips is not off the board
+    if (shown && shown.w > 0 && shown.h > 0 && (shown.x + shown.w > W + 1 || shown.y + shown.h > H + 1 || shown.x < -1 || shown.y < -1) && !out.offboard.some(o => o.node.contains(el)))
       out.offboard.push({node: el, el: say(el) || t, rect: R(r)});
     const interactive = el.matches('button, a[href], input:not([type=hidden]), select, textarea, summary, [role=button], [role=link], [tabindex]:not([tabindex="-1"])');
     const inSentence = cs.display === 'inline' && [...el.parentElement.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());   // WCAG exempts links inside text
@@ -297,6 +298,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("root"); ap.add_argument("out")
     ap.add_argument("--boards", default="", help="comma-separated board paths under project/ (default: all)")
+    ap.add_argument("--fixed", nargs="?", const="auto", default="", metavar="WxH",
+                    help="plain .html boards are fixed-size artboards (a HUD at 844x390), not fluid pages: no full-page "
+                         "capture and no extra 390x844 mobile render. WxH sets the size; bare --fixed uses canvas.json or 1280x800. "
+                         "canvas.json boards can say \"fixed\": true instead.")
     a = ap.parse_args()
     root, out = os.path.abspath(a.root), os.path.abspath(a.out)
     os.makedirs(out, exist_ok=True)
@@ -366,7 +371,10 @@ def main():
         for board in boards:
             meta = canvas.get("boards", {}).get(board, {})
             w, h = int(meta.get("w", 1280)), int(meta.get("h", 800))
-            fill = meta.get("expand") == "fill" or not board.endswith(".dc.html")
+            fixed = bool(a.fixed) or bool(meta.get("fixed"))
+            if a.fixed and a.fixed != "auto":
+                w, h = (int(v) for v in a.fixed.lower().split("x"))
+            fill = not fixed and (meta.get("expand") == "fill" or not board.endswith(".dc.html"))
             scale = 2 if w <= 600 else 1
             stem = re.sub(r"\.dc\.html$|\.html$", "", board).replace("/", "__")
             ctx, page, errors, failed = open_page(browser, board, w, h, scale)

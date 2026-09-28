@@ -8,7 +8,7 @@ Output `<M>/export/<building>/`:
 - `<Building>_atlas.fbx` (only if the owner asked for the palette atlas) - same parts with the atlas texture; README says it cannot be recoloured by Color in Studio.
 - `<Building>.blend` + `build.py` (final round) - the source of truth; rebuilding is re-running the script.
 - `parts.csv` - `name,group,material,palette_cell,tris,cancollide`. The recolour groups are what the owner edits.
-- `studio_setup.lua` from `kit.studio_setup_lua(model, default, rules)`: Anchored, CanCollide per rules (trims, gutters, ivy = false), CollisionFidelity Box for small parts, and a recolour table: `local GROUPS = { Stone = {color=Color3.fromHex("9a9384"), material=Enum.Material.Slate, parts={...}}, ... }` (colours from parts.csv palette_cell) + a loop that sets `TextureID = ""`, Color and Material per group, so recolouring = editing one line. Check: changing one GROUPS colour visibly recolours those parts (TextureID empty).
+- `studio_setup.lua` from `kit.studio_setup_lua(model, default, rules)`: Anchored, CanCollide per rules (trims, gutters, ivy = false), CollisionFidelity Box for small parts, and a recolour table: `local GROUPS = { Stone = {color=Color3.fromHex("<style.depot_kit.stone>"), material=Enum.Material.Slate, parts={...}}, ... }` (colours from parts.csv palette_cell) + a loop that sets `TextureID = ""`, Color and Material per group, so recolouring = editing one line. Check: changing one GROUPS colour visibly recolours those parts (TextureID empty).
 - Optional `<Building>.obj` fallback.
 Verify (report in the step line):
 - `kit.reimport(path, expect=(w, d, h))` in studs; a 3.57x factor means the unit bug (fix scale, re-export).
@@ -25,7 +25,7 @@ Output `<M>/export/roblox/` (Rojo-friendly):
 - `ASSETS.md` - upload order, where each `rbxassetid://` placeholder goes.
 Verify:
 - Syntax: `luau-analyze` or `selene` if installed; else `luac -p` (Lua 5.1 subset; ignore Luau type annotations by not using them); else npm `luaparse` (`npm i luaparse`, works in the cloud image; no Luau types or `+=`); else a bracket/`end` balance check. Report which ran.
-- Layout parity: render the Lua layout numbers as HTML (same tokens) with `render_design.py` and put it side by side with the final board in one contact sheet; you look at it once.
+- Layout parity: render the Lua layout numbers as HTML (same tokens) with `render_design.py` and put it side by side with the final board in one contact sheet; you look at it once. (rr-ui-foundry deliverables: skip this; `ui build` BUILD PASS is the check.)
 - Text diff: every notification text in the Lua equals the facts file.
 
 ## Environments

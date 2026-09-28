@@ -19,6 +19,7 @@ skill's preset. Canon via rr-bible (found by glob or $RR_BIBLE_SKILL): the onboa
 release.kpi.funnel in order, and the events named in its note (run_end(reason), ...) must exist with those fields.
 Exit 0 = OK, 1 = errors, 2 = usage.
 """
+import sys; sys.dont_write_bytecode = True  # never write __pycache__ into the skill
 import argparse, json, os, re, sys
 from pathlib import Path
 

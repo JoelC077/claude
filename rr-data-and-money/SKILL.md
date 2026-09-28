@@ -1,6 +1,6 @@
 ---
 name: rr-data-and-money
-description: "Risky Rails (Roblox) analytics, experiments and money. Analytics: AnalyticsService tracking plan (funnels, economy, progression, custom events) with tested server Luau and hooks; Creator Dashboard CSVs into a weekly memo with charts and CI-aware checks against canon KPIs and release gates (D1/D7/D30, session length, payer conversion, ARPDAU). Experiments: Roblox Experiments and custom A/B plans with sound statistics (sample size in days at real traffic, pre-registration, no peeking, SRM) for thumbnails, icons, prices and onboarding. Money: passes, dev products, subscriptions, Premium, value ladder, prices, an economy sim (faucets, sinks, inflation, first upgrade, difficulty rewards) and a money gate (no sold odds, no co-op pay-to-win, paid random items). Use whenever Risky Rails work mentions analytics, events, funnels, retention, KPIs, dashboards, weekly reports, A/B tests, significance, prices, Robux, monetization, economy, coins, fare or loot boxes. Not for thumbnail art or receipt-code security."
+description: "Risky Rails analytics and money: AnalyticsService tracking plan, Creator Dashboard CSV weekly memo with KPI checks, A/B test design and statistics, passes, dev products, prices, value ladder, economy sim and a money gate. Not for thumbnail art or receipt-code security. Sub-skill of rr-mission-control (JARVIS): any Risky Rails request, even a short one squarely in this area, goes to rr-mission-control first, which routes here; fire directly only when this skill is named or another rr-* skill invokes it."
 ---
 
 # RR Data and Money
@@ -116,8 +116,8 @@ All scripts: `python3 <me>/scripts/<name>.py --help`; stdlib only (luatest.py ad
 
 ## Plugs
 - rr-bible: canon reads through bible.py; gaps and platform facts recorded through it (never hand-edited).
-- rr-mission-control: has no data kind yet (its kinds are 3d, ui, mixed, and mixed means UI + 3D chains with a
-  critic loop): run data/money work standalone, or use its ledger with this skill's gates as pre-flight
+- rr-mission-control: routes data/money work here standalone (no mission kind; its routing table), or
+  uses its ledger with this skill's gates as pre-flight
   (`track.py validate`, `luatest.py --gate`, `track.py scan --strict`, `econ.py validate`, `econ.py guard --gate`).
 - rr-release-train: does not read `MONEY_GATE.json` yet; the owner reads it. Proposed `presets/gates.json`
   `extra_checks` entry for its owner: `{"gate": "G9", "name": "money gate (rr-data-and-money)", "skill":

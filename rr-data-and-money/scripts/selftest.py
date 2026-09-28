@@ -11,6 +11,7 @@ memo, charts, CI-aware spend gate, synthetic stamp, edge cases), econ.py (valida
 checks incl. difficulty ladder and short-of-kit, sweep record and typo, ladder states, guard incl. hidden products,
 departures from canon and --gate), svgchart XML validity and --help on every script. Exit 0 = all passed.
 """
+import sys; sys.dont_write_bytecode = True  # never write __pycache__ into the skill
 import argparse, copy, json, os, shutil, subprocess, sys, tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path

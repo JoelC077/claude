@@ -22,6 +22,7 @@ unlocks.loco_2.price or unlocks.0.price); an override of a canon value is report
 <data root>/econ/<date>. Only the owner changes live prices; this prepares the numbers.
 Exit 0 = ran (gate verdict in the file unless --gate), 1 = errors.
 """
+import sys; sys.dont_write_bytecode = True  # never write __pycache__ into the skill
 import argparse, datetime as dt, hashlib, json, math, random, re, statistics, sys
 from pathlib import Path
 

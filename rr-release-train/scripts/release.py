@@ -35,6 +35,7 @@
 <R> = --root, $RR_RELEASES_ROOT, or <git top of cwd>/releases. Canon via rr-bible (glob or $RR_BIBLE_SKILL).
 Never publishes without --live, owner approval, $ROBLOX_API_KEY and --confirm. Exit: 0 ok, 1 check failed, 2 usage.
 """
+import sys; sys.dont_write_bytecode = True  # never write __pycache__ into the skill
 import argparse
 import json
 import re

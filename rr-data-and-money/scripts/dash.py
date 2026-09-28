@@ -17,6 +17,7 @@ canon key). Store default: <data root>/metrics.json. Memo default: <data root>/m
 SYNTHETIC_* stamp the memo as synthetic. A WAU export (weekly unique players) sharpens the payer-conversion CI.
 Header names in real exports vary: run `inspect` on the first real file and pass --map for anything unmapped.
 """
+import sys; sys.dont_write_bytecode = True  # never write __pycache__ into the skill
 import argparse, csv, datetime as dt, io, math, re, statistics, sys
 from pathlib import Path
 

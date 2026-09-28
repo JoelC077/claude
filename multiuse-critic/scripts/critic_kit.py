@@ -118,7 +118,11 @@ def build(a):
         print(f"WARNING: {len(images)} images; the rule is the contact sheet plus at most one close-up")
 
     fresh = not a.continued
-    brief = read(os.path.join(crit_dir, "brief.md")).splitlines()
+    btext = read(os.path.join(crit_dir, "brief.md"), "")
+    if re.search(r"step 2 not answered", btext, re.I):
+        print("WARNING: brief.md still says 'Step 2 NOT answered'. Answer step 2 (or write the assumed answers and "
+              "'step 2: pre-answered') before spawning; a critic judging against open questions scores the wrong thing.")
+    brief = btext.splitlines()
     title = re.sub(r"^#\s*", "", brief[0])
     body = "\n".join(brief[1:] if brief[0].startswith("#") else brief).strip()
     out = [f"# Critic brief — {title} — pass {a.pass_} ({a.kind})", ""]
@@ -130,7 +134,7 @@ def build(a):
     if a.kind in ("delta", "final"):
         prev = max((r["pass"] for r in rows if r["pass"] < a.pass_), default=None)
         out += [f"## Changes since pass {prev}" if prev else "## Changes", read(os.path.join(pdir, "delta.md"), "(no delta.md written)"), ""]
-    facts = read(os.path.join(pdir, "facts.md"), "(no facts.md)")
+    facts = re.sub(r"(?m)^# ", "### ", read(os.path.join(pdir, "facts.md"), "(no facts.md)"))  # no nested H1
     prev_facts = os.path.join(crit_dir, f"pass-{a.pass_ - 1}", "facts.md")
     if a.kind == "delta" and os.path.isfile(prev_facts):
         old = set(read(prev_facts).splitlines())
@@ -192,11 +196,13 @@ def render_ledger(crit_dir, rows, bar):
         low = min(stand.items(), key=lambda kv: kv[1]) if stand else ("-", "-")
         scores = " · ".join(f"{c} {s}" for c, s in r["scores"].items())
         flag = " ⚠" if r.get("tokens", 0) > r.get("budget", 120000) else ""
+        est = " est." if r.get("est") else ""
         lines.append(f"| {r['pass']} | {r['kind']} | {r.get('agent', '')} · {r.get('model', '')} | {scores} | {low[1]} ({low[0]}) | "
-                     f"{r.get('tokens', 0):,}{flag} | {r.get('new', r.get('tokens', 0)):,} | {r.get('tools', '')} | {r.get('minutes', '')} | "
+                     f"{r.get('tokens', 0):,}{est}{flag} | {r.get('new', r.get('tokens', 0)):,}{est} | {r.get('tools', '')} | {r.get('minutes', '')} | "
                      f"{r.get('fixes', '')} {r.get('note', '')} |")
     tot_t, tot_m = sum(r.get("new", r.get("tokens", 0)) for r in rows), sum(float(r.get("minutes") or 0) for r in rows)
-    lines += ["", f"Total: {len(rows)} passes, {tot_t:,} new critic tokens, {tot_m:.1f} critic minutes. Bar: {bar}."]
+    any_est = " (includes estimates)" if any(r.get("est") for r in rows) else ""
+    lines += ["", f"Total: {len(rows)} passes, {tot_t:,} new critic tokens{any_est}, {tot_m:.1f} critic minutes. Bar: {bar}."]
     open(os.path.join(crit_dir, "ledger.md"), "w").write("\n".join(lines) + "\n")
     return "\n".join(lines)
 
@@ -205,10 +211,12 @@ def log(a):
     rows = [r for r in ledger(a.crit) if not (r["pass"] == a.pass_ and r["kind"] == a.kind)]
     scores = {k.strip(): float(v) if "." in v else int(v) for k, v in (s.split("=") for s in a.scores.split(",") if s)}
     prev = [r for r in rows if a.agent and r.get("agent") == a.agent and r["pass"] < a.pass_]
-    carried = max((r["tokens"] for r in prev), default=0)   # same critic continued: its earlier context comes along
+    # same critic continued: its earlier context comes along. self/handoff/fresh passes carry nothing.
+    carried = max((r["tokens"] for r in prev), default=0) if a.mode == "continued" else 0
     rows.append({"pass": a.pass_, "kind": a.kind, "agent": a.agent, "model": a.model, "scores": scores,
                  "tokens": a.tokens, "new": max(0, a.tokens - carried), "carried": carried, "tools": a.tools,
-                 "minutes": a.minutes, "fixes": a.fixes, "note": a.note, "budget": a.budget})
+                 "minutes": a.minutes, "fixes": a.fixes, "note": a.note, "budget": a.budget,
+                 "est": bool(a.est), "mode": a.mode})
     rows.sort(key=lambda r: r["pass"])
     json.dump(rows, open(os.path.join(a.crit, "ledger.json"), "w"), indent=1)
     print(render_ledger(a.crit, rows, a.bar))
@@ -222,6 +230,24 @@ def log(a):
               f"a heavy base context (a general-purpose agent carries every tool), extra turns ({a.tools} tool calls), or an oversized image or file.")
     if a.tools and a.tools > 4:
         print(f"WARNING: {a.tools} tool calls. The rule is one file plus 1–2 images, opened together in one message.")
+
+
+SPEC = {"A": ("3d-pipeline.md", ("Cameras", "Render", "facts.md", "Checks before handover")),
+        "B": ("2d-pipeline.md", ("The viewer's view", "Contact sheet"))}
+
+
+def spec(a):
+    """Print what a maker must hand the critic for a profile, so makers never read the pipeline docs."""
+    if a.profile not in SPEC:
+        sys.exit(f"spec knows profiles {', '.join(SPEC)}; for others read the profile's own skill")
+    fn, heads = SPEC[a.profile]
+    text = read(os.path.join(HERE, "..", "references", fn), "")
+    parts = re.split(r"(?m)^(?=## )", text)
+    out = [f"# Maker evidence spec, Profile {a.profile} (from references/{fn})",
+           "Deliver into <CRIT>/pass-N/: contact.png + contact.json (contact_sheet.py), at most one closeups.png, facts.md "
+           "(measured, starts at H2), delta.md from pass 2."]
+    out += [p.strip() for p in parts if any(p.startswith("## " + h) for h in heads)]
+    print("\n\n".join(out))
 
 
 def main():
@@ -252,6 +278,12 @@ def main():
     lg.add_argument("--note", default="")
     lg.add_argument("--budget", type=int, default=120000)
     lg.add_argument("--bar", type=float, default=8)
+    lg.add_argument("--est", "--estimated", dest="est", action="store_true",
+                    help="token/minute figures are estimates, not read from an Agent result (marked 'est.')")
+    lg.add_argument("--mode", choices=["continued", "fresh", "self", "handoff"], default="continued",
+                    help="continued (default) subtracts this agent's earlier carried tokens; the others never do")
+    sp = sub.add_parser("spec", help="print the maker evidence spec for a profile (A or B)")
+    sp.add_argument("--profile", required=True)
     sh = sub.add_parser("show")
     sh.add_argument("crit")
     sh.add_argument("--bar", type=float, default=8)
@@ -260,6 +292,8 @@ def main():
         build(a)
     elif a.cmd == "log":
         log(a)
+    elif a.cmd == "spec":
+        spec(a)
     else:
         print(render_ledger(a.crit, ledger(a.crit), a.bar))
 

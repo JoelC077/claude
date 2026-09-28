@@ -9,6 +9,7 @@ Statuses: PASS, WARN, FAIL, PENDING (evidence missing), WAIVED (owner), N/A. Ver
 PENDING blocking gate (presets/gates.json `blocking` per channel); GO-WITH-WARNINGS on WARN or a pending
 advisory gate; else GO. Rules and thresholds: presets/gates.json; game facts: rr-bible at run time.
 """
+import sys; sys.dont_write_bytecode = True  # never write __pycache__ into the skill
 import datetime as dt
 import json
 import re

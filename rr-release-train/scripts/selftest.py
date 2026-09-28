@@ -15,6 +15,7 @@ live rollback (target, no second rollback without --to, logs kept apart), the St
 run_tests.lua in Lua 5.1 (lupa, optional: pip install --target ~/.cache/rr-tools/py lupa). Canon is read from the
 real rr-bible (read-only).
 """
+import sys; sys.dont_write_bytecode = True  # never write __pycache__ into the skill
 import http.server
 import importlib.util
 import json

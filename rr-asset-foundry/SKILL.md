@@ -1,6 +1,6 @@
 ---
 name: rr-asset-foundry
-description: "Parametric Blender generators for recurring Risky Rails (Roblox) asset families: passenger coaches, freight wagons (flat, open coal, box van, tank), small railway buildings (hut, signal box, platform shelter), yard props (supply crates, oil drums, taped barriers) and tiling track (straight, buffer stop). Change a number or preset and get a Roblox-ready variant: rr-bible palette atlas, separate named recolour-group parts, invisible box collision proxies, optional LOD1, plain and atlas FBX, Studio setup script and measured facts; or batch N variants overnight into variant sheets. Use whenever the owner wants another carriage, wagon, hut, crate or track piece, a variation of one ('a longer coach', 'same shed but taller', '12 wagon variants overnight'), when a mission deliverable matches a family, or to add a new family. Canon comes from rr-bible; looks are judged by multiuse-critic. Not for one-off hero assets with no family (rr-mission-control builds those) or UI."
+description: "Parametric Blender generators for Risky Rails asset families (coaches, freight wagons, huts, signal box, shelter, crates, drums, barriers, track): preset or number change to a Roblox-ready variant with atlas, recolour parts, collision proxies, LOD, FBX, Studio setup; batch variant sheets; add a family. Not for one-off hero assets or UI. Sub-skill of rr-mission-control (JARVIS): any Risky Rails request, even a short one squarely in this area, goes to rr-mission-control first, which routes here; fire directly only when this skill is named or another rr-* skill invokes it."
 ---
 
 # RR Asset Foundry
@@ -58,7 +58,7 @@ Studio import for the owner is in each variant's README.md: import `<Asset>.fbx`
 - Step 5: `fdy make ... --out <M>/src/<deliverable> --renders full`. Step 6 pre-flight is the variant's own checks; a FAIL blocks the critic.
 - Step 7: `fdy crit` into `<M>/critique-<group>/` (one CRIT for up to 3 variants).
 - Step 9: the variant folder is the export. `fdy verify <variant>` (files, Lua syntax, canon gate), then copy it to `<M>/export/<asset>/` with `families/<family>.py` beside plan.json in place of build.py.
-- rr-mission-control does not mention the foundry yet; the owner-gated patch for its steps 4, 5 and 9 is in `design-notes.md`. Say so in the readback.
+- rr-mission-control routes matching 3D deliverables here (its routing table, steps 4, 5, 6 and 9).
 - A one-off build that will recur becomes a family: `references/families.md`, section "Promote a mission build".
 
 ## Canon (rr-bible)

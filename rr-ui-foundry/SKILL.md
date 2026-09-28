@@ -1,6 +1,6 @@
 ---
 name: rr-ui-foundry
-description: "Risky Rails (Roblox) UI foundry: turns a Claude Design canvas, HTML mock or brief into production Roblox UI for fixed-layout screens (HUD, modal, lobby panel, buttons, chips). One JSON screen spec drives the critic boards (phone, notched phone, tablet, PC, console; every state and skin; a kit board of every component state) and a generated Luau package: Scale layout with pinned margins and own fit on small screens, safe areas, live jump-button and thumbstick avoidance, components bound to rr-bible colour roles so one token change or Kit.setSkin reskins every screen, state machines, gamepad/console navigation, reduce motion, and a Rojo export gated by validate, luaparse, the canon check and Lua parity plus runtime tests. Use whenever Risky Rails needs a HUD, menu, lobby panel, modal, button, chip or ticket built, exported, reskinned, or made phone, gamepad or console safe, or a mission has UI to deliver. Not for scrolling lists or text input yet, critique only (multiuse-critic), juice (rr-game-feel) or 3D."
+description: "Risky Rails fixed-layout Roblox UI generator: a JSON screen spec to critic boards (phone, notch, tablet, PC, console) and a Luau package bound to rr-bible tokens, safe areas, gamepad nav, Rojo export. Not for scrolling lists, text input, critique-only, juice or 3D. Sub-skill of rr-mission-control (JARVIS): any Risky Rails request, even a short one squarely in this area, goes to rr-mission-control first, which routes here; fire directly only when this skill is named or another rr-* skill invokes it."
 ---
 
 # RR UI Foundry
@@ -96,9 +96,8 @@ Gamepad: `ButtonB` is the back event, focus starts on `nav.default` only when `P
 ## Inside a mission (rr-mission-control)
 UI deliverable = `<M>/src/<d>/spec.json` (+ icons folder). Step 5 build = write the spec; step 6 pre-flight =
 `ui validate` + `ui render`; steps 7-8 = `ui crit` into `<M>/critique-<d>/`; step 9 export = `ui build ... --out
-<M>/export/<d>/` (BUILD PASS). rr-mission-control does not name this skill yet and prescribes
-`render_design.py` and a hand-made layout parity check for UI: for kind ui, these steps replace them; say so in
-the mission plan and list "route kind ui to rr-ui-foundry" under Needs owner until mission-control adds it.
+<M>/export/<d>/` (BUILD PASS). rr-mission-control routes fixed-layout UI here (its routing table, `routing.md`);
+these steps replace its `render_design.py` pre-flight and hand-made layout parity.
 
 ## Open decisions
 Read them, never assume their defaults from memory: `bible.py get OQ-001` (skin; `ui render SPEC --skins A,C` is

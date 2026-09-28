@@ -57,6 +57,14 @@
    "id": "plan-help",
    "run": "python3 {skill}/scripts/plan.py --help",
    "exit": 0
+  },
+  {
+   "id": "routing-table",
+   "run": "sh -c 'grep -q routing.md {skill}/SKILL.md && grep -c \"^| \" {skill}/references/routing.md'",
+   "stdout_has": [
+    "1"
+   ],
+   "exit": 0
   }
  ],
  "evals": []
