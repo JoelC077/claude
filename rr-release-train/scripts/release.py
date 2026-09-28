@@ -425,7 +425,8 @@ def cmd_collect(ctx):
     print("\n".join(report))
     print_changes(ctx)
     unk = [c["id"] for c in ctx.rel["changes"] if c.get("in_build") == "unknown"]
-    mis = [c["id"] for c in ctx.rel["changes"] if c.get("title_auto") and c["title"] == c["title_auto"]]
+    mis = [c["id"] for c in ctx.rel["changes"] if c.get("title_auto") and c["title"] == c["title_auto"]
+           and c.get("in_build") != "no"]
     if mis:
         print(f"mission titles are dev objectives: retitle {', '.join(mis)} in player words (`mark C-n --title ...`)")
     if unk:
