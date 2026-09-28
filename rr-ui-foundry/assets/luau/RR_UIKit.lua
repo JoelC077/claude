@@ -218,6 +218,8 @@ function Kit.mount(def, opts)
 	end
 	self:setupNav()
 	self:rescale()
+	self:watchTouch()
+	for _, c in ipairs(self.onConds) do self:setFlag(c.id, "on", condOk(c.expr, self.data)) end
 	for mode, L in pairs(self.layers) do
 		table.insert(self.conns, L.gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(function() self:rescale() end))
 	end
@@ -276,7 +278,7 @@ function Screen:applyReg(e)
 	elseif e.kind == "Tile" then
 		inst.TileSize = UDim2.fromOffset(e.v * k, e.v * k)
 	elseif e.kind == "UIScale" then
-		inst.Scale = self.d
+		inst.Scale = self.d * self:ratio(e.mode, e.x and e.x.top)
 	elseif e.kind == "Top" then
 		self:placeTop(inst, e.x.node, e.mode)
 	elseif e.kind == "Dy" then
@@ -284,19 +286,49 @@ function Screen:applyReg(e)
 		inst.Position = UDim2.new(b.X.Scale, b.X.Offset, b.Y.Scale, b.Y.Offset + (e.x.dy or 0) * k)
 	elseif e.kind == "Focus" then
 		local f = Theme.focus
+		k = k * self:ratio(e.mode, self.focusTop)
 		inst.Size = UDim2.new(1, 2 * f.pad * k, 1, 2 * f.pad * k)
 		inst.Position = UDim2.fromOffset(-f.pad * k, -f.pad * k)
 	end
 end
 
+-- own fit (the same rule as uimodel.group_fit): an area smaller than the design area shrinks a pinned group only
+-- as much as that group needs to stay inside it; bigger areas scale every group by the same s.
+local function extent(p, a, size, full)
+	if p == 0 then return a + size end
+	if p == 1 then return full - a end
+	return size + 2 * math.abs(a + size / 2 - full / 2)
+end
+
+function Screen:groupFit(n, L, D)
+	if L.s >= 1 or n.stretch then return L.s end
+	local x, y, w, h = n.rect[1] - D.x, n.rect[2] - D.y, n.rect[3], n.rect[4]
+	local px, py = pinOf(n, x, y, w, h, D.w, D.h)
+	local ex = math.max(extent(px, x, w, D.w), 1e-6)
+	local ey = math.max(extent(py, y, h, D.h), 1e-6)
+	return math.max(L.s, math.min(1, L.aw / (ex * self.d), L.ah / (ey * self.d)))
+end
+
+-- px per design px of a top-level group relative to its layer's s (1 unless the group keeps its own fit)
+function Screen:ratio(mode, topId)
+	local L = self.layers[mode]
+	return (L and L.r and topId and L.r[topId]) or 1
+end
+
 function Screen:rescale()
+	self.d = Theme.density[Kit.displaySize()] or 1
 	for mode, L in pairs(self.layers) do
 		local a = L.gui.AbsoluteSize
 		local D = Theme.design[mode]
 		L.aw, L.ah = a.X, a.Y
 		L.s = math.min(a.X / D.w, a.Y / D.h)
+		L.r = {}
+		for _, n in ipairs(self.def.nodes) do
+			if ((n.layer == "backdrop") and "None" or self.def.insets) == mode and L.s > 0 then
+				L.r[n.id] = self:groupFit(n, L, D) / L.s
+			end
+		end
 	end
-	self.d = Theme.density[Kit.displaySize()] or 1
 	self:computeLifts()
 	local keep = {}
 	for _, e in ipairs(self.regs) do
@@ -312,7 +344,7 @@ end
 -- ------------------------------------------------------------------ geometry
 function Screen:topBox(n, mode)
 	local L, D = self.layers[mode], Theme.design[mode]
-	local k = L.s * self.d
+	local k = L.s * self:ratio(mode, n.id) * self.d
 	local x, y, w, h = n.rect[1] - D.x, n.rect[2] - D.y, n.rect[3], n.rect[4]
 	local px, py = pinOf(n, x, y, w, h, D.w, D.h)
 	local st = n.stretch
@@ -334,7 +366,7 @@ function Screen:placeTop(inst, n, mode)
 	local D = Theme.design[mode]
 	local L = self.layers[mode]
 	if not L.aw then return end
-	local k = L.s * self.d
+	local k = L.s * self:ratio(mode, n.id) * self.d
 	local x, y, w, h = n.rect[1] - D.x, n.rect[2] - D.y, n.rect[3], n.rect[4]
 	local px, py = pinOf(n, x, y, w, h, D.w, D.h)
 	local lift = self.lift[n.id] or 0
@@ -390,6 +422,48 @@ function Screen:zoneRect(name, mode)
 	return x, L.ah - z[2], z[1], z[2]
 end
 
+-- re-lift when Roblox's touch controls appear, move, hide or show after mount (TouchGui is created late, the
+-- JumpButton is hidden until a character spawns, ability controls move it)
+local TOUCH_NAMES = { TouchGui = true, TouchControlFrame = true, JumpButton = true, DynamicThumbstickFrame = true, ThumbstickStart = true }
+
+function Screen:relift()
+	if self.dead then return end
+	self:computeLifts()
+	for _, e in ipairs(self.regs) do
+		if e.kind == "Top" then self:applyReg(e) end
+	end
+	for _, st in pairs(self.stacks) do st:refresh(false) end
+end
+
+function Screen:watchTouch()
+	local any = false
+	for _, n in ipairs(self.def.nodes) do if n.avoid then any = true end end
+	if not any then return end
+	self.watched = self.watched or {}
+	local function watch(obj)
+		if not obj or self.watched[obj] then return end
+		self.watched[obj] = true
+		for _, prop in ipairs({ "Visible", "AbsolutePosition", "AbsoluteSize" }) do
+			table.insert(self.conns, obj:GetPropertyChangedSignal(prop):Connect(function() self:relift() end))
+		end
+	end
+	local function scan()
+		local tg = self.parent:FindFirstChild("TouchGui")
+		local frame = tg and tg:FindFirstChild("TouchControlFrame")
+		if not frame then return end
+		watch(frame:FindFirstChild("JumpButton"))
+		local dyn = frame:FindFirstChild("DynamicThumbstickFrame")
+		watch(dyn and dyn:FindFirstChild("ThumbstickStart"))
+	end
+	scan()
+	table.insert(self.conns, self.parent.DescendantAdded:Connect(function(obj)
+		if TOUCH_NAMES[obj.Name] then
+			scan()
+			self:relift()
+		end
+	end))
+end
+
 function Screen:computeLifts()
 	for _, n in ipairs(self.def.nodes) do
 		if n.avoid then
@@ -439,7 +513,7 @@ function Screen:build(n, parent, pdesign, isTop, mode, slots, ctx)
 		self:reg(inst, "Top", 0, mode, true, { node = n })
 		if not n.stretch then
 			new("UIAspectRatioConstraint", { AspectRatio = n.rect[3] / n.rect[4] }, inst)
-			self:reg(new("UIScale", { Scale = 1 }, inst), "UIScale", 1, mode, false)
+			self:reg(new("UIScale", { Scale = 1 }, inst), "UIScale", 1, mode, false, { top = n.id })
 			childCtx.uiscaled = true
 		end
 		childCtx.stretch = n.stretch ~= nil
@@ -824,6 +898,15 @@ function Screen:setupNav()
 	self:reg(istroke, "Thickness", f.inner, self.def.insets, true)
 	self:reg(ring, "Focus", 0, self.def.insets, true)
 	self.focusRing = ring
+	local function has(n, id)
+		if n.id == id then return true end
+		for _, c in ipairs(n.children or {}) do if has(c, id) then return true end end
+		return false
+	end
+	local want = nav.modal or nav.default
+	for _, n in ipairs(self.def.nodes) do
+		if want and has(n, want) then self.focusTop = n.id end
+	end
 	for id, edges in pairs(nav.edges or {}) do
 		local inst = self.nodes[id]
 		if inst then
@@ -1147,6 +1230,7 @@ function Screen:board(b)
 end
 
 function Screen:destroy()
+	self.dead = true
 	for _, c in ipairs(self.conns) do c:Disconnect() end
 	if self.backBound then ContextActionService:UnbindAction("RR_UI_Back_" .. self.def.name) end
 	for _, L in pairs(self.layers) do L.gui:Destroy() end

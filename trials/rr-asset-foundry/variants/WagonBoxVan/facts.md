@@ -1,0 +1,17 @@
+# WagonBoxVan (measured by rr-asset-foundry 2026-09-28)
+- family wagon, preset box_van (box van with a sliding door); seed 1
+- params: kind box, length 32.0, width 17.4 (tech.units.stock_width, proposed), gauge 8.0 (tech.units.gauge, proposed), deck 5.0 (tech.units.stock_floor, proposed), running auto, wheel_r 1.6, side_h 4.0, body_h 7.0, planks 4, load auto, weathering 0.4, door True
+- size, studs (Blender x, y, z-up): 34.8 x 18.26 x 13.2; in Studio X 34.8, Y(up) 13.2, Z 18.26
+- parts: 56 separate named <Asset>_<Part>_<Group>_<nn>; groups Chassis 16, Buffer 2, Steel 10, Iron 16, Timber 7, Door 2, Roof 1, Patch 2
+- collision: 2 box proxies (invisible, CanCollide true); visual parts CanCollide false
+- tris: 1,668 total; largest part WagonBoxVan_Deck_Timber_01 120 (target 10,000 / cap 20,000 per MeshPart)
+- palette atlas: 13 cells exact=True; 678 faces, 0 span cells, 0 near an edge, 0 off-palette
+- colours (rr-bible tokens): Chassis style.world.soot_black #15181B Metal, Steel style.thumb.steel #8A929B Metal, Buffer style.brand.buffer_red #C9412E SmoothPlastic, Iron style.world.ironwork #363A42 Metal, Timber style.depot_kit.timber_dark #8F5A2A WoodPlanks, Door style.depot_kit.timber_light #B87A3D WoodPlanks, Roof style.depot_kit.slate_roof #4A4F57 Metal, Tank style.depot_kit.teal_trim #2E7D7A Metal, Load style.cab.coal #262626 Slate, Crate style.thumb.crate #B27A3F WoodPlanks, Patch style.depot_kit.red_oxide #B1502B CorrodedMetal, Hazard style.world.hazard #E8AC22 SmoothPlastic, Ink style.brand.ink #15171C SmoothPlastic
+- back faces in view: {'Cam_34': 0, 'Cam_POV_3P': 0}; coplanar overlaps: 0; floating parts: 0
+- game-distance spans (400 px view, key features >= 5 px): BufferHead 9.3 px, Door 6.0 px, Strap 107.9 px
+- measured: deck top above rail: 5 studs
+- FBX reimport: 58 meshes, size [34.8, 18.26, 13.2], 1692 tris, no unit warning
+- Studio setup script: ok (luaparse: ok)
+- canon gate (bible check studio_setup.lua): PASS
+- open questions: OQ-025, OQ-030 (values labelled assumed/proposed until the owner decides)
+- not measured here: Studio import and the setup script (no Studio in the cloud; owner test)

@@ -1,0 +1,17 @@
+# WagonFlatCrates (measured by rr-asset-foundry 2026-09-28)
+- family wagon, preset flat_crates (flat wagon with supply crates); seed 1
+- params: kind flat, length 36.0, width 17.4 (tech.units.stock_width, proposed), gauge 8.0 (tech.units.gauge, proposed), deck 5.0 (tech.units.stock_floor, proposed), running auto, wheel_r 1.6, side_h 4.0, body_h 7.0, planks 4, load crates, weathering 0.2, door True
+- size, studs (Blender x, y, z-up): 38.8 x 17.3 x 8.65; in Studio X 38.8, Y(up) 8.65, Z 17.3
+- parts: 40 separate named <Asset>_<Part>_<Group>_<nn>; groups Chassis 16, Buffer 2, Steel 10, Iron 7, Timber 1, Crate 3, Patch 1
+- collision: 4 box proxies (invisible, CanCollide true); visual parts CanCollide false
+- tris: 1,176 total; largest part WagonFlatCrates_Deck_Timber_01 120 (target 10,000 / cap 20,000 per MeshPart)
+- palette atlas: 13 cells exact=True; 468 faces, 0 span cells, 0 near an edge, 0 off-palette
+- colours (rr-bible tokens): Chassis style.world.soot_black #15181B Metal, Steel style.thumb.steel #8A929B Metal, Buffer style.brand.buffer_red #C9412E SmoothPlastic, Iron style.world.ironwork #363A42 Metal, Timber style.depot_kit.timber_dark #8F5A2A WoodPlanks, Door style.depot_kit.timber_light #B87A3D WoodPlanks, Roof style.depot_kit.slate_roof #4A4F57 Metal, Tank style.depot_kit.teal_trim #2E7D7A Metal, Load style.cab.coal #262626 Slate, Crate style.thumb.crate #B27A3F WoodPlanks, Patch style.depot_kit.red_oxide #B1502B CorrodedMetal, Hazard style.world.hazard #E8AC22 SmoothPlastic, Ink style.brand.ink #15171C SmoothPlastic
+- back faces in view: {'Cam_34': 0, 'Cam_POV_3P': 0}; coplanar overlaps: 0; floating parts: 0
+- game-distance spans (400 px view, key features >= 5 px): BufferHead 9.8 px, Stanchion 154.3 px
+- measured: deck top above rail: 5 studs
+- FBX reimport: 44 meshes, size [38.8, 17.4, 8.65], 1224 tris, no unit warning
+- Studio setup script: ok (luaparse: ok)
+- canon gate (bible check studio_setup.lua): PASS
+- open questions: OQ-025, OQ-030 (values labelled assumed/proposed until the owner decides)
+- not measured here: Studio import and the setup script (no Studio in the cloud; owner test)

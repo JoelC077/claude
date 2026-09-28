@@ -4,9 +4,11 @@
   fxsim.py strip NAME --out strip.png [--speed S] [--quick]      side view: steady state on sky / pasture / dark
                                                                   backdrops (loops) or a time strip (bursts)
   fxsim.py gif NAME --out anim.gif [--seconds 3] [--fps 12]       side-view motion for the owner (not the critic)
-  fxsim.py pov NAMES --view view.json --out pov.png [--speed S] [--time T]
+  fxsim.py pov NAMES --view view.json --out pov.png [--speed S] [--time T] [--tier phone|pc]
                                                                   particles composited over a lookdev plate from
-                                                                  the same camera; prints overdraw stats
+                                                                  the same camera; prints overdraw and, per preset,
+                                                                  visible / hidden-by-geometry / off-screen counts,
+                                                                  screen coverage and luma change over the plate
 
 Re-implements the ParticleEmitter behaviour the presets rely on (RBXD docs, 2026-09-28): Rate and Emit(n),
 Lifetime/Speed/Rotation/RotSpeed ranges, SpreadAngle, Acceleration, Drag (speed halves every 1/Drag s),
@@ -15,11 +17,13 @@ Size/Transparency/Squash sequences with envelopes, ColorSequence, LightEmission 
 LightInfluence/Brightness, VelocityParallel streaks, Box part emitters, Beams, debris with trails under
 Roblox gravity 196.2 x gravity_scale. Textures are procedural stand-ins. Limits: references/fidelity.md.
 """
-import argparse, json, math, random, sys
+import sys
+sys.dont_write_bytecode = True  # never leave __pycache__ inside the skill
+import argparse, json, math, random
 from pathlib import Path
 
 try:
-    from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
+    from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont, ImageStat
 except ImportError:  # pragma: no cover
     sys.exit("fxsim needs Pillow (python3 -m pip install pillow)")
 
@@ -146,9 +150,9 @@ def texture_kind(tex):
 
 # ------------------------------------------------------------------ simulation
 class Emitter:
-    def __init__(self, preset, layer, anchor, rnd, rate_scale=1.0):
+    def __init__(self, preset, layer, anchor, rnd, rate_scale=1.0, name=""):
         pr = layer.get("props", {})
-        self.p, self.L, self.pr, self.rnd = preset, layer, pr, rnd
+        self.p, self.L, self.pr, self.rnd, self.name = preset, layer, pr, rnd, name
         self.origin = add(anchor, layer.get("offset", [0, 0, 0]))
         self.dir = norm(layer.get("dir", [0, 1, 0]))
         self.rate = pr.get("Rate", ("num", 0))[1] * rate_scale
@@ -256,7 +260,8 @@ class Debris:
 class Sim:
     """One or more presets at their stand anchors, stepped at DT."""
 
-    def __init__(self, model, names, speed, tier="pc", seed=1):
+    def __init__(self, model, names, speed, tier="pc", seed=1, burst_at=0.0):
+        """burst_at: seconds before bursts fire (loops warm up first, as in a running game)."""
         self.model, self.speed = model, speed
         self.wind = [-speed * model.meta.get("wind_scale", 1.0), 0, 0]
         self.rnd = random.Random(seed)
@@ -268,25 +273,29 @@ class Sim:
             p = model.presets[n]
             scale = cfg["rate_scale"].get(str(p["priority"]), 1.0)
             anchor = list(model.anchors.get(p["anchor"], [0, 0, 0]))
+            sl = p.get("speed_link") or {}
+            k = min(1.0, speed / smax)
+            frac = (sl["rate_idle"] + (sl["rate_max"] - sl["rate_idle"]) * k) / sl["rate_max"] if sl.get("rate_max") else 1.0
             for L in p["layers"]:
                 if L["class"] == "ParticleEmitter":
-                    e = Emitter(p, L, anchor, self.rnd, scale)
+                    e = Emitter(p, L, anchor, self.rnd, scale, n)
                     if p.get("kind") == "loop":
-                        e.set_intensity(min(1.0, speed / smax), scale)
+                        e.set_intensity(k, scale)
                     else:
                         e.rate = 0
-                        self.bursts.append((L.get("delay") or 0.0, e, math.ceil(L["emit"] * scale)))
+                        self.bursts.append(((L.get("delay") or 0.0) + burst_at, e, math.ceil(L["emit"] * scale)))
                     self.emitters.append(e)
                     if p.get("crackle"):
                         self.crackles.append((e, p["crackle"], [self.rnd.uniform(*p["crackle"]["every"])]))
                 elif L["class"] == "Debris":
                     db = Debris(L, anchor, self.rnd, speed, model.trails)
                     self.debris.append(db)
-                    self.bursts.append((L.get("delay") or 0.0, db, None))
+                    self.bursts.append(((L.get("delay") or 0.0) + burst_at, db, None))
                 elif L["class"] == "Beam":
                     self.beams.append((add(anchor, L["offset"]), add(anchor, L["a1"]), L["props"]))
-                else:
-                    self.lights.append({"pos": add(anchor, L["offset"]), "L": L, "p": p, "level": 0.0, "pulse_t": None})
+                else:   # a light named in speed_link.layers dims with the rate (brake glow fades as the train stops)
+                    self.lights.append({"pos": add(anchor, L["offset"]), "L": L, "p": p, "level": 0.0, "pulse_t": None,
+                                        "k": frac if L["name"] in sl.get("layers", []) else 1.0})
         self.fired = set()
 
     def step(self, dt=DT):
@@ -314,7 +323,7 @@ class Sim:
             db.step(dt)
         for li in self.lights:
             pr = li["L"].get("props", {})
-            base = pr.get("Brightness", ("num", 0))[1]
+            base = pr.get("Brightness", ("num", 0))[1] * li.get("k", 1.0)
             if li["L"].get("flicker"):
                 fl = li["L"]["flicker"]
                 base *= fl["min"] + (fl["max"] - fl["min"]) * (0.5 + 0.5 * math.sin(self.t * fl["hz"] * 2 * math.pi + self.rnd.random()))
@@ -384,22 +393,35 @@ def blend(canvas, img_rgb, alpha_l, le, box, count=None):
         count.paste(ImageChops.add(cr, m), (x0, y0))
 
 
-def draw_particles(canvas, sim, proj, light=(1, 1, 1), fog=None, depth=None, depth_scale=16, count=None):
+def draw_particles(canvas, sim, proj, light=(1, 1, 1), fog=None, depth=None, depth_scale=16, count=None, per=None):
+    """per: dict filled with {preset: {live, visible, hidden, offscreen, mask}} (POV visibility facts)."""
     items = []
     for e in sim.emitters:
+        st = per.setdefault(e.name, {"live": 0, "visible": 0, "hidden": 0, "offscreen": 0,
+                                     "mask": Image.new("L", canvas.size, 0)}) if per is not None else None
         for q in e.parts:
+            if st:
+                st["live"] += 1
             pp = proj.project(q["pos"])
-            if pp is None:
-                continue
+            if pp is None or not (0 <= pp[0] < canvas.width and 0 <= pp[1] < canvas.height):
+                if st:
+                    st["offscreen"] += 1
+                if pp is None:
+                    continue
             items.append((pp[2], e, q, pp))
     items.sort(key=lambda x: -x[0])
     hidden = 0
     for z, e, q, (sx, sy, zz, spx) in items:
+        st = per.get(e.name) if per is not None else None
         if depth is not None and 0 <= int(sx) < depth.width and 0 <= int(sy) < depth.height:
             dz = depth.getpixel((int(sx), int(sy))) / depth_scale
             if 0 < dz < zz - 1.0:
                 hidden += 1
+                if st:
+                    st["hidden"] += 1
                 continue
+        if st and 0 <= sx < canvas.width and 0 <= sy < canvas.height:
+            st["visible"] += 1
         t = q["age"] / q["life"]
         size = max(0.0, nseq_at(q["size"], t))
         a = max(0.0, min(1.0, 1 - nseq_at(q["tr"], t)))
@@ -430,7 +452,11 @@ def draw_particles(canvas, sim, proj, light=(1, 1, 1), fog=None, depth=None, dep
             c = [c[i] + (fog["colour"][i] - c[i]) * f for i in range(3)]
         alpha = spr.point(lambda v, a=a: int(v * a))
         img = Image.new("RGB", spr.size, tuple(int(x) for x in c))
-        blend(canvas, img, alpha, e.le, (int(sx - spr.width / 2), int(sy - spr.height / 2)), count)
+        box = (int(sx - spr.width / 2), int(sy - spr.height / 2))
+        blend(canvas, img, alpha, e.le, box, count)
+        if st:
+            st["mask"].paste(ImageChops.lighter(st["mask"].crop((box[0], box[1], box[0] + spr.width, box[1] + spr.height)),
+                                                alpha.point(lambda v: 255 if v > 8 else 0)), box)
     return hidden
 
 
@@ -571,18 +597,20 @@ def panel(model, sim, bd, W, H, view, label, avatar_h, anchor):
     ink = (21, 23, 28) if light >= 0.5 and sum(cols[0]) > 300 else (235, 228, 200)
     d.rectangle([ax - hgt * 0.18, ay - hgt, ax + hgt * 0.18, ay], outline=ink, width=1)
     d.ellipse([ax - hgt * 0.12, ay - hgt * 1.0, ax + hgt * 0.12, ay - hgt * 0.76], outline=ink, width=1)
-    d.rectangle([0, 0, W, 15], fill=(21, 23, 28))
-    d.text((4, 1), label, fill=(235, 228, 200), font=font(11))
+    d.rectangle([0, 0, W, 16], fill=(21, 23, 28))
+    d.text((4, 1), label, fill=(235, 228, 200), font=font(12))
     bar = 5 * s
     d.line([(6, H - 8), (6 + bar, H - 8)], fill=ink, width=2)
-    d.text((10 + bar, H - 15), "5 studs", fill=ink, font=font(10))
+    d.text((10 + bar, H - 16), "5 studs", fill=ink, font=font(12))
     return im
 
 
 def strip(model, name, out, speed=None, quick=False, tier="pc"):
     p = model.presets[name]
     speed = model.meta["speeds"].get("normal", 35) if speed is None else speed
-    W, H = (128, 112) if quick else (256, 224)
+    W, Hmax = (128, 112) if quick else (256, 224)
+    if p["kind"] == "burst":   # four time panels: narrower, so a burst strip is as wide as a loop strip
+        W = 96 if quick else 192
     avatar_h = model.bible.number("tech.units.avatar_h", 5) if model.bible.ok() else 5
     anchor = model.anchors.get(p["anchor"], [0, 0, 0])
     bds = backdrops(model)
@@ -603,7 +631,7 @@ def strip(model, name, out, speed=None, quick=False, tier="pc"):
                 s = Sim(model, [name], speed, tier)
                 s.run_to(bt)
             sims.append((s, key, snap))
-            labels.append(f"{name} · {key} · Speed {speed:g} · live {s.live()}")
+            labels.append(f"{key} · Speed {speed:g} · live {s.live()}")
     else:
         times = [0.12, 0.4, 1.0] if not quick else [0.4]
         for t in times + [0.4]:
@@ -611,12 +639,13 @@ def strip(model, name, out, speed=None, quick=False, tier="pc"):
             s.run_to(t)
             key = "dark" if len(sims) == len(times) else "sky"
             sims.append((s, key, None))
-            labels.append(f"{name} · {key} · t={t:g}s · live {s.live()}")
+            labels.append(f"{key} t={t:g}s live {s.live()}")
     x0, x1, y0, y1 = (p.get("preview") or {}).get("window") or frame_bounds([s for s, _, _ in sims], anchor, avatar_h)
     if (p.get("preview") or {}).get("window"):
         anchor = [(x0 + x1) / 2 + 3, y0 + 0.5, 0]
-    span = max(x1 - x0, (y1 - y0) * W / H, 10) * 1.08
-    scale = min(40.0, W / span)
+    pad = 36   # label band on top, scale bar below
+    scale = min(40.0, W / (max(x1 - x0, 10) * 1.08), (Hmax - pad) / (max(y1 - y0, 4) * 1.08))
+    H = int(min(Hmax, max(Hmax * 0.5, (y1 - y0) * 1.08 * scale + pad)))   # crop to the particles: no empty bands
     view = Side(W, H, (x0 + x1) / 2, (y0 + y1) / 2, scale)
     panels = [panel(model, s, bds[k], W, H, view, lab, avatar_h, anchor) for (s, k, _), lab in zip(sims, labels)]
     im = Image.new("RGB", (W * len(panels) + 2 * (len(panels) - 1), H), (21, 23, 28))
@@ -657,7 +686,20 @@ def gif(model, name, out, seconds=3.0, fps=12, speed=None, quick=False):
 
 
 # ------------------------------------------------------------------ POV composite
+def warm_time(model, names):
+    loops = [n for n in names if model.presets[n]["kind"] == "loop"]
+    life = max((L["props"].get("Lifetime", ("range", 1, 1))[2] for n in loops for L in model.presets[n]["layers"]
+                if L["class"] == "ParticleEmitter"), default=1)
+    return life * 1.5 + 0.5 if loops else 0.0
+
+
+def luma(im, mask):
+    st = ImageStat.Stat(im.convert("L"), mask)
+    return st.mean[0] if st.count[0] else 0.0
+
+
 def pov(model, names, view_path, out, speed=None, t=None, plate=None, tier="pc"):
+    """Loops at steady state; bursts fire after the loops warm up and are shown t s later (default 0.4)."""
     view = json.loads(Path(view_path).read_text())
     base = Path(view_path).parent
     plate = plate or base / view["plate"]
@@ -665,22 +707,22 @@ def pov(model, names, view_path, out, speed=None, t=None, plate=None, tier="pc")
     if list(im.size) != list(view["res"]):
         im = im.resize(tuple(view["res"]))
     speed = model.meta.get("speed_max") or 50 if speed is None else speed
-    sim = Sim(model, names, speed, tier)
-    if t is None:
-        loops = [n for n in names if model.presets[n]["kind"] == "loop"]
-        life = max((L["props"].get("Lifetime", ("range", 1, 1))[2] for n in loops for L in model.presets[n]["layers"]
-                    if L["class"] == "ParticleEmitter"), default=1)
-        t = life * 1.5 + 0.5 if loops else 0.4
-    sim.run_to(t)
+    warm = warm_time(model, names)
+    has_burst = any(model.presets[n]["kind"] == "burst" for n in names)
+    t_after = (0.4 if t is None else t) if has_burst else 0.0
+    sim = Sim(model, names, speed, tier, burst_at=warm)
+    sim.run_to(warm + t_after)
     cam = Pinhole(view)
     depth = None
     if view.get("depth") and (base / view["depth"]).is_file():
         depth = Image.open(base / view["depth"])
     count = Image.new("L", im.size, 0)
     light = view.get("particle_light", [1, 1, 1])
+    plate_im = im.copy()
+    per = {}
     draw_beams(im, sim, cam, light)
     hidden = draw_particles(im, sim, cam, light=light, fog=view.get("fog"), depth=depth,
-                            depth_scale=view.get("depth_scale", 16), count=count)
+                            depth_scale=view.get("depth_scale", 16), count=count, per=per)
     draw_debris(im, sim, cam)
     draw_lights(im, sim, cam)
     Path(out).parent.mkdir(parents=True, exist_ok=True)
@@ -696,8 +738,20 @@ def pov(model, names, view_path, out, speed=None, t=None, plate=None, tier="pc")
             p95 = i
             break
     mean = sum(i * v for i, v in enumerate(hist)) / covered if covered else 0
-    return {"out": str(out), "presets": names, "speed": speed, "t": round(t, 2), "live": sim.live(), "hidden_by_depth": hidden,
-            "overdraw_max": mx, "overdraw_p95": p95, "overdraw_mean": round(mean, 2), "screen_covered": round(covered / total, 3)}
+    presets = {}
+    for n in names:
+        st = per.get(n)
+        if not st:   # lights, beams or debris only: no particle stats
+            presets[n] = {"live": 0, "visible": 0, "hidden": 0, "offscreen": 0, "covered": 0.0, "dluma": None}
+            continue
+        m = st.pop("mask")
+        cov = sum(m.histogram()[1:])
+        presets[n] = {**st, "covered": round(cov / total, 4),
+                      "dluma": round(luma(im, m) - luma(plate_im, m), 1) if cov else None}
+    return {"out": str(out), "presets": names, "speed": speed, "tier": tier, "t": round(warm + t_after, 2),
+            "live": sim.live(), "hidden_by_depth": hidden, "overdraw_max": mx, "overdraw_p95": p95,
+            "overdraw_mean": round(mean, 2), "screen_covered": round(covered / total, 4), "per_preset": presets,
+            "camera": view.get("camera"), "res": view["res"]}
 
 
 def main(argv=None):
@@ -721,12 +775,13 @@ def main(argv=None):
     s.add_argument("--out", required=True)
     s.add_argument("--plate", help="override the plate image named in view.json")
     s.add_argument("--speed", type=float)
-    s.add_argument("--time", type=float)
+    s.add_argument("--time", type=float, help="seconds after the bursts fire (loops warm up first)")
+    s.add_argument("--tier", choices=["pc", "phone"], default="pc", help="rate scale by priority (budgets.json tiers)")
     a = ap.parse_args(argv)
     if not a.cmd:
         ap.print_help()
         return 2
-    model = vfx.Model()
+    model = vfx.Model()   # presets: $RR_VFX_PRESETS or the shipped library
     if a.cmd == "pov":
         names = [n for n in a.names.split(",") if n]
     else:
@@ -740,7 +795,7 @@ def main(argv=None):
     elif a.cmd == "gif":
         r = gif(model, a.name, a.out, a.seconds, a.fps, a.speed, a.quick)
     else:
-        r = pov(model, names, a.view, a.out, a.speed, a.time, a.plate)
+        r = pov(model, names, a.view, a.out, a.speed, a.time, a.plate, a.tier)
     print(json.dumps(r))
     return 0
 

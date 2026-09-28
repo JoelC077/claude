@@ -27,12 +27,15 @@ def bogie_mode(p, L):
     return want and bogies_fit(p, L)
 
 
-def underframe(k, p, L, W, top, groups=("Chassis", "Steel", "Buffer", "Iron")):
+def underframe(k, p, L, W, top, groups=("Chassis", "Steel", "Buffer", "Iron"), outside=False):
     """Everything under a deck whose underside is at z = top: solebars, buffer beams, buffers, coupling,
-    and either two axles or two bogies. p needs gauge, wheel_r, running."""
+    and either two axles or two bogies. p needs gauge, wheel_r, running.
+    outside=True hangs axleboxes, springs and W-irons (or the bogie frames) on the solebar line, under the body side:
+    when the body overhangs the gauge (OQ-030 envelope) inside running gear is invisible from the player's POV."""
     frame, steel, beam, iron = groups
     g, rw = p["gauge"], p["wheel_r"]
     bog = bogie_mode(p, L)
+    ys = W / 2 - 0.45 if outside else None          # the solebar centre line
     # solebars along the sides, top hidden inside the deck
     for s in (-1, 1):
         k.box("Solebar", frame, (0, s * (W / 2 - 0.45), top - 0.55), (L - 1.0, 0.6, 1.2))
@@ -50,7 +53,18 @@ def underframe(k, p, L, W, top, groups=("Chassis", "Steel", "Buffer", "Iron")):
     if bog:
         inset = bogie_inset(p, L)
         for e in (-1, 1):
-            bogie(k, p, e * (L / 2 - inset), top, frame, steel)
+            bogie(k, p, e * (L / 2 - inset), top, frame, steel, ys=ys)
+    elif outside:
+        wb = min(max(0.55 * L, 8.0), L - 9.0)
+        sb = top - 1.15                              # solebar underside
+        zs = rw + 1.3 if abs(rw + 1.3 - (sb + 0.1)) > 0.03 else rw + 1.26     # spring top never on the W-iron top plane
+        for x in (-wb / 2, wb / 2):
+            wheelset(k, p, x, steel, half=ys + 0.1)
+            for s in (-1, 1):
+                k.box("Axlebox", frame, (x, s * ys, rw), (1.4, 1.1, 1.6))
+                k.box("Spring", frame, (x, s * ys, (rw + 0.78 + zs) / 2), (3.6, 0.7, zs - rw - 0.78))
+                k.boxes("WIron", iron, [((x + d * 0.9, s * (ys + 0.1), (rw - 0.6 + sb + 0.1) / 2),
+                                         (0.35, 0.56, sb + 0.1 - (rw - 0.6))) for d in (-1, 1)])
     else:
         wb = min(max(0.55 * L, 8.0), L - 9.0)
         for x in (-wb / 2, wb / 2):
@@ -64,23 +78,28 @@ def underframe(k, p, L, W, top, groups=("Chassis", "Steel", "Buffer", "Iron")):
     return bog
 
 
-def wheelset(k, p, x, steel):
+def wheelset(k, p, x, steel, half=None):
+    """Axle and two wheels; half = the axle's half length when it runs out to outside axleboxes."""
     g, rw = p["gauge"], p["wheel_r"]
-    k.cyl("Axle", steel, (x, 0, rw), 0.3, g + 1.6, axis="Y", segs=8)
+    k.cyl("Axle", steel, (x, 0, rw), 0.3, 2 * half if half else g + 1.6, axis="Y", segs=8)
     for s in (-1, 1):
         k.cyl("Wheel", steel, (x, s * g / 2, rw), rw, 0.6, axis="Y", segs=16)
 
 
-def bogie(k, p, xb, top, frame, steel, wb=BOGIE_WB):
+def bogie(k, p, xb, top, frame, steel, wb=BOGIE_WB, ys=None):
+    """ys: bogie side frames on that line (outside frames under the solebars) instead of just outside the wheels."""
     g, rw = p["gauge"], p["wheel_r"]
+    yf = ys if ys else g / 2 + 0.8
     for x in (xb - wb / 2, xb + wb / 2):
-        wheelset(k, p, x, steel)
+        wheelset(k, p, x, steel, half=ys + 0.1 if ys else None)
     for s in (-1, 1):
-        y = s * (g / 2 + 0.8)
-        k.box("BogieSide", frame, (xb, y, rw), (wb + 2.6, 0.7, 1.1))
+        k.box("BogieSide", frame, (xb, s * yf, rw), (wb + 2.6, 0.7, 1.1))
         for x in (xb - wb / 2, xb + wb / 2):
-            k.box("Axlebox", frame, (x, s * (g / 2 + 1.3), rw), (1.0, 0.36, 0.9), detail=1)
-    k.box("Bolster", frame, (xb, 0, rw + 0.75), (1.4, g + 2.0, 0.7))
+            if ys:           # outside frames: axleboxes are the axle rhythm the player reads, so chunky
+                k.box("Axlebox", frame, (x, s * (yf + 0.55), rw), (1.2, 0.6, 1.2))
+            else:
+                k.box("Axlebox", frame, (x, s * (yf + 0.5), rw), (1.0, 0.36, 0.9), detail=1)
+    k.box("Bolster", frame, (xb, 0, rw + 0.75), (1.4, 2 * yf + 0.4, 0.7))
     k.box("Pivot", frame, (xb, 0, (rw + 1.0 + top + 0.05) / 2), (1.8, 1.8, top + 0.05 - rw - 1.0))
 
 

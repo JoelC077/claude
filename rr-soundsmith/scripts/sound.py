@@ -1,29 +1,37 @@
 #!/usr/bin/env python3
 """rr-soundsmith: Risky Rails audio as data -> checks, measurements, placeholders, briefs, Luau runtime, critic hand-off.
 
-  sound.py list [--group G] [--tier N]           every sound: tier, group, class, space, level, Volume, asset state
+  sound.py list [--group G] [--tier N]           every sound by phase: tier, group, class, space, level, Volume, state
   sound.py show ID|EVENT [--json]                 one sound (mix math, events, brief) or one event's actions
-  sound.py validate [--strict] [--release]        schema, canon agreement, rr-game-feel cue parity, ladder hierarchy,
-                                                  ducking, Roblox ranges, licences (--release: no placeholders)
+  sound.py validate [--strict] [--release]        schema, canon agreement, cited OQs, rr-game-feel cue parity, ladder,
+                                                  ducking, voices, Roblox ranges, licences (--release: ship gate)
+  sound.py oq                                     cited open questions (status, default) + add-question commands for
+                                                  pending ones (never writes the bible)
   sound.py analyze PATH... [--as ID|--class C] [--json] [--fix-out DIR [--mono]]
                                                   measure dropped files against the class standard and Roblox limits
   sound.py synth [ID...|all] --out DIR            PLACEHOLDER_<id>.wav + PLACEHOLDERS.md (needs numpy)
   sound.py register ID --file F [--file F2] --id N [--id N2] --source owner_upload|roblox_licensed|placeholder
                     [--origin O] [--licence L] [--proof P] [--credit C] [--creator C] [--community] [--dry-run]
-  sound.py brief [ID...|all] [--out FILE]         audio sourcing briefs (references/brief-format.md)
+  sound.py brief [ID...|all] [--out FILE]         audio sourcing briefs (build writes them all; use this for subsets)
   sound.py sheet --from DIR --out DIR             tiles, mix ladder, timelines, contact.png, closeups.png, facts.md
-  sound.py crit CRIT --pass N --from DIR          CRIT/rubric.md with Profile S, pass files, brief from canon
+  sound.py crit CRIT --pass N --from DIR [--owner-away]   CRIT/rubric.md with Profile S, pass files, brief from canon
   sound.py build --out DIR [--no-check]           RR_SoundMap.lua (generated), RR_Sound.lua, demo, Studio setup,
                                                   SOUND_SPEC.md, AUDIO_BRIEFS.md, LICENCES.md, README; luaparse + bible check
+  sound.py where                                  which soundmap/register is in use and why
+  sound.py promote --from DIR [--to HOME] [--dry-run]    copy a mission's soundmap.json, assets.json (merged) and
+                                                  recipes.py to the project home so every later run reads them
 
-Presets: $RR_SOUND_PRESETS (folder or soundmap.json) else <skill>/presets. Canon through rr-bible's CLI (found by
-glob or $RR_BIBLE_SKILL); cue names from rr-game-feel ($RR_FEEL_PRESETS or its presets/feel.json); critic scripts
-from multiuse-critic ($RR_CRITIC_SKILL). Standard library, plus numpy for synth/sheet and fast analysis, Pillow for sheet.
+Presets: $RR_SOUND_PRESETS (folder or soundmap.json), else the project home ($RR_SOUND_HOME, else ~/.rr-sound) when it
+holds a soundmap.json, else <skill>/presets (read-only defaults: register refuses to write there). Canon through
+rr-bible's CLI (found by glob or $RR_BIBLE_SKILL); cue names from rr-game-feel ($RR_FEEL_PRESETS or its
+presets/feel.json); critic scripts from multiuse-critic ($RR_CRITIC_SKILL). Standard library, plus numpy for
+synth/sheet and fast analysis, Pillow for sheet (also found in ~/.cache/rr-tools/py).
 Exit codes: 0 pass, 1 fail, 2 usage or missing dependency.
 """
-import argparse, copy, datetime, hashlib, json, math, os, re, shutil, struct, subprocess, sys
+import argparse, copy, datetime, hashlib, json, math, os, re, shlex, shutil, struct, subprocess, sys
 from pathlib import Path
 
+sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
 SKILL = HERE.parent
 sys.path.insert(0, str(HERE))
@@ -33,16 +41,74 @@ TODAY = datetime.date.today().isoformat()
 AUDIO_EXT = {".wav", ".ogg", ".mp3", ".flac", ".opus"}
 ROLLOFF = {"Inverse", "Linear", "LinearSquare", "InverseTapered"}
 SOURCES = {"owner_upload", "roblox_licensed", "placeholder"}
-ORIGINS = {"self-made", "commissioned", "cc0", "purchased", "cc-by", "rr-soundsmith synth"}
-REFUSED = [r"\bnc\b", r"non-?commercial", r"\bnd\b", r"no-?deriv", r"\bsa\b", r"share-?alike", r"youtube", r"\brip",
+ORIGINS = {"self-made", "commissioned", "cc0", "purchased", "rr-soundsmith synth"}  # av.audio.licence (no CC-BY)
+REFUSED = [r"\bnc\b", r"non-?commercial", r"\bnd\b", r"no-?deriv", r"\bsa\b", r"share-?alike", r"youtube",
+           r"\brip(s|ped|ping)?\b",
            r"unknown", r"not sure", r"free download", r"copyright(ed)? (song|track)", r"tiktok"]
 NUM_RE = re.compile(r"-?\d+(?:\.\d+)?")
 GROUP_TIERS = {"Alarms": (1, 2), "Actions": (3, 4), "UI": (5, 5), "Ambient": (6, 6), "Music": (7, 7)}
+PHASES = ["lobby", "depart", "run", "fork", "crisis", "arrive", "results", "any"]
+SPEC_LAYERS = {"tone", "noise", "bell", "click", "modes"}
+
+
+def home_dir():
+    return Path(os.environ.get("RR_SOUND_HOME") or Path.home() / ".rr-sound")
+
+
+def presets_source():
+    """(folder, how): $RR_SOUND_PRESETS, else the project home when it holds a soundmap, else the skill defaults."""
+    if os.environ.get("RR_SOUND_PRESETS"):
+        p = Path(os.environ["RR_SOUND_PRESETS"])
+        return (p.parent if p.is_file() else p), "RR_SOUND_PRESETS"
+    if (home_dir() / "soundmap.json").is_file():
+        return home_dir(), "project home ($RR_SOUND_HOME or ~/.rr-sound)"
+    return SKILL / "presets", "skill defaults (read-only: register refuses to write here)"
 
 
 def presets_dir():
-    p = Path(os.environ.get("RR_SOUND_PRESETS", SKILL / "presets"))
-    return p.parent if p.is_file() else p
+    return presets_source()[0]
+
+
+def inside_skill(p):
+    try:
+        Path(p).resolve().relative_to(SKILL.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def recipe_names(pdir):
+    """Recipe names without importing numpy: built-ins in synth.py and r_<name> in <presets>/recipes.py."""
+    names = set(re.findall(r"^def r_(\w+)\(", (HERE / "synth.py").read_text(encoding="utf-8"), re.M))
+    extra = Path(pdir) / "recipes.py"
+    if extra.is_file():
+        names |= set(re.findall(r"^def r_(\w+)\(", extra.read_text(encoding="utf-8"), re.M))
+    return names
+
+
+def spec_problems(spec, length_range):
+    """Errors in a soundmap "synth" layer spec (checked without numpy)."""
+    out = []
+    if not isinstance(spec.get("len"), (int, float)) or not 0 < spec["len"] <= 60:
+        return ["synth.len must be 0-60 s"]
+    if not isinstance(spec.get("layers"), list) or not spec["layers"]:
+        return ["synth.layers must be a non-empty list"]
+    for i, ly in enumerate(spec["layers"]):
+        kind = SPEC_LAYERS & set(ly)
+        if len(kind) != 1:
+            out.append(f"synth.layers[{i}] needs exactly one of {sorted(SPEC_LAYERS)}")
+            continue
+        if ly.get("wave", "sine") not in ("sine", "square", "saw") or ly.get("color", "white") not in ("white", "pink", "brown"):
+            out.append(f"synth.layers[{i}]: wave sine|square|saw, color white|pink|brown")
+        if not 0 <= ly.get("at", 0) < spec["len"]:
+            out.append(f"synth.layers[{i}].at must be inside 0..len")
+        if "noise" in ly and not (isinstance(ly["noise"], list) and len(ly["noise"]) == 2):
+            out.append(f"synth.layers[{i}].noise must be [lo, hi] Hz (null for open)")
+        if "modes" in ly and not all(isinstance(m_, list) and len(m_) == 3 for m_ in ly["modes"]):
+            out.append(f"synth.layers[{i}].modes must be [[freq, tau, amp], ...]")
+    if not length_range[0] <= spec["len"] <= length_range[1]:
+        out.append(f"synth.len {spec['len']} outside the class length {length_range}")
+    return out
 
 
 # ------------------------------------------------------------------ siblings and canon
@@ -195,6 +261,100 @@ class Model:
                 out.append(e)
         return out
 
+    def event_phase(self, e):
+        return self.events[e].get("phase", "any")
+
+    def sound_phase(self, sid):
+        ph = [self.event_phase(e) for e in self.events_for(sid)]
+        return min(ph, key=pidx) if ph else "any"
+
+    def by_phase(self, ids=None):
+        return sorted(ids if ids is not None else self.sounds, key=lambda s: (pidx(self.sound_phase(s)), self.sounds[s]["tier"], s))
+
+    def events_by_phase(self):
+        order = list(self.events)
+        return sorted(order, key=lambda e: (pidx(self.event_phase(e)), order.index(e)))
+
+
+def pidx(p):
+    return PHASES.index(p) if p in PHASES else len(PHASES)
+
+
+# ------------------------------------------------------------------ open questions
+def add_question_cmd(m, p, portable=False):
+    b = "<bible>/scripts/bible.py" if portable or not m.bible.script else str(m.bible.script)
+    parts = ["python3", b, "add-question", p.get("title", "?")]
+    for o in p.get("options", []):
+        parts += ["--option", o]
+    parts += ["--default", p.get("default", "?"), "--src", "SND"]
+    for k in ("context", "affects", "blocks"):
+        if p.get(k):
+            parts += [f"--{k}", p[k]]
+    return " ".join(shlex.quote(x) for x in parts)
+
+
+def oq_relevant(m, q, cited):
+    f = q.get("fields", {})
+    text = " ".join(str(x or "") for x in (q.get("title"), f.get("context"), f.get("affects"), f.get("blocks"))).lower()
+    if re.search(r"rr-soundsmith|\baudio\b|\bsounds?\b|av\.audio", text):
+        return True
+    keys = set(m.r["meta"].get("canon", [])) if "meta" in cited else set()
+    for sid in cited:
+        if sid in m.sounds:
+            if sid.lower() in text:
+                return True
+            keys |= set(m.sounds[sid].get("canon", []))
+    return any(k.lower() in text for k in keys)
+
+
+def oq_rows(m):
+    """Every cited open question (meta.oq, then sounds): id, title, status, default text, who cites it, relevance."""
+    cites = {}
+    for o in m.r["meta"].get("oq", []):
+        cites.setdefault(o, []).append("meta")
+    for sid in m.by_phase():
+        for o in m.sounds[sid].get("oq", []):
+            cites.setdefault(o, []).append(sid)
+    pend = m.r["meta"].get("pending_oq", {})
+    rows = []
+    for o, who in cites.items():
+        row = {"id": o, "cited": who, "pending": o.startswith("pending:"), "known": False, "relevant": True,
+               "title": "?", "status": "?", "default": "?", "cmd": None}
+        if row["pending"]:
+            p = pend.get(o.split(":", 1)[1])
+            if p:
+                row.update(known=True, title=p.get("title", "?"), status="not yet in rr-bible", cmd=add_question_cmd(m, p),
+                           cmd_portable=add_question_cmd(m, p, True),
+                           default=default_text(p.get("default", "?"), [o_.split(": ", 1) for o_ in p.get("options", [])]))
+        elif m.bible.ok():
+            q = m.bible.oq(o)
+            if q:
+                f = q.get("fields", {})
+                row.update(known=True, title=q.get("title", "?"), status=f.get("status", "?"),
+                           default=default_text(f.get("default", "?"), q.get("options", [])), relevant=oq_relevant(m, q, who))
+        rows.append(row)
+    return rows
+
+
+def default_text(default, options):
+    """'A: <option text>' for a default like 'A (why)'; the raw default when it names no option."""
+    letter = str(default).strip()[:1]
+    opt = dict((o[0], o[1]) for o in options if len(o) == 2)
+    return f"{letter}: {opt[letter]}" if letter in opt else str(default)
+
+
+def cmd_oq(m, a):
+    rows = oq_rows(m)
+    if not m.bible.ok():
+        print("rr-bible not found: titles and defaults unknown (set RR_BIBLE_SKILL)")
+    for r_ in rows:
+        flag = "" if r_["relevant"] else "  [WARN: does not mention audio, rr-soundsmith or the citing sound: wrong number?]"
+        print(f"{r_['id']} ({r_['status']}) {r_['title']}{flag}\n   default {r_['default'][:160]}\n   cited by {', '.join(r_['cited'])}")
+        if r_["cmd"]:
+            print(f"   record it (owner or mission-control; then cite the number it prints):\n   {r_['cmd']}")
+    print(f"oq: {len(rows)} cited, {sum(r_['pending'] for r_ in rows)} pending, {sum(not r_['relevant'] for r_ in rows)} suspect")
+    return 0
+
 
 # ------------------------------------------------------------------ validate
 def numbers_in(text):
@@ -216,6 +376,8 @@ def licence_problems(sid, a, stage="alpha"):
     for i in a.get("ids", []):
         if not re.fullmatch(r"(rbxassetid://)?\d+", str(i)):
             errs.append(f"assets.{sid}: asset id {i!r} is not a number or rbxassetid://N")
+    if src != "placeholder" and not a.get("ids"):
+        errs.append(f"assets.{sid}: {src} needs --id (the Roblox asset id the audio plays from)")
     text = " ".join(str(a.get(k, "")) for k in ("origin", "licence", "proof", "note")).lower()
     for pat in REFUSED:
         if re.search(pat, text):
@@ -229,11 +391,13 @@ def licence_problems(sid, a, stage="alpha"):
             errs.append(f"assets.{sid}: placeholder files must be named PLACEHOLDER_*: {', '.join(bad)}")
     elif src == "owner_upload":
         if a.get("origin") not in ORIGINS - {"rr-soundsmith synth"}:
-            errs.append(f"assets.{sid}: owner_upload needs --origin one of self-made, commissioned, cc0, purchased, cc-by")
+            errs.append(f"assets.{sid}: owner_upload needs --origin one of self-made, commissioned, cc0, purchased "
+                        f"(av.audio.licence; CC-BY is not admitted until the owner extends it)")
         if not a.get("proof"):
             errs.append(f"assets.{sid}: owner_upload needs --proof (receipt, licence URL, project file or 'made by owner <date>')")
-        if a.get("origin") == "cc-by" and not a.get("credit"):
-            errs.append(f"assets.{sid}: cc-by needs --credit (the attribution line for the game description)")
+        if a.get("origin") == "cc0" and re.search(r"\bcc[ -]?by\b|/licenses/by\b|attribution", text):
+            errs.append(f"assets.{sid}: origin cc0 but the licence text names attribution (CC BY is not CC0 and is not "
+                        f"admitted by av.audio.licence)")
         if any(Path(f).name.startswith("PLACEHOLDER_") for f in files):
             errs.append(f"assets.{sid}: a PLACEHOLDER_ file registered as owner_upload; register it as placeholder")
     elif src == "roblox_licensed":
@@ -284,12 +448,24 @@ def validate(m, strict=False, release=False, quiet=False):
                 E.append(f"canon key {k} cited but not in rr-bible")
             elif f["status"] == "superseded":
                 E.append(f"canon key {k} is superseded")
-        oqs = set(r["meta"].get("oq", []))
-        for s in r["sounds"].values():
-            oqs |= set(s.get("oq", []))
-        for o in sorted(oqs):
-            if not b.oq(o):
-                E.append(f"{o} cited but not found in rr-bible")
+    pend = r["meta"].get("pending_oq", {})
+    for row in oq_rows(m):
+        if row["pending"]:
+            if not row["known"]:
+                E.append(f"{row['id']} cited by {', '.join(row['cited'])} but meta.pending_oq has no such key")
+            else:
+                N.append(f"{row['id']} ({row['title']}) is not in rr-bible yet: `sound.py oq` prints the add-question "
+                         f"command; then cite the number it prints")
+            continue
+        if b.ok() and not row["known"]:
+            E.append(f"{row['id']} cited but not found in rr-bible")
+        elif not row["relevant"]:
+            W.append(f"{row['id']} ({row['title']}) cited by {', '.join(row['cited'])} never mentions audio, rr-soundsmith, "
+                     f"the sound or its canon keys: wrong number? (`sound.py oq`)")
+    for k, p in pend.items():
+        miss = [f for f in ("title", "options", "default") if not p.get(f)]
+        if miss:
+            E.append(f"meta.pending_oq.{k}: missing {', '.join(miss)}")
     # groups
     G = r["groups"]
     roots = [g for g, v in G.items() if v.get("parent") is None]
@@ -332,11 +508,7 @@ def validate(m, strict=False, release=False, quiet=False):
     # sounds
     S = r["sounds"]
     tmax = L.get("trim_max_db", 3)
-    try:
-        import synth as sy
-        recipes = set(sy.RECIPES)
-    except ImportError:
-        recipes = None
+    recipes = recipe_names(m.dir)
     for sid, s in S.items():
         w = f"sounds.{sid}"
         for f in ("tier", "group", "class", "space", "stage", "brief"):
@@ -387,6 +559,9 @@ def validate(m, strict=False, release=False, quiet=False):
             cap = r["voices"]["per_group"].get(s["group"])
             if cap and s.get("voices", 1) > cap:
                 W.append(f"{w}: voices {s['voices']} above the {s['group']} cap {cap}")
+            elif cap and s.get("voices", 1) * 2 > cap:
+                W.append(f"{w}: voices {s['voices']} can fill over half the {s['group']} cap {cap} (it would push out "
+                         f"other sounds of its tier)")
         if abs(s.get("trim_db", 0)) > tmax:
             E.append(f"{w}: trim_db {s['trim_db']} beyond +-{tmax} (move the ladder instead)")
         br = s.get("brief", {})
@@ -398,8 +573,14 @@ def validate(m, strict=False, release=False, quiet=False):
             W.append(f"{w}: brief length {blen} outside the {s['class']} standard {clen}")
         if s["class"] == "alarm" and len(blen) == 2 and blen[1] * 1000 > r["meta"].get("danger_life_ms", 1e9):
             W.append(f"{w}: alarm longer than the danger ticket life ({r['meta']['danger_life_ms']} ms)")
-        if recipes is not None and sid not in recipes:
-            W.append(f"{w}: no placeholder recipe (synth skips it)")
+        sy = s.get("synth")
+        if isinstance(sy, dict):
+            E += [f"{w}: {x}" for x in spec_problems(sy, r["standards"][s["class"]]["len"])]
+        elif sy is not None and sy not in recipes:
+            E.append(f"{w}: synth recipe {sy!r} not found (synth.py --list, or r_{sy} in <presets>/recipes.py)")
+        elif sy is None and sid not in recipes:
+            N.append(f"{w}: no placeholder recipe (synth skips it): add \"synth\": a recipe name or a layer spec "
+                     f"(references/schema.md), or r_{sid} in <presets>/recipes.py")
         if not m.events_for(sid):
             W.append(f"{w}: no event plays it")
         mx = m.mix(sid)
@@ -468,6 +649,8 @@ def validate(m, strict=False, release=False, quiet=False):
         acts = [k for k in ("play", "start", "stop", "toggle") if k in ev]
         if ev.get("via") not in ("feel", "direct"):
             E.append(f"events.{e}: via must be feel or direct")
+        if ev.get("phase", "any") not in PHASES:
+            E.append(f"events.{e}: phase {ev.get('phase')!r} not one of {', '.join(PHASES)}")
         if len(acts) != 1:
             E.append(f"events.{e}: exactly one of play, start, stop, toggle")
         for x in [ev.get("play"), ev.get("toggle")] + ev.get("start", []) + ev.get("stop", []):
@@ -517,12 +700,24 @@ def validate(m, strict=False, release=False, quiet=False):
         e2, w2 = licence_problems(sid, a, S[sid]["stage"])
         E += e2
         W += w2
-    missing = [sid for sid in S if S[sid]["stage"] == "alpha" and m.asset_state(sid) != "final"]
+    state = {sid: m.asset_state(sid) for sid in S}
+    alpha = [sid for sid in S if S[sid]["stage"] == "alpha"]
+    heard = [sid for sid in alpha if state[sid] != "unassigned"]
     if release:
-        for sid in missing:
-            E.append(f"release: {sid} is {m.asset_state(sid)}; alpha sounds need final licensed audio (av.audio.placeholder)")
-    elif missing:
-        N.append(f"{len(missing)} alpha sounds not final yet (placeholder or unassigned); --release gates them")
+        for sid in S:
+            if state[sid] not in ("final", "unassigned"):
+                E.append(f"release: {sid} is {state[sid]}: placeholders never ship (av.audio.placeholder)")
+        if not heard:
+            N.append("release: no alpha sound has audio yet: this build ships silent, which the plan allows "
+                     "(av.audio.priority_in_plan: sound is a COULD for the alpha)")
+        else:
+            for sid in alpha:
+                if state[sid] == "unassigned":
+                    E.append(f"release: {sid} is unassigned while {len(heard)} alpha sounds have audio: every alpha sound "
+                             f"needs final licensed audio (av.audio.placeholder), or set its stage to siding")
+    elif [sid for sid in alpha if state[sid] != "final"]:
+        N.append(f"{sum(state[s_] != 'final' for s_ in alpha)} alpha sounds not final yet (placeholder or unassigned); "
+                 "--release gates them")
     return report(E, W, strict, quiet, N)
 
 
@@ -565,8 +760,12 @@ def check_file(m, rep, sid=None, cls=None):
     out = []
     add = lambda lvl, msg: out.append((lvl, msg))  # noqa: E731
     ext = Path(rep["file"]).suffix.lower().lstrip(".")
-    if ext not in pf["formats"] and not (ext == "opus" and "ogg" in pf["formats"]):
-        add("FAIL", f"format .{ext} is not importable (tech.audio.import_formats: {', '.join(pf['formats'])})")
+    if ext not in pf["formats"]:
+        add("FAIL", f"format .{ext} is not importable (tech.audio.import_formats: {', '.join(pf['formats'])})"
+                    + ("; transcode to .ogg Vorbis or .wav" if ext == "opus" else ""))
+    if not rep.get("duration"):
+        add("FAIL", "empty audio (0 samples): re-export the sound")
+        return out
     if rep.get("bytes", 0) > pf["max_mb"] * 1024 * 1024:
         add("FAIL", f"{rep['bytes'] / 1048576:.1f} MB is over the {pf['max_mb']} MB import limit")
     if rep.get("duration", 0) > pf["max_min"] * 60:
@@ -580,7 +779,9 @@ def check_file(m, rep, sid=None, cls=None):
     if rep.get("bits") == 8:
         add("WARN", "8-bit audio is noisy; deliver 16 or 24-bit")
     lo, hi = std["len"]
-    if not lo <= rep.get("duration", 0) <= hi:
+    if rep["duration"] < lo / 2:
+        add("FAIL", f"length {rep['duration']} s is under half the {cls} minimum {lo} s: truncated export?")
+    elif not lo <= rep["duration"] <= hi:
         add("WARN", f"length {rep.get('duration')} s outside the {cls} standard {lo}-{hi} s")
     if not rep.get("decoded"):
         add("WARN", "not decoded (no ffmpeg): loudness, peaks and silence unmeasured; export WAV or install ffmpeg")
@@ -594,15 +795,16 @@ def check_file(m, rep, sid=None, cls=None):
     elif pk is not None and pk > std["tp_max"]:
         add("WARN", f"peak {pk} dB{'TP' if tp is not None else 'FS (sample; no numpy)'} above {std['tp_max']}")
     lvl = rep.get(std["metric"])
-    if lvl is None:
-        add("WARN", f"{std['metric']} not measurable (too short or silent)")
+    if lvl is None or lvl < -70:
+        add("FAIL", f"silent: {std['metric']} {lvl if lvl is not None else 'unmeasurable'} (under -70 LUFS): export the actual sound")
     else:
         need = std["target"] - lvl
-        head = std["tp_max"] - (pk if pk is not None else std["tp_max"])
+        head = std["tp_max"] - 0.1 - (pk if pk is not None else std["tp_max"])
         if abs(need) > std["tol"]:
-            gain = min(need, head) if need > 0 else need
+            gain = min(need, head, 30.0) if need > 0 else need
             add("WARN", f"{std['metric']} {lvl} vs standard {std['target']} (gain {need:+.1f} dB; peak allows "
-                        f"{head:+.1f}); --fix-out applies {gain:+.1f} dB, or register it as is and the mix compensates")
+                        f"{head:+.1f}); --fix-out applies {gain:+.1f} dB" + (" (capped at +30: re-export louder)" if need > 30 else "")
+                + ", or register it as is and the mix compensates")
     if std.get("lead_max_ms") is not None and rep.get("lead_ms") is not None:
         if rep["lead_ms"] > 50:
             add("FAIL", f"{rep['lead_ms']} ms of silence before the sound: it will feel late; trim the start")
@@ -681,6 +883,8 @@ def fix_file(m, path, rep, cls, out_dir, mono=False):
         return "(not fixed: clipping and sample rate need a re-export from the source)"
     d = al.load(path)
     chans, rate, notes = d["channels"], d["rate"], []
+    if mono and len(chans) > 1 and al.np is None:
+        notes.append("mono skipped: needs numpy")
     if mono and len(chans) > 1 and al.np is not None:
         mix = sum(chans) / len(chans)
         if al.loudness([mix], rate)["m_max"] < al.loudness(chans, rate)["m_max"] - 6:
@@ -734,11 +938,12 @@ def cmd_synth(m, a):
     out.mkdir(parents=True, exist_ok=True)
     rows = []
     for sid in ids:
-        if sid not in sy.RECIPES:
-            print(f"skip {sid}: no recipe")
+        name, fn = sy.resolve(sid, m.sounds[sid], m.dir)
+        if fn is None:
+            print(f"skip {sid}: no recipe (add \"synth\" in the soundmap or r_{sid} in {m.dir / 'recipes.py'})")
             continue
         std = m.r["standards"][m.sounds[sid]["class"]]
-        row = sy.render(sid, sid, std, out, seed=a.seed)
+        row = sy.render(sid, name, std, out, seed=a.seed, fn=fn)
         chk = check_file(m, row["measured"], sid)
         row["status"] = "FAIL" if any(c[0] == "FAIL" for c in chk) else "WARN" if any(c[0] == "WARN" for c in chk) else "PASS"
         row["checks"] = [c[1] for c in chk if c[0] != "ok"]
@@ -768,6 +973,14 @@ def cmd_register(m, a):
         print(f"unknown sound {a.sid}")
         return 2
     s = m.sounds[a.sid]
+    if a.source != "placeholder" and not a.id:
+        print(f"register needs --id N: the Roblox asset id of the uploaded audio ({a.source})")
+        return 2
+    if inside_skill(m.assets_path) and not a.dry_run:
+        print(f"register refused: the register would be written inside the skill folder ({m.assets_path}), which a "
+              "re-sync overwrites. Use a mission copy (RR_SOUND_PRESETS=<M>/src/sound) or the project home "
+              f"(`sound.py promote --from {SKILL / 'presets'}` creates {home_dir()}); `sound.py where` shows which is in use")
+        return 2
     entry = {"ids": [str(i) if str(i).startswith("rbxassetid://") else f"rbxassetid://{i}" for i in a.id],
              "source": a.source, "origin": a.origin or ("rr-soundsmith synth" if a.source == "placeholder" else ""),
              "licence": a.licence or "", "proof": a.proof or "", "credit": a.credit or "", "creator": a.creator or "",
@@ -820,7 +1033,27 @@ def cmd_register(m, a):
 
 
 # ------------------------------------------------------------------ brief
-def brief_md(m, sid):
+def route(s):
+    """Where to get a sound: brief.route, else by class (alarms must be distinct, loops seamless)."""
+    if s["brief"].get("route"):
+        return s["brief"]["route"]
+    if s["class"] == "alarm" or s["tier"] == 1:
+        return "commission / self-made (distinct)"
+    return "self-made loop / store" if s.get("looped") else "store / self-made"
+
+
+def space_text(m, s):
+    r = m.r
+    if s["space"] == "3d":
+        txt = f"3D at the {s.get('emitter')} ({r['emitters'].get(s.get('emitter'), '')})"
+    else:
+        txt = "2D (global: same level everywhere)"
+    if s.get("layer3d"):
+        txt += f", plus a positional layer at the {s['layer3d']['emitter']} (OQ-035 default)"
+    return txt
+
+
+def brief_md(m, sid, oqs=None):
     s, r = m.sounds[sid], m.r
     br, std, mx = s["brief"], r["standards"][s["class"]], m.mix(sid)
     evs = m.events_for(sid)
@@ -834,17 +1067,13 @@ def brief_md(m, sid):
             beats.append(f"{e}" + (f" (lands with a {hs[0]['ms']} ms hit-stop at 0 ms)" if hs else ""))
         else:
             beats.append(f"{e} (Sound.event)")
-    space = "2D, heard train-wide" if s["space"] == "2d" else f"3D at the {s.get('emitter')} ({r['emitters'].get(s.get('emitter'), '')})"
-    if s.get("layer3d"):
-        space += f", plus a positional layer at the {s['layer3d']['emitter']} (OQ-035 default)"
     chan = "mono" if s["space"] == "3d" or s.get("layer3d") else "mono or stereo"
-    lic = m.bible.value("av.audio.licence", "owner uploads or Roblox-licensed only") if m.bible.ok() else "owner uploads or Roblox-licensed only"
     canon = []
     for k in s.get("canon", [])[:4]:
         v = m.bible.value(k, None) if m.bible.ok() else None
         if v:
             canon.append(f"`{k}`: {v}")
-    lines = [f"## {sid} · tier {s['tier']} · {s['group']} · {s['class']} · {m.asset_state(sid)}", "",
+    lines = [f"## {sid} · {m.sound_phase(sid)} · tier {s['tier']} · {s['group']} · {s['class']} · {m.asset_state(sid)}", "",
              f"- **Moment:** {br['moment']}. Events: {', '.join(beats) or 'none'}.",
              f"- **Must say:** {br['must_say']}",
              f"- **Sounds like:** {br['sounds_like']}"]
@@ -854,18 +1083,45 @@ def brief_md(m, sid):
               f"; sound starts within {std.get('lead_max_ms', 10)} ms, tail silence under {std.get('tail_max_ms', 300)} ms"),
               f"- **Variations:** {br.get('variations', 1)}" + ("" if s.get("looped") or s.get("pitch", [1, 1])[0] == s.get("pitch", [1, 1])[1]
                                                                  else f" (runtime pitch spread {s['pitch'][0]}-{s['pitch'][1]})"),
-              f"- **Space:** {space}; deliver {chan}, dry (no reverb baked in), WAV 48 or 44.1 kHz, 16 or 24-bit.",
-              f"- **Level:** normalise to the {s['class']} standard ({std['metric']} {std['target']} LUFS, at most "
-              f"{std['tp_max']} dBTP); the mix sets it to {mx['target']} LUFS in game (ladder {m.ladder_key(sid)}).",
+              f"- **Space:** {space_text(m, s)}; deliver {chan}.",
+              f"- **Level:** {s['class']} standard {std['metric']} {std['target']} LUFS, at most {std['tp_max']} dBTP; "
+              f"the mix sets {mx['target']} LUFS in game (ladder {m.ladder_key(sid)}).",
               f"- **Phones:** loses at most {std.get('phone_loss_max', 6)} dB on a phone speaker: keep energy in 0.5-4 kHz.",
-              f"- **Avoid:** {br['avoid']}. Tone: slapstick, never horror (identity.tone).",
-              f"- **Licence:** {lic}. Record proof with `sound.py register`.",
-              f"- **Done when:** `sound.py analyze <file> --as {sid}` shows no FAIL, then register and build."]
+              f"- **Avoid:** {br['avoid']}."]
     if canon:
         lines.append(f"- **Canon:** {' · '.join(canon)}")
     if s.get("oq"):
-        lines.append(f"- **Open:** {', '.join(s['oq'])} (defaults in use)")
+        oqs = oqs if oqs is not None else {row["id"]: row for row in oq_rows(m)}
+        lines.append("- **Open:** " + "; ".join(f"{o} ({oqs[o]['title']}) default {oqs[o]['default'][:90]}" if o in oqs
+                                                   else o for o in s["oq"]))
     return "\n".join(lines) + "\n"
+
+
+def briefs_text(m, ids):
+    b = m.bible
+    v = lambda k, d: b.value(k, d) if b.ok() else d  # noqa: E731
+    ids = m.by_phase(ids)
+    oqs = {row["id"]: row for row in oq_rows(m)}
+    head = ["# Risky Rails audio briefs (rr-soundsmith)", "",
+            f"Generated {TODAY} from soundmap.json and canon; {len(ids)} sounds in phase order; format in "
+            "references/brief-format.md. Edit the soundmap, not this file.", "",
+            f"- **Licence** (av.audio.licence): {v('av.audio.licence', 'owner uploads or Roblox-licensed only')}. Record "
+            "proof with `sound.py register`. Uploaded audio stays private to the game: never distribute it on the Creator Store.",
+            f"- **Tone** (identity.tone): {v('identity.tone.company', 'an incompetent train company')}; "
+            f"{v('identity.tone.not', 'never horror')}.",
+            "- **Delivery:** dry (no reverb baked in), WAV 48 or 44.1 kHz, 16 or 24-bit; mono for anything positional.",
+            "- **Meter:** levels are ITU BS.1770 with mono counted as dual mono (+3 dB, as heard on two speakers). On a "
+            "meter that reads mono as one channel, aim 3 dB lower (m_max -14 reads -17 there).",
+            "- **Done when:** `sound.py analyze <file> --as <id>` shows no FAIL, then register and build.",
+            "- **Route:** store = Roblox-licensed Creator Store search using Sounds like; self-made = record or perform "
+            "it; commission = a sound designer with a written rights grant.", "",
+            "| phase | id | tier | class | takes | length s | space | state | route |", "|---|---|---|---|---|---|---|---|---|"]
+    for sid in ids:
+        s = m.sounds[sid]
+        sp = s["space"] + (f" @{s['emitter']}" if s.get("emitter") else "") + (" +3d" if s.get("layer3d") else "")
+        head.append(f"| {m.sound_phase(sid)} | {sid} | {s['tier']} | {s['class']} | {s['brief'].get('variations', 1)} | "
+                    f"{s['brief']['len'][0]}-{s['brief']['len'][1]} | {sp} | {m.asset_state(sid)} | {route(s)} |")
+    return "\n".join(head) + "\n\n" + "\n".join(brief_md(m, sid, oqs) for sid in ids)
 
 
 def cmd_brief(m, a):
@@ -874,10 +1130,7 @@ def cmd_brief(m, a):
     if bad:
         print(f"unknown sounds: {', '.join(bad)}")
         return 2
-    head = ["# Risky Rails audio briefs (rr-soundsmith)", "",
-            f"Generated {TODAY} from soundmap.json and canon. One brief per sound; format in references/brief-format.md. "
-            "Source only owner-made, commissioned, CC0 or game-licensed audio, or Roblox-licensed Creator Store audio.", "", ""]
-    text = "\n".join(head) + "\n".join(brief_md(m, sid) for sid in ids)
+    text = briefs_text(m, ids)
     if a.out:
         Path(a.out).write_text(text, encoding="utf-8")
         print(f"wrote {a.out} ({len(ids)} briefs)")
@@ -888,11 +1141,11 @@ def cmd_brief(m, a):
 
 # ------------------------------------------------------------------ list, show
 def cmd_list(m, a):
-    ids = [s for s in m.sounds if (not a.group or m.sounds[s]["group"] == a.group) and (not a.tier or m.sounds[s]["tier"] == a.tier)]
+    ids = [s for s in m.by_phase() if (not a.group or m.sounds[s]["group"] == a.group) and (not a.tier or m.sounds[s]["tier"] == a.tier)]
     print(f"{len(ids)} sounds (presets: {m.dir})")
     for sid in ids:
         s, mx = m.sounds[sid], m.mix(sid)
-        print(f"  {sid:18} t{s['tier']} {s['group']:7} {s['class']:7} {s['space']}{'+3d' if s.get('layer3d') else '   '} "
+        print(f"  {m.sound_phase(sid):7} {sid:18} t{s['tier']} {s['group']:7} {s['class']:7} {s['space']}{'+3d' if s.get('layer3d') else '   '} "
               f"{s['stage']:6} target {mx['target']:6.1f}  Volume {mx['volume']:.3f}  {m.asset_state(sid)}")
     return 0
 
@@ -967,6 +1220,7 @@ def runtime_map(m):
                "rolloff": {"mode": sp["mode"], "min": sp["min"], "max": sp["max"]} if s["space"] == "3d" else None,
                "voices": 1 if s.get("looped") else s.get("voices", 1), "cooldown": s.get("cooldown", 0),
                "pitch": s.get("pitch", [1, 1]), "ids": a.get("ids", []), "placeholder": a.get("source") == "placeholder",
+               "keep": s["class"] == "alarm",
                "length": (a.get("measured") or [{}])[0].get("duration") or s["brief"]["len"][1], "stage": s["stage"]}
         if s.get("layer3d"):
             ly = s["layer3d"]
@@ -1004,8 +1258,9 @@ def runtime_map(m):
 def setup_lua(m, rm):
     stud = m.r["meta"]["stud_m"]
     lines = ["-- studio_sound_setup.lua (GENERATED by rr-soundsmith build). Run once in the Studio command bar.",
-             "-- Creates SoundService.RR_Mix with the SoundGroup tree so volumes are visible and tweakable in Studio;",
-             "-- RR_Sound reuses these groups by name. Safe to re-run: existing groups are kept, never deleted.",
+             "-- Creates SoundService.RR_Mix with the SoundGroup tree. RR_Sound reuses these groups by name and keeps the",
+             "-- Volume you set on each group here as its base; player settings and ducking multiply on top at run time.",
+             "-- Safe to re-run: existing groups (and their volumes) are kept, never deleted.",
              'local SoundService = game:GetService("SoundService")',
              'local mix = SoundService:FindFirstChild("RR_Mix")',
              'if not mix then mix = Instance.new("Folder"); mix.Name = "RR_Mix"; mix.Parent = SoundService end',
@@ -1021,26 +1276,40 @@ def setup_lua(m, rm):
     return "\n".join(lines) + "\n"
 
 
+def open_decisions_md(m):
+    rows = oq_rows(m)
+    out = []
+    for r_ in rows:
+        tail = f"; record: `{r_['cmd_portable']}`" if r_["cmd"] else ""
+        warn = " **(check: this OQ never mentions audio; wrong number?)**" if not r_["relevant"] else ""
+        out.append(f"- {r_['id']} ({r_['status']}) {r_['title']}: default {r_['default'].rstrip('.')}. Cited by "
+                   f"{', '.join(r_['cited'])}{warn}{tail}")
+    return out or ["none cited"]
+
+
 def spec_md(m, rm):
     r = m.r
     L = r["ladder"]
     lines = ["# SOUND_SPEC (generated by rr-soundsmith build; not canon)", "",
              f"{len(r['sounds'])} sounds, {len(r['events'])} events, {rm['placeholders']} placeholders, "
-             f"{rm['unassigned']} unassigned. Presets: soundmap.json {TODAY}.", "",
+             f"{rm['unassigned']} unassigned. Presets: soundmap.json {TODAY}. Runtime: legacy Sound + SoundGroup "
+             "(tech.audio.soundgroup_status: supported; Roblox now recommends the Audio API; port later if needed).", "",
              "## Mix ladder (in-game level, LUFS)", "",
              f"fail t1 {L['t1']} > crisis t2 {L['t2']} > commit t3 {L['t3']} > reward t4 {L['t4']} > UI t5 {L['t5']} > "
              f"ambient loops {L['ambient']} (integrated); music {L['music']}. Trims within +-{L['trim_max_db']} dB.", "",
-             "## Event -> sound", "", "| event | via | action | sound | tier | group | space | target | Volume | asset |",
-             "|---|---|---|---|---|---|---|---|---|---|"]
-    for e, ev in r["events"].items():
+             "## Event -> sound (phase order)", "",
+             "| phase | event | via | action | sound | tier | group | space | target | Volume | asset |",
+             "|---|---|---|---|---|---|---|---|---|---|---|"]
+    for e in m.events_by_phase():
+        ev = r["events"][e]
         for act in ("play", "toggle", "start", "stop"):
             if act not in ev:
                 continue
             for sid in ev[act] if isinstance(ev[act], list) else [ev[act]]:
                 s, mx = r["sounds"][sid], m.mix(sid)
                 sp = s["space"] + (f" @{s.get('emitter')}" if s.get("emitter") else "") + (f" +3d @{s['layer3d']['emitter']}" if s.get("layer3d") else "")
-                lines.append(f"| {e} | {ev['via']} | {act} | {sid} | {s['tier']} | {s['group']} | {sp} | {mx['target']} | "
-                             f"{mx['volume']} | {m.asset_state(sid)} |")
+                lines.append(f"| {m.event_phase(e)} | {e} | {ev['via']} | {act} | {sid} | {s['tier']} | {s['group']} | {sp} | "
+                             f"{mx['target']} | {mx['volume']} | {m.asset_state(sid)} |")
     lines += ["", "## Ducking", ""]
     for d in r["ducking"]:
         trig = ", ".join(d["when"].get("sounds", []) + [f"group {g}" for g in d["when"].get("groups", [])])
@@ -1048,16 +1317,19 @@ def spec_md(m, rm):
         lines.append(f"- **{d['name']}**: while {trig} plays: {duck}; attack {d['attack']} s, hold {d['hold']} s, release {d['release']} s")
     v = r["voices"]
     lines += ["", "## Voices and priority", "",
-              f"At most {v['max']} one-shots at once; per group {json.dumps(v['per_group'])}. When full: stop the least "
-              f"important (highest tier number), oldest first; tiers 1-{v['protect_tier']} are never dropped. Loops are "
-              "keyed and never stolen. Per-sound cooldowns and voice counts in the table of RR_SoundMap.", "",
+              f"At most {v['max']} one-shots at once; per group {json.dumps(v['per_group'])}. When full, a new sound takes "
+              f"the least important voice (highest tier number), oldest first. New tier 1-{v['protect_tier']} sounds always "
+              "get a voice, but a crisis alarm that is playing (class alarm) is cut only by the fail or by another alarm: "
+              "crisis impacts (glass, coupling) yield to it and are dropped instead. A stolen voice stops its positional "
+              "layer too. Loops are keyed and never stolen. Per-sound cooldowns and voice counts are in RR_SoundMap.", "",
               "## Speed link", ""]
     for sl in r["speed_link"]:
         lines.append(f"- {sl['sound']}: PlaybackSpeed = Speed / {sl['ref']} clamped {sl['rate']}; level "
-                     f"{sl.get('gain_slope')} x 20log10(Speed/{sl['ref']}) dB; silent below {sl.get('silent_below')} (av.audio.speed_link)")
-    lines += ["", "## Open decisions (defaults in use)", "",
-              "OQ-021 audio identity (A: diegetic only, no music bed in runs), OQ-035 alarm placement (A: 2D + positional "
-              "layer), OQ-036 community Creator Store audio (A: refused). `bible.py get OQ-035`."]
+                     f"{sl.get('gain_slope')} x 20log10(Speed/{sl['ref']}) dB; silent below {sl.get('silent_below')} "
+                     "(av.audio.speed_link). Call Sound.setSpeed whenever Speed changes (each Heartbeat or the train's "
+                     "Speed value Changed), including the departure ramp and arrival braking, so the wheels fade to "
+                     "silence at the StopMarker.")
+    lines += ["", "## Open decisions (defaults in use; the owner decides)", ""] + open_decisions_md(m)
     return "\n".join(lines) + "\n"
 
 
@@ -1110,8 +1382,7 @@ def cmd_build(m, a):
         shutil.copy2(SKILL / "assets" / "luau" / f, out / f)
     (out / "studio_sound_setup.lua").write_text(setup_lua(m, rm), encoding="utf-8")
     (out / "SOUND_SPEC.md").write_text(spec_md(m, rm), encoding="utf-8")
-    ns = argparse.Namespace(ids=["all"], out=str(out / "AUDIO_BRIEFS.md"))
-    cmd_brief(m, ns)
+    (out / "AUDIO_BRIEFS.md").write_text(briefs_text(m, list(m.sounds)), encoding="utf-8")
     (out / "LICENCES.md").write_text(licences_md(m), encoding="utf-8")
     (out / "README.md").write_text(README.format(date=TODAY, ph=rm["placeholders"], un=rm["unassigned"]), encoding="utf-8")
     lua_files = sorted(out.glob("*.lua"))
@@ -1141,16 +1412,27 @@ README = """# Risky Rails sound package (rr-soundsmith, {date})
 
 Files
 - `RR_SoundMap.lua` ModuleScript, GENERATED data (sounds, groups, ducking, events, voices). Regenerate, never edit.
-- `RR_Sound.lua` ModuleScript, the client runtime. `RR_SoundDemo.client.lua` LocalScript demo.
-- `studio_sound_setup.lua` run once in the command bar: SoundService.RR_Mix SoundGroup tree.
-- `SOUND_SPEC.md` event -> sound table, ladder, ducking, voices. `AUDIO_BRIEFS.md` sourcing briefs. `LICENCES.md` register.
+- `RR_Sound.lua` ModuleScript, the client runtime. `RR_SoundDemo.client.lua` LocalScript listening test.
+- `studio_sound_setup.lua` run once in the command bar: SoundService.RR_Mix SoundGroup tree. A group Volume you set
+  there is kept as its base; player settings and ducking multiply on top.
+- `SOUND_SPEC.md` event -> sound table by phase, ladder, ducking, voices, open decisions. `AUDIO_BRIEFS.md` sourcing
+  briefs (summary table first). `LICENCES.md` register.
 
 Wire it (client only)
 1. ReplicatedStorage: RR_SoundMap, RR_Sound (and RR_Feel from rr-game-feel if you use it).
 2. In one LocalScript: `local Sound = require(RS.RR_Sound); Sound.init(require(RS.RR_SoundMap), {{feel = Feel}})`.
 3. Emitters: `Sound.setEmitter("lever", leverAttachment)` for each role in SOUND_SPEC (missing roles play 2D).
-4. Game code: `Sound.event("trip_start")`, `Sound.setSpeed(speed)` on every throttle change, `Sound.event("ui_button_press")`.
+4. Game code: `Sound.event("trip_start")`, `Sound.event("ui_button_press")`, and `Sound.setSpeed(speed)` whenever Speed
+   changes: each Heartbeat or on the train's replicated Speed value Changed, including the ~5 s departure ramp and the
+   arrival braking (the wheels then fade to silence at the StopMarker). Calling it only on throttle notches makes the
+   wheel loop jump between notches and never fade.
+5. Lobby place: `Sound.event("lobby_enter")` on join, queue events from the queue pad script, `lobby_leave` before
+   the teleport.
    Events marked `via feel` play when RR_Feel plays that event; do not call them twice.
+
+Runtime choice: legacy Sound + SoundGroup (still supported; Roblox now recommends the Audio API, see
+tech.audio.soundgroup_status). Chosen for SoundGroup nesting and scripted ducking that is tested in a Lua VM; a port to
+AudioPlayer/AudioEmitter/AudioFader keeps RR_SoundMap unchanged.
 
 State: {ph} placeholder and {un} unassigned sounds. Placeholders never ship (`sound.py validate --release`).
 Studio listening test pending (owner): see rr-soundsmith references/fidelity.md.
@@ -1178,9 +1460,22 @@ def merged_rubric(critic):
     return re.sub(r"(<!--\s*include-with:\s*A6, B5[^>]*?)(\s*-->)", r"\1, S5\2", text)
 
 
-def crit_brief(m):
+def crit_brief(m, src=None, owner_away=False):
     b = m.bible
     v = lambda k, d="?": b.value(k, d) if b.ok() else d  # noqa: E731
+    files = {}
+    pv = Path(src) / "preview.json" if src else None
+    if pv and pv.is_file():
+        files = json.loads(pv.read_text(encoding="utf-8")).get("files", {})
+    ph = sum(Path(f).name.startswith("PLACEHOLDER_") for f in files.values())
+    st = [m.asset_state(s) for s in m.sounds]
+    stage = (f"{len(files)} of {len(m.sounds)} sounds have a file in this pass ({ph} synthesised PLACEHOLDERs, "
+             f"{len(files) - ph} owner files); register: {st.count('final')} final, {st.count('placeholder')} placeholder, "
+             f"{st.count('unassigned')} unassigned. Sounds without a file are judged on the event and brief table.")
+    oqs = "; ".join(f"{r_['id']} {r_['title']} (default {r_['default'][:80]})" for r_ in oq_rows(m)) or "none"
+    step2 = ("step 2: pre-answered (canon via rr-bible; owner away; assumptions are the defaults above)" if owner_away else
+             "step 2: ask the owner at most 3 questions the canon above leaves open (multiuse-critic step 2), then write "
+             "the answers here")
     return "\n".join([
         "# Risky Rails sound plan (rr-soundsmith)",
         "- Purpose: the event -> sound plan and mix: each sound says what happened and how urgent, alarms reach the "
@@ -1188,14 +1483,14 @@ def crit_brief(m):
         f"- Audience: {v('identity.audience.launch')}; {v('identity.audience.devices')}.",
         "- Player view: you cannot hear anything. The images are waveforms, spectrograms, a loudness ladder, "
         "phone-speaker loss and event timelines against rr-game-feel's channels; Facts has the measurements and the "
-        "event table. Judge the plan and the numbers, never 'how it sounds'; the owner's ears are the final check.",
-        "- Stage: placeholder audio synthesised from code (marked PLACEHOLDER); final audio not sourced yet.",
+        "event and brief table (phase, events, space, must say, sounds like, avoid). Judge the plan and the numbers, "
+        "never 'how it sounds'; the owner's ears are the final check.",
+        f"- Stage: {stage}",
         f"- Fixed constraints: {v('av.audio.priority')}; {v('av.audio.slapstick')}; {v('av.audio.speed_link')}; "
         f"tone {v('identity.tone.company')}; {v('identity.tone.not')}. Licences: {v('av.audio.licence')}.",
-        "- Owner worries / already decided: alarms first (canon); diegetic only in runs (OQ-021 default A); alarms 2D "
-        "plus a positional layer (OQ-035 default A). Placeholder timbre is not the brief: judge the plan, levels, "
-        "timing and distinctness, and the brief text for style.",
-        "step 2: pre-answered (canon via rr-bible; owner away)"]) + "\n"
+        f"- Owner worries / already decided: alarms first (canon). Open decisions, defaults in use: {oqs}. Placeholder "
+        "timbre is not the brief: judge the plan, levels, timing and distinctness, and the brief text for style.",
+        step2]) + "\n"
 
 
 def cmd_crit(m, a):
@@ -1215,13 +1510,71 @@ def cmd_crit(m, a):
         if (src / n).is_file():
             shutil.copy2(src / n, pdir / n)
     if not (C / "brief.md").is_file():
-        (C / "brief.md").write_text(crit_brief(m), encoding="utf-8")
+        (C / "brief.md").write_text(crit_brief(m, src, a.owner_away), encoding="utf-8")
         print(f"wrote {C / 'brief.md'} (edit the Owner worries line if the owner said more)")
     extra = " --images closeups.png" if (pdir / "closeups.png").is_file() else ""
     print(f"wrote {C / 'rubric.md'} (multiuse-critic rubric + Profile S) and pass-{a.pass_}/ files")
+    print(f"critic skill: {critic} (use this path, not your own glob)")
     print(f"next: python3 {critic / 'scripts' / 'critic_kit.py'} build {C} --pass {a.pass_} --kind full --profile S "
           f"--role \"senior game audio designer\"{extra}")
     print("then spawn a fresh critic on the printed prompt (multiuse-critic step 5); never score it yourself")
+    return 0
+
+
+# ------------------------------------------------------------------ where, promote
+def cmd_where(m, a):
+    p, how = presets_source()
+    n_assets = len([k for k in m.assets])
+    print(f"presets: {p} ({how})\n  soundmap.json: {len(m.sounds)} sounds, {len(m.events)} events; assets.json: "
+          f"{n_assets} registered; recipes.py: {'yes' if (p / 'recipes.py').is_file() else 'no'}")
+    print(f"  project home: {home_dir()} ({'present' if (home_dir() / 'soundmap.json').is_file() else 'absent'})")
+    if inside_skill(p):
+        print("  read-only: register refuses to write into the skill folder; use a mission copy or `sound.py promote`")
+    return 0
+
+
+def cmd_promote(m, a):
+    src = Path(a.src)
+    src = src.parent if src.is_file() else src
+    dst = Path(a.to) if a.to else home_dir()
+    if not (src / "soundmap.json").is_file():
+        print(f"{src}/soundmap.json not found")
+        return 2
+    if inside_skill(dst):
+        print(f"promote refused: {dst} is inside the skill folder (a re-sync overwrites it)")
+        return 2
+    load = lambda p: json.loads(p.read_text(encoding="utf-8")) if p.is_file() else {}  # noqa: E731
+    new_map, old_map = load(src / "soundmap.json"), load(dst / "soundmap.json")
+    new_a, old_a = load(src / "assets.json"), load(dst / "assets.json")
+    diff = lambda new, old: ([k for k in new if k not in old], [k for k in old if k not in new],  # noqa: E731
+                             [k for k in new if k in old and new[k] != old[k]])
+    add, rem, chg = diff(new_map.get("sounds", {}), old_map.get("sounds", {}))
+    eadd, erem, _ = diff(new_map.get("events", {}), old_map.get("events", {}))
+    merged = dict(old_a)
+    merged.update({k: v for k, v in new_a.items() if k != "_about"})
+    reg = [k for k in new_a if k != "_about" and old_a.get(k) != new_a[k]]
+    kept = [k for k in old_a if k != "_about" and k not in new_a]
+    if old_map:
+        print(f"promote {src} -> {dst}\n  sounds: +{add or '-'} -{rem or '-'} changed {chg or '-'}\n  events: +{eadd or '-'} "
+              f"-{erem or '-'}\n  registrations new or changed: {reg or '-'}; kept from the home: {kept or '-'}")
+    else:
+        print(f"promote {src} -> {dst} (new home): {len(new_map.get('sounds', {}))} sounds, "
+              f"{len(new_map.get('events', {}))} events, {len(reg)} registrations")
+    if a.dry_run:
+        print("dry run: nothing written")
+        return 0
+    dst.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    for n in ("soundmap.json", "assets.json", "recipes.py"):
+        if (dst / n).is_file():
+            shutil.copy2(dst / n, dst / f"{n}.bak-{stamp}")
+    shutil.copy2(src / "soundmap.json", dst / "soundmap.json")
+    if merged:
+        merged.setdefault("_about", "rr-soundsmith asset register, written by sound.py register; licence proof per sound")
+        (dst / "assets.json").write_text(json.dumps(merged, indent=1) + "\n", encoding="utf-8")
+    if (src / "recipes.py").is_file():
+        shutil.copy2(src / "recipes.py", dst / "recipes.py")
+    print(f"promoted (backups *.bak-{stamp}); every run without RR_SOUND_PRESETS now reads {dst}; run sound.py validate")
     return 0
 
 
@@ -1232,6 +1585,9 @@ def main(argv=None):
     p = sp.add_parser("list"); p.add_argument("--group"); p.add_argument("--tier", type=int)
     p = sp.add_parser("show"); p.add_argument("name"); p.add_argument("--json", action="store_true")
     p = sp.add_parser("validate"); p.add_argument("--strict", action="store_true"); p.add_argument("--release", action="store_true")
+    sp.add_parser("oq"); sp.add_parser("where")
+    p = sp.add_parser("promote"); p.add_argument("--from", dest="src", required=True); p.add_argument("--to")
+    p.add_argument("--dry-run", action="store_true")
     p = sp.add_parser("analyze"); p.add_argument("paths", nargs="+"); p.add_argument("--as", dest="as_")
     p.add_argument("--class", dest="cls", choices=["oneshot", "ui", "alarm", "impact", "loop", "music"])
     p.add_argument("--json", action="store_true"); p.add_argument("--fix-out"); p.add_argument("--mono", action="store_true")
@@ -1248,11 +1604,13 @@ def main(argv=None):
     p = sp.add_parser("sheet"); p.add_argument("--from", dest="src", required=True); p.add_argument("--out", required=True)
     p = sp.add_parser("crit"); p.add_argument("crit"); p.add_argument("--pass", dest="pass_", type=int, required=True)
     p.add_argument("--from", dest="src", required=True)
+    p.add_argument("--owner-away", action="store_true", help="pre-answer multiuse-critic step 2 from canon defaults")
     p = sp.add_parser("build"); p.add_argument("--out", required=True); p.add_argument("--no-check", action="store_true")
     a = ap.parse_args(argv)
     m = Model()
     return {"list": cmd_list, "show": cmd_show, "analyze": cmd_analyze, "synth": cmd_synth, "register": cmd_register,
-            "brief": cmd_brief, "sheet": cmd_sheet, "crit": cmd_crit, "build": cmd_build,
+            "brief": cmd_brief, "sheet": cmd_sheet, "crit": cmd_crit, "build": cmd_build, "oq": cmd_oq,
+            "where": cmd_where, "promote": cmd_promote,
             "validate": lambda m_, a_: validate(m_, a_.strict, a_.release)}[a.cmd](m, a)
 
 

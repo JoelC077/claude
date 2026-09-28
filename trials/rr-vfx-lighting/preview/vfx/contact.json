@@ -1,0 +1,93 @@
+{
+ "sheet": [
+  786,
+  870
+ ],
+ "megapixels": 0.68,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "pov_crisis (grassland.day)",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/vfx/pov_crisis.png",
+   "box": [
+    6,
+    24,
+    768,
+    432
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "coal_dust",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/vfx/strip_coal_dust.png",
+   "box": [
+    6,
+    494,
+    384,
+    84
+   ],
+   "scale": "fit x0.37"
+  },
+  {
+   "n": 3,
+   "label": "sparks_brake",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/vfx/strip_sparks_brake.png",
+   "box": [
+    396,
+    480,
+    384,
+    111
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 4,
+   "label": "steam_chimney",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/vfx/strip_steam_chimney.png",
+   "box": [
+    6,
+    616,
+    384,
+    111
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 5,
+   "label": "smoke_chimney",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/vfx/strip_smoke_chimney.png",
+   "box": [
+    396,
+    616,
+    384,
+    111
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 6,
+   "label": "pov_cruise (grassland.day)",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/vfx/pov_cruise.png",
+   "box": [
+    98,
+    752,
+    199,
+    112
+   ],
+   "scale": "fit x0.26"
+  },
+  {
+   "n": 7,
+   "label": "pov_boiler (grassland.day)",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/vfx/pov_boiler.png",
+   "box": [
+    488,
+    752,
+    199,
+    112
+   ],
+   "scale": "fit x0.26"
+  }
+ ]
+}

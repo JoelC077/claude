@@ -1,0 +1,45 @@
+{
+ "sheet": [
+  572,
+  858
+ ],
+ "megapixels": 0.49,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "zones phone",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/hud/HudTickets__routine__phone__C__zones.png",
+   "box": [
+    6,
+    24,
+    560,
+    259
+   ],
+   "scale": "fit x0.66"
+  },
+  {
+   "n": 2,
+   "label": "skin A routine",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/hud/HudTickets__routine__phone__A.png",
+   "box": [
+    6,
+    308,
+    560,
+    259
+   ],
+   "scale": "fit x0.66"
+  },
+  {
+   "n": 3,
+   "label": "skin B routine",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/hud/HudTickets__routine__phone__B.png",
+   "box": [
+    6,
+    592,
+    560,
+    259
+   ],
+   "scale": "fit x0.66"
+  }
+ ]
+}

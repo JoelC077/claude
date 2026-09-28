@@ -1,0 +1,18 @@
+# sound analyze src/sound/ph (5 placeholders, re-measured after the fix: 8x true peak)
+PASS PLACEHOLDER_alarm_coal.wav  [alarm_coal; alarm]  1.7 s 48000 Hz 1ch  m_max -14.0  TP -14.55  phone loss 2.51 dB
+PASS PLACEHOLDER_brake_hiss.wav  [brake_hiss; oneshot]  1.6 s 48000 Hz 1ch  m_max -14.0  TP -6.77  phone loss 1.27 dB
+PASS PLACEHOLDER_lever_clunk.wav  [lever_clunk; oneshot]  0.5 s 48000 Hz 1ch  m_max -14.03  TP -1.41  phone loss 2.32 dB
+PASS PLACEHOLDER_lobby_bed.wav  [lobby_bed; loop]  12.0 s 48000 Hz 1ch  integrated -20.0  TP -8.88  phone loss 0.87 dB
+PASS PLACEHOLDER_whistle.wav  [whistle; oneshot]  1.8 s 48000 Hz 1ch  m_max -14.0  TP -6.92  phone loss 0.46 dB
+analyze: 5 pass, 0 warn, 0 fail (5 files)
+
+# owner-drop simulation: whistle_v2.wav (placeholder +6 dB, 90 ms lead silence, stereo, tags stripped)
+FAIL whistle_v2.wav  [whistle; oneshot]  1.89 s 48000 Hz 2ch  m_max -8.44  TP -0.92  phone loss 0.47 dB
+     WARN peak -0.92 dBTP above -1
+     WARN m_max -8.44 vs standard -14 (gain -5.6 dB; peak allows -0.2); --fix-out applies -5.6 dB, or register it as is and the mix compensates
+     FAIL 92.2 ms of silence before the sound: it will feel late; trim the start
+analyze: 0 pass, 0 warn, 1 fail (1 files)
+
+# after --fix-out --mono
+PASS whistle_v2_std.wav  [whistle; oneshot]  1.7998 s 48000 Hz 1ch  m_max -14.0  TP -6.91  phone loss 0.46 dB
+analyze: 1 pass, 0 warn, 0 fail (1 files)

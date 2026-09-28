@@ -11,15 +11,16 @@ A family is `families/<name>.py`, pure Python, importable without Blender (so `p
 | `PARAMS` | `name: ("float"/"int", default, min, max, help)`, `("choice", default, [..], help)`, `("bool", default, help)`. A default written `"@file.section.key"` (or `"@key#1"` for the 2nd number in a value like `7 x 9`) is read from rr-bible at plan time |
 | `GROUPS` | recolour group: `(bible colour token, Roblox Material[, Reflectance])`. CamelCase names; they become the `<Group>` in part names and the GROUPS lines in the Studio script. Keep materials honest (only brass gets reflectance, canon `style.material.reflectance`) |
 | `PRESETS`, `DEFAULT_PRESET` | `name: {"params": {...}, "groups": {Group: token}, "note": "..."}` |
-| `VIEW` | `ground` (stage token), `features` (part-name keys measured at game distance), `player` (how it is seen: goes into the critic brief), optional `stage: "track"` (rails under rolling stock), `top: True`, `rules` (extra Studio rules `(lua_pattern, {Property: value})`) |
+| `VIEW` | `ground` (stage token), `features` (exact `<Part>` tokens, or `<Group>` for merged families, measured per piece at game distance), `player` (how it is seen: goes into the critic brief) or, for a family seen in several places, `premises` `{name: text}` + `premise` (default); each text cites canon keys and says ASSUMED or CONTRADICTS canon when it is not canon. Optional `nums` `{name: "@key#i"}` (canon numbers the POV needs), `stage: "track"` (rails under rolling stock), `top: True`, `rules` (extra Studio rules `(lua_pattern, {Property: value})`) |
 | `OPTIONS` | defaults for `merge` (`none`/`group`), `collide` (False = nothing collides, e.g. streamed scenery), `lod` |
 | `validate(p, canon)` | optional plan-time warnings; a message starting `ERROR:` refuses the combination (exit 2); `canon("tech.units.stock_roof")` returns a bible number |
 | `build(k, p)` | makes every part through `k` |
-| `pov(p, lo, hi)`, `avatar(p, lo, hi)`, `tile_offsets(p)` | optional: POV stand and look-at, stand-in avatar spot, stage copies for tiling pieces |
+| `stands(p, lo, hi, view)` | optional: `[(label, (x, y, floor_z), look_at)]`, 1-3 player positions for `view["premise"]` (`view["nums"]`, `view["gz"]` ground z). POV 3P renders at each, 1P at the first. Without it: `pov(p, lo, hi)` or a generic stand, plus a second one 35 degrees round the look point |
+| `avatar(p, lo, hi)`, `tile_offsets(p)` | optional: stand-in avatar spot, stage copies for tiling pieces |
 
 ## Kit API (`k`, see `scripts/fkit.py` docstring)
 
-`k.box(part, group, center, size, rot=(0,0,0), detail=0)`, `k.boxes(part, group, items)` (several boxes, one part), `k.cyl(part, group, center, r, depth, axis, segs, r2, scale)`, `k.prism(part, group, profile, depth, center, axis)`, `k.wall(part, group, axis, a0, a1, at, z0, z1, thick, holes)`, `k.proxy(center, size, rot)`, `k.measure(label, text)`, `k.rng` (seeded), `k.segs(n)`. Helpers: `fkit.arc`, `fkit.arc_z`, `fkit.shell`, `fkit.frame_boxes`. Rolling stock: `_rolling.underframe`, `bogie`, `wheelset`, `ladder`, `RUNG_RULE`, `pov_next_vehicle`.
+`k.box(part, group, center, size, rot=(0,0,0), detail=0)`, `k.boxes(part, group, items)` (several boxes, one part), `k.cyl(part, group, center, r, depth, axis, segs, r2, scale)`, `k.prism(part, group, profile, depth, center, axis)`, `k.wall(part, group, axis, a0, a1, at, z0, z1, thick, holes)`, `k.heightfield(part, group, center, size, height(u, v), nx, ny)` (closed heap or mound), `k.proxy(center, size, rot)`, `k.measure(label, text)`, `k.rng` (seeded), `k.segs(n)`. Helpers: `fkit.arc`, `fkit.arc_z`, `fkit.shell`, `fkit.frame_boxes`. Rolling stock: `_rolling.underframe(..., outside=True)` (running gear on the solebar line), `bogie`, `wheelset`, `ladder`, `RUNG_RULE`, `pov_next_vehicle`.
 
 - Frame: studs, z up. Buildings and props: z = 0 ground, front faces -y (the 3/4 and POV cameras sit on the -y side). Rolling stock and track: z = 0 rail top, x along the track.
 - `detail=1` parts vanish at LOD1 (rivets, springs, gutters, lumps). Everything the silhouette needs stays detail 0.
@@ -32,7 +33,16 @@ A family is `families/<name>.py`, pure Python, importable without Blender (so `p
 - Parts meet by overlapping (0.05-0.3), never by two faces sharing a plane. Proud details stand 0.05-0.3 out (canon `style.form.relief`) and at a depth no neighbour uses: stagger 0.02+ (e.g. straps 0.22, patches 0.19, door 0.20).
 - Frames lap into their opening (`fkit.frame_boxes`, lap 0.08) so no frame face lies on a jamb. Sills, lintels, stripes and gutters stop 0.1 short of the ends of what they sit on.
 - Anything attached must touch or overlap its support within 0.05; bounding boxes decide `floating`.
-- Chunky over fine: nothing thinner than about 0.15 on things seen in motion (canon `style.dont.hairlines`); key features at least `style.line.min_feature_px` at the 400 px game view.
+- Chunky over fine: nothing thinner than about 0.15 on things seen in motion (canon `style.dont.hairlines`); key features at least `style.line.min_feature_px` at the 400 px game view, per piece (see checks.md A5 for the stud sizes that pass).
+- No see-through gaps between planks: grooves are height or depth steps with the lower plank lapping under its neighbours (open gaps showed as light ticks in the end view).
+
+## Lessons from critic passes (keep new families clear of these)
+
+- Loads read by their silhouette: a heap's crest 2.5+ studs above the rim with 2+ symmetric peaks (`k.heightfield`), lumps at least 0.9 stud on the smallest side. A flat-topped prism read as a slab or tarp.
+- Running gear must show from the player's POV: if the body overhangs the gauge, hang axleboxes, springs and W-irons (or bogie frames) on the solebar line.
+- Weathering is whole pieces (a full plank strap to strap, a plate on iron), never a lone rectangle smaller than a plank on timber: it read as a sticker, and decals are out.
+- Put a light value break (a cap rail, a sill) between two dark masses that meet (coal against ironwork merged into one blob).
+- Where the player sees it decides the critique: a family seen in several places gets `premises`; one without a canon home says ASSUMED and its question goes to rr-bible (`add-question`).
 - Gable ends and end walls follow the roof curve (`fkit.arc_z`) so no gap shows under a roof.
 - Keep every MeshPart under the tris target (cylinders 10-24 segments).
 - No text or logos (canon `style.dont.invented_text`); blank boards are fine and are listed in facts.

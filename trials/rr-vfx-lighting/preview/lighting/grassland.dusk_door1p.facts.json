@@ -1,0 +1,32 @@
+{
+ "look": "grassland.dusk@door1p",
+ "camera": "door1p",
+ "scene": "grassland",
+ "sun": {
+  "clock": 17.85,
+  "elevation_deg": 1.7,
+  "dir_roblox": [
+   -0.026,
+   0.029,
+   -0.999
+  ],
+  "moon": false
+ },
+ "mean_luma": 59.6,
+ "clipped_pct": 0.0,
+ "crushed_pct": 14.99,
+ "frame_mean": "#3D3B3C",
+ "sky_mean": "#5B5862",
+ "ground_mean": "#38412E",
+ "ground_sat_hsl": 0.17,
+ "train_mean": "#302A2C",
+ "train_vs_world_contrast": 1.2,
+ "spawn_edge_fog": 0.968,
+ "spawn_edge_studs": 2048.0,
+ "fx_on": [
+  "headlamp"
+ ],
+ "bands": [],
+ "phone": false,
+ "png": "grassland.dusk_door1p.png"
+}

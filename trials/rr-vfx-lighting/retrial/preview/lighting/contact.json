@@ -1,0 +1,117 @@
+{
+ "sheet": [
+  786,
+  1422
+ ],
+ "megapixels": 1.12,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "grassland.day: luma 149.4, train/world 3.12:1",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/lighting/grassland.day.png",
+   "box": [
+    6,
+    24,
+    768,
+    432
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "grassland.day PHONE: luma 153.0, train/world 3.02:1",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/lighting/grassland.day.phone.png",
+   "box": [
+    6,
+    499,
+    384,
+    177
+   ],
+   "scale": "fit x0.45"
+  },
+  {
+   "n": 3,
+   "label": "grassland.day@door1p: luma 116.1, train/world 2.08:1",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/lighting/grassland.day_door1p.png",
+   "box": [
+    396,
+    480,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 4,
+   "label": "grassland.dusk: luma 77.4, train/world 2.02:1",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/lighting/grassland.dusk.png",
+   "box": [
+    6,
+    720,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 5,
+   "label": "grassland.dusk PHONE: luma 80.8, train/world 2.08:1",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/lighting/grassland.dusk.phone.png",
+   "box": [
+    396,
+    739,
+    384,
+    177
+   ],
+   "scale": "fit x0.45"
+  },
+  {
+   "n": 6,
+   "label": "grassland.dusk@door1p: luma 75.2, train/world 1.04:1",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/lighting/grassland.dusk_door1p.png",
+   "box": [
+    6,
+    960,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 7,
+   "label": "grassland.night: luma 26.7, train/world 1.48:1",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/lighting/grassland.night.png",
+   "box": [
+    396,
+    960,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 8,
+   "label": "grassland.night PHONE: luma 28.2, train/world 1.45:1",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/lighting/grassland.night.phone.png",
+   "box": [
+    6,
+    1219,
+    384,
+    177
+   ],
+   "scale": "fit x0.45"
+  },
+  {
+   "n": 9,
+   "label": "grassland.night@door1p: luma 42.9, train/world 1.08:1",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/lighting/grassland.night_door1p.png",
+   "box": [
+    396,
+    1200,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  }
+ ]
+}

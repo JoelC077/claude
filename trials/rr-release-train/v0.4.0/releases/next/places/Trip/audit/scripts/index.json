@@ -1,0 +1,32 @@
+[
+ {
+  "file": "ReplicatedStorage/RR_Notifications/NotificationController.lua",
+  "path": "ReplicatedStorage.RR_Notifications.NotificationController",
+  "class": "ModuleScript"
+ },
+ {
+  "file": "ReplicatedStorage/RR_Notifications/NotificationHud.lua",
+  "path": "ReplicatedStorage.RR_Notifications.NotificationHud",
+  "class": "ModuleScript"
+ },
+ {
+  "file": "ReplicatedStorage/RR_Version.lua",
+  "path": "ReplicatedStorage.RR_Version",
+  "class": "ModuleScript"
+ },
+ {
+  "file": "ServerScriptService/Crisis.spec.lua",
+  "path": "ServerScriptService.Crisis.spec",
+  "class": "ModuleScript"
+ },
+ {
+  "file": "ServerScriptService/CrisisManager.lua",
+  "path": "ServerScriptService.CrisisManager",
+  "class": "ModuleScript"
+ },
+ {
+  "file": "ServerScriptService/Lever.server.lua",
+  "path": "ServerScriptService.Lever",
+  "class": "Script"
+ }
+]

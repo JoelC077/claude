@@ -1,0 +1,14 @@
+(number assigned by bible.py at record time; siblings are adding OQs in parallel, so OQ-041 may shift)
+(dry run)
+### OQ-041 · Create match: what do the Players chips choose, and how many?
+- status: open
+- raised: 2026-09-28
+- src: DTU
+- context: ui.lobby.controls draws Players 1/2/3; gameplay.crew.max = 6 (canon) and gameplay.crew.launch_cap = 4 (proposed). rr-ui-foundry trial 2026-09-28 built A.
+- options:
+  - A: Party size 1/2/3 as sketched (DTU); bigger crews join through matchmaking up to gameplay.crew.max 6
+  - B: Max crew 1-6 (six chips or a < N > stepper like Difficulty)
+  - C: Max crew 1-4 while gameplay.crew.launch_cap 4 applies, 1-6 after
+- default: A (as sketched; the kit renders any chip count, so B or C is a spec edit)
+- affects: ui.lobby.controls, gameplay.crew.max, gameplay.crew.launch_cap
+- blocks: lobby UI

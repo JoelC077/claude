@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """rr-soundsmith audio library: read/write WAV (standard library), decode .ogg/.mp3/.flac through ffmpeg when one is
 found, probe their headers when not, and measure: ITU-R BS.1770-4 loudness (momentary max, short-term max,
-integrated, EBU LRA), 4x true peak, sample peak, clipping runs, DC offset, lead/tail silence, loop seam, spectral
+integrated, EBU LRA), 8x true peak, sample peak, clipping runs, DC offset, lead/tail silence, loop seam, spectral
 bands (phone band) and stereo correlation.
 
   python3 audiolib.py FILE [FILE...] [--json]      quick measurement (sound.py analyze adds the checks)
@@ -16,6 +16,11 @@ zero-padded to one momentary block; silence threshold -60 dBFS.
 import json, math, os, shutil, struct, subprocess, sys
 from array import array
 from pathlib import Path
+
+sys.dont_write_bytecode = True
+_EXTRA_PY = str(Path.home() / ".cache" / "rr-tools" / "py")  # optional wheels: numpy, Pillow, lupa, imageio-ffmpeg
+if Path(_EXTRA_PY).is_dir() and _EXTRA_PY not in sys.path:
+    sys.path.append(_EXTRA_PY)
 
 try:
     import numpy as np
@@ -404,16 +409,18 @@ _TPH = None
 def _tp_filter():
     global _TPH
     if _TPH is None:
-        L, taps = 4, 32
+        # 8x windowed-sinc polyphase, 64 taps per phase: within about 0.1 dB of a 16x band-limited reference on tones
+        # and transients (selftest); an abrupt start at sample 0 can read up to 0.3 dB low
+        L, taps = 8, 64
         N = L * taps
         n = np.arange(N) - (N - 1) / 2
-        h = np.sinc(n / L * 0.96) * np.kaiser(N, 8.0)
+        h = np.sinc(n / L * 0.995) * np.kaiser(N, 11.0)
         _TPH = np.array([h[k::L] / h[k::L].sum() for k in range(L)])
     return _TPH
 
 
 def true_peak(chans):
-    """4x oversampled peak (dBTP) or None without numpy."""
+    """8x oversampled peak (dBTP) or None without numpy."""
     if np is None:
         return None
     ph = _tp_filter()

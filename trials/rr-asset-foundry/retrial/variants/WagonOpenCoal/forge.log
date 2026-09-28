@@ -1,0 +1,40 @@
+tris: 56 meshes, 1,858 total, 0 over the 10.0k target
+palette: 13 cells exact; 793 faces; 0 span two cells; 0 too close to a cell edge; 0 off-palette
+names: 61 parts, 0 off the <Asset>_<Part>_<Group>_<nn> pattern
+coplanar: 0 overlapping same-facing face pairs
+floating: 0 parts not connected to the ground
+/home/user/claude/rr-asset-foundry/scripts/forge.py:262: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  if hasattr(w, "use_nodes"):
+/home/user/claude/rr-asset-foundry/scripts/forge.py:263: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  w.use_nodes = True
+/home/user/claude/rr-asset-foundry/scripts/forge.py:232: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if hasattr(m, "use_nodes"):
+/home/user/claude/rr-asset-foundry/scripts/forge.py:233: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m.use_nodes = True
+back faces in view Cam_34: none
+back faces in view Cam_End: none
+back faces in view Cam_POV_1P: none
+back faces in view Cam_POV_3P: none
+back faces in view Cam_POV_3P_2: none
+back faces in view Cam_Side: none
+00:03.363  cycles           | WARNING CUEW initialization failed: Error opening the library
+00:03.364  cycles           | WARNING HIPEW initialization failed: Error opening HIP dynamic library
+00:06.300  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonOpenCoal/renders/thumb.png'
+00:11.297  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonOpenCoal/renders/game.png'
+00:22.711  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonOpenCoal/renders/pov3p.png'
+00:28.095  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonOpenCoal/renders/pov1p.png'
+00:32.851  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonOpenCoal/renders/34.png'
+00:36.567  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonOpenCoal/renders/side.png'
+00:41.900  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonOpenCoal/renders/end.png'
+00:46.960  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonOpenCoal/renders/pov3p_2.png'
+
+FBX export starting... '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonOpenCoal/WagonOpenCoal.fbx'
+export finished in 0.0591 sec.
+
+FBX export starting... '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonOpenCoal/WagonOpenCoal_atlas.fbx'
+export finished in 0.0616 sec.
+Info: Saved copy as "WagonOpenCoal.blend"
+FBX version: 7400
+tris: 61 meshes, 1,918 total, 0 over the 10k target
+{'file': 'WagonOpenCoal.fbx', 'meshes': 61, 'size': (32.8, 18.06, 12.66), 'tris': 1918, 'over_target': [], 'no_uv': ['WagonOpenCoal_Collider_Proxy_01.001', 'WagonOpenCoal_Collider_Proxy_02.001', 'WagonOpenCoal_Collider_Proxy_03.001', 'WagonOpenCoal_Collider_Proxy_04.001', 'WagonOpenCoal_Collider_Proxy_05.001'], 'materials': ['Buffer.001', 'Cap.001', 'Chassis.001', 'Door.001', 'Iron.001', 'Load.001', 'Proxy.001', 'Repair.001', 'Steel.001', 'Timber.001'], 'ratio': [1.0, 1.0, 1.0]}
+forge done: WagonOpenCoal 56 parts, 1858 tris, 46.6s

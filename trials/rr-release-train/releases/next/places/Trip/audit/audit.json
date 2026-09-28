@@ -1,0 +1,96 @@
+{
+ "file": "/home/user/claude/trials/rr-release-train/releases/next/places/Trip/Trip.rbxl",
+ "format": "binary",
+ "bytes": 2088,
+ "sha256": "81fa462a0506c8afc1ba39da830b94f38aeb0d9f1fae7fe5c0c6ac0ca00ee37c",
+ "compression": {
+  "raw": 2,
+  "lz4": 26
+ },
+ "instances": 43,
+ "classes": {
+  "Part": 32,
+  "ModuleScript": 3,
+  "Folder": 1,
+  "Lighting": 1,
+  "Model": 1,
+  "RemoteEvent": 1,
+  "ReplicatedStorage": 1,
+  "Script": 1,
+  "ServerScriptService": 1,
+  "Workspace": 1
+ },
+ "counts": {
+  "parts": 32,
+  "meshparts": 0,
+  "unanchored_parts": 3,
+  "scripts": 4,
+  "script_bytes": 738,
+  "effects": {}
+ },
+ "streaming_enabled": true,
+ "oc_unsupported": {},
+ "stamp_version": "0.1.0-alpha.1",
+ "placeholders": [
+  "Workspace.PLACEHOLDER_Signal"
+ ],
+ "colours": [
+  {
+   "hex": "#2A6040",
+   "count": 30,
+   "example": "Workspace.Train.Coach0",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#F6C500",
+   "count": 1,
+   "example": "Workspace.Train.Buffer",
+   "props": [
+    "Color"
+   ]
+  },
+  {
+   "hex": "#FF00FF",
+   "count": 1,
+   "example": "Workspace.PLACEHOLDER_Signal",
+   "props": [
+    "Color"
+   ]
+  }
+ ],
+ "colour_total": 3,
+ "fonts": [],
+ "scripts": [
+  {
+   "path": "ReplicatedStorage.RR_Version",
+   "class": "ModuleScript",
+   "bytes": 59,
+   "lines": 5,
+   "disabled": false
+  },
+  {
+   "path": "ServerScriptService.CrisisManager",
+   "class": "ModuleScript",
+   "bytes": 355,
+   "lines": 10,
+   "disabled": false
+  },
+  {
+   "path": "ServerScriptService.Crisis.spec",
+   "class": "ModuleScript",
+   "bytes": 72,
+   "lines": 4,
+   "disabled": false
+  },
+  {
+   "path": "ServerScriptService.Lever",
+   "class": "Script",
+   "bytes": 252,
+   "lines": 6,
+   "disabled": false
+  }
+ ],
+ "extracted": 4
+}

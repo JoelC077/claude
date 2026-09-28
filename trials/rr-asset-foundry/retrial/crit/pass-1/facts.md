@@ -1,0 +1,19 @@
+# WagonOpenCoal (measured by rr-asset-foundry 2026-09-28)
+- family wagon, preset open_coal (two-axle open wagon heaped with coal); seed 1
+- params: kind open, length 30.0, width 17.4 (tech.units.stock_width, proposed), gauge 8.0 (tech.units.gauge, proposed), deck 5.0 (tech.units.stock_floor, proposed), running auto, wheel_r 2.0, side_h 4.0, body_h 7.0, planks 4, load coal, heap 2.75, peaks 2, weathering 0.3, door True
+- size, studs (Blender x, y, z-up): 32.8 x 18.06 x 12.66; in Studio X 32.8, Y(up) 12.66, Z 18.06
+- parts: 56 separate named <Asset>_<Part>_<Group>_<nn>; groups Chassis 14, Buffer 2, Steel 10, Iron 16, Timber 5, Cap 4, Door 2, Load 2, Repair 1
+- collision: 5 box proxies (invisible, CanCollide true); visual parts CanCollide false
+- tris: 1,858 total; largest part WagonOpenCoal_Heap_Load_01 250 (target 10,000 / cap 20,000 per MeshPart)
+- palette atlas: 13 cells exact=True; 793 faces, 0 span cells, 0 near an edge, 0 off-palette
+- colours used (rr-bible tokens): Chassis style.world.soot_black #15181B Metal, Steel style.thumb.steel #8A929B Metal, Buffer style.brand.buffer_red #C9412E SmoothPlastic, Iron style.world.ironwork #363A42 Metal, Timber style.depot_kit.timber_dark #8F5A2A WoodPlanks, Door style.depot_kit.timber_light #B87A3D WoodPlanks, Load style.cab.coal #262626 Slate, Cap style.depot_kit.timber_light #B87A3D WoodPlanks, Repair style.depot_kit.timber_light #B87A3D WoodPlanks
+- back faces (every POV and construction camera): 0 px in 6 views; coplanar overlaps: 0; floating parts: 0
+- A5, smallest on-screen side of any single piece (key features >= 5 px): 400 px game view: BufferHead 5.3 px, DoorStrap 5.4 px, Lump 5.4 px, Strap 5.6 px, EndStrap 5.7 px, Cap 5.8 px, Side 6.3 px, Repair 6.9 px, Axlebox 8.4 px, Wheel 15.2 px, Door 16.1 px; POV 3P 768 px: Cap 7.8 px, BufferHead 8.0 px, EndStrap 8.3 px, Side 8.4 px, DoorStrap 8.5 px, Lump 10.5 px, Strap 10.8 px, Axlebox 12.4 px, Repair 13.7 px, Door 25.5 px, Wheel 32.7 px
+- player view premise siding: pov3p = from the coach, abeam at [0.0, -30.6, 5.0]; pov3p_2 = from the coach, approaching at [50.0, -30.6, 5.0] (ASSUMED, not canon yet (the owner decides): yard dressing on the marshalling-yard sidings ...)
+- measured: deck top above rail: 5 studs
+- measured: open wagon inside: 29 x 16.4 x 4 studs
+- FBX reimport: 61 meshes, size [32.8, 18.06, 12.66], 1918 tris, no unit warning
+- Studio setup script: ok (luaparse: ok)
+- canon gate (bible check studio_setup.lua): PASS
+- open questions: OQ-025, OQ-030 (values labelled assumed/proposed until the owner decides)
+- not measured here: Studio import and the setup script (no Studio in the cloud; owner test)

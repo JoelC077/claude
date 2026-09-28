@@ -1,0 +1,177 @@
+{
+ "spec": "specs/lobby_create_match.json",
+ "files": [
+  {
+   "name": "LobbyCreateMatch__open__phone__C",
+   "board": "open",
+   "device": "phone",
+   "skin": "C",
+   "zones": false,
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null
+  },
+  {
+   "name": "LobbyCreateMatch__insane__phone__C",
+   "board": "insane",
+   "device": "phone",
+   "skin": "C",
+   "zones": false,
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null
+  },
+  {
+   "name": "LobbyCreateMatch__joining__phone__C",
+   "board": "joining",
+   "device": "phone",
+   "skin": "C",
+   "zones": false,
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null
+  },
+  {
+   "name": "LobbyCreateMatch__open__phone_notch__C",
+   "board": "open",
+   "device": "phone_notch",
+   "skin": "C",
+   "zones": false,
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null
+  },
+  {
+   "name": "LobbyCreateMatch__open__tablet__C",
+   "board": "open",
+   "device": "tablet",
+   "skin": "C",
+   "zones": false,
+   "size": [
+    1180.0,
+    820.0
+   ],
+   "stack": null
+  },
+  {
+   "name": "LobbyCreateMatch__open__pc__C",
+   "board": "open",
+   "device": "pc",
+   "skin": "C",
+   "zones": false,
+   "size": [
+    1280.0,
+    720.0
+   ],
+   "stack": null
+  },
+  {
+   "name": "LobbyCreateMatch__open__console__C",
+   "board": "open",
+   "device": "console",
+   "skin": "C",
+   "zones": false,
+   "size": [
+    1920.0,
+    1080.0
+   ],
+   "stack": null
+  },
+  {
+   "name": "LobbyCreateMatch__open__phone__A",
+   "board": "open",
+   "device": "phone",
+   "skin": "A",
+   "zones": false,
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null
+  },
+  {
+   "name": "LobbyCreateMatch__open__phone__B",
+   "board": "open",
+   "device": "phone",
+   "skin": "B",
+   "zones": false,
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null
+  },
+  {
+   "name": "LobbyCreateMatch__open__phone__C__zones",
+   "board": "open",
+   "device": "phone",
+   "skin": "C",
+   "zones": true,
+   "size": [
+    844.0,
+    390.0
+   ],
+   "stack": null
+  }
+ ],
+ "measures": {
+  "LobbyCreateMatch__open__phone__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "LobbyCreateMatch__insane__phone__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "LobbyCreateMatch__joining__phone__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "LobbyCreateMatch__open__phone_notch__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "LobbyCreateMatch__open__tablet__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "LobbyCreateMatch__open__pc__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "LobbyCreateMatch__open__console__C": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "LobbyCreateMatch__open__phone__A": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "LobbyCreateMatch__open__phone__B": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  },
+  "LobbyCreateMatch__open__phone__C__zones": {
+   "overflow": [],
+   "missing": [],
+   "fonts": {}
+  }
+ }
+}

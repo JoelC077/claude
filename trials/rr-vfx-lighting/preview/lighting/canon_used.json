@@ -1,0 +1,28 @@
+{
+ "keys": [
+  "tech.camera.eye_3p",
+  "tech.camera.eye_1p",
+  "tech.camera.fov_v",
+  "tech.units.segment_len",
+  "tech.units.pole_spacing",
+  "tech.units.ballast_w",
+  "tech.units.train_len",
+  "tech.streaming.window",
+  "world.prefabs.10"
+ ],
+ "eye_3p": 9.5,
+ "eye_1p": 4.5,
+ "fov": 70.0,
+ "calibration": {
+  "SUN_K": 1.0,
+  "MOON_K": 0.16,
+  "OA_K": 2.2,
+  "ENV_K": 0.6,
+  "AMB_K": 2.5,
+  "CST_K": 1.5,
+  "EXPO_K": 1.0,
+  "FOG_K": 0.0049,
+  "HAZE_K": 0.00012,
+  "LIGHT_K": 0.9
+ }
+}

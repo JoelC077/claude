@@ -50,6 +50,10 @@ def find_sibling(name, env):
     return next((c for c in cands if (c / "SKILL.md").is_file()), None)
 
 
+class SpecError(Exception):
+    """A spec that cannot be read: the CLI prints it as one line."""
+
+
 class Bible:
     """Canon through rr-bible's CLI (its stable interface): one call per domain file, cached."""
 
@@ -82,13 +86,29 @@ class Bible:
         return f["value"] if f else default
 
     def oq(self, oid):
+        """An open question as rr-bible's JSON; a decided one follows its D-nnn and gets status 'decided',
+        'decided' (the D id) and 'choice' (the option letter), so a spec citing it stays valid."""
         if oid not in self._oq:
             code, out = self.run("get", oid, "--json")
-            try:
-                self._oq[oid] = json.loads(out) if code == 0 else None
-            except ValueError:
-                self._oq[oid] = None
+            q, m = None, re.match(r"\s*(OQ-\d+) was decided: see (D-\d+)", out)
+            if code == 0 and m:
+                d = self._json(*self.run("get", m[2], "--json"))
+                if d:
+                    dec = str(d.get("fields", {}).get("decision", ""))
+                    c = re.match(r"\s*([A-Za-z0-9]+)\s*:", dec)
+                    q = {"id": oid, "title": d.get("title", ""), "options": [], "decided": m[2], "choice": c[1] if c else None,
+                         "fields": dict(d.get("fields", {}), status="decided", default=dec)}
+            elif code == 0:
+                q = self._json(code, out)
+            self._oq[oid] = q
         return self._oq[oid]
+
+    @staticmethod
+    def _json(code, out):
+        try:
+            return json.loads(out) if code == 0 else None
+        except ValueError:
+            return None
 
 
 # ------------------------------------------------------------------ small helpers
@@ -212,7 +232,13 @@ class Kit:
             return
         R = self.roles
         self.skins = list(R["skins"])
-        self.default_skin = R["default_skin"]
+        self.default_skin, self.skin_oq = R["default_skin"], R.get("skin_oq")
+        q = self.b.oq(self.skin_oq) if self.skin_oq else None
+        self.skin_decided = q.get("decided") if q and q.get("choice") in self.skins else None
+        if self.skin_decided:
+            self.default_skin = q["choice"]
+        self.skin_status = (f"decided: {self.default_skin} ({self.skin_decided})" if self.skin_decided
+                            else f"assumed ({self.skin_oq} default)")
         self.colors = {s: {} for s in self.skins}
         for role, m in R["roles"].items():
             for s in self.skins:
@@ -316,6 +342,12 @@ class Kit:
         _, _, dw, dh = self.design_device.area(design_mode or mode)
         return min(aw / dw, ah / dh)
 
+    def skin_label(self, skin):
+        """'decided: A (D-023)', 'assumed (OQ-001 default)' or 'option B (OQ-001 open)' / '(not chosen)'."""
+        if skin == self.default_skin:
+            return self.skin_status
+        return f"option {skin} ({'not chosen, ' + self.skin_decided if self.skin_decided else self.skin_oq + ' open'})"
+
     def color(self, skin, role):
         c = self.colors.get(skin, {}).get(role)
         return c["hex"] if c else None
@@ -347,16 +379,19 @@ def expand_parts(kit, parts, pw, ph, slots, inst, static, errs, where):
     for p in parts:
         if static and not (cond_ok(p.get("if"), slots) and not (p.get("unless") and cond_ok(p["unless"], slots))):
             continue
-        reps = p.get("repeat") or {"n": 1}
+        reps = dict(p.get("repeat") or {"n": 1})
+        try:
+            x, y, w, h = (ev(v, s) for v, s in zip(p.get("rect", [0, 0, "100%", "100%"]), (pw, ph, pw, ph)))
+        except ValueError as e:
+            errs.append(f"{where}.{p.get('id')}: {e}")
+            x = y = 0.0
+            w, h = pw, ph
+        if reps.get("n") == "fit":  # as many as fit between the same margins (a perforation across any width)
+            dx, dy = reps.get("dx", 0), reps.get("dy", 0)
+            reps["n"] = max(1, int((pw - 2 * x - w) // dx) + 1 if dx else int((ph - 2 * y - h) // dy) + 1 if dy else 1)
         for i in range(int(reps.get("n", 1))):
             q = {k: copy.deepcopy(v) for k, v in p.items() if k not in ("children", "repeat")}
             pid = p.get("id", "part") + (str(i + 1) if reps.get("n", 1) > 1 else "")
-            try:
-                x, y, w, h = (ev(v, s) for v, s in zip(p.get("rect", [0, 0, "100%", "100%"]), (pw, ph, pw, ph)))
-            except ValueError as e:
-                errs.append(f"{where}.{pid}: {e}")
-                x = y = 0.0
-                w, h = pw, ph
             q["rect"] = [x + i * reps.get("dx", 0), y + i * reps.get("dy", 0), w, h]
             if "use" in p:
                 node = expand_use(kit, p, _qualify(inst, pid), q["rect"], slots, static, errs, where)
@@ -505,7 +540,12 @@ class Screen:
     def __init__(self, kit, path):
         self.kit, self.path = kit, Path(path)
         self.errors, self.warnings, self.info = [], [], []
-        self.raw = json.loads(self.path.read_text(encoding="utf-8"))
+        try:
+            self.raw = json.loads(self.path.read_text(encoding="utf-8"))
+        except ValueError as e:
+            raise SpecError(f"{self.path}: not valid JSON ({e})") from None
+        except OSError as e:
+            raise SpecError(f"{self.path}: {e.strerror}") from None
         S = self.raw
         self.name = S.get("screen") or self.path.stem
         for k in ("screen", "nodes"):
@@ -558,10 +598,28 @@ class Screen:
                 self.errors.append(f"{n['id']}: layer must be core or backdrop")
             if n.get("stack"):
                 n["stack"] = self._stack(n)
-        self.icons_dir = (self.path.parent / S["icons"]).resolve() if S.get("icons") else SKILL / "assets" / "icons"
+        # icons: the spec's own folder first (relative to the spec), then the skill's shared set
+        self.icon_dirs = ([(self.path.parent / S["icons"]).resolve()] if S.get("icons") else []) + [SKILL / "assets" / "icons"]
+        self.icons_dir = self.icon_dirs[0]
         self.nav = self._nav(S.get("nav") or {})
         self.machine = self._machine(S.get("machine") or {})
         self.boards = S.get("boards") or [{"name": "default"}]
+
+    def icon_file(self, name):
+        for d in self.icon_dirs:
+            for ext in (".svg", ".png"):
+                if (d / f"{name}{ext}").is_file():
+                    return d / f"{name}{ext}"
+        return None
+
+    def icon_refs(self):
+        """Every icon name this screen can draw: alert types plus icon.<name> images and icon slots."""
+        out = {t["icon"] for t in self.types.values() if t.get("icon")}
+        for n in self.index.values():
+            img = n.get("image")
+            if isinstance(img, str) and img.startswith("icon.") and not has_slots(img):
+                out.add(img[5:])
+        return out
 
     def _index(self, n, parent):
         if n["id"] in self.index:
@@ -757,6 +815,23 @@ def pin_of(node, pw, ph):
     return (f(cx, pw), f(cy, ph))
 
 
+def _extent(p, a, size, full):
+    """Design px a pinned group needs along one axis: its margin from the pinned edge plus its size
+    (centred: its size plus twice its offset from the centre)."""
+    return a + size if p == 0 else full - a if p == 1 else size + 2 * abs(a + size / 2 - full / 2)
+
+
+def group_fit(s, d, node, x, y, w, h, dw, dh, aw, ah):
+    """Own fit (mirrored in RR_UIKit.lua): an area smaller than the design area shrinks a pinned group only as
+    much as that group needs to stay inside it (a notched phone keeps a corner HUD and a centred panel at full
+    size); bigger areas scale every group by the same s. Stretch groups always use s."""
+    if s >= 1 or node.get("stretch"):
+        return s
+    px, py = pin_of(dict(node, rect=[x, y, w, h]), dw, dh)
+    ex, ey = max(_extent(px, x, w, dw), 1e-6), max(_extent(py, y, h, dh), 1e-6)
+    return max(s, min(1.0, aw / (ex * d), ah / (ey * d)))
+
+
 def place_top(kit, dev, node, mode):
     """Absolute box of a top-level node: pin + scale. Returns (box, k) where k = px per design px."""
     ax, ay, aw, ah = dev.area(mode)
@@ -766,7 +841,7 @@ def place_top(kit, dev, node, mode):
     x, y, w, h = node["rect"]
     x, y = x - dax, y - day
     st = node.get("stretch")
-    k = s * d
+    k = group_fit(s, d, node, x, y, w, h, dw, dh, aw, ah) * d
     if st:
         mL, mR, mT, mB = x, dw - x - w, y, dh - y - h
         bw = aw - (mL + mR) * k if "x" in st else w * k
@@ -989,7 +1064,52 @@ def avoid_lift(kit, dev, node, box):
 
 
 # ------------------------------------------------------------------ checks
-def check(screen, devices=None, skins=None):
+SPECIAL_ROLES = ("diff.", "on_diff.", "kind.")
+
+
+def role_checks(screen):
+    """What a role is for (kit/roles.json 'use', canon ui.rules.*), on spec nodes (templates are the kit's job):
+    diff.* only as difficulty marks, never chrome-sized fills; danger / kind.* only through the ticket kinds;
+    accent only on something active, current or primary (a data-bound node or its control)."""
+    E, W = [], []
+    ids = {n["id"] for n in _spec_nodes(screen)}
+
+    def roles_of(n):
+        out = []
+        for k in ("fill", "color", "tint"):
+            if isinstance(n.get(k), str):
+                out.append((k, n[k]))
+        for g in n.get("gradient") or []:
+            out.append(("gradient", g))
+        if isinstance(n.get("stroke"), list):
+            out.append(("stroke", n["stroke"][0]))
+        return out
+
+    def bound(n):
+        return any(has_slots(v) for _, v in roles_of(n)) or has_slots(n.get("text")) or \
+            any(has_slots(c.get("text")) or any(has_slots(v) for _, v in roles_of(c)) for c in n.get("children", []))
+    for n in _spec_nodes(screen):
+        par = screen.index.get(n.get("_parent")) if n.get("_parent") else None
+        for k, r in roles_of(n):
+            r = str(r)
+            if r.startswith("diff.") and k in ("fill", "gradient") and min(n["rect"][2], n["rect"][3]) > 24:
+                E.append(f"{n['id']}.{k}: {r} on a {n['rect'][2]:g}x{n['rect'][3]:g} box; difficulty colours only as "
+                         "difficulty marks (pip, strip; min side <= 24 design px), never chrome (ui.rules.difficulty_never_chrome); "
+                         "the current value takes the accent (ui.rules.one_accent)")
+            if (r == "danger" or r.startswith("kind.")) and not has_slots(r):
+                W.append(f"{n['id']}.{k}: {r} outside the ticket kinds; danger red is the one danger signal (ui.hud.crisis_extra)")
+            if r in ("accent", "accent_dark") and not (bound(n) or (par and par["id"] in ids and bound(par))):
+                W.append(f"{n['id']}.{k}: accent on a node that shows nothing active, current or primary "
+                         "(ui.rules.one_accent); use a template state (chip on, button primary/cta) or bind it to data")
+    return E, W
+
+
+def _spec_nodes(screen):
+    """Nodes the spec itself drew: not template parts ('inst.part' ids) and not template instance roots."""
+    return [n for n in screen.index.values() if "." not in n["id"] and not n.get("template")]
+
+
+def check(screen, devices=None, skins=None, text_scale=1.0):
     """All objective checks for one spec; returns (errors, warnings, info, facts dict)."""
     kit = screen.kit
     E, W, I = list(screen.errors) + list(kit.errors), list(screen.warnings) + list(kit.warnings), list(screen.info)
@@ -1034,15 +1154,23 @@ def check(screen, devices=None, skins=None):
     if fe is None:
         W.append("rr-game-feel not found: feel event names are unchecked")
     for oid in screen.raw.get("oq", []):
-        if not kit.b.oq(oid):
+        q = kit.b.oq(oid)
+        if not q:
             E.append(f"oq {oid} not found in rr-bible")
+        elif q.get("decided"):
+            I.append(f"{oid} decided: {q['fields'].get('default', '?')} ({q['decided']}); drop it from the spec's oq "
+                     "list once the work follows the decision")
+    re_, rw = role_checks(screen)
+    E += re_
+    W += rw
     for key in screen.raw.get("canon", []):
         if not kit.b.fact(key):
             E.append(f"canon {key} not found in rr-bible")
         kit.cites.add(key)
-    for t in screen.types.values():
-        if t["icon"] and not (screen.icons_dir / f"{t['icon']}.svg").is_file() and not (screen.icons_dir / f"{t['icon']}.png").is_file():
-            W.append(f"icon {t['icon']} has no file in {screen.icons_dir} (placeholder on boards)")
+    for name in sorted(screen.icon_refs()):
+        if not screen.icon_file(name):
+            E.append(f"icon {name} has no file in {' or '.join(str(d) for d in screen.icon_dirs)} (kinds need their "
+                     "icon: ui.rules.colourblind)")
     boards = screen.boards
     for skin in skins:
         worst = None
@@ -1058,16 +1186,23 @@ def check(screen, devices=None, skins=None):
                     large = t["size"] >= 24 or (t["size"] >= 18.66 and (t["weight"] >= 700 or t["fam"] == "display"))
                     need = 3.0 if large else 4.5
                     if worst is None or r < worst[0]:
-                        worst = (round(r, 2), t["id"], b.get("name"))
+                        worst = (round(r, 2), t["id"], b.get("name"), need)
                     if r < need - 1e-6:
                         E.append(f"[{skin}] contrast {r:.2f}:1 < {need} for {t['id']} {t['text']!r} ({t['color']} on {bg}, board {b.get('name')})")
                         break
         facts["contrast"][skin] = worst
+    design_pairs = {}
+    for b in boards:
+        sc = resolve(screen, kit.design_device, kit.default_skin, b)
+        design_pairs[b.get("name")] = _group_overlaps(sc)
     for dev in devices:
         dfacts = {"min_text": None, "min_target": None, "k": None, "zones": {}}
-        hard = dev.design
+        hard = dev.design or dev.touch  # every phone and tablet is a main device (identity.audience.devices)
         for b in boards:
-            sc = resolve(screen, dev, kit.default_skin, b)
+            sc = resolve(screen, dev, kit.default_skin, b, text_scale=text_scale)
+            for a_, b_ in sorted(_group_overlaps(sc) - design_pairs.get(b.get("name"), set())):
+                E.append(f"[{dev.name}] groups {a_} and {b_} overlap here but not on the design board (each group keeps "
+                         f"its own fit on a small area): make them one group or smaller (board {b.get('name')})")
             dfacts["k"] = sc["k"]
             for t in sc["texts"]:
                 need = kit.min_text["display" if t["fam"] == "display" else "body"]
@@ -1132,9 +1267,13 @@ def check(screen, devices=None, skins=None):
             if len(hits) > 1 and not nav["edges"].get(h):
                 E.append(f"nav: {h} has no neighbours (dead end)")
         opp = {"left": "right", "right": "left", "up": "down", "down": "up"}
+        row_of = {h: i for i, r in enumerate(nav["rows"]) for h in r}
         for a, m in nav["edges"].items():
             for d, b_ in m.items():
-                if b_ and nav["edges"].get(b_, {}).get(opp[d]) != a:
+                back = nav["edges"].get(b_, {}).get(opp[d]) if b_ else None
+                if d in ("up", "down") and back and back in row_of and row_of.get(back) == row_of.get(a):
+                    continue  # rows of different lengths: several items share a neighbour (inherent, not a trap)
+                if b_ and back != a:
                     (W if d in ("left", "right") else I).append(f"nav: {a}.{d} = {b_} but {b_}.{opp[d]} = {nav['edges'].get(b_, {}).get(opp[d])}")
         if screen.gui.get("modal") and not nav.get("modal"):
             W.append("nav: modal screen without nav.modal (focus can leave the panel)")
@@ -1142,6 +1281,11 @@ def check(screen, devices=None, skins=None):
             W.append("nav: modal screen without nav.back (ButtonB does nothing)")
     facts["density"] = kit.density
     return list(dict.fromkeys(E)), list(dict.fromkeys(W)), list(dict.fromkeys(I)), facts
+
+
+def _group_overlaps(scene):
+    tops = [(bx["id"], bx["box"]) for bx in scene["boxes"] if bx["top"] and bx["layer"] == "core"]
+    return {(a[0], b[0]) for i, a in enumerate(tops) for b in tops[i + 1:] if inter(a[1], b[1])}
 
 
 def bg_candidates(chain):

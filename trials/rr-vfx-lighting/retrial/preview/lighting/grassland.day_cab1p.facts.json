@@ -1,0 +1,37 @@
+{
+ "look": "grassland.day@cab1p",
+ "camera": "cab1p",
+ "scene": "grassland",
+ "sun": {
+  "clock": 14.2,
+  "elevation_deg": 38.8,
+  "dir_roblox": [
+   -0.558,
+   0.626,
+   -0.545
+  ],
+  "moon": false
+ },
+ "mean_luma": 16.6,
+ "clipped_pct": 0.95,
+ "crushed_pct": 49.22,
+ "frame_mean": "#13100A",
+ "sky_mean": null,
+ "ground_mean": "#7B914A",
+ "ground_sat_hsl": 0.32,
+ "train_mean": "#0F0B07",
+ "train_vs_world_contrast": 5.4,
+ "crushed_train_pct": 51.52,
+ "hazard_vs_world": null,
+ "hazard_mean": null,
+ "spawn_edge_fog": 0.956,
+ "spawn_edge_studs": 2048.0,
+ "fx_on": [],
+ "bands": [],
+ "phone": false,
+ "png": "grassland.day_cab1p.png",
+ "res": [
+  768,
+  432
+ ]
+}

@@ -1,0 +1,7 @@
+# WagonOpenCoal
+- Purpose: TODO one job per variant, in one sentence (what it is for in the game, and where). Variants: WagonOpenCoal = wagon preset open_coal (two-axle open wagon heaped with coal)
+- Audience: friend groups 16+ (age-checked) at launch; 10-15 once eligible; readable for 10-year-olds, funny for 19-year-olds
+- Player view: third-person eye 9.5 studs above the floor, first-person 4.5, vertical FOV 70. WagonOpenCoal: premise siding: ASSUMED, not canon yet (the owner decides): yard dressing on the marshalling-yard sidings (world.prefabs.15, world.biomes.mvp_forks), seen from the coach on the running line (gameplay.train.layout, gameplay.train.keep_on) at the siding spacing of world.prefabs.15 while the world scrolls past (D-002); seen in motion, so style.dont.hairlines applies. POV stands: from the coach, abeam, from the coach, approaching.
+- Stage: generated draft (parametric: fixes are parameter or family-code changes, then a rebuild).
+- Fixed constraints: <= 10,000 tris per MeshPart (cap 20,000); colours only rr-bible tokens (listed in facts); flat palette colours, no textures, decals or text (style.dont.invented_text); separate named parts per recolour group; invisible box collision proxies.
+- Owner worries / decided: open questions OQ-025, OQ-030 (their values are assumptions, not style choices to critique). TODO step 2 NOT answered by the foundry: ask the owner; if they cannot be asked (subagent, overnight), replace each TODO with an ASSUMPTION line citing canon keys and repeat the assumptions when presenting.

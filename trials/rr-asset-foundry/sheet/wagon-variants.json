@@ -1,0 +1,117 @@
+{
+ "sheet": [
+  1224,
+  753
+ ],
+ "megapixels": 0.92,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "WagonOpenCoal game 400px",
+   "src": "/home/user/claude/trials/rr-asset-foundry/variants/WagonOpenCoal/renders/game.png",
+   "box": [
+    6,
+    24,
+    400,
+    225
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "WagonBoxVan game 400px",
+   "src": "/home/user/claude/trials/rr-asset-foundry/variants/WagonBoxVan/renders/game.png",
+   "box": [
+    412,
+    24,
+    400,
+    225
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 3,
+   "label": "WagonFlatCrates game 400px",
+   "src": "/home/user/claude/trials/rr-asset-foundry/variants/WagonFlatCrates/renders/game.png",
+   "box": [
+    818,
+    24,
+    400,
+    225
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 4,
+   "label": "WagonOpenCoal 3/4",
+   "src": "/home/user/claude/trials/rr-asset-foundry/variants/WagonOpenCoal/renders/34.png",
+   "box": [
+    6,
+    273,
+    400,
+    225
+   ],
+   "scale": "fit x0.62"
+  },
+  {
+   "n": 5,
+   "label": "WagonBoxVan 3/4",
+   "src": "/home/user/claude/trials/rr-asset-foundry/variants/WagonBoxVan/renders/34.png",
+   "box": [
+    412,
+    273,
+    400,
+    225
+   ],
+   "scale": "fit x0.62"
+  },
+  {
+   "n": 6,
+   "label": "WagonFlatCrates 3/4",
+   "src": "/home/user/claude/trials/rr-asset-foundry/variants/WagonFlatCrates/renders/34.png",
+   "box": [
+    818,
+    273,
+    400,
+    225
+   ],
+   "scale": "fit x0.62"
+  },
+  {
+   "n": 7,
+   "label": "WagonOpenCoal side",
+   "src": "/home/user/claude/trials/rr-asset-foundry/variants/WagonOpenCoal/renders/side.png",
+   "box": [
+    6,
+    522,
+    400,
+    225
+   ],
+   "scale": "fit x0.62"
+  },
+  {
+   "n": 8,
+   "label": "WagonBoxVan side",
+   "src": "/home/user/claude/trials/rr-asset-foundry/variants/WagonBoxVan/renders/side.png",
+   "box": [
+    412,
+    522,
+    400,
+    225
+   ],
+   "scale": "fit x0.62"
+  },
+  {
+   "n": 9,
+   "label": "WagonFlatCrates side",
+   "src": "/home/user/claude/trials/rr-asset-foundry/variants/WagonFlatCrates/renders/side.png",
+   "box": [
+    818,
+    522,
+    400,
+    225
+   ],
+   "scale": "fit x0.62"
+  }
+ ]
+}

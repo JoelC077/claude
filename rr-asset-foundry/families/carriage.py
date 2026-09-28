@@ -217,5 +217,9 @@ def avatar(p, lo, hi):
     return (hi[0] - 1.5 - bl / 2, p["width"] / 4, p["floor"]) if bl else (hi[0] + 2.5, hi[1] + 1.5, -2.2)
 
 
-def pov(p, lo, hi):
-    return R.pov_next_vehicle(p, lo, hi, p["floor"])
+def stands(p, lo, hi, view):
+    """Two player positions (the world scrolls, the players move): the next vehicle's end, and the roof, where
+    crews go for crates (gameplay.train.layout: roof ladder)."""
+    s, l = R.pov_next_vehicle(p, lo, hi, p["floor"])
+    return [("from the next vehicle", s, l),
+            ("on the roof", (hi[0] - 3.0, 0.0, p["roof"]), (lo[0] + 0.3 * (hi[0] - lo[0]), lo[1], p["roof"] - 1.0))]

@@ -27,3 +27,27 @@ Recurring Risky Rails asset families (carriages, wagons, buildings, props, track
 
 ## Limits
 Cloud: headless bpy 5.0, Cycles CPU only (renders are the slow part), no Studio: import and setup script are "Studio test pending (owner)". Curved track, animated parts and textures beyond the flat atlas are out of scope.
+
+## Fix round 1 (2026-09-28, trial FRICTION F1-F12 + two independent reviews)
+- **A5 measured per piece.** `fkit.feature_px` projects every mesh island of a key's parts (exact `<Part>` token) and takes its thinnest on-screen width (convex hull, rotating calipers), on the 400 px game view (warns) and the POV 3P (facts). The old whole-part longest side could never warn (trial: "Strap 102 px" where the piece was 2.7 px).
+- **Player-view premises.** `VIEW["premises"]` + `stands()` give 1-3 POV stands per premise; `--pov` switches premise with a render-only pass (no rebuild). Wagon default `siding` (seen from the coach at world.prefabs.15 spacing) replaces the canon-contradicting "next vehicle" view (kept as `coupled`, labelled CONTRADICTS canon).
+- **Identity split.** `vkey` (the variant) vs `hash` (vkey + family, imported helpers, fkit, forge, canon/stage/view). Stale or errored = rebuilt; different variant = refused. Batch variants catch their own refusals and crashes.
+- **Copies are first-class.** Render-only writes a temporary plan with the folder given, current sibling paths and family file, and re-points the palette image; crit, sheet and make all use it.
+- **Critic lessons in the wagon family**: straps 1.3 x 0.3 and end straps 1.5 x 0.3 (foreshortened 3/4 view), two-peak heightfield coal 2.75 above the sides with bigger lumps, light cap rails, whole replaced planks instead of red-oxide patches, gap-free deck, outside-frame running gear with wheel_r 2.0.
+
+## Pending, owner-gated (not done from this session: it may write only its own folder)
+**rr-bible question** (a question, not a decision; the family labels the premise ASSUMED until it exists). Dry-run OK (would be OQ-042 today):
+```
+python3 <rr-bible>/scripts/bible.py add-question "Where do freight wagons appear, and how does the player see them?" \
+  --option "A: yard dressing on the marshalling-yard sidings (world.prefabs.15), seen from the coach at the siding spacing while the world scrolls" \
+  --option "B: Depot Lobby yard dressing, seen on foot and close" \
+  --option "C: coupled into the crew's train (would change gameplay.train.layout; conflicts with D-013 no tender)" \
+  --default "A (the only canon place for sidings; the train is cab + coach)" --src FDY --affects world.prefabs.15 \
+  --blocks "rr-asset-foundry wagon POV premise and critic brief"
+```
+Then add the new OQ id to wagon.py `OPEN`. Related: OQ-030 option on whether yard wagons use the coach width (17.4 on gauge 8).
+
+**rr-mission-control patch** (its SKILL.md; the link is one-sided today):
+- Step 4: "For each 3D deliverable run `<foundry> list --match`; a match makes the maker's order `foundry.py make <family> --preset .. --set ..` (params in the order file)."
+- Step 5: after "3D: one `build.py` that rebuilds everything" add "(or, for a foundry family, the variant's `plan.json` + `families/<family>.py`, rebuilt by `foundry.py make --params plan.json`)".
+- Step 9: export list "`.blend` + `build.py`" becomes "`.blend` + `build.py` (foundry: `plan.json` + the family file; `foundry.py verify` is the pre-export check)".

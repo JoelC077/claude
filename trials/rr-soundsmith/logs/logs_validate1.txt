@@ -1,0 +1,9 @@
+validate FAIL: 0 errors, 4 warnings, 4 notes
+  warn  sounds.lobby_bed: no placeholder recipe (synth skips it)
+  warn  sounds.queue_punch: no placeholder recipe (synth skips it)
+  warn  sounds.queue_bell: no placeholder recipe (synth skips it)
+  warn  sounds.guard_whistle: no placeholder recipe (synth skips it)
+  note  feel parity: ui_button_press exists in rr-game-feel without a cue; add {"type": "cue", "sfx": "ui_click"} there to route it through Feel (then set via feel here)
+  note  feel parity: alert_crew_joined exists in rr-game-feel without a cue; add {"type": "cue", "sfx": "ticket_chime"} there to route it through Feel (then set via feel here)
+  note  feel parity: alert_crew_left exists in rr-game-feel without a cue; add {"type": "cue", "sfx": "ticket_chime"} there to route it through Feel (then set via feel here)
+  note  27 alpha sounds not final yet (placeholder or unassigned); --release gates them

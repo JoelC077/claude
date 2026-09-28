@@ -9,6 +9,8 @@
   k.wall(part, group, axis, a0, a1, at, z0, z1, thick, holes=(), detail=0)
         straight wall along axis "X" (or "Y") from a0 to a1, centred on the plane at `at`, with rectangular
         openings holes = [(centre_along, bottom_z, width, height)]; one part
+  k.heightfield(part, group, center, size, height, nx=12, ny=6, detail=0)
+        closed heap/mound: top z = center.z + height(u, v) (u, v in -1..1 across size x, y), walls to center.z
   k.proxy(center, size, rot=(0, 0, 0))                            collision proxy box (invisible collider in Studio)
   k.measure(label, text)                                          a measured fact for facts.md (openings, gaps)
   k.segs(n)   segment count for this LOD;  k.lod  0 or 1;  k.rng  seeded random.Random;  k.p  params
@@ -19,7 +21,8 @@
 detail=1 parts are dropped at LOD1. Part and group names are CamelCase; the object is <Asset>_<Part>_<Group>_<nn>.
 
 Checks (return data and print one line each): names(objs, asset), coplanar(objs), floating(objs), backfaces(cam, objs,
-res), feature_px(cam, objs, keys, res). Usable from any mission build script: sys.path.insert(0, "<foundry>/scripts"); import fkit.
+res) (perspective and ortho cameras), feature_px(cam, objs, keys, res, min_px) (smallest on-screen side of each
+piece). Usable from any mission build script: sys.path.insert(0, "<foundry>/scripts"); import fkit.
 Run `python3 fkit.py --help` for this text; the module itself needs bpy.
 """
 import math, random, re
@@ -209,6 +212,27 @@ class Kit:
                     c, s = (at, c[0], c[2]), (thick, s[0], s[2])
                 items.append((c, s))
         return self.boxes(part, group, items, detail)
+
+    def heightfield(self, part, group, center, size, height, nx=12, ny=6, detail=0):
+        """A closed heap: grid top at z = height(u, v) above center (u, v in -1..1 over size x, y), vertical walls down
+        to center z and a flat bottom. Keep height() low at the rim (hidden inside walls) and >= 0.05 everywhere."""
+        if self._skip(detail):
+            return None
+        nx, ny = self.segs(nx), self.segs(ny)
+        sx, sy = size[0] / 2, size[1] / 2
+        bm = bmesh.new()
+        top = [[bm.verts.new((sx * u, sy * v, max(0.05, height(u, v))))
+                for v in (2 * j / ny - 1 for j in range(ny + 1))] for u in (2 * i / nx - 1 for i in range(nx + 1))]
+        for i in range(nx):
+            for j in range(ny):
+                bm.faces.new((top[i][j], top[i + 1][j], top[i + 1][j + 1], top[i][j + 1]))
+        ring = [top[i][0] for i in range(nx + 1)] + [top[nx][j] for j in range(1, ny + 1)] + \
+            [top[i][ny] for i in range(nx - 1, -1, -1)] + [top[0][j] for j in range(ny - 1, 0, -1)]
+        bot = [bm.verts.new((v.co.x, v.co.y, 0.0)) for v in ring]
+        for i in range(len(ring)):
+            bm.faces.new((ring[i - 1], ring[i], bot[i], bot[i - 1]))
+        bm.faces.new(list(reversed(bot)))
+        return self._obj(self._name(part, group), bm, center, group)
 
     def proxy(self, center, size, rot=(0, 0, 0)):
         bm = bmesh.new()
@@ -401,12 +425,14 @@ def backfaces(cam, objs, res=(200, 112)):
     mw = cam.matrix_world
     tr, br, bl, tl = [mw @ v for v in cam.data.view_frame(scene=sc)]
     origin = mw.translation
+    ortho = cam.data.type == "ORTHO"            # parallel rays from the frame plane (side, end and top views)
+    fwd = (mw.to_3x3() @ Vector((0, 0, -1))).normalized()
     names, (W, H), counts = {o.name for o in objs}, res, {}
 
     def back(u, v):
         p = tl.lerp(tr, u).lerp(bl.lerp(br, u), v)
-        d = (p - origin).normalized()
-        hit, _, nor, _, ob, _ = sc.ray_cast(dg, origin, d)
+        o0, d = (p, fwd) if ortho else (origin, (p - origin).normalized())
+        hit, _, nor, _, ob, _ = sc.ray_cast(dg, o0, d)
         return ob.name if hit and nor.dot(d) > 0 and ob.name in names else None
     for j in range(H):
         for i in range(W):
@@ -418,30 +444,89 @@ def backfaces(cam, objs, res=(200, 112)):
     return counts
 
 
-def feature_px(cam, objs, keys, res=(400, 225)):
-    """Largest projected side (px) of the parts whose Part name contains each key, at the game-distance view.
-    Returns {key: (px, part)} with the smallest such part per key (the one most at risk of vanishing)."""
+def part_key(name):
+    """The <Part> token of <Asset>_<Part>_<Group>_<nn>; for merged parts (Merged, Lod1) the <Group> token."""
+    t = name.split("_")
+    return (t[2] if t[1] in ("Merged", "Lod1") else t[1]) if len(t) >= 4 else ""
+
+
+def islands(o):
+    """World-space vertex lists of each connected piece of a mesh (one per box of a k.boxes part)."""
+    me, mw = o.data, o.matrix_world
+    parent = list(range(len(me.vertices)))
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+    for e in me.edges:
+        a, b = find(e.vertices[0]), find(e.vertices[1])
+        if a != b:
+            parent[a] = b
+    out = {}
+    for v in me.vertices:
+        out.setdefault(find(v.index), []).append(mw @ v.co)
+    return list(out.values())
+
+
+def _hull(pts):
+    pts = sorted(set(pts))
+    if len(pts) < 3:
+        return pts
+    cross = lambda o, a, b: (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+    lower, upper = [], []
+    for p in pts:
+        while len(lower) >= 2 and cross(lower[-2], lower[-1], p) <= 0:
+            lower.pop()
+        lower.append(p)
+    for p in reversed(pts):
+        while len(upper) >= 2 and cross(upper[-2], upper[-1], p) <= 0:
+            upper.pop()
+        upper.append(p)
+    return lower[:-1] + upper[:-1]
+
+
+def min_width(pts):
+    """Smallest width of a 2D point set (rotating calipers on its convex hull): a piece's thinnest on-screen side,
+    whatever its angle in the frame."""
+    h = _hull(pts)
+    if len(h) < 3:
+        return 0.0
+    best = float("inf")
+    for i in range(len(h)):
+        (ax, ay), (bx, by) = h[i - 1], h[i]
+        L = math.hypot(bx - ax, by - ay)
+        if L > 1e-9:
+            best = min(best, max(abs((bx - ax) * (py - ay) - (by - ay) * (px - ax)) / L for px, py in h))
+    return best
+
+
+def feature_px(cam, objs, keys, res=(400, 225), min_px=5.0):
+    """A5 at game distance: for each key (a Part name token, exact; a Group token for merged parts), the smallest
+    on-screen width in px of any single piece (mesh island) in frame. Returns {key: (px, part, pieces under min_px)}:
+    the piece most at risk of vanishing, which is what multiuse-critic's A5 judges."""
     from bpy_extras.object_utils import world_to_camera_view
     sc = bpy.context.scene
     sc.render.resolution_x, sc.render.resolution_y = res
     bpy.context.view_layer.update()
     out = {}
     for key in keys:
-        best = None
+        best, under = None, 0
         for o in objs:
-            if f"_{key}" not in o.name:
+            if part_key(o.name) != key:
                 continue
-            pts = [world_to_camera_view(sc, cam, o.matrix_world @ Vector(c)) for c in o.bound_box]
-            pts = [p for p in pts if p.z > 0]
-            if not pts:
-                continue
-            w = (max(p.x for p in pts) - min(p.x for p in pts)) * res[0]
-            h = (max(p.y for p in pts) - min(p.y for p in pts)) * res[1]
-            span = max(w, h)
-            if best is None or span < best[0]:
-                best = (round(span, 1), o.name)
+            for isl in islands(o):
+                pts = [world_to_camera_view(sc, cam, p) for p in isl]
+                if any(p.z <= 0 for p in pts) or max(p.x for p in pts) < 0 or min(p.x for p in pts) > 1 \
+                        or max(p.y for p in pts) < 0 or min(p.y for p in pts) > 1:
+                    continue                          # behind the camera or out of frame
+                w = min_width([(p.x * res[0], p.y * res[1]) for p in pts])
+                under += w < min_px
+                if best is None or w < best[0]:
+                    best = (round(w, 1), o.name)
         if best:
-            out[key] = best
+            out[key] = (best[0], best[1], under)
     return out
 
 

@@ -1,0 +1,18 @@
+# WagonOpenCoal (measured by rr-asset-foundry 2026-09-28)
+- family wagon, preset open_coal (two-axle open wagon heaped with coal); seed 1
+- params: kind open, length 30.0, width 17.4 (tech.units.stock_width, proposed), gauge 8.0 (tech.units.gauge, proposed), deck 5.0 (tech.units.stock_floor, proposed), running auto, wheel_r 1.6, side_h 4.0, body_h 7.0, planks 4, load coal, weathering 0.3, door True
+- size, studs (Blender x, y, z-up): 32.8 x 18.04 x 10.54; in Studio X 32.8, Y(up) 10.54, Z 18.04
+- parts: 51 separate named <Asset>_<Part>_<Group>_<nn>; groups Chassis 16, Buffer 2, Steel 10, Iron 12, Timber 5, Door 2, Load 2, Patch 2
+- collision: 5 box proxies (invisible, CanCollide true); visual parts CanCollide false
+- tris: 1,708 total; largest part WagonOpenCoal_Lump_Load_01 288 (target 10,000 / cap 20,000 per MeshPart)
+- palette atlas: 13 cells exact=True; 730 faces, 0 span cells, 0 near an edge, 0 off-palette
+- colours used (rr-bible tokens): Chassis style.world.soot_black #15181B Metal, Steel style.thumb.steel #8A929B Metal, Buffer style.brand.buffer_red #C9412E SmoothPlastic, Iron style.world.ironwork #363A42 Metal, Timber style.depot_kit.timber_dark #8F5A2A WoodPlanks, Door style.depot_kit.timber_light #B87A3D WoodPlanks, Load style.cab.coal #262626 Slate, Patch style.depot_kit.red_oxide #B1502B CorrodedMetal
+- back faces in view: {'Cam_34': 0, 'Cam_POV_3P' (foundry next-vehicle): 0, siding 3P abeam: 0, siding 3P approach: 0, siding 1P abeam: 0}; coplanar overlaps: 0; floating parts: 0
+- A5 smallest on-screen size per key feature (smaller side of each piece, mesh islands; measured by the mission's siding_pov.py because the foundry line measured whole parts' long side): 400 px 3/4: Strap 2.7 px, EndStrap 3.2 px, Lump 4.5 px, BufferHead 6.4 px, Patch 6.8 px, DoorStrap 9.2 px, Door 26.4 px; siding 3P POV (768 px): DoorStrap 3.2 px, Strap 6.1 px, Lump 6.5 px, EndStrap 6.7 px, Patch 7.5 px, BufferHead 8.1 px, Door 29.4 px
+- measured: deck top above rail: 5 studs
+- measured: open wagon inside: 29 x 16.4 x 4 studs
+- FBX reimport: 56 meshes, size [32.8, 18.04, 10.54], 1768 tris, no unit warning
+- Studio setup script: ok (luaparse: ok)
+- canon gate (bible check studio_setup.lua): PASS
+- open questions: OQ-025, OQ-030 (values labelled assumed/proposed until the owner decides)
+- not measured here: Studio import and the setup script (no Studio in the cloud; owner test)

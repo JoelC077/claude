@@ -1,0 +1,39 @@
+{
+ "look": "grassland.dusk",
+ "camera": "roof3p",
+ "scene": "grassland",
+ "sun": {
+  "clock": 17.85,
+  "elevation_deg": 1.7,
+  "dir_roblox": [
+   -0.026,
+   0.029,
+   -0.999
+  ],
+  "moon": false
+ },
+ "mean_luma": 77.4,
+ "clipped_pct": 0.0,
+ "crushed_pct": 0.0,
+ "frame_mean": "#554C46",
+ "sky_mean": "#675A60",
+ "ground_mean": "#5C583E",
+ "ground_sat_hsl": 0.19,
+ "train_mean": "#2D1F20",
+ "train_vs_world_contrast": 2.02,
+ "crushed_train_pct": 0.0,
+ "hazard_vs_world": 1.86,
+ "hazard_mean": "#B56902",
+ "spawn_edge_fog": 0.968,
+ "spawn_edge_studs": 2048.0,
+ "fx_on": [
+  "headlamp"
+ ],
+ "bands": [],
+ "phone": false,
+ "png": "grassland.dusk.png",
+ "res": [
+  768,
+  432
+ ]
+}

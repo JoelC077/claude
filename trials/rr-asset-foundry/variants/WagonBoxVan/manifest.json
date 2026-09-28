@@ -1,0 +1,90 @@
+{
+ "asset": "WagonBoxVan",
+ "family": "wagon",
+ "preset": "box_van",
+ "hash": "a1887395c519",
+ "status": "ok",
+ "made": "2026-09-28T03:00:27",
+ "seconds": 18.8,
+ "params": {
+  "kind": "box",
+  "length": 32.0,
+  "width": 17.4,
+  "gauge": 8.0,
+  "deck": 5.0,
+  "running": "auto",
+  "wheel_r": 1.6,
+  "side_h": 4.0,
+  "body_h": 7.0,
+  "planks": 4,
+  "load": "auto",
+  "weathering": 0.4,
+  "door": true
+ },
+ "size_studs": [
+  34.8,
+  18.26,
+  13.2
+ ],
+ "parts": 56,
+ "proxies": 2,
+ "tris": {
+  "total": 1668,
+  "max_part": 120,
+  "max_name": "WagonBoxVan_Deck_Timber_01",
+  "over_target": [],
+  "over_cap": []
+ },
+ "groups": {
+  "Chassis": 16,
+  "Buffer": 2,
+  "Steel": 10,
+  "Iron": 16,
+  "Timber": 7,
+  "Door": 2,
+  "Roof": 1,
+  "Patch": 2
+ },
+ "features": {
+  "BufferHead": [
+   9.3,
+   "WagonBoxVan_BufferHead_Steel_02"
+  ],
+  "Door": [
+   6.0,
+   "WagonBoxVan_DoorHandle_Iron_02"
+  ],
+  "Strap": [
+   107.9,
+   "WagonBoxVan_Strap_Iron_02"
+  ]
+ },
+ "lod1": null,
+ "renders": {
+  "thumb": "renders/thumb.png",
+  "game": "renders/game.png",
+  "pov3p": "renders/pov3p.png",
+  "pov1p": "renders/pov1p.png",
+  "34": "renders/34.png",
+  "side": "renders/side.png",
+  "end": "renders/end.png"
+ },
+ "files": [
+  "WagonBoxVan.fbx",
+  "WagonBoxVan_atlas.fbx",
+  "palette.png",
+  "parts.csv",
+  "WagonBoxVan.blend",
+  "studio_setup.lua"
+ ],
+ "checks": {
+  "lua": "ok (luaparse: ok)",
+  "bible_check": "PASS"
+ },
+ "fails": [],
+ "warnings": [],
+ "open": [
+  "OQ-025",
+  "OQ-030"
+ ]
+}

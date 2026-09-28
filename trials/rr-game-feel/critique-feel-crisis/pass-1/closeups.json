@@ -1,0 +1,21 @@
+{
+ "sheet": [
+  1528,
+  736
+ ],
+ "megapixels": 1.12,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "crisis: alert_breakdown with reduce motion, then the other events",
+   "src": "/home/user/claude/trials/rr-game-feel/src/feel/preview/crisis/_grid.png",
+   "box": [
+    6,
+    24,
+    1516,
+    706
+   ],
+   "scale": "1:1 true size"
+  }
+ ]
+}

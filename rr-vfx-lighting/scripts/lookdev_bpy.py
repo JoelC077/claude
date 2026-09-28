@@ -4,16 +4,21 @@
   python3 lookdev_bpy.py --looks "grassland.day,cutting.day+tunnel_under@door1p" --out DIR
                          [--phone grassland.day] [--res 768x432] [--samples 16] [--quick]
 
-A look is biome.time[+override][@camera]; cameras: roof3p (player on a coach roof, third-person eye) and
-door1p (inside a coach doorway, first-person eye). Eye heights, FOV and dimensions come from rr-bible.
-Per look it writes <slug>.png, <slug>.facts.json, view_<slug>.json + <slug>.depth.png (for fxsim.py pov),
-and <slug>.phone.png for looks named in --phone (no shadows, no Bloom or SunRays: tech.lighting.post_low_quality).
+A look is biome.time[+override][@camera]; cameras (CAMERAS): roof3p (player on coach B's roof, third-person
+eye), door1p (leaning out of coach A's doorway), cab1p (loco cab, tech.camera.cab_view, sees the firebox) and
+coach1p (inside coach A, facing the power box end). Eye heights, FOV, gauge and the rolling-stock envelope come
+from rr-bible. Per look it writes <slug>.png, <slug>.facts.json, view_<slug>.json + <slug>.depth.png (for
+fxsim.py pov), and for looks named in --phone <slug>.phone.png at the phone resolution (tech.ui_platform.phone)
+with its own view_<slug>.phone.json (no shadows, no Bloom or SunRays: tech.lighting.post_low_quality).
+Presets: --presets DIR, else $RR_VFX_PRESETS, else the shipped library.
 
 This is an approximation, not Roblox: Cycles renders the lit scene; numpy then applies exposure, bloom,
 a filmic tone curve, sky and Atmosphere fog from depth, sun rays and ColorCorrection. Every mapping and
 its caveat: references/fidelity.md. Needs bpy and numpy (numpy ships with bpy).
 """
-import argparse, json, math, os, random, sys, tempfile
+import sys
+sys.dont_write_bytecode = True  # never leave __pycache__ inside the skill
+import argparse, json, math, os, random, tempfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -39,7 +44,7 @@ FOG_K = 0.0049     # Atmosphere: optical depth per stud per unit Density (0.3 ->
 HAZE_K = 0.00012   # extra far haze per unit Haze
 LIGHT_K = 0.9      # Blender watts per Roblox Brightness x Range^2 for local lights
 DEFAULT_SKY = (0.435, 0.639, 0.851)  # Roblox's default blue skybox zenith, approximated (sRGB)
-CLASSES = {"sky": 0, "ground": 1, "track": 2, "train": 3, "trim": 4, "scenery": 5, "structure": 6}
+CLASSES = {"sky": 0, "ground": 1, "track": 2, "train": 3, "trim": 4, "scenery": 5, "structure": 6, "hazard": 7}
 
 
 def B(v):
@@ -86,13 +91,19 @@ class Canon:
         self.ballast_w = n("tech.units.ballast_w", 24)
         self.train_len = n("tech.units.train_len", 165)
         self.ahead = n("tech.streaming.window", 4)
-        bore = b.value("world.prefabs.10", "") if b.ok() else ""
+        self.cab_eye = n("tech.camera.cab_view", 12)
+        d = model.dims   # tech.units.gauge, stock_width, stock_roof, stock_floor (proposed, OQ-030)
+        self.gauge, self.half_w, self.roof, self.floor = d["gauge"], d["width"] / 2, d["roof"], d["floor"]
         import re
+        bore = b.value("world.prefabs.10", "") if b.ok() else ""
         m = re.search(r"bore (\d+) h x (\d+) w", bore or "")
         self.bore_h, self.bore_w = (float(m.group(1)), float(m.group(2))) if m else (18.0, 30.0)
-        self.used = ["tech.camera.eye_3p", "tech.camera.eye_1p", "tech.camera.fov_v", "tech.units.segment_len",
-                     "tech.units.pole_spacing", "tech.units.ballast_w", "tech.units.train_len", "tech.streaming.window",
-                     "world.prefabs.10"]
+        ph = re.findall(r"\d+", (b.value("tech.ui_platform.phone", "") if b.ok() else "") or "")
+        self.phone_res = (int(ph[0]), int(ph[1])) if len(ph) >= 2 else (844, 390)
+        self.used = ["tech.camera.eye_3p", "tech.camera.eye_1p", "tech.camera.fov_v", "tech.camera.cab_view",
+                     "tech.units.segment_len", "tech.units.pole_spacing", "tech.units.ballast_w", "tech.units.train_len",
+                     "tech.units.gauge", "tech.units.stock_width", "tech.units.stock_roof", "tech.units.stock_floor",
+                     "tech.streaming.window", "tech.ui_platform.phone", "world.prefabs.10"]
 
 
 # ------------------------------------------------------------------ scene building
@@ -178,15 +189,17 @@ class Scene:
     def track(self, z=0.0, y=-0.8, x0=-1500, x1=3200, tag=""):
         w = self.c.ballast_w
         self.box(f"Ballast{tag}", x0, x1, y, -0.25, z - w / 2, z + w / 2, "@style.ground.ballast", "track")
-        for s in (-2.4, 2.4):
+        g = self.c.gauge / 2   # rail centres from canon (tech.units.gauge)
+        for s in (-g, g):
             self.box(f"Rail{tag}{s}", x0, x1, -0.25, 0.25, z + s - 0.2, z + s + 0.2, "@style.ground.rail", "track", metal=0.4, rough=0.5)
 
     def lineside(self, x0=-1500, x1=3200):
         x = x0
         i = 0
         while x < x1:   # telegraph poles every tech.units.pole_spacing, the speedometer (av.feel.poles)
-            self.box(f"Pole{i}", x - 0.4, x + 0.4, -0.8, 14, 15.6, 16.4, "@style.world.walnut", "scenery")
-            self.box(f"PoleArm{i}", x - 0.3, x + 0.3, 12.6, 13.1, 14, 18, "@style.world.walnut", "scenery")
+            # weathered grey-brown, not walnut: a red-brown pole read as red decoration (style.dont.red_decoration)
+            self.box(f"Pole{i}", x - 0.4, x + 0.4, -0.8, 14, 15.6, 16.4, "@style.ground.bare_earth", "scenery")
+            self.box(f"PoleArm{i}", x - 0.3, x + 0.3, 12.6, 13.1, 14, 18, "@style.ground.bare_earth", "scenery")
             x += self.c.poles
             i += 1
         for side in (-1, 1):
@@ -214,27 +227,51 @@ class Scene:
                      self.rnd.choice(["@style.ground.dry_ridge", "@style.ground.pasture"]), "scenery")
 
     def train(self, headlamp=False):
+        """Stand-in train (livery open, OQ-025): navy bodies with a cream band and cream interiors (style.world.cream,
+        coach walls), hazard-yellow capped-post roof rails (style.form.rails), red buffer beam. Envelope from canon."""
         navy, iron, cream, brass, soot = "@style.world.navy", "@style.world.ironwork", "@style.world.cream", "@style.world.brass", "@style.world.soot_black"
+        W, fl, rf = self.c.half_w, self.c.floor, self.c.roof
         for tag, x0, x1 in (("B", -97.5, -45.5), ("A", -43.5, 8.5)):   # two coaches, doorway in A's right side
-            self.box(f"Coach{tag}_Frame", x0 + 3, x1 - 3, 0.3, 3.2, -3.5, 3.5, soot, "train")
-            self.box(f"Coach{tag}_Floor", x0, x1, 3.2, 4, -4.5, 4.5, "@style.world.walnut", "train")
-            self.box(f"Coach{tag}_Roof", x0 - 0.2, x1 + 0.2, 13.4, 14, -4.8, 4.8, iron, "train")
-            self.box(f"Coach{tag}_WallL", x0, x1, 4, 13.4, -4.5, -4.0, navy, "train")
+            self.box(f"Coach{tag}_Frame", x0 + 3, x1 - 3, 0.3, fl - 0.8, -W + 1.5, W - 1.5, soot, "train")
+            self.box(f"Coach{tag}_Floor", x0, x1, fl - 0.8, fl, -W, W, "@style.world.walnut", "train")
+            self.box(f"Coach{tag}_Roof", x0 - 0.2, x1 + 0.2, rf - 0.6, rf, -W - 0.3, W + 0.3, iron, "train")
+            self.box(f"Coach{tag}_WallL", x0, x1, fl, rf - 0.6, -W, -W + 0.5, navy, "train")
+            self.box(f"Coach{tag}_LineL", x0 + 0.5, x1 - 0.5, fl, rf - 0.6, -W + 0.5, -W + 0.6, cream, "train")
             if tag == "A":
-                self.box("CoachA_WallR1", x0, -24, 4, 13.4, 4.0, 4.5, navy, "train")
-                self.box("CoachA_WallR2", -16, x1, 4, 13.4, 4.0, 4.5, navy, "train")
-                self.box("CoachA_DoorHead", -24, -16, 11.8, 13.4, 4.0, 4.5, navy, "train")
+                dh = fl + 7   # doorway 7 tall (tech.units.train_doorway)
+                self.box("CoachA_WallR1", x0, -24, fl, rf - 0.6, W - 0.5, W, navy, "train")
+                self.box("CoachA_WallR2", -16, x1, fl, rf - 0.6, W - 0.5, W, navy, "train")
+                self.box("CoachA_DoorHead", -24, -16, dh, rf - 0.6, W - 0.5, W, navy, "train")
+                self.box("CoachA_LineR1", x0 + 0.5, -24, fl, rf - 0.6, W - 0.6, W - 0.5, cream, "train")
+                self.box("CoachA_LineR2", -16, x1 - 0.5, fl, rf - 0.6, W - 0.6, W - 0.5, cream, "train")
+                self.box("PowerBoxCase", 3.5, 6.5, fl + 1.5, fl + 5.5, W - 1.4, W - 0.6, navy, "train")
             else:
-                self.box(f"Coach{tag}_WallR", x0, x1, 4, 13.4, 4.0, 4.5, navy, "train")
-            for z0, z1 in ((-4.6, -4.5), (4.5, 4.6)):
-                self.box(f"Coach{tag}_Band{z0}", x0, x1, 8.6, 10.2, z0, z1, cream, "trim")
-            self.box(f"Coach{tag}_EndF", x1 - 0.5, x1, 4, 13.4, -4.5, 4.5, navy, "train")
-            self.box(f"Coach{tag}_EndR", x0, x0 + 0.5, 4, 13.4, -4.5, 4.5, navy, "train")
-        self.box("Tender", 10.5, 25.5, 1, 10, -4.3, 4.3, navy, "train")
-        self.box("TenderCoal", 11, 25, 10, 11, -3.8, 3.8, "@style.cab.coal", "train")
-        self.box("LocoFrame", 27.5, 67.5, 1, 4.5, -4, 4, soot, "train")
-        self.box("Cab", 27.5, 36, 4.5, 13.5, -4.5, 4.5, navy, "train")
-        self.box("CabRoof", 27, 36.5, 13.5, 14.2, -4.9, 4.9, iron, "train")
+                self.box(f"Coach{tag}_WallR", x0, x1, fl, rf - 0.6, W - 0.5, W, navy, "train")
+                self.box(f"Coach{tag}_LineR", x0 + 0.5, x1 - 0.5, fl, rf - 0.6, W - 0.6, W - 0.5, cream, "train")
+            for z0, z1 in ((-W - 0.1, -W), (W, W + 0.1)):
+                self.box(f"Coach{tag}_Band{z0}", x0, x1, fl + 4.6, fl + 6.2, z0, z1, cream, "trim")
+            self.box(f"Coach{tag}_EndF", x1 - 0.5, x1, fl, rf - 0.6, -W, W, navy, "train")
+            self.box(f"Coach{tag}_EndR", x0, x0 + 0.5, fl, rf - 0.6, -W, W, navy, "train")
+            for side in (-1, 1):   # capped-post hazard-yellow roof rails (style.form.rails): the players' edge
+                zr = side * (W - 0.4)
+                self.box(f"Coach{tag}_Rail{side}", x0 + 1, x1 - 1, rf + 1.4, rf + 1.8, zr - 0.2, zr + 0.2, "@style.world.hazard", "hazard")
+                x = x0 + 1
+                while x <= x1 - 1 + 1e-6:
+                    self.box(f"Coach{tag}_Post{side}_{x:.0f}", x - 0.25, x + 0.25, rf, rf + 1.8, zr - 0.25, zr + 0.25, "@style.world.hazard", "hazard")
+                    self.box(f"Coach{tag}_Cap{side}_{x:.0f}", x - 0.4, x + 0.4, rf + 1.8, rf + 2.1, zr - 0.4, zr + 0.4, "@style.world.hazard", "hazard")
+                    x += (x1 - x0 - 2) / 6
+        self.box("Tender", 10.5, 25.5, 1, 10, -W + 0.5, W - 0.5, navy, "train")
+        self.box("TenderCoal", 11, 25, 10, 11, -W + 1, W - 1, "@style.cab.coal", "train")
+        self.box("LocoFrame", 27.5, 67.5, 1, 4.5, -W + 1, W - 1, soot, "train")
+        # cab: open-backed shell so the cab camera sees the backhead and firebox door (tech.camera.cab_view)
+        self.box("CabWallL", 27.5, 36, 4.5, 8.5, -W, -W + 0.5, navy, "train")
+        self.box("CabWallR", 27.5, 36, 4.5, 8.5, W - 0.5, W, navy, "train")
+        for side in (-1, 1):
+            self.box(f"CabPostF{side}", 35.3, 36, 8.5, 13.5, min(side * W, side * (W - 0.5)), max(side * W, side * (W - 0.5)), navy, "train")
+        self.box("Backhead", 35.5, 36, 4.5, 13.5, -W + 0.5, W - 0.5, soot, "train")
+        for i, ref in enumerate(("@style.light.firebox_deep", "@style.light.firebox", "@style.light.firebox_hot")):
+            self.box(f"FireboxNeon{i}", 35.3, 35.5, 5.6 + i * 0.5, 5.9 + i * 0.5, -1.1, 1.1, ref, "trim", emit=3.0)
+        self.box("CabRoof", 27, 36.5, 13.5, 14.2, -W - 0.3, W + 0.3, iron, "train")
         self.cyl_x("Boiler", 36, 62, 9, 0, 4, iron, "train")
         for bx in (42, 52):
             self.cyl_x(f"BoilerBand{bx}", bx, bx + 0.6, 9, 0, 4.12, brass, "trim", metal=0.6, rough=0.35)
@@ -242,10 +279,28 @@ class Scene:
         self.cyl_y("Chimney", 58, 0, 12.5, 17, 1.2, soot, "train")
         self.cyl_y("ChimneyRim", 58, 0, 16.4, 17, 1.45, brass, "trim", metal=0.6, rough=0.35)
         self.cyl_y("SafetyValve", 40, 0, 12.6, 14.2, 0.6, brass, "trim", metal=0.6, rough=0.35)
-        self.box("BufferBeam", 66, 67.5, 1.5, 4, -4.5, 4.5, "@style.brand.buffer_red", "trim")
-        lamp = self.box("HeadlampLens", 66.8, 67.6, 8.3, 9.7, -0.7, 0.7, "@style.light.cab_lamp", "trim",
+        self.box("BufferBeam", 66, 67.5, 1.5, 4, -W + 1, W - 1, "@style.brand.buffer_red", "trim")
+        lamp = self.box("HeadlampLens", 66.8, 67.6, 8.3, 9.7, -0.7, 0.7, "@style.thumb.glow", "trim",
                         emit=(4.0 if headlamp else 0.0))
         return lamp
+
+    def cab_lights(self, phone=False):
+        """Canon baseline lights (budgets.json baseline): cab lamp and firebox light, as point lights."""
+        for name, ref, pos, key in (("CabLamp", "@style.light.cab_lamp", (31.5, 13, 0), "style.light.cab_lamp"),
+                                    ("FireboxLight", "@style.light.firebox", (34.8, 6.5, 0), "style.light.firebox")):
+            b = self.model.bible
+            txt = f"{b.value(key, '')} {(b.fact(key) or {}).get('note', '')}" if b.ok() else ""
+            import re
+            br = re.search(r"Brightness ([\d.]+)", txt)
+            rg = re.search(r"Range ([\d.]+)", txt)
+            L = bpy.data.lights.new(name, "POINT")
+            L.color = hex_lin(self.colour(ref))
+            L.energy = (float(br.group(1)) if br else 1.4) * LIGHT_K * (float(rg.group(1)) if rg else 12) ** 2
+            L.shadow_soft_size = 0.5
+            L.use_shadow = not phone
+            ob = bpy.data.objects.new(name, L)
+            bpy.context.scene.collection.objects.link(ob)
+            ob.location = B(pos)
 
     def build(self):
         k = self.kind
@@ -333,6 +388,8 @@ class Look:
         if "@" in name:
             name, cam = name.split("@", 1)
         self.look = model.resolve_look(name)
+        if cam not in CAMERAS:
+            raise KeyError(f"unknown camera {cam!r} in {self.name!r}; cameras: {', '.join(CAMERAS)}")
         self.camera = cam
         C = self.look["classes"]
         Lt = C.get("Lighting", {})
@@ -399,6 +456,7 @@ def apply_lighting(scn, lk, phone=False, headlamp_lamp=None, model=None):
             e = [base[i] * se for i in range(3)]
         bsdf.inputs["Emission Color"].default_value = (*e, 1)
         bsdf.inputs["Emission Strength"].default_value = 1.0
+    scn.cab_lights(phone)
     if headlamp_lamp is not None:
         on = "headlamp" in lk.look["fx_on"]
         lens = headlamp_lamp.data.materials[0]
@@ -459,11 +517,19 @@ def setup_render(res, samples, quick):
         bpy.context.scene.world = bpy.data.worlds.new("World")
 
 
+# name -> (stand point, look-at point, eye height above the stand) from the canon stand dims
+CAMERAS = {
+    "roof3p": lambda c: ((-70, c.roof, 0), (160, 4, 110), c.eye_3p),                      # on coach B's roof
+    "door1p": lambda c: ((-20, c.floor, c.half_w + 0.5), (200, 7, c.half_w + 29), c.eye_1p),  # leaning out of A's door
+    "cab1p": lambda c: ((29, 0, -1.5), (36, 6.5, 0.3), c.cab_eye),                         # loco cab, facing the firebox
+    "coach1p": lambda c: ((-26, c.floor, -2), (8, c.floor + 3, c.half_w - 1), c.eye_1p),  # inside A, power box end
+}
+
+
 def camera(canon, name):
-    if name == "door1p":
-        stand, look, eye = (-20, 4, 5.0), (200, 7, 34), canon.eye_1p   # leaning out of coach A's doorway
-    else:
-        stand, look, eye = (-70, 14, 0), (160, 4, 110), canon.eye_3p   # on coach B's roof
+    if name not in CAMERAS:
+        raise KeyError(f"unknown camera {name!r}; cameras: {', '.join(CAMERAS)}")
+    stand, look, eye = CAMERAS[name](canon)
     e = [stand[0], stand[1] + eye, stand[2]]
     cam = bpy.data.objects.get("Cam")
     if cam is None:
@@ -659,8 +725,9 @@ def hsl_sat(rgb01):
 def measure(lk, disp, cls, dist, canon, model):
     def mean_of(mask):
         return disp[mask].mean(axis=0).tolist() if mask.any() else None
-    train = (cls == 3) | (cls == 4)
+    train = (cls == 3) | (cls == 4) | (cls == 7)
     around = (cls == 1) | (cls == 5) | (cls == 6) | (cls == 2)
+    hz = cls == 7
     ground = cls == 1
     skym = cls == 0
     t_rgb, a_rgb, g_rgb, s_rgb = mean_of(train), mean_of(around), mean_of(ground), mean_of(skym)
@@ -686,6 +753,10 @@ def measure(lk, disp, cls, dist, canon, model):
         "ground_sat_hsl": round(hsl_sat(g_rgb), 2) if g_rgb else None,
         "train_mean": hexof(t_rgb) if t_rgb else None,
         "train_vs_world_contrast": round(contrast, 2) if contrast else None,
+        "crushed_train_pct": round(float((disp[train].max(axis=1) <= 0.03).mean() * 100), 2) if train.any() else None,
+        "hazard_vs_world": (lambda h: round((max(rel_lum(h), rel_lum(a_rgb)) + 0.05) / (min(rel_lum(h), rel_lum(a_rgb)) + 0.05), 2)
+                            if h and a_rgb else None)(mean_of(hz)),
+        "hazard_mean": hexof(mean_of(hz)) if hz.any() else None,
         "spawn_edge_fog": round(spawn_fog, 3), "spawn_edge_studs": spawn,
         "fx_on": lk.look["fx_on"],
     }
@@ -712,20 +783,24 @@ def save_depth(dist, cls, path):
 # ------------------------------------------------------------------ main
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--looks", required=True, help="comma-separated biome.time[+override][@roof3p|door1p]")
+    ap.add_argument("--looks", required=True, help=f"comma-separated biome.time[+override][@{'|'.join(CAMERAS)}]")
     ap.add_argument("--out", required=True)
-    ap.add_argument("--phone", default="", help="comma-separated looks to also render as the phone fallback")
+    ap.add_argument("--phone", default="", help="comma-separated looks (as named in --looks) to also render as the phone "
+                    "fallback at tech.ui_platform.phone resolution")
     ap.add_argument("--res", default="768x432")
     ap.add_argument("--samples", type=int, default=16)
     ap.add_argument("--quick", action="store_true", help="192x108, 4 samples: smoke test only")
+    ap.add_argument("--presets", help="preset folder (default $RR_VFX_PRESETS, else the shipped library)")
     a = ap.parse_args(argv)
     if bpy is None:
         print("lookdev_bpy needs bpy (pip bpy, Blender 4.x/5.x) and numpy; no lighting preview possible here", file=sys.stderr)
         return 3
+    vfx.PRESETS_ARG = a.presets
     model = vfx.Model()
     canon = Canon(model)
     east = model.light_raw.get("preview", {}).get("east_axis", "+Z")
     res = (192, 108) if a.quick else tuple(int(v) for v in a.res.lower().split("x"))
+    res_phone = (res[0] * canon.phone_res[0] // 768 // 2 * 2, res[0] * canon.phone_res[1] // 768 // 2 * 2) if a.quick else canon.phone_res
     samples = 4 if a.quick else a.samples
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -750,34 +825,41 @@ def main(argv=None):
         lamp = scn.train(headlamp=False)
         data_cache = {}
         for lk in group:
-            view = camera(canon, lk.camera)
-            view["res"] = list(res)
-            if lk.camera not in data_cache:
-                data_cache[lk.camera] = render_exr(os.path.join(tmp, f"data_{scene_kind}_{lk.camera}.exr"), data=True)
-            data = data_cache[lk.camera]
             for ph in ([False, True] if lk.name in phone else [False]):
+                r = res_phone if ph else res
+                sc = bpy.context.scene
+                sc.render.resolution_x, sc.render.resolution_y = r
+                view = camera(canon, lk.camera)
+                view["res"] = list(r)
+                key = (lk.camera, r)
+                if key not in data_cache:
+                    data_cache[key] = render_exr(os.path.join(tmp, f"data_{scene_kind}_{lk.camera}_{r[0]}.exr"), data=True)
+                data = data_cache[key]
                 apply_lighting(scn, lk, phone=ph, headlamp_lamp=lamp, model=model)
                 beauty = render_exr(os.path.join(tmp, f"b_{lk.slug}_{int(ph)}.exr"))
                 disp, cls, dist, _, fogc = post(lk, beauty, data, view, phone=ph)
-                png = out / f"{lk.slug}{'.phone' if ph else ''}.png"
+                sfx = ".phone" if ph else ""
+                png = out / f"{lk.slug}{sfx}.png"
                 save_png(disp, png)
                 facts = measure(lk, disp, cls, dist, canon, model)
                 facts["phone"] = ph
                 facts["png"] = png.name
-                if not ph:
-                    save_depth(dist, cls, out / f"{lk.slug}.depth.png")
-                    pl = [max(0.15, min(1.6, (lk.brightness / 2.4) * (0.2 + 0.8 * lk.day) * (2 ** lk.ec)))] * 3
-                    vj = {**view, "look": lk.name, "plate": png.name, "depth": f"{lk.slug}.depth.png", "depth_scale": 16,
-                          "particle_light": [round(x, 3) for x in pl],
-                          "fog": {"k": FOG_K * lk.g("Atmosphere", "Density", 0), "colour": [int(c * 255) for c in fogc]}}
-                    (out / f"view_{lk.slug}.json").write_text(json.dumps(vj, indent=1))
-                (out / f"{lk.slug}{'.phone' if ph else ''}.facts.json").write_text(json.dumps(facts, indent=1))
+                facts["res"] = list(r)
+                save_depth(dist, cls, out / f"{lk.slug}{sfx}.depth.png")
+                pl = [max(0.15, min(1.6, (lk.brightness / 2.4) * (0.2 + 0.8 * lk.day) * (2 ** lk.ec)))] * 3
+                vj = {**view, "look": lk.name, "plate": png.name, "depth": f"{lk.slug}{sfx}.depth.png", "depth_scale": 16,
+                      "particle_light": [round(x, 3) for x in pl], "phone": ph,
+                      "fog": {"k": FOG_K * lk.g("Atmosphere", "Density", 0), "colour": [int(c * 255) for c in fogc]}}
+                (out / f"view_{lk.slug}{sfx}.json").write_text(json.dumps(vj, indent=1))
+                (out / f"{lk.slug}{sfx}.facts.json").write_text(json.dumps(facts, indent=1))
                 results.append(facts)
                 print(json.dumps({"png": str(png), "contrast": facts["train_vs_world_contrast"], "luma": facts["mean_luma"],
                                   "spawn_fog": facts["spawn_edge_fog"], "bands": facts["bands"]}))
     (out / "canon_used.json").write_text(json.dumps({"keys": canon.used, "eye_3p": canon.eye_3p, "eye_1p": canon.eye_1p,
-                                                     "fov": canon.fov, "calibration": {k: v for k, v in globals().items()
-                                                                                       if k.endswith("_K") and isinstance(v, float)}}, indent=1))
+                                                     "cab_eye": canon.cab_eye, "fov": canon.fov, "phone_res": list(canon.phone_res),
+                                                     "stand": model.dims, "cameras": list(CAMERAS),
+                                                     "calibration": {k: v for k, v in globals().items()
+                                                                     if k.endswith("_K") and isinstance(v, float)}}, indent=1))
     return 0
 
 

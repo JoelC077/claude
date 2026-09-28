@@ -1,6 +1,6 @@
 -- RR_FXDemo.client.lua (LocalScript in StarterPlayerScripts): a Studio test stand for rr-vfx-lighting. Not for
 -- production. Expects the RRFX folder in ReplicatedStorage (README.md). Keys:
---   L next look · T tunnel on/off · O overbridge flash · B next burst · 1/2/3 speed notch · 0 stop · P phone/PC tier
+--   L next look · T tunnel on/off · O overbridge flash · B next burst · 1/2/3 speed notch · 0 stop · P phone/PC tier · F flashes
 --   K print the live-particle budget · U print the sun direction (compare with preview facts sun.dir_roblox)
 
 local Players = game:GetService("Players")
@@ -44,7 +44,9 @@ for i, name in ipairs(loops) do
 	a.Position = Vector3.new((i - (#loops + 1) / 2) * 12, 0, 0)
 	a.Parent = stand
 	anchors[name] = a
-	VFX.attach(a, name)
+	-- the demo shows every loop: crisis and event loops (start off in game) are switched on here;
+	-- look-driven presets (headlamp, rain) stay with the look
+	VFX.attach(a, name, (P.presets[name].start == "off") and {enabled = true} or nil)
 end
 local burstAnchor = Instance.new("Attachment")
 burstAnchor.Position = Vector3.new(0, 0, -14)
@@ -55,7 +57,7 @@ local lookIndex, burstIndex, tunnel = 1, 0, false
 LightingFX.apply(looks[lookIndex], 0)
 VFX.setSpeed(P.meta.speeds.normal or 35, stand.CFrame.RightVector)
 
-print("RR_FXDemo: L look, T tunnel, O overbridge, B burst, 1/2/3 speed, 0 stop, P tier, K budget, U sun. Look: " .. looks[lookIndex])
+print("RR_FXDemo: L look, T tunnel, O overbridge, B burst, 1/2/3 speed, 0 stop, P tier, F flashes, K budget, U sun. Look: " .. looks[lookIndex])
 
 UserInputService.InputBegan:Connect(function(input, processed)
 	if processed then
@@ -94,6 +96,10 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	elseif k == Enum.KeyCode.K then
 		local live, limit, tier = VFX.budget()
 		print(string.format("live particles %.0f / %s (%s)", live, tostring(limit), tier))
+	elseif k == Enum.KeyCode.F then
+		VFX.setFlashes(not VFX.flashes)
+		LightingFX.setFlashes(VFX.flashes)
+		print("flashes " .. tostring(VFX.flashes))
 	elseif k == Enum.KeyCode.U then
 		print("sun direction " .. tostring(LightingFX.sunDirection()))
 	end

@@ -1,0 +1,40 @@
+tris: 58 meshes, 1,740 total, 0 over the 10.0k target
+palette: 13 cells exact; 714 faces; 0 span two cells; 0 too close to a cell edge; 0 off-palette
+names: 60 parts, 0 off the <Asset>_<Part>_<Group>_<nn> pattern
+coplanar: 0 overlapping same-facing face pairs
+floating: 0 parts not connected to the ground
+/home/user/claude/rr-asset-foundry/scripts/forge.py:262: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  if hasattr(w, "use_nodes"):
+/home/user/claude/rr-asset-foundry/scripts/forge.py:263: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  w.use_nodes = True
+/home/user/claude/rr-asset-foundry/scripts/forge.py:232: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if hasattr(m, "use_nodes"):
+/home/user/claude/rr-asset-foundry/scripts/forge.py:233: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m.use_nodes = True
+back faces in view Cam_34: none
+back faces in view Cam_End: none
+back faces in view Cam_POV_1P: none
+back faces in view Cam_POV_3P: none
+back faces in view Cam_POV_3P_2: none
+back faces in view Cam_Side: none
+00:01.972  cycles           | WARNING CUEW initialization failed: Error opening the library
+00:01.972  cycles           | WARNING HIPEW initialization failed: Error opening HIP dynamic library
+00:02.830  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonBoxVan/renders/thumb.png'
+00:04.760  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonBoxVan/renders/game.png'
+00:09.518  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonBoxVan/renders/pov3p.png'
+00:14.782  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonBoxVan/renders/pov1p.png'
+00:20.423  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonBoxVan/renders/34.png'
+00:24.242  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonBoxVan/renders/side.png'
+00:28.623  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonBoxVan/renders/end.png'
+00:32.445  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonBoxVan/renders/pov3p_2.png'
+
+FBX export starting... '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonBoxVan/WagonBoxVan.fbx'
+export finished in 0.0436 sec.
+
+FBX export starting... '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonBoxVan/WagonBoxVan_atlas.fbx'
+export finished in 0.0609 sec.
+Info: Saved copy as "WagonBoxVan.blend"
+FBX version: 7400
+tris: 60 meshes, 1,764 total, 0 over the 10k target
+{'file': 'WagonBoxVan.fbx', 'meshes': 60, 'size': (34.8, 18.26, 13.2), 'tris': 1764, 'over_target': [], 'no_uv': ['WagonBoxVan_Collider_Proxy_01.001', 'WagonBoxVan_Collider_Proxy_02.001'], 'materials': ['Buffer.001', 'Chassis.001', 'Door.001', 'Iron.001', 'Proxy.001', 'Repair.001', 'Roof.001', 'Steel.001', 'Timber.001'], 'ratio': [1.0, 1.0, 1.0]}
+forge done: WagonBoxVan 58 parts, 1740 tris, 32.4s

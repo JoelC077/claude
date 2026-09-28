@@ -7,8 +7,10 @@
 -- API (LocalScripts):
 --   Feel.play(name, ctx) -> handle        ctx = { targets = { role = GuiObject }, side = -1|1, gain = 1,
 --                                                 count = { amount = n, format = fn } }; handle:Stop()
+--   Feel.playFor(name, actorUserId, ctx) -> handle|nil   routes by the event's who (actor, crew, all, local)
 --   Feel.addTrauma(x) · Feel.setSpeed(speed) · Feel.setPressure(p01) · Feel.hitStop(ms)
---   Feel.leverDrag(u, ctx) -> knob 0..1 · Feel.leverRelease(ctx) · Feel.leverReset()
+--   Feel.leverDrag(u, ctx) -> knob -1..1 (u signed: - left, + right; ctx.fork = junction id re-arms the lever)
+--   Feel.leverRelease(ctx) -> "committed"|"snapback" · Feel.leverReset() (same as a new ctx.fork)
 --   Feel.animateValue(from, to, spec, onStep) -> handle   (spec = { style, dir, dur }, feel clock)
 --   Feel.freezable(emitter) · Feel.reset(obj) · Feel.setSetting(key, value) · Feel.settings · Feel.Cue · Feel.Changed
 --   Feel.curveDump(n) -> CSV text of TweenService:GetValue for every style (for feel.py plot --compare)
@@ -103,8 +105,9 @@ local parked = setmetatable({}, { __mode = "k" }) -- targets an event left moved
 local freezables = setmetatable({}, { __mode = "k" })
 local frozenTracks, frozenEmitters = {}, {}
 local flashTimes = {}
-local fovBase = nil
+local fovLast, fovApplied = nil, 0 -- FOV we wrote and the kick inside it (applied as a delta, never a stale base)
 local camLast, camOffset = nil, CFrame.new()
+local overlayLit, motorOn = false, false
 local overlay, flashFrame, vignette
 
 -- ---------------------------------------------------------------- targets (GuiObjects)
@@ -397,6 +400,7 @@ end
 
 function Feel.play(name, ctx)
 	ctx = ctx or {}
+	if not P.events[name] then error("RR_Feel: unknown event " .. tostring(name)) end
 	local handle = { effects = {} }
 	local now = os.clock()
 	for _, item in ipairs(expand(name, 0, {}, 0)) do
@@ -452,6 +456,18 @@ function Feel.play(name, ctx)
 	return handle
 end
 
+-- server events carry the actor's UserId; each client calls this and the event's who decides where it plays:
+-- actor = only the actor's client, crew = everyone else's, all/local = every client that calls it
+function Feel.playFor(name, actorUserId, ctx)
+	local ev = P.events[name]
+	if not ev then error("RR_Feel: unknown event " .. tostring(name)) end
+	local me = Players.LocalPlayer and Players.LocalPlayer.UserId
+	local isActor = actorUserId ~= nil and me == actorUserId
+	if ev.who == "actor" and not isActor then return nil end
+	if ev.who == "crew" and isActor then return nil end
+	return Feel.play(name, ctx)
+end
+
 -- a number animated on the feel clock with engine easing (lever knob snaps, world lever handles, counters)
 function Feel.animateValue(from, to, spec, onStep)
 	local e = { kind = "value", from = from, to = to, spec = spec, onStep = onStep, t0 = clock }
@@ -460,26 +476,51 @@ function Feel.animateValue(from, to, spec, onStep)
 end
 
 -- ---------------------------------------------------------------- lever
-local lever = { committed = false }
+-- u = finger travel along the console, -1..1 (sign = side). The knob lags the finger (heavy); the detent tick
+-- fires at lever.notch (before the commit, so it is felt on its own), the commit once at lever.detent. The lever
+-- stays committed until a new junction: pass ctx.fork = the junction's id (or call Feel.leverReset()).
+local lever = { committed = false, notched = false, side = 1, fork = nil }
+function Feel.leverReset()
+	lever.committed, lever.notched = false, false
+end
+
+local function sideCtx(ctx, s)
+	local c = {}
+	for k, v in pairs(ctx) do c[k] = v end
+	if c.side == nil then c.side = s end
+	return c
+end
+
 function Feel.leverDrag(u, ctx)
-	if lever.committed then return 1 end
-	local shown = M.leverDisplay(u, LEVER.detent, LEVER.resist)
-	if u >= LEVER.detent then
-		lever.committed = true
-		Feel.play(LEVER.detent_event, ctx)
-		Feel.play(LEVER.commit_event, ctx)
+	ctx = ctx or {}
+	if ctx.fork ~= nil and ctx.fork ~= lever.fork then
+		lever.fork = ctx.fork
+		Feel.leverReset()
 	end
-	return shown
+	if lever.committed then return lever.side end
+	local s = 1
+	if u < 0 then s = -1 end
+	local a = math.abs(u)
+	local c = sideCtx(ctx, s)
+	local notch = LEVER.notch or LEVER.detent
+	if a >= notch and not lever.notched then
+		lever.notched = true
+		Feel.play(LEVER.detent_event, c)
+	elseif a < notch - (LEVER.notch_rearm or 0.05) then
+		lever.notched = false
+	end
+	if a >= LEVER.detent then
+		lever.committed, lever.side = true, c.side
+		Feel.play(LEVER.commit_event, c)
+	end
+	return M.leverDisplay(u, LEVER.detent, LEVER.resist)
 end
 
 function Feel.leverRelease(ctx)
 	if lever.committed then return "committed" end
+	lever.notched = false
 	Feel.play(LEVER.snapback_event, ctx)
 	return "snapback"
-end
-
-function Feel.leverReset()
-	lever.committed = false
 end
 
 -- ---------------------------------------------------------------- per-frame
@@ -500,10 +541,12 @@ local function channelValue(e, lt)
 		local v = ch.from + (ch.to - ch.from) * a
 		if num ~= 1 then v = ch.to + (v - ch.to) * num end
 		return v
-	elseif ch.type == "punch" then
-		return M.spring(lt, ch.amp * e.g * num, ch.freq_hz, ch.damping or 0.3, ch.shape or "sin", ch.dur)
+	elseif ch.type == "punch" then -- amp is the delivered peak (M.peakGain normalises the spring)
+		local z, shape = ch.damping or 0.3, ch.shape or "sin"
+		return M.spring(lt, ch.amp * e.g * num / M.peakGain(ch.freq_hz, z, shape, ch.dur), ch.freq_hz, z, shape, ch.dur)
 	elseif ch.type == "camkick" then
-		return M.spring(lt, e.g * num, ch.freq_hz, ch.damping or 0.4, ch.shape or "sin", ch.dur)
+		local z, shape = ch.damping or 0.4, ch.shape or "sin"
+		return M.spring(lt, e.g * num / M.peakGain(ch.freq_hz, z, shape, ch.dur), ch.freq_hz, z, shape, ch.dur)
 	elseif ch.type == "fovkick" then
 		return ch.delta_deg * e.g * num * M.envelope(lt, ch["in"], ch.hold or 0, ch.out, ch.style_in or "Quad", ch.style_out or "Sine")
 	elseif ch.type == "flash" then
@@ -566,9 +609,10 @@ local function step(dt)
 			end
 			if alive then
 				local len = channelLength(ch)
-				if lt > len + 0.05 and ch.type ~= "tween" then
+				local ctype = tostring(ch.type)
+				if lt > len + 0.05 and ctype ~= "tween" then
 					alive = false
-				elseif ch.type == "camkick" then
+				elseif ctype == "camkick" then
 					if lt >= 0 then
 						local u = channelValue(e, lt)
 						local s = ch.side_sign and e.side or 1
@@ -576,11 +620,11 @@ local function step(dt)
 						yaw = yaw + ch.angles_deg[2] * u * s
 						roll = roll + ch.angles_deg[3] * u * s
 					end
-				elseif ch.type == "fovkick" then
+				elseif ctype == "fovkick" then
 					if lt >= 0 then fovDelta = fovDelta + channelValue(e, lt) end
-				elseif ch.type == "haptic" then
+				elseif ctype == "haptic" then
 					if lt >= 0 then motor = math.max(motor, channelValue(e, lt)) end
-				elseif ch.type == "flash" then
+				elseif ctype == "flash" then
 					local a = lt >= 0 and channelValue(e, lt) or 0
 					if ch.scope == "screen" then
 						if a > screenA then screenA, screenC = a, e.color end
@@ -703,17 +747,21 @@ local function step(dt)
 		else
 			camLast, camOffset = nil, CFrame.new()
 		end
-		if math.abs(fovDelta) > 1e-4 then
-			fovBase = fovBase or cam.FieldOfView
-			cam.FieldOfView = fovBase + fovDelta
-		elseif fovBase then
-			cam.FieldOfView = fovBase
-			fovBase = nil
+		-- FOV kick as a delta: if another script set the FOV since our last write, that value is the new base
+		if math.abs(fovDelta) <= 1e-4 then fovDelta = 0 end
+		if fovDelta ~= 0 or fovApplied ~= 0 then
+			local base = cam.FieldOfView
+			if fovLast ~= nil and base == fovLast then base = base - fovApplied end
+			cam.FieldOfView = base + fovDelta
+			fovApplied = fovDelta
+			fovLast = cam.FieldOfView
+			if fovDelta == 0 then fovLast = nil end
 		end
 	end
 
-	-- flashes
-	if screenA > 0 or vigA > 0 or (flashFrame and flashFrame.BackgroundTransparency < 1) then
+	-- flashes: one more write after the last lit frame clears screen and vignette even if a flash ended
+	-- between frames (a hitch or an app switch), so no edge colour is ever left on screen
+	if screenA > 0 or vigA > 0 or overlayLit then
 		ensureOverlay()
 		flashFrame.BackgroundColor3 = screenC or flashFrame.BackgroundColor3
 		flashFrame.BackgroundTransparency = 1 - M.clamp(screenA, 0, 1)
@@ -721,10 +769,11 @@ local function step(dt)
 			f.BackgroundColor3 = vigC or f.BackgroundColor3
 			f.BackgroundTransparency = 1 - M.clamp(vigA, 0, 1)
 		end
+		overlayLit = screenA > 0 or vigA > 0
 	end
-	if motor > 0 or Feel._motorOn then
+	if motor > 0 or motorOn then
 		setMotor(settings.haptics and motor or 0)
-		Feel._motorOn = motor > 0
+		motorOn = motor > 0
 	end
 end
 

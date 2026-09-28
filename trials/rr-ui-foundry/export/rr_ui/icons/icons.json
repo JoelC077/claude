@@ -1,0 +1,127 @@
+{
+ "sheet": "rr_ui_icons.png",
+ "cell": 128,
+ "tint": "white icons: ImageColor3 tints them",
+ "icons": {
+  "coal": {
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "coin": {
+   "offset": [
+    128,
+    0
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "crate": {
+   "offset": [
+    256,
+    0
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "crew": {
+   "offset": [
+    384,
+    0
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "crew_join": {
+   "offset": [
+    512,
+    0
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "crew_leave": {
+   "offset": [
+    640,
+    0
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "fork": {
+   "offset": [
+    768,
+    0
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "gauge": {
+   "offset": [
+    896,
+    0
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "lever": {
+   "offset": [
+    0,
+    128
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "passenger": {
+   "offset": [
+    128,
+    128
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "tiers": {
+   "offset": [
+    256,
+    128
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "wrench": {
+   "offset": [
+    384,
+    128
+   ],
+   "size": [
+    128,
+    128
+   ]
+  }
+ }
+}

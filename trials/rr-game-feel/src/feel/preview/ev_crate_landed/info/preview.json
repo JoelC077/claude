@@ -1,0 +1,9 @@
+{
+ "group": "info",
+ "hero": "alert_crate_landed",
+ "events": [
+  "alert_crate_landed"
+ ],
+ "rm": false,
+ "peak_t": 0.03333333333333333
+}

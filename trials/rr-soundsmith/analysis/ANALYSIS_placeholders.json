@@ -1,0 +1,262 @@
+[
+ {
+  "file": "src/sound/ph/PLACEHOLDER_alarm_coal.wav",
+  "sound": "alarm_coal",
+  "class": "alarm",
+  "status": "PASS",
+  "measured": {
+   "file": "src/sound/ph/PLACEHOLDER_alarm_coal.wav",
+   "format": "wav",
+   "codec": "pcm",
+   "bytes": 163448,
+   "decoded": true,
+   "numpy": true,
+   "info": {
+    "INAM": "PLACEHOLDER alarm_coal",
+    "ICMT": "PLACEHOLDER - synthesised by rr-soundsmith for prototyping; not final audio; replace before release",
+    "ISFT": "rr-soundsmith synth.py",
+    "IGNR": "placeholder"
+   },
+   "rate": 48000,
+   "decode_rate": 48000,
+   "nch": 1,
+   "bits": 16,
+   "float": false,
+   "duration": 1.7,
+   "m_max": -14.0,
+   "integrated": -15.36,
+   "s_max": null,
+   "lra": null,
+   "sample_peak": -14.55,
+   "true_peak": -14.55,
+   "clip_runs": 0,
+   "dc": 0.0,
+   "lead_ms": 1.5,
+   "tail_ms": 54.1,
+   "bands": {
+    "sub": 0.0,
+    "low": 0.486,
+    "phone": 0.514,
+    "air": 0.0
+   },
+   "centroid_hz": 580,
+   "corr": null,
+   "phone_loss_db": 2.51
+  },
+  "checks": [
+   [
+    "ok",
+    "placeholder (never ships)"
+   ]
+  ]
+ },
+ {
+  "file": "src/sound/ph/PLACEHOLDER_brake_hiss.wav",
+  "sound": "brake_hiss",
+  "class": "oneshot",
+  "status": "PASS",
+  "measured": {
+   "file": "src/sound/ph/PLACEHOLDER_brake_hiss.wav",
+   "format": "wav",
+   "codec": "pcm",
+   "bytes": 153848,
+   "decoded": true,
+   "numpy": true,
+   "info": {
+    "INAM": "PLACEHOLDER brake_hiss",
+    "ICMT": "PLACEHOLDER - synthesised by rr-soundsmith for prototyping; not final audio; replace before release",
+    "ISFT": "rr-soundsmith synth.py",
+    "IGNR": "placeholder"
+   },
+   "rate": 48000,
+   "decode_rate": 48000,
+   "nch": 1,
+   "bits": 16,
+   "float": false,
+   "duration": 1.6,
+   "m_max": -14.0,
+   "integrated": -16.77,
+   "s_max": null,
+   "lra": null,
+   "sample_peak": -7.61,
+   "true_peak": -6.77,
+   "clip_runs": 0,
+   "dc": 0.0,
+   "lead_ms": 0.0,
+   "tail_ms": 0.4,
+   "bands": {
+    "sub": 0.007,
+    "low": 0.0,
+    "phone": 0.383,
+    "air": 0.61
+   },
+   "centroid_hz": 6996,
+   "corr": null,
+   "phone_loss_db": 1.27
+  },
+  "checks": [
+   [
+    "ok",
+    "placeholder (never ships)"
+   ]
+  ]
+ },
+ {
+  "file": "src/sound/ph/PLACEHOLDER_lever_clunk.wav",
+  "sound": "lever_clunk",
+  "class": "oneshot",
+  "status": "PASS",
+  "measured": {
+   "file": "src/sound/ph/PLACEHOLDER_lever_clunk.wav",
+   "format": "wav",
+   "codec": "pcm",
+   "bytes": 48248,
+   "decoded": true,
+   "numpy": true,
+   "info": {
+    "INAM": "PLACEHOLDER lever_clunk",
+    "ICMT": "PLACEHOLDER - synthesised by rr-soundsmith for prototyping; not final audio; replace before release",
+    "ISFT": "rr-soundsmith synth.py",
+    "IGNR": "placeholder"
+   },
+   "rate": 48000,
+   "decode_rate": 48000,
+   "nch": 1,
+   "bits": 16,
+   "float": false,
+   "duration": 0.5,
+   "m_max": -14.03,
+   "integrated": -16.61,
+   "s_max": null,
+   "lra": null,
+   "sample_peak": -1.79,
+   "true_peak": -1.41,
+   "clip_runs": 0,
+   "dc": 0.00014,
+   "lead_ms": 0.0,
+   "tail_ms": 46.0,
+   "bands": {
+    "sub": 0.173,
+    "low": 0.411,
+    "phone": 0.416,
+    "air": 0.0
+   },
+   "centroid_hz": 539,
+   "corr": null,
+   "phone_loss_db": 2.32
+  },
+  "checks": [
+   [
+    "ok",
+    "placeholder (never ships)"
+   ]
+  ]
+ },
+ {
+  "file": "src/sound/ph/PLACEHOLDER_lobby_bed.wav",
+  "sound": "lobby_bed",
+  "class": "loop",
+  "status": "PASS",
+  "measured": {
+   "file": "src/sound/ph/PLACEHOLDER_lobby_bed.wav",
+   "format": "wav",
+   "codec": "pcm",
+   "bytes": 1152246,
+   "decoded": true,
+   "numpy": true,
+   "info": {
+    "INAM": "PLACEHOLDER lobby_bed",
+    "ICMT": "PLACEHOLDER - synthesised by rr-soundsmith for prototyping; not final audio; replace before release",
+    "ISFT": "rr-soundsmith synth.py",
+    "IGNR": "placeholder"
+   },
+   "rate": 48000,
+   "decode_rate": 48000,
+   "nch": 1,
+   "bits": 16,
+   "float": false,
+   "duration": 12.0,
+   "m_max": -16.18,
+   "integrated": -20.0,
+   "s_max": -23.08,
+   "lra": 9.8,
+   "sample_peak": -8.89,
+   "true_peak": -8.88,
+   "clip_runs": 0,
+   "dc": 0.0,
+   "lead_ms": 0.0,
+   "tail_ms": 0.0,
+   "seam": {
+    "jump": 0.0007,
+    "ratio": 0.96,
+    "level_db": 0.39
+   },
+   "bands": {
+    "sub": 0.149,
+    "low": 0.048,
+    "phone": 0.425,
+    "air": 0.379
+   },
+   "centroid_hz": 4574,
+   "corr": null,
+   "phone_loss_db": 0.87
+  },
+  "checks": [
+   [
+    "ok",
+    "placeholder (never ships)"
+   ]
+  ]
+ },
+ {
+  "file": "src/sound/ph/PLACEHOLDER_whistle.wav",
+  "sound": "whistle",
+  "class": "oneshot",
+  "status": "PASS",
+  "measured": {
+   "file": "src/sound/ph/PLACEHOLDER_whistle.wav",
+   "format": "wav",
+   "codec": "pcm",
+   "bytes": 173044,
+   "decoded": true,
+   "numpy": true,
+   "info": {
+    "INAM": "PLACEHOLDER whistle",
+    "ICMT": "PLACEHOLDER - synthesised by rr-soundsmith for prototyping; not final audio; replace before release",
+    "ISFT": "rr-soundsmith synth.py",
+    "IGNR": "placeholder"
+   },
+   "rate": 48000,
+   "decode_rate": 48000,
+   "nch": 1,
+   "bits": 16,
+   "float": false,
+   "duration": 1.8,
+   "m_max": -14.0,
+   "integrated": -14.24,
+   "s_max": null,
+   "lra": null,
+   "sample_peak": -6.94,
+   "true_peak": -6.92,
+   "clip_runs": 0,
+   "dc": 0.0,
+   "lead_ms": 3.8,
+   "tail_ms": 9.3,
+   "bands": {
+    "sub": 0.0,
+    "low": 0.0,
+    "phone": 0.996,
+    "air": 0.004
+   },
+   "centroid_hz": 815,
+   "corr": null,
+   "phone_loss_db": 0.46
+  },
+  "checks": [
+   [
+    "ok",
+    "placeholder (never ships)"
+   ]
+  ]
+ }
+]

@@ -1,0 +1,14 @@
+{
+ "group": "actions",
+ "hero": "shovel_coal",
+ "events": [
+  "shovel_coal",
+  "repair_fixed",
+  "depart",
+  "throttle_notch",
+  "station_arrive",
+  "hard_brake"
+ ],
+ "rm": false,
+ "peak_t": 0.1
+}

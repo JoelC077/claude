@@ -1,0 +1,93 @@
+{
+ "sheet": [
+  856,
+  1140
+ ],
+ "megapixels": 0.98,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "grassland.day roof3p PHONE (phone rates, no shadows/Bloom/SunRays): steam_chimney, smoke_chimney; NOT SEEN sparks_brake \u00b7 stand-in train",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.day_roof3p.phone.png",
+   "box": [
+    6,
+    24,
+    844,
+    390
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "grassland.day roof3p: steam_chimney, smoke_chimney; NOT SEEN sparks_brake \u00b7 stand-in train",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.day_roof3p.png",
+   "box": [
+    6,
+    438,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 3,
+   "label": "grassland.day door1p: steam_chimney, smoke_chimney, sparks_brake \u00b7 stand-in train",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.day_door1p.png",
+   "box": [
+    396,
+    438,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 4,
+   "label": "grassland.day cab1p: no effect visible; NOT SEEN steam_chimney, smoke_chimney, sparks_brake \u00b7 stand-in train",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.day_cab1p.png",
+   "box": [
+    6,
+    678,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 5,
+   "label": "grassland.dusk roof3p: steam_chimney, smoke_chimney + light headlamp; NOT SEEN sparks_brake \u00b7 stand-in train",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.dusk_roof3p.png",
+   "box": [
+    396,
+    678,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 6,
+   "label": "grassland.dusk roof3p PHONE (phone rates, no shadows/Bloom/SunRays): steam_chimney, smoke_chimney + light headlamp; NOT SEEN sparks_brake \u00b7 stand-in train",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.dusk_roof3p.phone.png",
+   "box": [
+    6,
+    937,
+    384,
+    177
+   ],
+   "scale": "fit x0.45"
+  },
+  {
+   "n": 7,
+   "label": "grassland.dusk door1p: steam_chimney, smoke_chimney, sparks_brake + light headlamp \u00b7 stand-in train",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/vfx/pov_grassland.dusk_door1p.png",
+   "box": [
+    396,
+    918,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  }
+ ]
+}

@@ -1,0 +1,111 @@
+{
+ "asset": "WagonFlatCrates",
+ "timing": {
+  "build_s": 0.1,
+  "checks_s": 0.1,
+  "renders_s": 14.9,
+  "export_s": 15.1,
+  "total_s": 15.1
+ },
+ "parts": 40,
+ "proxies": 4,
+ "size": [
+  38.8,
+  17.3,
+  8.65
+ ],
+ "lo": [
+  -19.4,
+  -8.65,
+  0.0
+ ],
+ "hi": [
+  19.4,
+  8.65,
+  8.65
+ ],
+ "measures": {
+  "deck top above rail": "5 studs"
+ },
+ "dropped_details": 0,
+ "groups": {
+  "Chassis": 16,
+  "Buffer": 2,
+  "Steel": 10,
+  "Iron": 7,
+  "Timber": 1,
+  "Crate": 3,
+  "Patch": 1
+ },
+ "tris": {
+  "total": 1176,
+  "max_part": 120,
+  "max_name": "WagonFlatCrates_Deck_Timber_01",
+  "over_target": [],
+  "over_cap": []
+ },
+ "palette": {
+  "cells_exact": true,
+  "bad_cells": 0,
+  "faces": 468,
+  "spanning": 0,
+  "near_edge": 0,
+  "off_palette": 0,
+  "ok": true
+ },
+ "names_bad": [],
+ "coplanar": [],
+ "floating": [],
+ "backfaces": {
+  "Cam_34": 0,
+  "Cam_POV_3P": 0
+ },
+ "features": {
+  "BufferHead": [
+   9.8,
+   "WagonFlatCrates_BufferHead_Steel_02"
+  ],
+  "Stanchion": [
+   154.3,
+   "WagonFlatCrates_Stanchion_Iron_02"
+  ]
+ },
+ "renders": {
+  "thumb": "renders/thumb.png",
+  "game": "renders/game.png",
+  "pov3p": "renders/pov3p.png",
+  "pov1p": "renders/pov1p.png",
+  "34": "renders/34.png",
+  "side": "renders/side.png",
+  "end": "renders/end.png"
+ },
+ "reimport": {
+  "meshes": 44,
+  "size": [
+   38.8,
+   17.4,
+   8.65
+  ],
+  "tris": 1224,
+  "ratio": [
+   1.0,
+   1.01,
+   1.0
+  ],
+  "unit_warning": null,
+  "no_uv": [
+   "WagonFlatCrates_Collider_Proxy_01.001",
+   "WagonFlatCrates_Collider_Proxy_02.001",
+   "WagonFlatCrates_Collider_Proxy_03.001",
+   "WagonFlatCrates_Collider_Proxy_04.001"
+  ]
+ },
+ "files": [
+  "WagonFlatCrates.fbx",
+  "WagonFlatCrates_atlas.fbx",
+  "palette.png",
+  "parts.csv",
+  "WagonFlatCrates.blend",
+  "studio_setup.lua"
+ ]
+}

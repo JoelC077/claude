@@ -3,11 +3,13 @@
 
   luatest.py [--map FILE] [-v]
 
-Loads the map generated from soundmap.json (every sound given a fake asset id; or --map RR_SoundMap.lua from a
-build), then checks: group tree and pools, Volume and SoundGroup per sound, emitters and the 2D fallback, cooldowns,
-per-sound voices, group caps, global cap and tier stealing (crisis never dropped), ducking attack/hold/release in dB
-(deepest rule wins), speed link (rate clamp, gain, silence at a stop), Feel.Cue bridge (and no double play),
-countdown pitch steps, loops (start, toggle, stop), missing asset ids, settings, the 3D layer of 2D alarms, and a
+Runs the suite on the map generated from the current soundmap.json (every sound given fake asset ids), or on
+--map RR_SoundMap.lua from a build (sounds without ids get two fake ids; a map missing the sounds the suite drives
+is load-checked only and exits 2). Checks: group tree and pools, Volume and SoundGroup per sound, emitters and the 2D
+fallback, cooldowns, per-sound voices, group caps, global cap and tier stealing, playing crisis alarms protected from
+crisis impacts, ducking attack/hold/release in dB (deepest rule wins), Studio group volumes kept as the base, speed
+link (rate clamp, gain, braking fade to silence), Feel.Cue bridge (and no double play), countdown pitch steps, loops
+(start, toggle, stop), missing asset ids, settings, the 3D layer of 2D alarms (same take, stops with its voice), and a
 10-second random soak within the voice cap. Stubs model only what RR_Sound touches; they prove logic, not Roblox audio.
 
 Needs lupa (optional test dependency): pip install --target ~/.cache/rr-tools/py lupa. Exit 0 = all passed.
@@ -15,6 +17,7 @@ Needs lupa (optional test dependency): pip install --target ~/.cache/rr-tools/py
 import argparse, random, sys
 from pathlib import Path
 
+sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
 SKILL = HERE.parent
 sys.path.insert(0, str(HERE))
@@ -85,12 +88,25 @@ def test_map_lua():
     return "return " + snd.lua(rm), rm
 
 
+REQ_SOUNDS = ["lever_clunk", "ui_click", "glass_smash", "ticket_chime", "whistle", "brake_hiss", "cash_register",
+              "alarm_coal", "alarm_pressure", "breakdown_bang", "passengers_scream", "coupling_snap", "crate_thump",
+              "boiler_boom", "wheels_loop", "horn", "stamp_slam", "countdown_tick", "radio_loop"]
+REQ_EVENTS = ["trip_start", "trip_end", "lever_commit", "fork_countdown_tick", "radio_button"]
+INJECT = """return function(map)
+	for _, s in pairs(map.sounds) do
+		if #s.ids == 0 then s.ids = { "rbxassetid://1000", "rbxassetid://1001" } end
+	end
+end"""
+
+
 class Rig:
-    def __init__(self, map_src):
+    def __init__(self, map_src, inject=False):
         self.L = lupa_runtime()
         L = self.L
         L.execute(STUBS)
         self.map = L.execute(map_src)
+        if inject:
+            L.execute(INJECT)(self.map)
         L.globals().RRMAP = self.map
         self.S = L.execute((SKILL / "assets" / "luau" / "RR_Sound.lua").read_text(encoding="utf-8"))
         L.execute("math.randomseed(7)")
@@ -124,7 +140,7 @@ class Rig:
         return self.S.stats()
 
 
-def run(map_src, verbose=False):
+def run(map_src, verbose=False, inject=False):
     fails, n = [], 0
 
     def ok(cond, msg):
@@ -135,7 +151,7 @@ def run(map_src, verbose=False):
         if verbose:
             print(("ok   " if cond else "FAIL ") + msg)
 
-    r = Rig(map_src)
+    r = Rig(map_src, inject)
     S, M = r.S, r.map
     same = r.L.eval("function(a, b) return rawequal(a, b) end")
     snd = M.sounds
@@ -236,6 +252,12 @@ def run(map_src, verbose=False):
     ok(abs(wl.PlaybackSpeed - 50 / 35) < 1e-9 and wl.Volume > base, "Speed 50: rate 1.43, louder")
     S.setSpeed(0)
     ok(wl.Volume == 0, "stopped train: wheels silent")
+    vols = []
+    for k in range(0, 241):  # arrival braking over 4 s, setSpeed every frame (brake curve: Speed ~ sqrt(distance))
+        S.setSpeed(35 * (1 - k / 240) ** 0.5)
+        vols.append(wl.Volume)
+    ok(all(b_ <= a_ + 1e-12 for a_, b_ in zip(vols, vols[1:])) and vols[0] > 0 and vols[-1] == 0,
+       "braking ramp: wheels fade monotonically to silence at the stop")
     S.event("trip_end")
     ok(not wl.IsPlaying, "trip_end stops the loops")
     # feel bridge
@@ -275,8 +297,70 @@ def run(map_src, verbose=False):
     ok(len(layer) == 1 and abs(layer[0].Volume - h.inst.Volume * 10 ** (snd.alarm_coal.layer3d.gainDb / 20)) < 1e-9,
        "alarm_coal: 2D voice plus a quieter positional layer at the firebox")
     ok(h.inst.Parent.Name == "RR_SoundPool", "the main alarm voice stays 2D (OQ-035 default)")
+    # playing crisis alarms are protected from crisis impacts; layers follow their voice
+    r3 = Rig(map_src, inject)
+    S3, M3 = r3.S, r3.map
+    for role in ("firebox", "boiler", "powerbox", "coach"):
+        S3.setEmitter(role, r3.L.eval('Instance.new("Attachment")'))
+    r3.t = 100.0
+    al = [S3.play(x) for x in ("alarm_coal", "alarm_pressure", "breakdown_bang", "passengers_scream")]
+    for _ in range(3):
+        r3.t += 0.16
+        S3.play("glass_smash")
+    r3.t += 0.05
+    S3.play("coupling_snap")
+    r3.t += 0.05
+    boom = S3.play("boiler_boom")
+    ok(all(h_ is not None and h_.inst.IsPlaying for h_ in al) and boom is not None,
+       f"Alarms cap {M3.voices.perGroup.Alarms}: glass x3, coupling and the fail never cut a playing crisis alarm")
+    r3.t += 10
+    r3.advance(0.1)
+    M3.voices.perGroup.Alarms = 4
+    c1, c2 = S3.play("alarm_coal"), S3.play("alarm_pressure")
+    for _ in range(3):
+        r3.t += 0.16
+        S3.play("glass_smash")
+    ok(c1.inst.IsPlaying and c2.inst.IsPlaying, "cap 4: a windows_smash burst leaves COAL LOW and PRESSURE HIGH playing")
+    r3.t += 10
+    r3.advance(0.1)
+    M3.voices.perGroup.Alarms = 1
+    h1 = S3.play("alarm_coal")
+    d0 = S3.stats().dropped
+    r3.t += 0.1
+    ok(S3.play("glass_smash") is None and S3.stats().dropped == d0 + 1 and h1.inst.IsPlaying,
+       "cap 1: a crisis impact is dropped rather than cutting a playing alarm")
+    r3.t += 0.1
+    lay_ok = h1.layer is not None and h1.layer.IsPlaying
+    S3.play("alarm_pressure")
+    ok(lay_ok and not h1.inst.IsPlaying and not h1.layer.IsPlaying,
+       "an alarm may replace another alarm; the stolen voice stops its positional layer too")
+    M3.voices.perGroup.Alarms = 6
+    takes, same = set(), True
+    for _ in range(6):
+        r3.t += 2.5
+        r3.advance(0.05)
+        h_ = S3.play("breakdown_bang")
+        same = same and h_ is not None and h_.layer is not None and h_.layer.SoundId == h_.inst.SoundId and h_.layer.IsPlaying
+        takes.add(h_.inst.SoundId if h_ is not None else None)
+    nids = len(list(M3.sounds.breakdown_bang.ids.values()))
+    ok(same and (len(takes) > 1 or nids < 2), f"positional layer plays the same take as its voice ({len(takes)} takes)")
+    # Studio group volumes are the base; destroy restores them
+    r4 = Rig(map_src, inject)
+    r4.S.destroy()
+    r4.group("Ambient").Volume = 0.8
+    r4.group("Alarms").Volume = 1.6
+    r4.S.init(r4.map, r4.L.table_from({"feel": r4.feel}))
+    ok(abs(r4.group("Ambient").Volume - 0.8) < 1e-9 and abs(r4.group("Alarms").Volume - 1.6) < 1e-9,
+       "Studio group volumes survive Sound.init (base)")
+    r4.S.play("alarm_pressure")
+    r4.advance(0.06)
+    r4.S.setSetting("sfx", 0.5)
+    ok(abs(r4.group("Ambient").Volume - 0.8 * 10 ** (-8 / 20)) < 1e-3 and abs(r4.group("Alarms").Volume - 1.6) < 1e-9
+       and abs(r4.group("SFX").Volume - 0.5) < 1e-9, "ducking and settings multiply the Studio base")
+    r4.S.destroy()
+    ok(abs(r4.group("Ambient").Volume - 0.8) < 1e-9, "destroy restores the Studio base")
     # missing ids
-    r2 = Rig(map_src)
+    r2 = Rig(map_src, inject)
     r2.map.sounds.horn.ids = r2.L.table_from([])
     r2.S.destroy()
     r2.S.init(r2.map)
@@ -306,15 +390,22 @@ def main(argv=None):
     if lupa_runtime() is None:
         print("SKIP luatest: lupa not installed (pip install --target ~/.cache/rr-tools/py lupa)")
         return 0
+    inject = False
     if a.map:
         src = Path(a.map).read_text(encoding="utf-8")
         L = lupa_runtime()
         L.execute(STUBS)
         mp = L.execute(src)
-        print(f"loaded {a.map}: {len(list(mp.sounds.keys()))} sounds, {len(list(mp.events.keys()))} events")
-        return 0
-    src, _ = test_map_lua()
-    n, fails = run(src, a.verbose)
+        snds, evs = set(mp.sounds.keys()), set(mp.events.keys())
+        print(f"loaded {a.map}: {len(snds)} sounds, {len(evs)} events")
+        miss = [x for x in REQ_SOUNDS if x not in snds] + [x for x in REQ_EVENTS if x not in evs]
+        if miss:
+            print(f"luatest: load check only, 0 tests (the suite drives {', '.join(miss)}, missing from this map)")
+            return 2
+        inject = True
+    else:
+        src, _ = test_map_lua()
+    n, fails = run(src, a.verbose, inject)
     for f in fails:
         print("FAIL " + f)
     print(f"luatest: {n - len(fails)}/{n} passed")

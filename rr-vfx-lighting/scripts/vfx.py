@@ -1,19 +1,25 @@
 #!/usr/bin/env python3
 """rr-vfx-lighting: Roblox effect and lighting presets as data.
 
+  vfx.py init DIR                               copy the shipped presets to a work folder (edit that, never the skill)
   vfx.py list                                   presets, trails, looks, budget sets
   vfx.py show NAME [--json]                     one effect preset, trail, or look (biome.time[+override])
   vfx.py validate [--strict]                    schema, Roblox ranges, canon refs, colour gate, OQ refs, budgets
   vfx.py budget [SET ...] [--tier phone|pc|all] concurrency sets vs tier budgets (exit 1 when over)
   vfx.py preview lighting|vfx|all [NAMES] --out DIR [--quick] [--gif]
-                                                renders + contact sheet + facts.md (previews are approximations)
-  vfx.py crit CRIT --pass N --from DIR [--group G] CRIT/rubric.md with Profile F, pass files, brief skeleton
-  vfx.py build --out DIR [--no-check]           generated Luau data + runtime modules + Studio setup, then gates
+                                                renders + POVs + one board (OUT/board) + facts.md; NAMES = looks
+                                                and/or effect presets (a pack); none = the default preview sets
+  vfx.py crit CRIT --pass N --from DIR          CRIT/rubric.md (+ Profile F), pass files, brief from the previewed names
+  vfx.py build --out DIR [--only NAMES] [--no-check]
+                                                generated Luau data + runtime modules + Studio setup, then gates
 
-Presets live in ../presets (or $RR_VFX_PRESETS). Canon comes from the rr-bible skill (found by glob or
-$RR_BIBLE_SKILL); the critic scripts from multiuse-critic ($RR_CRITIC_SKILL). Standard library only;
-preview needs Pillow, lighting preview needs bpy (see lookdev_bpy.py --help).
+Every command takes --presets DIR (the work copy; else $RR_VFX_PRESETS; else the shipped library, read-only)
+and prints which folder it used. Canon comes from the rr-bible skill (found by glob or $RR_BIBLE_SKILL); the
+critic scripts from multiuse-critic ($RR_CRITIC_SKILL). Standard library only; preview needs Pillow, lighting
+preview needs bpy (see lookdev_bpy.py --help).
 """
+import sys
+sys.dont_write_bytecode = True  # never leave __pycache__ inside the skill
 import argparse, copy, datetime as _dt, json, math, os, re, shutil, subprocess, sys, tempfile
 from pathlib import Path
 
@@ -25,8 +31,43 @@ NEUTRALS = {"#FFFFFF", "#000000"}
 LIGHT_CLASSES = ("PointLight", "SpotLight", "SurfaceLight")
 
 
+PRESETS_ARG = None   # set by --presets
+
+
 def presets_dir():
-    return Path(os.environ.get("RR_VFX_PRESETS", SKILL / "presets"))
+    return Path(PRESETS_ARG or os.environ.get("RR_VFX_PRESETS") or SKILL / "presets").resolve()
+
+
+def shipped():
+    return presets_dir() == (SKILL / "presets").resolve()
+
+
+# preview test stand: rolling-stock envelope from canon (OQ-030 proposed); anchors and offsets may use these names
+STAND_CANON = {"gauge": ("tech.units.gauge", 8.0), "width": ("tech.units.stock_width", 17.4),
+               "roof": ("tech.units.stock_roof", 14.0), "floor": ("tech.units.stock_floor", 5.0)}
+EXPR_RE = re.compile(r"^[\sa-z0-9_.+\-*/()]+$")
+
+
+def stand_dims(bible):
+    return {k: (bible.number(key, d) if bible.ok() else d) or d for k, (key, d) in STAND_CANON.items()}
+
+
+def vec_eval(v, dims, where, issues):
+    """[x, y, z] where a component may be an expression over the stand names ("gauge/2", "width/2+0.1")."""
+    out = []
+    for c in v:
+        if _num(c):
+            out.append(float(c))
+        elif isinstance(c, str) and EXPR_RE.match(c):
+            try:
+                out.append(float(eval(c, {"__builtins__": {}}, dict(dims))))  # noqa: S307 (regex-limited arithmetic)
+            except Exception as e:  # noqa: BLE001
+                issues.err(where, f"bad expression {c!r}: {e} (names: {', '.join(dims)})")
+                return None
+        else:
+            issues.err(where, f"3 numbers or stand expressions expected, got {c!r}")
+            return None
+    return out
 
 
 # ------------------------------------------------------------------ siblings
@@ -230,7 +271,7 @@ def _unwrap(raw, ctx, where):
     """{"v": x, "canon": key} or {"canon": key} or {"v": x, "oq": id}: record refs, return the value."""
     if isinstance(raw, dict) and ("canon" in raw or "oq" in raw) and not any(k in raw for k in ("add", "mul", "lerp", "set")):
         if "canon" in raw:
-            ctx.canon_refs.append((where, raw["canon"], raw.get("v")))
+            ctx.canon_refs.append((where, raw["canon"], raw.get("v"), raw.get("match")))
             if "v" not in raw:
                 v = ctx.bible.number(raw["canon"]) if ctx.bible.ok() else None
                 if v is None:
@@ -398,9 +439,13 @@ class Model:
         self.fx = fx
         self.ctx = Ctx(self.bible, fx, self.issues)
         self.meta = self._meta()
+        self.dims = stand_dims(self.bible)
         self.presets = {n: self._preset(n, p) for n, p in self.vfx_raw.get("presets", {}).items()}
         self.trails = {n: self._trail(n, t) for n, t in self.vfx_raw.get("trails", {}).items()}
-        self.anchors = self.vfx_raw.get("stand", {}).get("anchors", {})
+        st = self.vfx_raw.get("stand", {})
+        self.anchors = {k: v for k, v in ((k, vec_eval(v, self.dims, f"stand.anchors.{k}", self.issues))
+                                          for k, v in st.get("anchors", {}).items()) if v}
+        self.near = st.get("near_camera", {})
 
     def _meta(self):
         m = self.vfx_raw.get("meta", {})
@@ -426,6 +471,9 @@ class Model:
         out = {k: p.get(k) for k in ("kind", "priority", "anchor", "use", "canon", "oq", "speed_link", "crackle", "preview")}
         if p.get("kind") not in ("loop", "burst"):
             iss.err(w, "kind must be loop or burst")
+        if p.get("start") not in (None, "on", "off"):
+            iss.err(w, "start must be on or off (default: off for priority-1 loops, on otherwise)")
+        out["start"] = p.get("start") or ("off" if p.get("priority") == 1 else "on")
         if p.get("priority") not in (1, 2, 3):
             iss.err(w, "priority must be 1 (crisis signal), 2 (feedback) or 3 (ambience)")
         if not p.get("use"):
@@ -433,9 +481,11 @@ class Model:
         canon = p.get("canon")
         if isinstance(canon, list):
             for k in canon:
-                self.ctx.canon_refs.append((w, k, None))
+                self.ctx.canon_refs.append((w, k, None, None))
         elif not (isinstance(canon, str) and canon.startswith("none:")):
             iss.err(w, "canon: a list of bible keys this implements, or 'none: why' (then an oq or 'proposed')")
+        elif not p.get("oq") and "proposed" not in canon:
+            iss.err(w, "canon 'none: ...' needs an oq (a real OQ-nnn) or the word 'proposed' in the reason")
         if p.get("oq"):
             self.ctx.oq_refs.append((w, p["oq"]))
         layers, names = [], set()
@@ -452,10 +502,12 @@ class Model:
             for vec in ("offset", "dir", "a1", "part_size"):
                 if vec in L:
                     v = L[vec]
-                    if not (isinstance(v, list) and len(v) == 3 and all(_num(x) for x in v)):
+                    if not (isinstance(v, list) and len(v) == 3):
                         iss.err(f"{lw}.{vec}", "3 numbers expected")
-                    else:
-                        lay[vec] = v
+                        continue
+                    r = vec_eval(v, self.dims, f"{lw}.{vec}", iss)   # offsets may follow the canon stand ("-gauge")
+                    if r is not None:
+                        lay[vec] = r
             lay.setdefault("offset", [0, 0, 0])
             if "dir" in lay and math.hypot(*lay["dir"]) < 1e-6:
                 iss.err(f"{lw}.dir", "zero vector")
@@ -674,45 +726,67 @@ def light_to_hex(rgb):
     return _hex([c * k for c in rgb])
 
 
+def look_combos(model):
+    """Every biome.time, each with every override, and with all overrides stacked (validate checks them all)."""
+    looks, ovs = model.looks(), list(model.light_raw.get("overrides", {}))
+    out = list(looks) + [f"{l}+{o}" for l in looks for o in ovs]
+    if len(ovs) > 1:
+        out += [f"{l}+{'+'.join(ovs)}" for l in looks]
+    return out
+
+
 def validate(model, strict=False, quiet=False):
     iss = model.issues
     b = model.bible
     if not b.ok():
         iss.err("rr-bible", "not found; canon refs cannot be checked (set RR_BIBLE_SKILL)")
     anchors = model.anchors
+    in_sets = {n for s in model.budget_raw.get("sets", {}).values() for n in s.get("presets", [])}
     for n, p in model.presets.items():
         if p.get("anchor") not in anchors:
             iss.warn(f"presets.{n}", f"anchor {p.get('anchor')!r} has no preview position in stand.anchors")
+        if n not in in_sets:
+            iss.warn(f"presets.{n}", "in no budgets.json set: add it to the sets it can stack with, or the budget never counts it")
         for L in p["layers"]:
             pr = L.get("props", {})
             if pr.get("WindAffectsDrag", ("bool", False))[1] and pr.get("Drag", ("num", 0))[1] <= 0:
                 iss.warn(f"presets.{n}.{L['name']}", "WindAffectsDrag needs Drag > 0 (RBXD) or the drift does nothing")
             if L["class"] == "ParticleEmitter" and pr.get("LightEmission", ("num", 0))[1] >= 0.5 and pr.get("LightInfluence", ("num", 0))[1] > 0.5:
                 iss.warn(f"presets.{n}.{L['name']}", "additive and lit at once: goes muddy in the dark; LightInfluence <= 0.5 for glows")
+            fl = L.get("flicker") or {}
+            if L["class"] in LIGHT_CLASSES and fl.get("hz", 0) > 3 and pr.get("Range", ("num", 0))[1] >= 20:
+                iss.warn(f"presets.{n}.{L['name']}", f"flicker {fl['hz']} Hz on a Range >= 20 light is a scene flash: "
+                         "keep it <= 3 Hz (av.feel.flash_limit); the runtime freezes it when flashes are off")
         if p.get("kind") == "loop" and p.get("priority") == 3 and not p.get("speed_link") and not p.get("oq"):
             iss.warn(f"presets.{n}", "ambience loop with no speed link or OQ: is it needed?")
-    # looks
+    # looks: every biome.time, alone, with each override and with all stacked (ranges, clamps, fx_on)
     L = model.light_raw
     for bname, bd in L.get("biomes", {}).items():
         for t in bd.get("times", []):
             if t not in L.get("times", {}):
                 iss.err(f"biomes.{bname}", f"time {t!r} is not defined under times")
-    for name in model.looks() + [f"{model.looks()[0]}+{o}" for o in L.get("overrides", {})] if model.looks() else []:
+    seen_where = {(lvl, w) for lvl, w, _ in iss.items}
+    for name in look_combos(model):
+        tmp = Issues()
         try:
-            look = model.resolve_look(name)
+            look = model.resolve_look(name, tmp)
         except KeyError as e:
             iss.err(f"looks.{name}", str(e))
             continue
         for f in look["fx_on"]:
             if f not in model.presets:
-                iss.err(f"looks.{name}", f"fx_on {f!r} is not an effect preset")
+                tmp.err(f"looks.{name.split('+')[0]}", f"fx_on {f!r} is not an effect preset")
         lt = look["classes"].get("Lighting", {})
         if "Ambient" in lt and "OutdoorAmbient" in lt and lt["Ambient"][0] == "light" == lt["OutdoorAmbient"][0]:
             if any(a > o for a, o in zip(lt["Ambient"][1], lt["OutdoorAmbient"][1])):
-                iss.warn(f"looks.{name}", "Ambient exceeds OutdoorAmbient in a channel: Roblox clamps OutdoorAmbient up (RBXD)")
+                tmp.warn(f"looks.{name}", "Ambient exceeds OutdoorAmbient in a channel: Roblox clamps OutdoorAmbient up (RBXD)")
+        for lvl, w, msg in tmp.items:          # report each problem once, naming the first look it breaks
+            if (lvl, w) not in seen_where:
+                seen_where.add((lvl, w))
+                iss.add(lvl, w, msg + ("" if w.endswith(name) or "+" not in name else f" (in {name})"))
     for oname, ov in L.get("overrides", {}).items():
         for k in ov.get("canon", []) or []:
-            model.ctx.canon_refs.append((f"overrides.{oname}", k, None))
+            model.ctx.canon_refs.append((f"overrides.{oname}", k, None, None))
     for oname, t in L.get("times", {}).items():
         if t.get("oq"):
             model.ctx.oq_refs.append((f"times.{oname}", t["oq"]))
@@ -720,9 +794,9 @@ def validate(model, strict=False, quiet=False):
     for k in ("Use2022Materials",):
         if isinstance(st.get(k), dict):
             _unwrap(st[k], model.ctx, f"studio.{k}")
-    # canon consistency: every {"v": x, "canon": key} must agree with the canon text
+    # canon consistency: every {"v": x, "canon": key} must match the number canon gives for that property
     if b.ok():
-        for where, key, v in dict.fromkeys((w, k, json.dumps(v)) for w, k, v in model.ctx.canon_refs):
+        for where, key, v, match in dict.fromkeys((w, k, json.dumps(v), m) for w, k, v, m in model.ctx.canon_refs):
             v = json.loads(v)
             f = b.fact(key)
             if not f:
@@ -732,9 +806,9 @@ def validate(model, strict=False, quiet=False):
                 iss.err(where, f"{key} is superseded")
             if v is None:
                 continue
-            text = f"{f['value']} {f.get('note', '')}"
-            if not canon_agrees(v, text):
-                iss.err(where, f"value {v!r} contradicts canon {key} = {f['value']!r}")
+            ok, how = canon_agrees(v, f"{f['value']} | {f.get('note', '')}", where.rsplit(".", 1)[-1], match)
+            if not ok:
+                iss.err(where, f"value {v!r} {how} canon {key} = {f['value']!r}")
         seen = set()
         for where, oid in model.ctx.oq_refs:
             if oid in seen:
@@ -778,20 +852,49 @@ def validate(model, strict=False, quiet=False):
         for lvl, where, msg in sorted(iss.items, key=lambda x: (x[0] != "ERROR", x[1])):
             print(f"{lvl} {where}: {msg}")
         verdict = "FAIL" if errors or (strict and warns) else "PASS"
-        print(f"validate {verdict}: {len(model.presets)} presets, {len(model.trails)} trails, {len(model.looks())} looks, "
-              f"{len(L.get('overrides', {}))} overrides; {errors} errors, {warns} warnings; "
-              f"{len({(w, k) for w, k, _ in model.ctx.canon_refs})} canon refs, {len({o for _, o in model.ctx.oq_refs})} OQ refs")
+        print(f"validate {verdict}: {len(model.presets)} presets, {len(model.trails)} trails, {len(model.looks())} looks "
+              f"(+{len(look_combos(model)) - len(model.looks())} override combos), {len(L.get('overrides', {}))} overrides; "
+              f"{errors} errors, {warns} warnings; {len({(r[0], r[1]) for r in model.ctx.canon_refs})} canon refs, "
+              f"{len({o for _, o in model.ctx.oq_refs})} OQ refs")
     return 1 if errors or (strict and warns) else 0
 
 
-def canon_agrees(v, text):
-    t = text.replace(" ", "")
+HEX_TOKEN = re.compile(r"#[0-9A-Fa-f]{6}\b")
+NUM_RE = r"[-+]?\d+(?:\.\d+)?"
+
+
+def _same(v, s):
     if isinstance(v, bool):
-        return str(v).lower() in text.lower()
+        return s.lower() == str(v).lower()
+    try:
+        return abs(float(s) - float(v)) < 1e-9
+    except ValueError:
+        return False
+
+
+def canon_agrees(v, text, prop=None, match=None):
+    """-> (ok, how). Compares v with the number canon gives for this property: a ref's own `match` regex (group 1),
+    else the number right after the property name ('Saturation +0.12', 'Range 9', 'Density about 0.3'), else
+    the only number in the text. Hex colours never count as numbers; lists compare as 'a,b,c'."""
+    t = HEX_TOKEN.sub(" ", text)
+    if match:
+        m = re.search(match, t, re.I)
+        if not m:
+            return False, f"has no match for {match!r} in"
+        return _same(v, (m.group(1) if m.groups() else m.group(0)).replace(" ", "")), "contradicts (match)"
     if isinstance(v, list):
-        return ",".join(str(x) for x in v) in t
-    nums = [float(x) for x in re.findall(r"[-+]?\d+(?:\.\d+)?", text)]
-    return any(abs(n - v) < 1e-9 for n in nums)
+        return ",".join(lua_num(x) if _num(x) else str(x) for x in v) in t.replace(" ", ""), "contradicts"
+    if prop:
+        m = re.search(rf"\b{re.escape(prop)}\b[\s=:~]*(?:about|approx(?:imately)?|of|is|at)?[\s=:~]*({NUM_RE}|true|false)\b", t, re.I)
+        if m:
+            return _same(v, m.group(1)), f"contradicts {prop} {m.group(1)} in"
+    if isinstance(v, bool):
+        words = set(re.findall(r"\b(true|false)\b", t.lower()))
+        return words == {str(v).lower()}, "is not the only true/false in"
+    nums = {float(x) for x in re.findall(NUM_RE, t)}
+    if len(nums) > 1:
+        return False, f"is ambiguous (canon text has {len(nums)} numbers and does not name {prop}; add \"match\") against"
+    return bool(nums) and _same(v, next(iter(nums))), "contradicts"
 
 
 # ------------------------------------------------------------------ Luau
@@ -880,7 +983,7 @@ end
 """
 
 
-def gen_fx_lua(model):
+def gen_fx_lua(model, only=None):
     m, B = model.meta, model.budget_raw
     out = [HEADER.format(name="RR_FXPresets", date=TODAY, src="vfx.json"), SEQ_HELPERS, "local P = {}", ""]
     tiers = {t: {"rate_scale": {int(k): v for k, v in c["rate_scale"].items()}, "post_off": c["post_off"],
@@ -908,8 +1011,11 @@ def gen_fx_lua(model):
     out.append("")
     out.append("P.presets = {")
     for n, p in model.presets.items():
+        if only is not None and n not in only:
+            continue
         out.append(f"\t{lua_key(n)} = {{")
-        out.append(f"\t\tkind = {lua_str(p['kind'])}, priority = {p['priority']}, anchor = {lua_str(p['anchor'] or '')},")
+        out.append(f"\t\tkind = {lua_str(p['kind'])}, priority = {p['priority']}, anchor = {lua_str(p['anchor'] or '')}, "
+                   f"start = {lua_str(p['start'])},")
         out.append(f"\t\tuse = {lua_str(p.get('use') or '')},")
         if p.get("speed_link"):
             sl = p["speed_link"]
@@ -947,12 +1053,14 @@ def gen_fx_lua(model):
     return "\n".join(out) + "\n"
 
 
-def gen_light_lua(model):
+def gen_light_lua(model, only=None):
     L = model.light_raw
+    looks = [n for n in model.looks() if only is None or n in only] or model.looks()
+    hero = L.get("preview", {}).get("hero", looks[0])
     out = [HEADER.format(name="RR_LightingPresets", date=TODAY, src="lighting.json"), "local P = {}", ""]
-    out.append(f"P.default = {lua_str(L.get('preview', {}).get('hero', model.looks()[0]))}")
+    out.append(f"P.default = {lua_str(hero if hero in looks else looks[0])}")
     out.append("P.looks = {")
-    for name in model.looks():
+    for name in looks:
         look = model.resolve_look(name)
         out.append(f"\t[{lua_str(name)}] = {{")
         for cls in LOOK_CLASSES:
@@ -970,7 +1078,7 @@ def gen_light_lua(model):
         out.append(f"\t{lua_key(oname)} = {{")
         out.append(f"\t\ttween_in = {lua_num(ov.get('tween_in', 0.3))}, tween_out = {lua_num(ov.get('tween_out', 0.6))}, "
                    f"duration = {lua_num(ov['duration']) if 'duration' in ov else 'nil'},")
-        out.append(f"\t\tfx_on = {lua_plain(ov.get('fx_on', []))},")
+        out.append(f"\t\tfx_on = {lua_plain(ov.get('fx_on', []))}, flash = {'true' if ov.get('flash') else 'false'},")
         out.append("\t\tops = {")
         for cls in LOOK_CLASSES:
             ops = []
@@ -1089,27 +1197,83 @@ def balance_check(text):
         f"blocks {opens} open / {closes} close; brackets {'balanced' if pairs else 'UNBALANCED'}"
 
 
+def pack_names(model, names):
+    """-> (presets, looks) named, with the fx_on presets of named looks added; KeyError on unknown names."""
+    presets, looks, bad = [], [], []
+    for n in names or []:
+        if n in model.presets:
+            presets.append(n)
+            continue
+        try:
+            model.resolve_look(n.split("@")[0], Issues())
+            looks.append(n)
+        except KeyError:
+            bad.append(n)
+    if bad:
+        raise KeyError(f"not a preset or look: {', '.join(bad)} (presets: {', '.join(model.presets)}; looks: biome.time"
+                       f"[+override][@camera], e.g. {model.looks()[0]})")
+    return presets, looks
+
+
+def wiring(model, n):
+    p = model.presets[n]
+    if p["kind"] == "burst":
+        return f'`VFX.burst(anchor, "{n}")` on the event'
+    driven = any(n in model.resolve_look(l, Issues())["fx_on"] for l in model.looks())
+    if driven:
+        return f'`VFX.attach(anchor, "{n}")`; the current look switches it (Lighting.apply)'
+    if p["start"] == "off":
+        return f'`VFX.attach(anchor, "{n}")` starts off; `VFX.setActive("{n}", true/false)` on the event'
+    return f'`VFX.attach(anchor, "{n}")` runs from spawn' + ("; rate follows `VFX.setSpeed`" if p.get("speed_link") else "")
+
+
 def cmd_build(model, a):
     rc = validate(model, quiet=True)
     if rc:
         validate(Model(model.bible))
         print("build refused: fix validate errors first")
         return 1
+    only_p = only_l = None
+    if a.only:
+        try:
+            only_p, only_l = pack_names(model, a.only)
+        except KeyError as e:
+            print(f"build: {e}")
+            return 2
+        only_l = [l.split("@")[0] for l in only_l]
+        for l in only_l:
+            only_p += [f for f in model.resolve_look(l, Issues())["fx_on"] if f not in only_p]
+        for ov in model.light_raw.get("overrides", {}).values():
+            only_p += [f for f in ov.get("fx_on", []) if f not in only_p]
+        only_l = only_l or None
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
-    files = {"RR_FXPresets.lua": gen_fx_lua(model), "RR_LightingPresets.lua": gen_light_lua(model),
+    files = {"RR_FXPresets.lua": gen_fx_lua(model, only_p), "RR_LightingPresets.lua": gen_light_lua(model, only_l),
              "studio_lighting_setup.lua": gen_studio_lua(model)}
     for n, text in files.items():
         (out / n).write_text(text, encoding="utf-8")
     for src in sorted((SKILL / "assets" / "luau").glob("*.lua")):
         shutil.copy2(src, out / src.name)
-    readme = f"""# rr-vfx-lighting export ({TODAY})
-Studio test pending (owner). Nothing here has run in Roblox Studio.
-1. ReplicatedStorage > folder `RRFX`: add RR_FXPresets, RR_LightingPresets, RR_VFX, RR_Lighting as ModuleScripts (Rojo: this folder as-is).
-2. Command bar, once: paste studio_lighting_setup.lua (sets LightingStyle, PrioritizeLightingQuality, Use2022Materials; lists effects that would stack).
-3. StarterPlayerScripts: RR_FXDemo.client.lua as a LocalScript for a quick look (L next look, T tunnel, B next burst, 1/2/3 speed notch).
-4. In game code (client): `VFX.attach(trainAnchor, "steam_chimney")`, `VFX.setSpeed(speed, forward)` every notch change, `Lighting.apply("grassland.day")`, `Lighting.push("tunnel_under")` / `pop` from the streamer.
-5. Budgets are {model.budget_raw.get('status', '')}. Textures are Roblox built-ins as placeholders; custom flipbooks need an asset upload (owner).
+    names = only_p or list(model.presets)
+    rows = "\n".join(f"| {n} | {model.presets[n]['kind']} p{model.presets[n]['priority']} | {model.presets[n]['anchor']} | "
+                     f"{wiring(model, n)} |" for n in names)
+    readme = f"""# rr-vfx-lighting export ({TODAY}){' (pack: ' + ', '.join(a.only) + ')' if a.only else ''}
+Studio test pending (owner). Nothing here has run in Roblox Studio. Presets from {presets_dir()}.
+1. ReplicatedStorage > folder `RRFX`: RR_FXPresets, RR_LightingPresets, RR_VFX, RR_Lighting as ModuleScripts
+   (Rojo: map only these four `.lua` files into the folder; the other two files are not modules).
+2. Command bar, once: paste studio_lighting_setup.lua (sets LightingStyle, PrioritizeLightingQuality, Use2022Materials;
+   lists effects that would stack). It is not a script to keep in the place.
+3. Optional quick look: RR_FXDemo.client.lua as a LocalScript in StarterPlayerScripts (L look, T tunnel, B burst,
+   1/2/3 speed notch, F flashes); remove it before publishing.
+4. Game code (client): `VFX.setSpeed(speed, forward)` every notch change; `Lighting.apply(look)`;
+   `Lighting.push("tunnel_under")` / `pop` from the streamer; `VFX.setFlashes(on)` + `Lighting.setFlashes(on)` from the
+   players' flashes setting (av.feel.flash_limit, OQ-032). Priority-1 loops and presets marked start off begin OFF.
+5. Budgets are {model.budget_raw.get('status', '')}. Textures are Roblox built-ins as placeholders; custom flipbooks need
+   an asset upload (owner).
+
+| preset | kind | anchor | wire it |
+|---|---|---|---|
+{rows}
 """
     (out / "README.md").write_text(readme, encoding="utf-8")
     print(f"wrote {len(files) + 1 + len(list((SKILL / 'assets' / 'luau').glob('*.lua')))} files to {out}")
@@ -1242,38 +1406,72 @@ def cmd_crit(model, a):
     return preview.crit(model, a)
 
 
+def cmd_init(a):
+    d = Path(a.dir).resolve()
+    if d == (SKILL / "presets").resolve():
+        print("init: that is the shipped library; pick a work folder (a mission's src/fx, a trial folder)")
+        return 2
+    if any(d.glob("*.json")) and not a.force:
+        print(f"init: {d} already has presets (edit them, or --force to overwrite with the shipped library)")
+        return 2
+    d.mkdir(parents=True, exist_ok=True)
+    for f in (SKILL / "presets").glob("*.json"):
+        shutil.copy2(f, d / f.name)
+    print(f"work copy: {d}\nedit these, and pass --presets {d} to every vfx.py command (validate, budget, preview, crit, build)")
+    return 0
+
+
 def main(argv=None):
-    ap = argparse.ArgumentParser(prog="vfx.py", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    global PRESETS_ARG
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--presets", help="preset folder to use (work copy); default $RR_VFX_PRESETS, else the shipped library")
+    ap = argparse.ArgumentParser(prog="vfx.py", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter,
+                                 parents=[common])
     sub = ap.add_subparsers(dest="cmd", metavar="COMMAND")
-    sub.add_parser("list", help="presets, trails, looks, budget sets")
-    s = sub.add_parser("show", help="one preset, trail or look")
+    s = sub.add_parser("init", help="copy the shipped presets to a work folder")
+    s.add_argument("dir")
+    s.add_argument("--force", action="store_true")
+    sub.add_parser("list", help="presets, trails, looks, budget sets", parents=[common])
+    s = sub.add_parser("show", help="one preset, trail or look", parents=[common])
     s.add_argument("name")
     s.add_argument("--json", action="store_true")
-    s = sub.add_parser("validate", help="schema, ranges, canon, colours, OQs, budgets")
+    s = sub.add_parser("validate", help="schema, ranges, canon, colours, OQs, budgets", parents=[common])
     s.add_argument("--strict", action="store_true", help="warnings fail too")
-    s = sub.add_parser("budget", help="concurrency sets vs tier budgets")
+    s = sub.add_parser("budget", help="concurrency sets vs tier budgets", parents=[common])
     s.add_argument("sets", nargs="*")
     s.add_argument("--tier", choices=["phone", "pc", "all"], default="all")
-    s = sub.add_parser("build", help="Luau export + gates")
+    s = sub.add_parser("build", help="Luau export + gates", parents=[common])
     s.add_argument("--out", required=True)
+    s.add_argument("--only", nargs="+", metavar="NAME", help="export a pack: these presets and looks (+ their fx_on)")
     s.add_argument("--no-check", action="store_true")
-    s = sub.add_parser("preview", help="renders + contact sheet + facts.md")
+    s = sub.add_parser("preview", help="renders + POVs + board + facts.md", parents=[common])
     s.add_argument("what", choices=["lighting", "vfx", "all"])
-    s.add_argument("names", nargs="*", help="looks (biome.time[+override][@camera]) or effect presets; default: the preview sets")
+    s.add_argument("names", nargs="*", help="looks (biome.time[+override][@camera]) and/or effect presets; default: the preview sets")
     s.add_argument("--out", required=True)
     s.add_argument("--quick", action="store_true", help="tiny renders for smoke tests (not for critique)")
     s.add_argument("--gif", action="store_true", help="also write motion GIFs of the effects for the owner")
-    s.add_argument("--phone", default=None, help="looks to also render as the phone fallback (default: preview.phone_set)")
+    s.add_argument("--phone", default=None, help="looks to also render as the phone fallback (default: every named look, "
+                   "else preview.phone_set)")
     s.add_argument("--samples", type=int, default=16)
-    s = sub.add_parser("crit", help="prepare a multiuse-critic pass with Profile F")
+    s = sub.add_parser("crit", help="prepare one multiuse-critic pass (Profile F)", parents=[common])
     s.add_argument("crit")
     s.add_argument("--pass", dest="pass_", type=int, default=1)
-    s.add_argument("--from", dest="src", required=True, help="preview output folder for one group (…/lighting or …/vfx)")
-    s.add_argument("--group", default=None, help="lighting or vfx (default: the --from folder name)")
+    s.add_argument("--from", dest="src", required=True, help="preview --out folder (uses its board/), or one group folder")
+    s.add_argument("--group", default=None, help="pack, lighting or vfx (default: from the --from folder)")
+    s.add_argument("--profile", default="F", help="rubric profile for critic_kit (F = effects and lighting; B is for UI)")
     a = ap.parse_args(argv)
     if not a.cmd:
         ap.print_help()
         return 2
+    if a.cmd == "init":
+        return cmd_init(a)
+    PRESETS_ARG = a.presets
+    if not (presets_dir() / "vfx.json").is_file():
+        print(f"no presets in {presets_dir()} (vfx.py init DIR makes a work copy)")
+        return 2
+    note = f"presets: {presets_dir()}" + (" (shipped library: read-only; `vfx.py init DIR` + --presets DIR before editing)"
+                                          if shipped() else "")
+    print(note, file=sys.stderr if getattr(a, "json", False) else sys.stdout)
     model = Model()
     return {"list": cmd_list, "show": cmd_show, "validate": lambda m, a: validate(m, a.strict), "budget": cmd_budget,
             "build": cmd_build, "preview": cmd_preview, "crit": cmd_crit}[a.cmd](model, a)

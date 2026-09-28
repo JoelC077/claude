@@ -1,11 +1,11 @@
 {
-  "_doc": "Semantic colour roles -> rr-bible token keys per skin, plus fonts, type styles, density and device frames. Specs and templates name roles, never hex. Skins A/B/C are the options of OQ-001; C is its default. See references/kit.md.",
+  "_doc": "Semantic colour roles -> rr-bible token keys per skin, plus fonts, type styles, density and device frames. Specs and templates name roles, never hex. Skins A/B/C are the options of OQ-001; default_skin is used while it is open, and its decision (D-nnn) wins once made. See references/kit.md.",
   "default_skin": "C",
   "skin_oq": "OQ-001",
   "skins": {
     "A": "heritage brass (OQ-001 A, ui.hud_remake tokens)",
     "B": "teal-cream / mustard livery (OQ-001 B, prototype ui.hud_kinds tokens)",
-    "C": "hybrid: in-world trim chrome, brand kind stubs (OQ-001 C, default)"
+    "C": "hybrid: in-world trim chrome, brand kind stubs (OQ-001 C, its default while open)"
   },
   "roles": {
     "ink":            {"A": "style.brand.ink", "B": "style.brand.ink", "C": "style.brand.ink", "use": "outlines, frames, notches, text on light"},
@@ -22,7 +22,7 @@
     "header":         {"A": "ui.hud_remake.iron_top", "B": "ui.lobby.header", "C": "style.world.ironwork", "use": "panel header"},
     "on_header":      {"A": "ui.hud_remake.brass_light", "B": "style.brand.cream", "C": "style.brand.hazard_yellow", "use": "panel title"},
     "accent":         {"A": "ui.lobby.accent_brass", "B": "ui.lobby.accent_teal", "C": "style.world.brass", "use": "the one accent: selected, current, primary action (ui.rules.one_accent)"},
-    "accent_dark":    {"A": "ui.hud_remake.brass_dark", "B": "style.brand.teal_dark", "C": "ui.hud_remake.brass_dark", "use": "primary pressed face"},
+    "accent_dark":    {"A": "ui.hud_remake.brass_dark", "B": "style.brand.teal", "C": "ui.hud_remake.brass_dark", "use": "primary pressed face (ink label keeps >= 3:1; B was teal_dark 2.86:1, caught by the kit board)"},
     "on_accent":      {"A": "style.brand.ink", "B": "style.brand.ink", "C": "style.brand.ink", "use": "text on the accent"},
     "btn":            {"A": "ui.hud_remake.card_bottom", "B": "ui.hud_kinds.paper_bottom", "C": "ui.hud_kinds.paper_bottom", "use": "secondary button and chip face"},
     "btn_dark":       {"A": "ui.hud_remake.brass_dark", "B": "style.world.brass", "C": "style.world.brass", "use": "secondary pressed face"},
@@ -64,11 +64,12 @@
     "ticket_title_c": {"font": "display", "size": 18, "line": 22, "note": "compact ticket (title + bar only)"},
     "ticket_body":    {"font": "body", "weight": 700, "size": {"v": 14, "canon": "ui.hud.body_type"}, "line": 17},
     "stamp":          {"font": "display", "size": {"v": 22, "canon": "ui.hud.stamp"}, "line": 26},
-    "badge":          {"font": "display", "size": 16, "line": 18},
+    "badge":          {"font": "display", "size": 18, "line": 20, "note": "count badge and +N MORE chip; 18 so a notched phone's own fit (0.94) stays >= ui.rules.min_text titles"},
     "title":          {"font": "display", "size": 26, "line": 30},
     "button":         {"font": "display", "size": 22, "line": 26},
+    "button_cta":     {"font": "display", "size": 30, "line": 34, "note": "the one call to action: 1.5x the value style"},
     "chip":           {"font": "display", "size": 22, "line": 26},
-    "value":          {"font": "display", "size": 22, "line": 26},
+    "value":          {"font": "display", "size": 20, "line": 24},
     "label":          {"font": "body", "weight": 800, "size": 14, "line": 17},
     "caption":        {"font": "body", "weight": 700, "size": 12, "line": 15}
   },

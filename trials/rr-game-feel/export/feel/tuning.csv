@@ -1,0 +1,137 @@
+moment,event,tier_who,channel,knob,value,safe_range,source
+lever pull,lever_detent_tick,t5 actor,punch lever_knob.scale,amp,0.08,<= 0.3,knob
+lever pull,lever_detent_tick,t5 actor,punch lever_knob.scale,freq_hz,9,2-14 Hz,knob
+lever pull,lever_detent_tick,t5 actor,punch lever_knob.scale,damping,0.4,0.05-0.95,knob
+lever pull,lever_detent_tick,t5 actor,punch lever_knob.scale,dur,0.2,,knob
+lever pull,lever_detent_tick,t5 actor,haptic,effect,"""Custom""",,knob
+lever pull,lever_detent_tick,t5 actor,haptic,keys,"[[0, 0.5], [20, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+lever pull,lever_commit,t3 actor,hitstop,ms,70,"<= 150 ms, cooldown 0.25 s",knob
+lever pull,lever_commit,t3 actor,camkick,angles_deg,"[0.4, 1.6, 1.0]","spring impulse; measured peak <= 4 deg, roll <= 2",knob
+lever pull,lever_commit,t3 actor,camkick,side_sign,true,,knob
+lever pull,lever_commit,t3 actor,camkick,freq_hz,5,2-14 Hz,knob
+lever pull,lever_commit,t3 actor,camkick,damping,0.45,0.05-0.95,knob
+lever pull,lever_commit,t3 actor,camkick,dur,0.5,,knob
+lever pull,lever_commit,t3 actor,punch lever_panel.scale,amp,0.1,<= 0.3,knob
+lever pull,lever_commit,t3 actor,punch lever_panel.scale,freq_hz,6,2-14 Hz,knob
+lever pull,lever_commit,t3 actor,punch lever_panel.scale,damping,0.35,0.05-0.95,knob
+lever pull,lever_commit,t3 actor,punch lever_panel.scale,dur,0.5,,knob
+lever pull,lever_commit,t3 actor,flash lamp,scope,"""element""",,knob
+lever pull,lever_commit,t3 actor,flash lamp,color,"""@style.brand.hazard_yellow""",,knob
+lever pull,lever_commit,t3 actor,flash lamp,peak,1.0,screen/vignette <= 0.35 (red 0.25); element exempt,knob
+lever pull,lever_commit,t3 actor,flash lamp,in,0.02,,knob
+lever pull,lever_commit,t3 actor,flash lamp,hold,0.25,,knob
+lever pull,lever_commit,t3 actor,flash lamp,out,0.3,,knob
+lever pull,lever_commit,t3 actor,haptic,effect,"""GameplayCollision""",,knob
+lever pull,lever_commit,t3 actor,haptic,keys,"[[0, 1.0], [50, 0.6], [140, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+lever pull,lever_commit,t3 actor,cue,sfx,"""lever_clunk""",,knob
+lever pull,lever_commit_crew,t4 crew,camkick,angles_deg,"[0, 0.7, 0.4]","spring impulse; measured peak <= 4 deg, roll <= 2",knob
+lever pull,lever_commit_crew,t4 crew,camkick,side_sign,true,,knob
+lever pull,lever_commit_crew,t4 crew,camkick,freq_hz,4,2-14 Hz,knob
+lever pull,lever_commit_crew,t4 crew,camkick,damping,0.45,0.05-0.95,knob
+lever pull,lever_commit_crew,t4 crew,camkick,dur,0.5,,knob
+lever pull,lever_commit_crew,t4 crew,haptic,effect,"""Custom""",,knob
+lever pull,lever_commit_crew,t4 crew,haptic,keys,"[[0, 0.5], [60, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+lever pull,lever_commit_crew,t4 crew,cue,sfx,"""points_throw""",,knob
+lever pull,lever_snapback,t5 actor,punch lever_panel.x_px,shape,"""sin""",,knob
+lever pull,lever_snapback,t5 actor,punch lever_panel.x_px,amp,4,px; noise shape delivers ~30% of amp,knob
+lever pull,lever_snapback,t5 actor,punch lever_panel.x_px,freq_hz,12,2-14 Hz,knob
+lever pull,lever_snapback,t5 actor,punch lever_panel.x_px,damping,0.25,0.05-0.95,knob
+lever pull,lever_snapback,t5 actor,punch lever_panel.x_px,dur,0.25,,knob
+lever pull,lever_snapback,t5 actor,haptic,effect,"""Custom""",,knob
+lever pull,lever_snapback,t5 actor,haptic,keys,"[[0, 0.25], [30, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+hard brake,hard_brake,t3 all,camkick,angles_deg,"[1.6, 0, 0]","spring impulse; measured peak <= 4 deg, roll <= 2",knob
+hard brake,hard_brake,t3 all,camkick,freq_hz,1.8,2-14 Hz,knob
+hard brake,hard_brake,t3 all,camkick,damping,0.55,0.05-0.95,knob
+hard brake,hard_brake,t3 all,camkick,dur,1.2,,knob
+hard brake,hard_brake,t3 all,fovkick,delta_deg,-4,|delta| <= 12 deg,knob
+hard brake,hard_brake,t3 all,fovkick,in,0.2,,knob
+hard brake,hard_brake,t3 all,fovkick,hold,0.5,,knob
+hard brake,hard_brake,t3 all,fovkick,out,1.4,,knob
+hard brake,hard_brake,t3 all,fovkick,style_in,"""Quad""",,knob
+hard brake,hard_brake,t3 all,fovkick,style_out,"""Sine""",,knob
+hard brake,hard_brake,t3 all,flash,scope,"""vignette""",,knob
+hard brake,hard_brake,t3 all,flash,color,"""#000000""",,knob
+hard brake,hard_brake,t3 all,flash,peak,0.12,screen/vignette <= 0.35 (red 0.25); element exempt,knob
+hard brake,hard_brake,t3 all,flash,in,0.15,,knob
+hard brake,hard_brake,t3 all,flash,hold,0.3,,knob
+hard brake,hard_brake,t3 all,flash,out,0.8,,knob
+hard brake,hard_brake,t3 all,haptic,effect,"""Custom""",,knob
+hard brake,hard_brake,t3 all,haptic,keys,"[[0, 0.6], [70, 0.25], [140, 0.55], [210, 0.2], [290, 0.45], [380, 0.2], [480, 0.4], [600, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+hard brake,hard_brake,t3 all,cue,sfx,"""brake_hiss""",,knob
+crate landed,alert_crate_landed,t4 all,camkick,angles_deg,"[1.2, 0, 0.3]","spring impulse; measured peak <= 4 deg, roll <= 2",knob
+crate landed,alert_crate_landed,t4 all,camkick,freq_hz,6,2-14 Hz,knob
+crate landed,alert_crate_landed,t4 all,camkick,damping,0.45,0.05-0.95,knob
+crate landed,alert_crate_landed,t4 all,camkick,dur,0.4,,knob
+crate landed,alert_crate_landed,t4 all,shake,trauma,0.2,0-1; camera <= 10 px (tier 4); shake = trauma^2,knob
+crate landed,alert_crate_landed,t4 all,haptic,effect,"""GameplayCollision""",,knob
+crate landed,alert_crate_landed,t4 all,haptic,keys,"[[0, 0.6], [90, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+crate landed,alert_crate_landed,t4 all,cue,sfx,"""crate_thump""",,knob
+crisis alarm,hud_crisis_arrival,t2 all,punch ticket.x_px,shape,"""sin""",,knob
+crisis alarm,hud_crisis_arrival,t2 all,punch ticket.x_px,amp,5,px; noise shape delivers ~30% of amp,canon ui.hud.crisis_extra
+crisis alarm,hud_crisis_arrival,t2 all,punch ticket.x_px,freq_hz,5,2-14 Hz,knob
+crisis alarm,hud_crisis_arrival,t2 all,punch ticket.x_px,damping,0.05,0.05-0.95,knob
+crisis alarm,hud_crisis_arrival,t2 all,punch ticket.x_px,dur,0.5,,canon ui.hud.crisis_extra
+crisis alarm,hud_crisis_arrival,t2 all,punch ticket.x_px,delay,0.3,,knob
+crisis alarm,hud_crisis_arrival,t2 all,pulse halo.alpha,min,0.3,,canon ui.hud.crisis_extra
+crisis alarm,hud_crisis_arrival,t2 all,pulse halo.alpha,max,0.95,,canon ui.hud.crisis_extra
+crisis alarm,hud_crisis_arrival,t2 all,pulse halo.alpha,period,1.2,,knob
+crisis alarm,alert_coal_low,t2 all,punch gauge.scale,amp,0.12,<= 0.3,knob
+crisis alarm,alert_coal_low,t2 all,punch gauge.scale,freq_hz,5,2-14 Hz,knob
+crisis alarm,alert_coal_low,t2 all,punch gauge.scale,damping,0.3,0.05-0.95,knob
+crisis alarm,alert_coal_low,t2 all,punch gauge.scale,dur,0.7,,knob
+crisis alarm,alert_coal_low,t2 all,punch gauge.scale,delay,0.1,,knob
+crisis alarm,alert_coal_low,t2 all,haptic,effect,"""UINotification""",,knob
+crisis alarm,alert_coal_low,t2 all,haptic,keys,"[[0, 0.5], [60, 0], [140, 0.5], [200, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+crisis alarm,alert_coal_low,t2 all,cue,sfx,"""alarm_coal""",,knob
+crisis alarm,alert_pressure_high,t2 all,shake,trauma,0.3,0-1; camera <= 28 px (tier 2); shake = trauma^2,knob
+crisis alarm,alert_pressure_high,t2 all,flash,scope,"""vignette""",,knob
+crisis alarm,alert_pressure_high,t2 all,flash,color,"""@style.brand.danger_red""",,knob
+crisis alarm,alert_pressure_high,t2 all,flash,peak,0.22,screen/vignette <= 0.35 (red 0.25); element exempt,knob
+crisis alarm,alert_pressure_high,t2 all,flash,in,0.05,,knob
+crisis alarm,alert_pressure_high,t2 all,flash,hold,0.1,,knob
+crisis alarm,alert_pressure_high,t2 all,flash,out,0.5,,knob
+crisis alarm,alert_pressure_high,t2 all,haptic,effect,"""Custom""",,knob
+crisis alarm,alert_pressure_high,t2 all,haptic,keys,"[[0, 0.7], [80, 0], [220, 0.5], [300, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+crisis alarm,alert_pressure_high,t2 all,cue,sfx,"""alarm_pressure""",,knob
+crisis alarm,alert_pressure_high,t2 all,cue,vfx,"""steam_valve""",,knob
+crisis alarm,alert_breakdown,t2 all,shake,trauma,0.45,0-1; camera <= 28 px (tier 2); shake = trauma^2,knob
+crisis alarm,alert_breakdown,t2 all,camkick,angles_deg,"[1.2, 0, 0.8]","spring impulse; measured peak <= 4 deg, roll <= 2",knob
+crisis alarm,alert_breakdown,t2 all,camkick,freq_hz,5,2-14 Hz,knob
+crisis alarm,alert_breakdown,t2 all,camkick,damping,0.4,0.05-0.95,knob
+crisis alarm,alert_breakdown,t2 all,camkick,dur,0.6,,knob
+crisis alarm,alert_breakdown,t2 all,flash,scope,"""screen""",,knob
+crisis alarm,alert_breakdown,t2 all,flash,color,"""#FFFFFF""",,knob
+crisis alarm,alert_breakdown,t2 all,flash,peak,0.2,screen/vignette <= 0.35 (red 0.25); element exempt,knob
+crisis alarm,alert_breakdown,t2 all,flash,in,0.03,,knob
+crisis alarm,alert_breakdown,t2 all,flash,hold,0.0,,knob
+crisis alarm,alert_breakdown,t2 all,flash,out,0.25,,knob
+crisis alarm,alert_breakdown,t2 all,haptic,effect,"""GameplayCollision""",,knob
+crisis alarm,alert_breakdown,t2 all,haptic,keys,"[[0, 0.9], [120, 0.3], [300, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+crisis alarm,alert_breakdown,t2 all,cue,sfx,"""breakdown_bang""",,knob
+crisis alarm,alert_breakdown,t2 all,cue,vfx,"""sparks_powerbox""",,knob
+crisis alarm,alert_passengers_upset,t2 all,haptic,effect,"""UINotification""",,knob
+crisis alarm,alert_passengers_upset,t2 all,haptic,keys,"[[0, 0.45], [50, 0], [120, 0.45], [170, 0], [240, 0.45], [290, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+crisis alarm,alert_passengers_upset,t2 all,cue,sfx,"""passengers_scream""",,knob
+fare banked,alert_fare_banked,t4 all,tween stamp.scale,from,1.8,,knob
+fare banked,alert_fare_banked,t4 all,tween stamp.scale,to,1,,knob
+fare banked,alert_fare_banked,t4 all,tween stamp.scale,dur,0.2,,knob
+fare banked,alert_fare_banked,t4 all,tween stamp.scale,style,"""Quad""",,knob
+fare banked,alert_fare_banked,t4 all,tween stamp.scale,dir,"""In""",,knob
+fare banked,alert_fare_banked,t4 all,tween stamp.scale,delay,0.2,,knob
+fare banked,alert_fare_banked,t4 all,tween cash.count,from,0,,knob
+fare banked,alert_fare_banked,t4 all,tween cash.count,to,1,,knob
+fare banked,alert_fare_banked,t4 all,tween cash.count,dur,0.6,,knob
+fare banked,alert_fare_banked,t4 all,tween cash.count,style,"""Quad""",,knob
+fare banked,alert_fare_banked,t4 all,tween cash.count,dir,"""Out""",,knob
+fare banked,alert_fare_banked,t4 all,tween cash.count,delay,0.2,,knob
+fare banked,alert_fare_banked,t4 all,punch ticket.scale,amp,0.06,<= 0.3,knob
+fare banked,alert_fare_banked,t4 all,punch ticket.scale,freq_hz,6,2-14 Hz,knob
+fare banked,alert_fare_banked,t4 all,punch ticket.scale,damping,0.35,0.05-0.95,knob
+fare banked,alert_fare_banked,t4 all,punch ticket.scale,dur,0.4,,knob
+fare banked,alert_fare_banked,t4 all,punch ticket.scale,delay,0.4,,knob
+fare banked,alert_fare_banked,t4 all,haptic,effect,"""Custom""",,knob
+fare banked,alert_fare_banked,t4 all,haptic,keys,"[[400, 0.4], [440, 0], [490, 0.6], [540, 0]]","[ms, 0..1], end at 0, <= 1500 ms",knob
+fare banked,alert_fare_banked,t4 all,cue,sfx,"""cash_register""",,knob
+lever pull,lever,,drag,detent,0.7,,knob
+lever pull,lever,,drag,resist,1.6,,knob
+lever pull,lever,,drag,throw_deg,35,,knob

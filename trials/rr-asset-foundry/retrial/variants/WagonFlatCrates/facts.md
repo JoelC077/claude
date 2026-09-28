@@ -1,0 +1,18 @@
+# WagonFlatCrates (measured by rr-asset-foundry 2026-09-28)
+- family wagon, preset flat_crates (flat wagon with supply crates); seed 1
+- params: kind flat, length 36.0, width 17.4 (tech.units.stock_width, proposed), gauge 8.0 (tech.units.gauge, proposed), deck 5.0 (tech.units.stock_floor, proposed), running auto, wheel_r 2.0, side_h 4.0, body_h 7.0, planks 4, load crates, heap 2.75, peaks 2, weathering 0.2, door True
+- size, studs (Blender x, y, z-up): 38.8 x 17.6 x 8.65; in Studio X 38.8, Y(up) 8.65, Z 17.6
+- parts: 42 separate named <Asset>_<Part>_<Group>_<nn>; groups Chassis 14, Buffer 2, Steel 10, Iron 11, Timber 1, Crate 3, Patch 1
+- collision: 4 box proxies (invisible, CanCollide true); visual parts CanCollide false
+- tris: 1,248 total; largest part WagonFlatCrates_Deck_Timber_01 120 (target 10,000 / cap 20,000 per MeshPart)
+- palette atlas: 13 cells exact=True; 504 faces, 0 span cells, 0 near an edge, 0 off-palette
+- colours used (rr-bible tokens): Chassis style.world.soot_black #15181B Metal, Steel style.thumb.steel #8A929B Metal, Buffer style.brand.buffer_red #C9412E SmoothPlastic, Iron style.world.ironwork #363A42 Metal, Timber style.depot_kit.timber_dark #8F5A2A WoodPlanks, Crate style.thumb.crate #B27A3F WoodPlanks, Patch style.depot_kit.red_oxide #B1502B CorrodedMetal
+- back faces (every POV and construction camera): 0 px in 6 views; coplanar overlaps: 0; floating parts: 0
+- A5, smallest on-screen side of any single piece (key features >= 5 px): 400 px game view: Stanchion 5.1 px, BufferHead 5.4 px, Axlebox 8.7 px, Wheel 15.6 px; POV 3P 768 px: Stanchion 7.1 px, BufferHead 9.1 px, Axlebox 12.7 px, Wheel 32.7 px
+- player view premise siding: pov3p = from the coach, abeam at [0.0, -30.6, 5.0]; pov3p_2 = from the coach, approaching at [50.0, -30.6, 5.0] (ASSUMED, not canon yet (the owner decides): yard dressing on the marshalling-yard sidings ...)
+- measured: deck top above rail: 5 studs
+- FBX reimport: 46 meshes, size [38.8, 17.6, 8.65], 1296 tris, no unit warning
+- Studio setup script: ok (luaparse: ok)
+- canon gate (bible check studio_setup.lua): PASS
+- open questions: OQ-025, OQ-030 (values labelled assumed/proposed until the owner decides)
+- not measured here: Studio import and the setup script (no Studio in the cloud; owner test)

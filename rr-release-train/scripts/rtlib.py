@@ -9,7 +9,6 @@ import hashlib
 import json
 import os
 import re
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -52,14 +51,6 @@ def sha256_file(p):
     with open(p, "rb") as f:
         for chunk in iter(lambda: f.read(1 << 20), b""):
             h.update(chunk)
-    return h.hexdigest()
-
-
-def sha256_tree(d):
-    h = hashlib.sha256()
-    for f in sorted(Path(d).rglob("*")):
-        if f.is_file() and "__pycache__" not in f.parts and not f.name.startswith("."):
-            h.update(str(f.relative_to(d)).encode() + b"\0" + sha256_file(f).encode())
     return h.hexdigest()
 
 
@@ -234,39 +225,37 @@ def effective_level(level, base):
 
 
 def next_version(history_versions, level, channel_pre):
-    """history_versions: released versions (any channel). channel_pre: 'alpha', 'beta' or '' (live)."""
+    """history_versions: released versions (any channel). channel_pre: 'alpha', 'beta' or '' (live).
+    First release is 0.1.0 (OQ-037 default); the result always sorts above every released version."""
     vers = sorted((v for v in history_versions if parse_ver(v)), key=ver_key)
+    tag = lambda c, n=1: c + (f"-{channel_pre}.{n}" if channel_pre else "")
     if level == "none":
         level = "patch"
     if not vers:
-        base_live = "0.0.0"
-        new_core = bump_core(base_live, effective_level(level, base_live))
-        if new_core == "0.0.1" and level != "patch":
-            new_core = "0.1.0"
-        return new_core + (f"-{channel_pre}.1" if channel_pre else "")
+        return tag("0.1.0" if effective_level(level, "0.0.0") != "major" else "1.0.0")
     last = vers[-1]
     lives = [v for v in vers if not parse_ver(v)[3]]
     last_live = lives[-1] if lives else "0.0.0"
     lvl = effective_level(level, last_live)
-    last_pre = parse_ver(last)[3]
-    if last_pre:
+    cand = None
+    if parse_ver(last)[3]:
         pending = level_between(last_live, core(last))
         if LEVELS[lvl] <= LEVELS[pending]:
             c = core(last)
             if not channel_pre:
-                return c
-            tag = last_pre.split(".")[0]
-            if tag == channel_pre:
-                nums = [int(x) for x in last_pre.split(".")[1:] if x.isdigit()]
-                return f"{c}-{channel_pre}.{(nums[0] if nums else 0) + 1}"
-            same = [v for v in vers if core(v) == c and parse_ver(v)[3].split(".")[0] == channel_pre]
-            n = max([int(parse_ver(v)[3].split(".")[1]) for v in same if parse_ver(v)[3].split(".")[1:2] and
-                     parse_ver(v)[3].split(".")[1].isdigit()] or [0]) + 1
-            return f"{c}-{channel_pre}.{n}"
-        new_core = bump_core(last_live, lvl)
+                cand = c
+            else:
+                nums = [int(parse_ver(v)[3].split(".")[1]) for v in vers if core(v) == c
+                        and parse_ver(v)[3].split(".")[0] == channel_pre
+                        and parse_ver(v)[3].split(".")[1:2] and parse_ver(v)[3].split(".")[1].isdigit()]
+                cand = tag(c, max(nums or [0]) + 1)
+        else:
+            cand = tag(bump_core(last_live, lvl))
     else:
-        new_core = bump_core(last, lvl)
-    return new_core + (f"-{channel_pre}.1" if channel_pre else "")
+        cand = tag(bump_core(last, lvl))
+    while ver_key(cand) <= ver_key(last):
+        cand = tag(bump_core(core(cand), "patch"))
+    return cand
 
 
 # ---------------------------------------------------------------- roots and state
@@ -284,7 +273,28 @@ def releases_root(arg=None):
     if os.environ.get("RR_RELEASES_ROOT"):
         return Path(os.environ["RR_RELEASES_ROOT"]).expanduser().resolve()
     top = git_top()
-    return (top / ".rr-releases") if top else (Path.home() / ".rr-releases")
+    return (top / "releases") if top else (Path.home() / "rr-releases")
+
+
+def missions_roots(extra=None):
+    """Mission folders (rr-mission-control): given ones + RR_MISSIONS_ROOT; if none, <git top>/missions and
+    /home/user/*/missions."""
+    cands = [Path(x).expanduser() for x in (extra or [])]
+    if os.environ.get("RR_MISSIONS_ROOT"):
+        cands.append(Path(os.environ["RR_MISSIONS_ROOT"]).expanduser())
+    if not cands:  # nothing configured: discover
+        top = git_top()
+        cands = ([top / "missions"] if top else []) + _walk_find("/home/user", "missions", depth=3)
+    out = []
+    for c in cands:
+        c = c.resolve()
+        if c.is_dir() and c not in out and any(c.glob("*/state.json")):
+            out.append(c)
+    return out
+
+
+def load_presets():
+    return load_json(SKILL / "presets" / "gates.json", {})
 
 
 def history(root):
@@ -301,28 +311,12 @@ def last_release(root):
     return rows[-1] if rows else None
 
 
-def luaparse_check(path):
-    """luaparse (npm, Lua 5.1 grammar) if installed under ~/.cache/rr-tools, else a block-balance check."""
-    lp = Path.home() / ".cache" / "rr-tools" / "node_modules" / "luaparse"
-    node = shutil.which("node")
-    if lp.is_dir() and node:
-        js = ("const lp=require(process.argv[1]);const fs=require('fs');"
-              "try{lp.parse(fs.readFileSync(process.argv[2],'utf8'),{luaVersion:'5.1'});console.log('ok')}"
-              "catch(e){console.log('ERR '+e.message);process.exit(1)}")
-        r = subprocess.run([node, "-e", js, str(lp), str(path)], capture_output=True, text=True)
-        return r.returncode == 0, "luaparse: " + (r.stdout.strip() or r.stderr.strip()[-200:])
-    src = re.sub(r"--\[\[.*?\]\]|--[^\n]*|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'", "", Path(path).read_text(), flags=re.S)
-    opens = len(re.findall(r"\b(function|do|then)\b", src)) - len(re.findall(r"\belseif\b", src))
-    opens -= len(re.findall(r"\bwhile\b[^\n]*\bdo\b|\bfor\b[^\n]*\bdo\b", src))
-    ends = len(re.findall(r"\bend\b", src))
-    return opens == ends, f"balance check (install luaparse for a real parse): {opens} openers vs {ends} ends"
-
-
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "where":
         b = Bible()
         print(f"skill: {SKILL}\nrr-bible: {b.dir or 'NOT FOUND'}\nreleases root: {releases_root()}")
-        for n in ("multiuse-critic", "rr-mission-control", "rr-exploit-guard"):
+        for n in ("multiuse-critic", "rr-mission-control", "rr-exploit-guard", "rr-soundsmith", "rr-vfx-lighting"):
             print(f"{n}: {find_sibling(n) or 'not found'}")
+        print("missions:", ", ".join(map(str, missions_roots())) or "none found")
     else:
         print(__doc__)

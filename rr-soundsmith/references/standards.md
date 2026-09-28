@@ -15,9 +15,13 @@ the measured level and the mix compensates; the standard exists for headroom and
   standard (-20) accounts for it.
 - **Integrated:** gated mean (absolute -70 LUFS, relative -10 LU). Loops and music use it.
 - **Short-term max and LRA:** 3 s blocks; LRA = 95th minus 10th percentile after a -20 LU relative gate.
-- **Mono counts as dual mono** (+3.01 dB: heard on two speakers), so mono SFX and stereo beds compare fairly.
-- **True peak:** 4x oversampled (windowed-sinc polyphase); without numpy only the sample peak is reported, labelled.
-- Verified in selftest on EBU Tech 3341 cases 1-4 (within 0.1 LU) and a 3342 LRA case (10 LU).
+- **Mono counts as dual mono** (+3.01 dB: heard on two speakers), so mono SFX and stereo beds compare fairly. A meter
+  that reads mono as one channel (ffmpeg ebur128 default) shows 3 dB less: -17 there is -14 here. Briefs say so once.
+- **True peak:** 8x oversampled (windowed-sinc polyphase, 64 taps per phase): within about 0.1 dB of a 16x
+  band-limited reference on tones and transients; a file that starts abruptly at sample 0 can read up to 0.3 dB low.
+  Without numpy only the sample peak is reported, labelled.
+- Verified in selftest on EBU Tech 3341 cases 1-4 (within 0.1 LU), a 3342 LRA case (10 LU) and 0.5 FS inter-sample
+  tones at fs/3, fs/4, fs/6 and fs/8 (-6.02 dBTP within 0.15 dB).
 - **Phone loss:** momentary max lost through a rough phone-speaker model (4th-order high-pass at 450 Hz, 2nd-order
   low-pass at 10 kHz). A model, not a device: the owner's phone decides (fidelity.md).
 - **Loop seam:** the last->first step against the largest step within 20 ms either side (a click shows as over 2x
@@ -28,7 +32,8 @@ the measured level and the mix compensates; the standard exists for headroom and
 ## What analyze fails and warns
 | FAIL (fix the file) | WARN (fix or accept; the mix compensates level) |
 |---|---|
-| format not wav/mp3/ogg/flac, over 20 MB or 7 min, over 48 kHz, channel count not 1/2/3/6 | under 44.1 kHz, 8-bit |
+| format not wav/mp3/ogg/flac (.opus too: transcode to .ogg Vorbis), over 20 MB or 7 min, over 48 kHz, channel count not 1/2/3/6 | under 44.1 kHz, 8-bit |
+| empty (0 samples), silent (under -70 LUFS), shorter than half the class minimum (truncated) | |
 | clipping, peak over 0 dBTP | peak above the class ceiling (-1 dBTP) |
 | more than 50 ms of silence before the sound (it feels late) | lead or tail silence over the class limit, length outside the class range |
 | loop seam click | level outside target +- tol, DC offset, phone loss over the class limit, stereo on a 3D sound, negative L/R correlation |
@@ -37,11 +42,12 @@ Without a decoder (.ogg/.mp3/.flac and no ffmpeg) only format, length, rate and 
 `--fix-out DIR` writes `<name>_std.wav` (24-bit): trims long lead/tail silence of one-shots, `--mono` downmixes
 (keeps the louder channel when the channels cancel), then gain toward the target within the peak ceiling (max +30 dB).
 It never touches the source, keeps the INFO tags (a placeholder stays tagged), refuses clipped or over-48 kHz files
-(re-export those) and needs numpy for trimming and mono (without it: gain only).
+(re-export those) and needs numpy for trimming and mono (without it: gain only, and it says "mono skipped").
 
 ## Mix rules (checked by validate)
 - Ladder order t1 >= t2 >= t3 >= t4 >= t5 >= ambient; no one-shot louder than a more important tier by over `overlap_lu`.
 - Ducking: -40..0 dB, attack 5 ms-1 s, release 50 ms-5 s, never ducking the trigger's own group; every trigger should
   clear the ducked sounds by 3 LU or more.
 - Volume = `ref_volume x 10^(gain/20)` must stay at or under 10 (Sound.Volume range, tech.audio.volume).
-- Voices: 16 one-shots, Alarms 4, Actions 8, UI 4 (assumed for phones; the owner's Studio test decides).
+- Voices: 16 one-shots, Alarms 6 (4 crisis alarms + 2 impacts), Actions 8, UI 4 (assumed for phones; the owner's
+  Studio test decides). No single sound may fill over half its group's cap.

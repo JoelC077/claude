@@ -1,0 +1,177 @@
+{
+ "version": "0.1.0-alpha.1",
+ "channel": "alpha",
+ "created": "2026-09-28T03:25Z",
+ "changes": [
+  {
+   "id": "C-1",
+   "section": "Internal",
+   "audience": "internal",
+   "bump": "none",
+   "in_build": "yes",
+   "note": "",
+   "src": "git:rt-game-repo@b92d36a046",
+   "title": "Rojo project",
+   "date": "2026-09-28"
+  },
+  {
+   "id": "C-2",
+   "section": "Added",
+   "audience": "player",
+   "bump": "minor",
+   "in_build": "yes",
+   "note": "When coal runs low the firebox glow flickers so the stoker notices.",
+   "src": "git:rt-game-repo@ff7ffe0985",
+   "title": "Coal low alert now flashes the firebox",
+   "date": "2026-09-28"
+  },
+  {
+   "id": "C-3",
+   "section": "Fixed",
+   "audience": "player",
+   "bump": "patch",
+   "in_build": "yes",
+   "note": "",
+   "src": "git:rt-game-repo@e3b883d9ba",
+   "title": "Lever could be pulled twice after it locked",
+   "date": "2026-09-28"
+  },
+  {
+   "id": "C-4",
+   "section": "Internal",
+   "audience": "internal",
+   "bump": "none",
+   "in_build": "yes",
+   "note": "",
+   "src": "git:rt-game-repo@936b12cfef",
+   "title": "Split supply terminal module",
+   "date": "2026-09-28"
+  },
+  {
+   "id": "C-5",
+   "section": "Changed",
+   "audience": "internal",
+   "bump": "patch",
+   "in_build": "yes",
+   "note": "",
+   "src": "git:rt-game-repo@2b995d5011",
+   "title": "Tweak coach seat colours",
+   "date": "2026-09-28"
+  },
+  {
+   "id": "C-6",
+   "section": "Added",
+   "audience": "player",
+   "bump": "minor",
+   "in_build": "yes",
+   "note": "stone station house and a bigger hall north of the queue pads",
+   "src": "mission:260927-depot-buildings",
+   "title": "New depot and main hall in the Depot Lobby",
+   "mission": {
+    "dir": "/home/user/claude/missions/260927-depot-buildings",
+    "kind": "3d",
+    "bar": 8,
+    "critic": [
+     {
+      "dir": "/home/user/claude/missions/260927-depot-buildings/critique-buildings",
+      "overall": 8,
+      "bar": 8,
+      "passes": 4,
+      "certified": false,
+      "agents": [
+       "self-review-final"
+      ]
+     },
+     {
+      "dir": "/home/user/claude/missions/260927-depot-buildings/critique-depot-indep",
+      "overall": 7,
+      "bar": 8,
+      "passes": 4,
+      "certified": false,
+      "agents": [
+       "(unrecorded)"
+      ]
+     },
+     {
+      "dir": "/home/user/claude/missions/260927-depot-buildings/critique-hall-indep",
+      "overall": 7,
+      "bar": 8,
+      "passes": 4,
+      "certified": false,
+      "agents": [
+       "(unrecorded)"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "C-7",
+   "section": "Added",
+   "audience": "player",
+   "bump": "minor",
+   "in_build": "yes",
+   "note": "alerts arrive as punched tickets; up to 4 stack",
+   "src": "mission:260927-ticket-hud",
+   "title": "New ticket-style HUD alerts",
+   "mission": {
+    "dir": "/home/user/claude/missions/260927-ticket-hud",
+    "kind": "ui",
+    "bar": 8,
+    "critic": [
+     {
+      "dir": "/home/user/claude/missions/260927-ticket-hud/critique-hud",
+      "overall": 6,
+      "bar": 8,
+      "passes": 4,
+      "certified": true,
+      "agents": [
+       "independent-critic"
+      ]
+     }
+    ]
+   }
+  }
+ ],
+ "next_id": 8,
+ "places": {
+  "Lobby": {
+   "file": "places/Lobby/Lobby.rbxl",
+   "src": "/home/user/claude/trials/rr-release-train/places/Lobby.rbxl",
+   "sha256": "90f525385ef20a41f2b306d9e4c9d2254915f5cecbd5f158f08874da752a7e8a",
+   "bytes": 2224,
+   "format": "binary",
+   "attached_at": "2026-09-28T03:25Z",
+   "stamp": "0.1.0-alpha.1",
+   "instances": 44,
+   "audit": "places/Lobby/audit/audit.json"
+  },
+  "Trip": {
+   "file": "places/Trip/Trip.rbxl",
+   "src": "/home/user/claude/trials/rr-release-train/places/Trip.rbxl",
+   "sha256": "81fa462a0506c8afc1ba39da830b94f38aeb0d9f1fae7fe5c0c6ac0ca00ee37c",
+   "bytes": 2088,
+   "format": "binary",
+   "attached_at": "2026-09-28T03:25Z",
+   "stamp": "0.1.0-alpha.1",
+   "instances": 43,
+   "audit": "places/Trip/audit/audit.json"
+  }
+ },
+ "repos": {
+  "/tmp/claude-0/-home-user-claude/025e6bab-05c4-57af-b37d-7bdbf9fb328f/scratchpad/rt-game-repo": "2b995d50119f36093350a10606b538c722cf003f",
+  "/home/user/claude": "d3334777a5fd371a5be2ed8975d61bc98ec8b6a3"
+ },
+ "evidence": {},
+ "waivers": {},
+ "approval": null,
+ "gate": {
+  "verdict": "NO-GO",
+  "at": "2026-09-28T03:25Z",
+  "hash": "c2b84b366425ecef23eb3d60e24267e7c112e5ce3fbd8c544dc912594530bda3"
+ },
+ "status": "draft",
+ "updated": "2026-09-28T03:25Z",
+ "bump": "minor",
+ "stamp_file": "RR_Version.lua"
+}

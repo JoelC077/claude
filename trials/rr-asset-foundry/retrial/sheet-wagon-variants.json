@@ -1,0 +1,45 @@
+{
+ "sheet": [
+  332,
+  618
+ ],
+ "megapixels": 0.21,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "WagonOpenCoal open_coal",
+   "src": "/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonOpenCoal/renders/thumb.png",
+   "box": [
+    6,
+    24,
+    320,
+    180
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 2,
+   "label": "WagonBoxVan box_van",
+   "src": "/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonBoxVan/renders/thumb.png",
+   "box": [
+    6,
+    228,
+    320,
+    180
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 3,
+   "label": "WagonFlatCrates flat_crates",
+   "src": "/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonFlatCrates/renders/thumb.png",
+   "box": [
+    6,
+    432,
+    320,
+    180
+   ],
+   "scale": "fit x1.00"
+  }
+ ]
+}

@@ -1,0 +1,61 @@
+{
+  "screen": "LobbyCreateMatch",
+  "title": "Create match (lobby modal)",
+  "purpose": "Pick crew size and difficulty, then join the queue; one obvious primary action.",
+  "source": "DTU Depot Ticket UI 'Create match' (artifact 6KVG6BScZk1LLJScMJScC9, read 2026-09-28): rows = label left, controls right; one accent for selected count, current difficulty and Join; tier colours only as difficulty. Kit shared with HudTickets (mission 260927-ticket-hud).",
+  "design": {"device": "phone"},
+  "gui": {"display_order": 30, "insets": "CoreUISafeInsets", "modal": true},
+  "canon": ["ui.lobby.controls", "ui.rules.one_accent", "ui.rules.difficulty_never_chrome", "ui.rules.colourblind", "tech.ui_platform.touch_target_px", "gameplay.difficulty.tiers", "gameplay.crew.max"],
+  "oq": ["OQ-001", "OQ-017", "OQ-033"],
+  "icons": "../icons",
+  "data": {
+    "players": {"values": [1, 2, 3], "default": 2, "note": "ui.lobby.controls draws 1/2/3 chips; gameplay.crew.max is 6 and gameplay.crew.launch_cap 4: open question drafted in trials/rr-ui-foundry/oq-drafts.txt"},
+    "difficulty": {"values": {"canon": "gameplay.difficulty.tiers", "upper": true}, "default": "MEDIUM"}
+  },
+  "nodes": [
+    {"id": "scrim", "type": "frame", "layer": "backdrop", "rect": [0, 0, 844, 390], "stretch": "xy", "fill": "scrim", "alpha": 0.55},
+    {"id": "panel", "use": "panel", "rect": [192, 72, 460, 303], "pin": "cc", "slots": {"title": "CREATE MATCH", "closable": true},
+     "note": "targets drawn at 52 design px so a notched phone (s = 0.86) still gets >= 44 px (tech.ui_platform.touch_target_px); DTU drew 44; kit panel header 56 and close 52 for the same reason (trial kit change)",
+     "children": [
+      {"id": "ico_players", "type": "image", "rect": [20, 88, 32, 21], "image": "icon.crew", "tint": "header"},
+      {"id": "lbl_players", "type": "text", "rect": [60, 73, 150, 52], "text": "PLAYERS", "style": "label", "color": "text"},
+      {"id": "p1", "use": "chip", "rect": [264, 73, 52, 52], "slots": {"text": "1"}, "on": "players=1", "action": {"set": {"players": 1}}},
+      {"id": "p2", "use": "chip", "rect": [326, 73, 52, 52], "slots": {"text": "2"}, "on": "players=2", "action": {"set": {"players": 2}}},
+      {"id": "p3", "use": "chip", "rect": [388, 73, 52, 52], "slots": {"text": "3"}, "on": "players=3", "action": {"set": {"players": 3}}},
+      {"id": "row_rule", "type": "frame", "rect": [20, 137, 420, 2], "fill": "trim", "alpha": 0.5},
+      {"id": "ico_diff", "type": "image", "rect": [20, 164, 32, 21], "image": "icon.tiers", "tint": "header"},
+      {"id": "lbl_diff", "type": "text", "rect": [60, 149, 118, 52], "text": "DIFFICULTY", "style": "label", "color": "text"},
+      {"id": "diff_prev", "use": "button", "variant": "icon", "rect": [184, 149, 52, 56], "slots": {"text": "<"}, "action": {"cycle": {"difficulty": -1}}},
+      {"id": "diff_plate", "type": "frame", "rect": [246, 149, 132, 52], "fill": "accent", "stroke": ["ink", 3], "radius": 12,
+       "note": "current difficulty = the one accent (ui.rules.one_accent); the tier colour appears only as the difficulty pip (ui.rules.difficulty_never_chrome), the name is the non-colour cue",
+       "children": [
+        {"id": "diff_pip", "type": "frame", "rect": [12, 16, 20, 20], "fill": "diff.{difficulty|lower}", "stroke": ["ink", 2], "radius": "circle"},
+        {"id": "diff_value", "type": "text", "rect": [36, 0, 90, 52], "text": "{difficulty}", "style": "value", "color": "on_accent", "align": "center"}
+      ]},
+      {"id": "diff_next", "use": "button", "variant": "icon", "rect": [388, 149, 52, 56], "slots": {"text": ">"}, "action": {"cycle": {"difficulty": 1}}},
+      {"id": "join", "use": "button", "variant": "primary", "rect": [20, 217, 420, 60], "slots": {"text": "JOIN", "hint": "ButtonA"}, "action": "join"}
+    ]}
+  ],
+  "nav": {"grid": [["close"], ["p1", "p2", "p3"], ["diff_prev", "diff_next"], ["join"]], "default": "join", "back": "close", "modal": "panel"},
+  "machine": {
+    "initial": "closed",
+    "states": {
+      "closed":  {"hide": ["scrim", "panel"]},
+      "open":    {},
+      "joining": {"disable": ["join", "p1", "p2", "p3", "diff_prev", "diff_next"], "text": {"join.label": "JOINING..."}}
+    },
+    "transitions": [
+      ["closed", "open", "open", "ui_panel_open"],
+      ["open", "close", "closed", "ui_panel_close"],
+      ["open", "join", "joining", "ui_button_press"],
+      ["joining", "cancel", "open", null],
+      ["joining", "joined", "closed", "ui_panel_close"],
+      ["joining", "close", "closed", "ui_panel_close"]
+    ]
+  },
+  "boards": [
+    {"name": "open", "state": "open", "data": {"players": 2, "difficulty": "MEDIUM"}},
+    {"name": "insane", "state": "open", "data": {"players": 3, "difficulty": "INSANE"}, "select": "join", "comp_states": {"diff_next": "pressed"}},
+    {"name": "joining", "state": "joining", "data": {"players": 1, "difficulty": "EASY"}}
+  ]
+}

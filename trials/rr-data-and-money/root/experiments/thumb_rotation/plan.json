@@ -1,0 +1,50 @@
+{
+ "name": "thumb_rotation",
+ "created": "2026-09-28",
+ "surface": "thumbnail",
+ "hypothesis": "",
+ "metric": {
+  "kind": "prop",
+  "base": 0.03,
+  "target": 0.034499999999999996,
+  "sd": null,
+  "price_a": null,
+  "price_b": null,
+  "better": "higher"
+ },
+ "arms": [
+  "A",
+  "B"
+ ],
+ "weights": [
+  1.0,
+  1.0
+ ],
+ "control": "A",
+ "alpha": 0.05,
+ "alpha_per_comparison": 0.05,
+ "power": 0.8,
+ "n_per_arm": [
+  24407,
+  24407
+ ],
+ "daily_eligible": 2000.0,
+ "days": 28,
+ "start": "2026-10-05",
+ "readout": "2026-11-02",
+ "looks": [
+  0.3333333333333333,
+  0.6666666666666666,
+  1.0
+ ],
+ "bounds": [
+  3.458524022580757,
+  2.4455457892634294,
+  1.9967797754357872
+ ],
+ "inflation": 1.0088439115193093,
+ "guardrails": [],
+ "salt": "thumb_rotation-2026-10-05",
+ "testable": true,
+ "hash": "0b2756ed3534d7d3"
+}

@@ -1,7 +1,11 @@
 -- RR_UIDemo (LocalScript, StarterPlayerScripts) - rr-ui-foundry Studio check.
 -- Mounts every screen in ReplicatedStorage.RR_UI.screens and cycles each screen's boards (the same boards
 -- the critic saw) every 4 seconds. Keys: K cycles the skin (OQ-001 options), L sends the next state-machine
--- event of the first screen that has one, H pushes a random HUD alert. Remove it before shipping.
+-- event of the first screen that has one, H pushes a random HUD alert. Studio only: it returns at once in a
+-- live server, and default.project.json leaves it out (demo.project.json adds it). Remove it before publishing.
+
+local RunService = game:GetService("RunService")
+if not RunService:IsStudio() then return end
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")

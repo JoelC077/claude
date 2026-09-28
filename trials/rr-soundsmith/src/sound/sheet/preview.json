@@ -1,0 +1,10 @@
+{
+ "group": "sound",
+ "files": {
+  "alarm_coal": "src/sound/ph/PLACEHOLDER_alarm_coal.wav",
+  "brake_hiss": "src/sound/ph/PLACEHOLDER_brake_hiss.wav",
+  "lever_clunk": "src/sound/ph/PLACEHOLDER_lever_clunk.wav",
+  "lobby_bed": "src/sound/ph/PLACEHOLDER_lobby_bed.wav",
+  "whistle": "src/sound/ph/PLACEHOLDER_whistle.wav"
+ }
+}

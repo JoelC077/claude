@@ -1,0 +1,72 @@
+{
+ "name": "Game",
+ "className": "DataModel",
+ "children": [
+  {
+   "name": "ReplicatedStorage",
+   "className": "ReplicatedStorage",
+   "children": [
+    {
+     "name": "RRFeel",
+     "className": "Folder",
+     "children": [
+      {
+       "name": "RR_Feel",
+       "className": "ModuleScript",
+       "filePaths": [
+        "RR_Feel.lua"
+       ]
+      },
+      {
+       "name": "RR_FeelMath",
+       "className": "ModuleScript",
+       "filePaths": [
+        "RR_FeelMath.lua"
+       ]
+      },
+      {
+       "name": "RR_FeelPresets",
+       "className": "ModuleScript",
+       "filePaths": [
+        "RR_FeelPresets.lua"
+       ]
+      },
+      {
+       "name": "RR_FeelKit",
+       "className": "ModuleScript",
+       "filePaths": [
+        "RR_FeelKit.luau"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "StarterPlayer",
+   "className": "StarterPlayer",
+   "children": [
+    {
+     "name": "StarterPlayerScripts",
+     "className": "StarterPlayerScripts",
+     "children": [
+      {
+       "name": "RR_FeelDemo",
+       "className": "LocalScript",
+       "filePaths": [
+        "RR_FeelDemo.client.lua"
+       ]
+      },
+      {
+       "name": "RR_FeelKitExample",
+       "className": "LocalScript",
+       "filePaths": [
+        "RR_FeelKitExample.client.luau"
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

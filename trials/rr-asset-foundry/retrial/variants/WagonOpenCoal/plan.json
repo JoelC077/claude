@@ -1,0 +1,268 @@
+{
+ "asset": "WagonOpenCoal",
+ "family": "wagon",
+ "family_file": "/home/user/claude/rr-asset-foundry/families/wagon.py",
+ "preset": "open_coal",
+ "preset_note": "two-axle open wagon heaped with coal",
+ "params": {
+  "kind": "open",
+  "length": 30.0,
+  "width": 17.4,
+  "gauge": 8.0,
+  "deck": 5.0,
+  "running": "auto",
+  "wheel_r": 2.0,
+  "side_h": 4.0,
+  "body_h": 7.0,
+  "planks": 4,
+  "load": "coal",
+  "heap": 2.75,
+  "peaks": 2,
+  "weathering": 0.3,
+  "door": true
+ },
+ "param_sources": {
+  "width": {
+   "key": "tech.units.stock_width",
+   "status": "proposed",
+   "oq": [
+    "OQ-030"
+   ]
+  },
+  "gauge": {
+   "key": "tech.units.gauge",
+   "status": "proposed",
+   "oq": [
+    "OQ-030"
+   ]
+  },
+  "deck": {
+   "key": "tech.units.stock_floor",
+   "status": "proposed",
+   "oq": [
+    "OQ-030"
+   ]
+  }
+ },
+ "seed": 1,
+ "groups": {
+  "Chassis": {
+   "token": "style.world.soot_black",
+   "hex": "#15181B",
+   "status": "proposed",
+   "material": "Metal",
+   "reflectance": null
+  },
+  "Steel": {
+   "token": "style.thumb.steel",
+   "hex": "#8A929B",
+   "status": "canon",
+   "material": "Metal",
+   "reflectance": null
+  },
+  "Buffer": {
+   "token": "style.brand.buffer_red",
+   "hex": "#C9412E",
+   "status": "canon",
+   "material": "SmoothPlastic",
+   "reflectance": null
+  },
+  "Iron": {
+   "token": "style.world.ironwork",
+   "hex": "#363A42",
+   "status": "proposed",
+   "material": "Metal",
+   "reflectance": null
+  },
+  "Timber": {
+   "token": "style.depot_kit.timber_dark",
+   "hex": "#8F5A2A",
+   "status": "assumed",
+   "material": "WoodPlanks",
+   "reflectance": null
+  },
+  "Door": {
+   "token": "style.depot_kit.timber_light",
+   "hex": "#B87A3D",
+   "status": "assumed",
+   "material": "WoodPlanks",
+   "reflectance": null
+  },
+  "Roof": {
+   "token": "style.depot_kit.slate_roof",
+   "hex": "#4A4F57",
+   "status": "assumed",
+   "material": "Metal",
+   "reflectance": null
+  },
+  "Tank": {
+   "token": "style.depot_kit.teal_trim",
+   "hex": "#2E7D7A",
+   "status": "assumed",
+   "material": "Metal",
+   "reflectance": null
+  },
+  "Load": {
+   "token": "style.cab.coal",
+   "hex": "#262626",
+   "status": "proposed",
+   "material": "Slate",
+   "reflectance": null
+  },
+  "Crate": {
+   "token": "style.thumb.crate",
+   "hex": "#B27A3F",
+   "status": "canon",
+   "material": "WoodPlanks",
+   "reflectance": null
+  },
+  "Cap": {
+   "token": "style.depot_kit.timber_light",
+   "hex": "#B87A3D",
+   "status": "assumed",
+   "material": "WoodPlanks",
+   "reflectance": null
+  },
+  "Repair": {
+   "token": "style.depot_kit.timber_light",
+   "hex": "#B87A3D",
+   "status": "assumed",
+   "material": "WoodPlanks",
+   "reflectance": null
+  },
+  "Patch": {
+   "token": "style.depot_kit.red_oxide",
+   "hex": "#B1502B",
+   "status": "assumed",
+   "material": "CorrodedMetal",
+   "reflectance": null
+  },
+  "Hazard": {
+   "token": "style.world.hazard",
+   "hex": "#E8AC22",
+   "status": "proposed",
+   "material": "SmoothPlastic",
+   "reflectance": null
+  },
+  "Ink": {
+   "token": "style.brand.ink",
+   "hex": "#15171C",
+   "status": "canon",
+   "material": "SmoothPlastic",
+   "reflectance": null
+  }
+ },
+ "palette": [
+  "#15181B",
+  "#8A929B",
+  "#C9412E",
+  "#363A42",
+  "#8F5A2A",
+  "#B87A3D",
+  "#4A4F57",
+  "#2E7D7A",
+  "#262626",
+  "#B27A3F",
+  "#B1502B",
+  "#E8AC22",
+  "#15171C"
+ ],
+ "cells": {
+  "Chassis": 0,
+  "Steel": 1,
+  "Buffer": 2,
+  "Iron": 3,
+  "Timber": 4,
+  "Door": 5,
+  "Roof": 6,
+  "Tank": 7,
+  "Load": 8,
+  "Crate": 9,
+  "Cap": 5,
+  "Repair": 5,
+  "Patch": 10,
+  "Hazard": 11,
+  "Ink": 12
+ },
+ "view": {
+  "stage": "track",
+  "features": [
+   "BufferHead",
+   "Door",
+   "DoorStrap",
+   "Strap",
+   "EndStrap",
+   "Cap",
+   "Side",
+   "Repair",
+   "Lump",
+   "Wheel",
+   "Axlebox",
+   "LadderRung",
+   "Dome",
+   "Stanchion",
+   "Tape"
+  ],
+  "premise": "siding",
+  "premises": {
+   "siding": "ASSUMED, not canon yet (the owner decides): yard dressing on the marshalling-yard sidings (world.prefabs.15, world.biomes.mvp_forks), seen from the coach on the running line (gameplay.train.layout, gameplay.train.keep_on) at the siding spacing of world.prefabs.15 while the world scrolls past (D-002); seen in motion, so style.dont.hairlines applies.",
+   "lobby": "ASSUMED, not canon yet: Depot Lobby yard dressing, seen on foot at walking distance.",
+   "coupled": "CONTRADICTS canon (gameplay.train.layout is cab + coach; D-013 no tender car): only if the owner puts wagons in the crew's train; seen from the next vehicle's end platform."
+  },
+  "nums": {
+   "siding": 40.0
+  },
+  "rules": [
+   [
+    "_LadderRung_",
+    {
+     "CanCollide": true,
+     "CollisionFidelity": "Enum.CollisionFidelity.PreciseConvexDecomposition"
+    }
+   ]
+  ]
+ },
+ "stage": {
+  "rail": "#9A9187",
+  "ballast": "#8C8680",
+  "ground": "#7C8A56",
+  "avatar": {
+   "dark": "#2B2F36",
+   "vest": "#F2C230",
+   "skin": "#F2C9A0"
+  },
+  "ambient": [
+   70,
+   80,
+   70
+  ]
+ },
+ "canon": {
+  "tris_target": 10000.0,
+  "tris_cap": 20000.0,
+  "eye_3p": 9.5,
+  "eye_1p": 4.5,
+  "fov_v": 70.0,
+  "avatar_h": 5.0,
+  "min_feature_px": 5.0
+ },
+ "options": {
+  "lod": false,
+  "merge": "none",
+  "atlas": true,
+  "collide": true,
+  "renders": "full",
+  "pov": "siding"
+ },
+ "open": [
+  "OQ-025",
+  "OQ-030"
+ ],
+ "warnings": [],
+ "out": "/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonOpenCoal",
+ "critic_scripts": "/home/user/claude/multiuse-critic/scripts",
+ "foundry_scripts": "/home/user/claude/rr-asset-foundry/scripts",
+ "family_hash": "f8ad00cd19",
+ "vkey": "d566eb8242bd",
+ "hash": "4f1afd1c17c5"
+}

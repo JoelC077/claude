@@ -1,0 +1,121 @@
+{
+ "version": "0.4.0",
+ "channel": "alpha",
+ "created": "2026-09-28T03:28Z",
+ "changes": [
+  {
+   "id": "C-1",
+   "section": "Added",
+   "audience": "player",
+   "bump": "minor",
+   "in_build": "yes",
+   "note": "Depot: two-gable stone station house, front faces the yard. Main Hall: the big hall of the lobby (placement not final, OQ-015: do not say where)",
+   "src": "mission:260927-depot-buildings",
+   "title": "New buildings in the Depot Lobby: the stone station house and the Main Hall",
+   "mission": {
+    "dir": "/home/user/claude/missions/260927-depot-buildings",
+    "kind": "3d",
+    "bar": 8,
+    "critic": [
+     {
+      "dir": "/home/user/claude/missions/260927-depot-buildings/critique-buildings",
+      "overall": 8,
+      "bar": 8,
+      "passes": 4,
+      "certified": false,
+      "agents": [
+       "self-review-final"
+      ]
+     },
+     {
+      "dir": "/home/user/claude/missions/260927-depot-buildings/critique-depot-indep",
+      "overall": 7,
+      "bar": 8,
+      "passes": 4,
+      "certified": false,
+      "agents": [
+       "(unrecorded)"
+      ]
+     },
+     {
+      "dir": "/home/user/claude/missions/260927-depot-buildings/critique-hall-indep",
+      "overall": 7,
+      "bar": 8,
+      "passes": 4,
+      "certified": false,
+      "agents": [
+       "(unrecorded)"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "C-2",
+   "section": "Changed",
+   "audience": "player",
+   "bump": "minor",
+   "in_build": "yes",
+   "note": "Same alerts as before (crises, junctions, fares, crates, crew) with a new look: railway-ticket card with a stub, punch notches and a rubber stamp; they stack bottom-right, clear of the jump button on phones",
+   "src": "mission:260927-ticket-hud",
+   "title": "Alerts got a makeover: every alert now arrives as a railway ticket",
+   "mission": {
+    "dir": "/home/user/claude/missions/260927-ticket-hud",
+    "kind": "ui",
+    "bar": 8,
+    "critic": [
+     {
+      "dir": "/home/user/claude/missions/260927-ticket-hud/critique-hud",
+      "overall": 6,
+      "bar": 8,
+      "passes": 4,
+      "certified": true,
+      "agents": [
+       "independent-critic"
+      ]
+     }
+    ]
+   }
+  }
+ ],
+ "next_id": 3,
+ "places": {
+  "Lobby": {
+   "file": "places/Lobby/Lobby.rbxl",
+   "src": "/home/user/claude/trials/rr-release-train/v0.4.0/places/Lobby.rbxl",
+   "sha256": "0e129e9e9bcf8fe879d432b6a5fccfb4912ec4c09fb5a92291056a80702137d6",
+   "bytes": 21069,
+   "format": "binary",
+   "attached_at": "2026-09-28T03:31Z",
+   "stamp": "0.4.0",
+   "instances": 820,
+   "audit": "places/Lobby/audit/audit.json"
+  },
+  "Trip": {
+   "file": "places/Trip/Trip.rbxl",
+   "src": "/home/user/claude/trials/rr-release-train/v0.4.0/places/Trip.rbxl",
+   "sha256": "efbb8e45d9339049114072e4ca67fccdef3f952f08bd27df69f7a31eab12a285",
+   "bytes": 12681,
+   "format": "binary",
+   "attached_at": "2026-09-28T03:31Z",
+   "stamp": "0.4.0",
+   "instances": 46,
+   "audit": "places/Trip/audit/audit.json"
+  }
+ },
+ "repos": {
+  "/home/user/claude": "d3334777a5fd371a5be2ed8975d61bc98ec8b6a3"
+ },
+ "evidence": {},
+ "waivers": {},
+ "approval": null,
+ "gate": {
+  "verdict": "NO-GO",
+  "at": "2026-09-28T03:31Z",
+  "hash": "5cae3cb45d2d45ecb197b9d85cf0a85ea409deca7fc797a7ff4f968871c63b29"
+ },
+ "status": "draft",
+ "updated": "2026-09-28T03:31Z",
+ "bump": "minor",
+ "stamp_file": "RR_Version.lua"
+}

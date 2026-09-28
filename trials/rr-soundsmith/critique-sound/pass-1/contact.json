@@ -1,0 +1,45 @@
+{
+ "sheet": [
+  792,
+  629
+ ],
+ "megapixels": 0.5,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "Ladder",
+   "src": "/home/user/claude/trials/rr-soundsmith/src/sound/sheet/ladder.png",
+   "box": [
+    6,
+    24,
+    780,
+    475
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "alarm_coal",
+   "src": "/home/user/claude/trials/rr-soundsmith/src/sound/sheet/tiles/alarm_coal.png",
+   "box": [
+    6,
+    523,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 3,
+   "label": "lever_clunk",
+   "src": "/home/user/claude/trials/rr-soundsmith/src/sound/sheet/tiles/lever_clunk.png",
+   "box": [
+    262,
+    523,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  }
+ ]
+}

@@ -20,8 +20,10 @@ GROUPS = {                       # recolour group: (rr-bible colour token, Roblo
 PRESETS = {"base": {"params": {}, "note": "the default variant"}}
 DEFAULT_PRESET = "base"
 VIEW = {"ground": "style.lobby.concrete",              # stage ground token
-        "features": ["Trim"],                          # part names measured at game distance (>= style.line.min_feature_px)
-        "player": "Where the player stands and how the thing is seen (goes into the critic brief)."}
+        "features": ["Cap"],                           # exact <Part> tokens measured per piece at game distance
+        "player": "Where the player stands and how the thing is seen, with canon keys (goes into the critic brief)."}
+# Seen in several places? Replace "player" with "premises": {name: text (ASSUMED if not canon)}, "premise": default,
+# optional "nums": {name: "@canon.key#i"}, and add stands(p, lo, hi, view) -> [(label, stand, look_at)] (wagon.py).
 OPTIONS = {"merge": "none", "collide": True, "lod": False}
 
 

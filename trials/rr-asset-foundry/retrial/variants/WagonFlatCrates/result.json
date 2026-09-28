@@ -1,0 +1,173 @@
+{
+ "asset": "WagonFlatCrates",
+ "timing": {
+  "build_s": 0.1,
+  "checks_s": 0.2,
+  "renders_s": 27.4,
+  "export_s": 27.6,
+  "total_s": 27.6
+ },
+ "parts": 42,
+ "proxies": 4,
+ "size": [
+  38.8,
+  17.6,
+  8.65
+ ],
+ "lo": [
+  -19.4,
+  -8.8,
+  0.0
+ ],
+ "hi": [
+  19.4,
+  8.8,
+  8.65
+ ],
+ "measures": {
+  "deck top above rail": "5 studs"
+ },
+ "dropped_details": 0,
+ "groups": {
+  "Chassis": 14,
+  "Buffer": 2,
+  "Steel": 10,
+  "Iron": 11,
+  "Timber": 1,
+  "Crate": 3,
+  "Patch": 1
+ },
+ "tris": {
+  "total": 1248,
+  "max_part": 120,
+  "max_name": "WagonFlatCrates_Deck_Timber_01",
+  "over_target": [],
+  "over_cap": []
+ },
+ "palette": {
+  "cells_exact": true,
+  "bad_cells": 0,
+  "faces": 504,
+  "spanning": 0,
+  "near_edge": 0,
+  "off_palette": 0,
+  "ok": true
+ },
+ "names_bad": [],
+ "coplanar": [],
+ "floating": [],
+ "pov": {
+  "premise": "siding",
+  "stands": [
+   {
+    "render": "pov3p",
+    "label": "from the coach, abeam",
+    "stand": [
+     0.0,
+     -30.6,
+     5.0
+    ]
+   },
+   {
+    "render": "pov3p_2",
+    "label": "from the coach, approaching",
+    "stand": [
+     50.0,
+     -30.6,
+     5.0
+    ]
+   }
+  ]
+ },
+ "backfaces": {
+  "Cam_34": 0,
+  "Cam_End": 0,
+  "Cam_POV_1P": 0,
+  "Cam_POV_3P": 0,
+  "Cam_POV_3P_2": 0,
+  "Cam_Side": 0
+ },
+ "features": {
+  "BufferHead": [
+   5.4,
+   "WagonFlatCrates_BufferHead_Steel_04",
+   0
+  ],
+  "Wheel": [
+   15.6,
+   "WagonFlatCrates_Wheel_Steel_02",
+   0
+  ],
+  "Axlebox": [
+   8.7,
+   "WagonFlatCrates_Axlebox_Chassis_02",
+   0
+  ],
+  "Stanchion": [
+   5.1,
+   "WagonFlatCrates_Stanchion_Iron_02",
+   0
+  ]
+ },
+ "features_pov": {
+  "BufferHead": [
+   9.1,
+   "WagonFlatCrates_BufferHead_Steel_04",
+   0
+  ],
+  "Wheel": [
+   32.7,
+   "WagonFlatCrates_Wheel_Steel_02",
+   0
+  ],
+  "Axlebox": [
+   12.7,
+   "WagonFlatCrates_Axlebox_Chassis_02",
+   0
+  ],
+  "Stanchion": [
+   7.1,
+   "WagonFlatCrates_Stanchion_Iron_02",
+   0
+  ]
+ },
+ "renders": {
+  "thumb": "renders/thumb.png",
+  "game": "renders/game.png",
+  "pov3p": "renders/pov3p.png",
+  "pov1p": "renders/pov1p.png",
+  "34": "renders/34.png",
+  "side": "renders/side.png",
+  "end": "renders/end.png",
+  "pov3p_2": "renders/pov3p_2.png"
+ },
+ "reimport": {
+  "meshes": 46,
+  "size": [
+   38.8,
+   17.6,
+   8.65
+  ],
+  "tris": 1296,
+  "ratio": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "unit_warning": null,
+  "no_uv": [
+   "WagonFlatCrates_Collider_Proxy_01.001",
+   "WagonFlatCrates_Collider_Proxy_02.001",
+   "WagonFlatCrates_Collider_Proxy_03.001",
+   "WagonFlatCrates_Collider_Proxy_04.001"
+  ]
+ },
+ "files": [
+  "WagonFlatCrates.fbx",
+  "WagonFlatCrates_atlas.fbx",
+  "palette.png",
+  "parts.csv",
+  "WagonFlatCrates.blend",
+  "studio_setup.lua"
+ ]
+}

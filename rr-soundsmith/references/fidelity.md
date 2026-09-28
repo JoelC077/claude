@@ -16,11 +16,14 @@ the in-game level, and "Studio test pending (owner)" at handover.
 | Load latency | PreloadAsync at init removes first-play lag | first lever pull after joining must not be late |
 | Doppler | world parts are moved by CFrame, so engine Doppler is effectively off; DistanceFactor is set from 1/stud_m | none needed unless pass-by sounds are added |
 | Ducking | scripted dB ramps on Heartbeat match the plan exactly | during COAL LOW the wheels dip, then return within a second |
+| Group volumes | a SoundGroup Volume set in Studio is kept as the base; settings and ducks multiply on top | set Ambient to 0.8 in Edit mode, Play: it stays 0.8 until a duck |
 
 ## Listening test (about 15 minutes, owner)
 1. Run `studio_sound_setup.lua` once; put RR_Sound, RR_SoundMap (and RR_Feel) in ReplicatedStorage; add
    RR_SoundDemo.client.lua to StarterPlayerScripts; add Attachments named `RR_Emitter_<role>` where they belong.
-2. Play Solo, press T (trip), then 1-0: can you name each crisis from the far coach with your eyes shut?
-3. Z/X/C: the wheels follow Speed; 0 at a stop.
+2. Play Solo, press T (trip), then 1-0: can you name each crisis from the far coach with your eyes shut? Fire two
+   alarms, then the window smash: both alarms keep sounding.
+3. N (depart ramp over 5 s), Z/X/C, then B (brake to a stop over 4 s): the wheels follow Speed and fade to silence.
+   L switches to the lobby page: bed, queue punch, 5-tick countdown bell, launch whistle.
 4. On a phone (Team Test or a private server): repeat step 2 at half volume.
 5. Report in one line per sound: keep, louder, quieter, replace. Those become `trim_db` edits or new briefs.

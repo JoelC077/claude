@@ -154,13 +154,13 @@ end, 150)
 button("DUMP", bar, function() print(Feel.curveDump(20)) end, 70)
 
 -- lever drag ----------------------------------------------------------------------------------------
-local dragging, committed, startX = false, false, 0
+local dragging, committed, startX, forkId = false, false, 0, 0
 local travel = 120 -- px from centre to either end on this mock console
 local function knobAt(v) knob.Position = UDim2.new(0.5, -22 + v, 0, 30) end
 knob.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 		dragging, committed, startX = true, false, input.Position.X
-		Feel.leverReset()
+		forkId = forkId + 1 -- demo: every drag is a new junction
 		Feel.reset(panel)
 		Feel.reset(timer)
 	end
@@ -168,16 +168,17 @@ end)
 UserInputService.InputChanged:Connect(function(input)
 	if not dragging or committed then return end
 	if input.UserInputType ~= Enum.UserInputType.MouseMovement and input.UserInputType ~= Enum.UserInputType.Touch then return end
+	-- two-way lever (gameplay.fork.lever: pulled left or right): u is signed, the sign picks the branch;
+	-- a real game passes fork = the junction id so the lever re-arms once per junction (here: per drag)
 	local dx = input.Position.X - startX
-	local s = dx < 0 and -1 or 1
-	local shown = Feel.leverDrag(math.abs(dx) / travel, { targets = targets, side = s })
-	if shown >= 1 then
+	local shown = Feel.leverDrag(dx / travel, { targets = targets, fork = forkId })
+	if math.abs(shown) >= 1 then
 		-- committed: the knob stops following the finger and snaps home (lever.snap, overshoot)
 		committed = true
-		Feel.animateValue(knob.Position.X.Offset + 22, s * travel, P.lever.snap, knobAt)
+		Feel.animateValue(knob.Position.X.Offset + 22, shown * travel, P.lever.snap, knobAt)
 		Feel.play("route_locked", { targets = targets })
 	else
-		knobAt(s * shown * travel)
+		knobAt(shown * travel)
 	end
 end)
 UserInputService.InputEnded:Connect(function(input)

@@ -1,0 +1,93 @@
+{
+ "sheet": [
+  786,
+  1182
+ ],
+ "megapixels": 0.93,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "POV roof3p grassland.day, pack at Speed 50 (steam, smoke, brake sparks)",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/pack/pov_grassland.day.png",
+   "box": [
+    6,
+    24,
+    768,
+    432
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "POV roof3p grassland.dusk (+headlamp)",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/pack/pov_grassland.dusk.png",
+   "box": [
+    6,
+    480,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 3,
+   "label": "POV roof3p grassland.night (+headlamp)",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/pack/pov_grassland.night.png",
+   "box": [
+    396,
+    480,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 4,
+   "label": "POV door1p grassland.dusk (+headlamp)",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/pack/pov_grassland.dusk_door1p.png",
+   "box": [
+    6,
+    720,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 5,
+   "label": "POV roof3p night PHONE fallback + phone rates",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/pack/pov_grassland.night.phone.png",
+   "box": [
+    396,
+    720,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 6,
+   "label": "sparks_brake side strip, Speed 35",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/vfx/strip_sparks_brake.png",
+   "box": [
+    6,
+    1012,
+    384,
+    111
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 7,
+   "label": "coal_dust burst time strip",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/vfx/strip_coal_dust.png",
+   "box": [
+    396,
+    1026,
+    384,
+    84
+   ],
+   "scale": "fit x0.37"
+  }
+ ]
+}

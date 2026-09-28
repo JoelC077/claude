@@ -2,26 +2,37 @@
 """rr-game-feel: Risky Rails juice presets as data -> Luau runtime, feel specs, plots, previews, critic hand-off.
 
   feel.py list [--group G]                       events with group, tier, who, channels, loudness
-  feel.py show EVENT [--json] [--rm]             one event: resolved channels and measured metrics
+  feel.py show EVENT [--json] [--rm]             one event: channels, measured metrics, hierarchy pairs
   feel.py validate [--strict] [--json]           schema, Roblox enums, canon agreement, colours, OQs, comfort
-                                                 limits, reduce-motion still communicates, loudness hierarchy
+                                                 limits, visibility, reduce motion, loudness hierarchy, cues
   feel.py spec [EVENT|all] [--out FILE]          feel spec per event (markdown) from the presets
+  feel.py tune [SEL] --out DIR                   tuning table: TUNING.md + tuning.csv (knobs, safe ranges,
+                                                 measured result per event)
+  feel.py set 'PATH=VALUE' ... [--dry-run]       edit feel.json by path (events.x.channels[0].amp=5), keeps
+                                                 the house layout; feel.py fmt [--check] reformats it
+  feel.py changed --since OLD.json               changed events and the groups to re-preview / re-critique
   feel.py plot curves|lever|sustain|EVENT|all --out DIR [--compare DUMP]
                                                  PNG plots (Pillow); --compare overlays a Studio curve dump
-  feel.py preview GROUP|EVENT|all --out DIR [--gif] [--rm]
+  feel.py preview GROUP|EVENT|E1,E2,..|all --out DIR [--name N] [--gif] [--rm]
                                                  mock phone frames, filmstrips, feel matrix, contact.png,
-                                                 closeups.png, facts.md (multiuse-critic layout)
+                                                 closeups.png, facts.md (multiuse-critic layout); an EVENT
+                                                 goes to DIR/ev_<event>, a list to DIR/<N or set_<first>>
   feel.py crit CRIT --pass N --from DIR          CRIT/rubric.md with Profile G, pass files, brief from canon
-  feel.py build --out DIR [--no-check]           RR_FeelPresets.lua + runtime modules + FEEL_SPEC.md + README,
-                                                 then luaparse and bible check gates
+  feel.py build --out DIR [--no-check]           RR_FeelPresets.lua, RR_FeelTyped.luau (strict types), runtime
+                                                 modules, FEEL_SPEC.md, README; then the Luau syntax gate
+                                                 (luau-compile, else luaparse, else SKIP), strict typecheck
+                                                 when luau-lsp is installed, and bible check
 
-Presets: ../presets/feel.json (or $RR_FEEL_PRESETS, a file or a folder holding feel.json). Canon: the rr-bible
-skill (found by glob or $RR_BIBLE_SKILL). Critic scripts: multiuse-critic ($RR_CRITIC_SKILL). Standard library
-only; plot and preview need Pillow. Exit codes: 0 ok, 1 check failed, 2 usage or missing input.
+Presets: --presets FILE, else $RR_FEEL_PRESETS (a file or a folder holding feel.json), else the skill's own
+copy (read-only: copy it into the project first). Every command prints which file it used. Canon: the
+rr-bible skill (found by glob or $RR_BIBLE_SKILL). Critic scripts: multiuse-critic ($RR_CRITIC_SKILL); cue
+names: rr-vfx-lighting ($RR_VFX_SKILL), rr-soundsmith ($RR_SOUND_SKILL). Standard library only; plot and
+preview need Pillow. Exit codes: 0 ok, 1 check failed, 2 usage or missing input.
 """
-import argparse, colorsys, copy, datetime as _dt, json, math, os, re, shutil, subprocess, sys
+import argparse, colorsys, copy, datetime as _dt, json, math, os, re, shutil, statistics, subprocess, sys
 from pathlib import Path
 
+sys.dont_write_bytecode = True   # never leave __pycache__ in the skill folder
 HERE = Path(__file__).resolve().parent
 SKILL = HERE.parent
 sys.path.insert(0, str(HERE))
@@ -44,9 +55,20 @@ EVENT_FIELDS = ("group", "priority", "who", "trigger", "intent")
 WHO = ("local", "actor", "crew", "all")
 
 
-def presets_path():
-    p = Path(os.environ.get("RR_FEEL_PRESETS", SKILL / "presets" / "feel.json"))
-    return p / "feel.json" if p.is_dir() else p
+def presets_path(explicit=None):
+    """(path, how): --presets, then $RR_FEEL_PRESETS, then the skill's own copy (read-only default)."""
+    if explicit:
+        p, how = Path(explicit), "--presets"
+    elif os.environ.get("RR_FEEL_PRESETS"):
+        p, how = Path(os.environ["RR_FEEL_PRESETS"]), "$RR_FEEL_PRESETS"
+    else:
+        p, how = SKILL / "presets" / "feel.json", "skill default copy: read-only, copy it into the project to edit"
+    return (p / "feel.json" if p.is_dir() else p), how
+
+
+def die(msg, code=2):
+    print(msg)
+    sys.exit(code)
 
 
 # ------------------------------------------------------------------ siblings
@@ -120,18 +142,21 @@ class Model:
     """Raw presets + a resolved copy (numbers and hex only) that feelmath and the Luau generator use."""
 
     def __init__(self, path=None, bible=None):
-        self.path = Path(path) if path else presets_path()
+        self.path, self.how = presets_path(path)
         if not self.path.is_file():
-            sys.exit(f"presets not found: {self.path}")
-        self.raw = json.loads(self.path.read_text(encoding="utf-8"))
+            die(f"presets not found: {self.path} ({self.how})")
+        try:
+            self.raw = json.loads(self.path.read_text(encoding="utf-8"))
+        except ValueError as e:
+            die(f"presets {self.path} are not valid JSON: {e}")
         self.bible = bible or Bible()
-        self.refs, self.colours, self.problems = [], [], []
+        self.refs, self.colours, self.problems, self.notes = [], [], [], []
         self.r = self._resolve(copy.deepcopy(self.raw), "")
         self.events = self.r["events"]
 
     def _resolve(self, node, where):
         if isinstance(node, dict):
-            if "v" in node and "canon" in node and set(node) <= {"v", "canon", "scale", "note"}:
+            if "v" in node and "canon" in node and set(node) <= {"v", "canon", "scale", "note", "match"}:
                 self.refs.append((where, node))
                 return node["v"]
             return {k: self._resolve(v, f"{where}.{k}" if where else k) for k, v in node.items()}
@@ -156,10 +181,19 @@ class Model:
             return list(ev)
         if sel in ev:
             return [sel]
+        if "," in sel:
+            bad = [n for n in sel.split(",") if n not in ev]
+            if bad:
+                die(f"unknown events: {', '.join(bad)}")
+            return sel.split(",")
         g = [n for n, e in ev.items() if e.get("group") == sel]
         if not g:
-            sys.exit(f"no event or group {sel!r}; groups: {', '.join(sorted({e['group'] for e in ev.values()}))}")
+            die(f"no event or group {sel!r}; groups: {', '.join(sorted({e['group'] for e in ev.values()}))}")
         return g
+
+    def source(self, full=True):
+        """Presets file: the full path and how it was chosen (commands), or the last three parts (exports)."""
+        return f"{self.path} ({self.how})" if full else "/".join(self.path.parts[-3:])
 
 
 # ------------------------------------------------------------------ metrics
@@ -170,7 +204,18 @@ def is_red(hexcol):
 
 
 def metrics(model, name, reduce_motion=False, profile="default", sample=None):
-    """Measured peaks for one event (phone pixels from the canon phone size and FOV)."""
+    """Measured peaks for one event (phone pixels from the canon phone size and FOV); cached per model."""
+    key = (name, reduce_motion, profile)
+    cache = model.__dict__.setdefault("_mcache", {})
+    if sample is None and key in cache:
+        return dict(cache[key])
+    m = _metrics(model, name, reduce_motion, profile, sample)
+    if sample is None:
+        cache[key] = dict(m)
+    return m
+
+
+def _metrics(model, name, reduce_motion, profile, sample):
     r = model.r
     s = sample or fm.sample_event(r, name, reduce_motion=reduce_motion, profile=profile)
     L, pv, lim = s["lanes"], model.phone(), r["limits"]
@@ -208,6 +253,12 @@ def metrics(model, name, reduce_motion=False, profile="default", sample=None):
     m["flash_red"] = fl_red
     m["punch_scale"] = round(peak(lambda k: ":punch:" in k and k.endswith(":scale")), 3)
     m["punch_px"] = round(peak(lambda k: ":punch:" in k and (k.endswith(":x_px") or k.endswith(":y_px"))), 2)
+    m["fov_signed"] = 0.0
+    fl = [v for k, lane in L.items() if k.endswith(":fovkick") for v in lane]
+    if fl:
+        m["fov_signed"] = round(max(fl, key=abs), 2)
+    pulses = [ch for ch, _ in s["meta"]["channels"] if ch["type"] == "pulse"]
+    m["pulse_depth"] = round(max([abs(ch["max"] - ch["min"]) for ch in pulses] + [0.0]), 3)
     hap = [v for k, lane in L.items() if k.endswith(":haptic") for v in lane]
     m["haptic_peak"] = round(max(hap) if hap else 0.0, 3)
     m["haptic_ms"] = round(sum(1 for v in hap if v > 0.01) * 1000 / 60)
@@ -215,29 +266,39 @@ def metrics(model, name, reduce_motion=False, profile="default", sample=None):
     finite = [d + fm.channel_len(r, ch) for ch, d in s["meta"]["channels"] if ch not in loops]
     m["total_s"] = round(max(finite + [0.0]) + m["hitstop_ms"] / 1000, 3)
     m["loops"] = len(loops)
+    # what still carries the event (canon av.feel.reduce_motion: colour, haptics or sound); "visible" needs a
+    # change a player can see on a phone (limits.visible_scale_min, limits.punch_px_min)
+    vis_scale, vis_px = lim.get("visible_scale_min", 0.03), lim.get("punch_px_min", 1.5)
     comm = []
+    if any((":tween:" in k and k.endswith((":alpha", ":fadealpha")) and max(v) - min(v) > 0.05) or
+           (":pulse:" in k and max(v) - min(v) > 0.05) for k, v in L.items()):
+        comm.append("alpha")
+    if m["flash_peak"] > 0 or any(":flash:" in k and max(v) > 0.05 for k, v in L.items()):
+        comm.append("flash")
+    if any(":tween:" in k and k.endswith((":scale", ":rot", ":count")) and
+           max(v) - min(v) > (vis_scale if k.endswith(":scale") else 0.01) for k, v in L.items()):
+        comm.append("tween")
+    if m["punch_scale"] >= vis_scale or m["punch_px"] >= vis_px:
+        comm.append("punch")
+    if m["cam_px"] > lim.get("kick_px_min", 1.5) or abs(m["fov_signed"]) > 0.5:
+        comm.append("camera")
+    cues = [ch for ch, _ in s["meta"]["channels"] if ch["type"] == "cue"]
+    if any(ch.get("vfx") for ch in cues):
+        comm.append("vfx")
+    if any(ch.get("sfx") for ch in cues):
+        comm.append("sound")
     if m["haptic_peak"] > 0:
         comm.append("haptic")
-    if m["flash_peak"] > 0 or any(":flash:" in k and max(v) > 0 for k, v in L.items()):
-        comm.append("flash")
-    if any((":tween:" in k and k.endswith((":alpha", ":fadealpha"))) or ":pulse:" in k for k in L):
-        comm.append("alpha")
-    if any(":tween:" in k and k.endswith((":scale", ":rot", ":count")) and max(v) - min(v) > 0.01 for k, v in L.items()):
-        comm.append("tween")
-    if m["punch_scale"] > 0.01 or m["punch_px"] > 0.5:
-        comm.append("punch")
-    if m["cam_px"] > 0.5 or m["fov_deg"] > 0:
-        comm.append("camera")
-    if any(ch["type"] == "cue" for ch, _ in s["meta"]["channels"]):
-        comm.append("cue")
     m["communicates"] = comm
+    m["reaches_all"] = [c for c in comm if c != "haptic"]   # PC and most tablets have no haptic motor
     w = lim["loudness_weights"]
+    hud = max(min(1, m["punch_px"] / lim.get("hud_px_ref", 5)), m["pulse_depth"])
     parts = {"shake": m["shake"], "camkick": min(1, m["kick_deg"] / lim["kick_deg_max"]),
              "hitstop": min(1, m["hitstop_ms"] / lim["hitstop_ms_max"]),
              "flash": min(1, m["flash_peak"] / r["a11y"]["flash"]["screen_peak_max"]),
              "fovkick": min(1, m["fov_deg"] / lim["fov_delta_max"]), "haptic": m["haptic_peak"] * min(1, m["haptic_ms"] / 300),
-             "punch": min(1, m["punch_scale"] / lim["punch_scale_amp_max"])}
-    m["loudness"] = round(sum(w[k] * v for k, v in parts.items()) / sum(w.values()), 3)
+             "punch": min(1, m["punch_scale"] / lim["punch_scale_amp_max"]), "hud": hud}
+    m["loudness"] = round(sum(w.get(k, 0) * v for k, v in parts.items()) / sum(w.values()), 3)
     return m
 
 
@@ -256,8 +317,66 @@ def sustain_metrics(model):
 
 
 # ------------------------------------------------------------------ validate
+UNIT_RE = re.compile(r"(?:\+-|±)?\s*-?\d+(?:\.\d+)?(?:\s*(?:px|ms|s|deg|studs|%|x)\b)?")
+FWD_RE = re.compile(r"\b(?:leans?|lurch(?:es)?|pitch(?:es)?|tips?|thrown|jolts?|dips?)\s+forward\b|\bnods?\b|\bdips?\b")
+BACK_RE = re.compile(r"\b(?:leans?|lurch(?:es)?|pitch(?:es)?|tips?|thrown|pushed|rocks?)\s+back(?:ward)?\b")
+STOP = {"with", "from", "that", "this", "when", "what", "where", "which", "does", "into", "only", "their", "there",
+        "they", "them", "then", "than", "each", "every", "missing", "canon", "event", "events", "default", "before",
+        "after", "about", "over", "under", "once", "just", "plays", "play", "same", "more", "most", "some", "your"}
+
+
+def first_num(text):
+    m = NUM_RE.search(str(text).replace("+-", " ").replace("±", " "))
+    return float(m.group()) if m else None
+
+
+def canon_phrase(fact, want):
+    """The unit-tagged phrase in a fact whose number is `want` (suggested as a ref's "match")."""
+    for m in UNIT_RE.finditer(str(fact)):
+        n = first_num(m.group())
+        if n is not None and abs(abs(n) - abs(want)) < 1e-6:
+            return m.group().strip()
+    return None
+
+
+def words(text):
+    return {w.rstrip("s") for w in re.findall(r"[a-z]{4,}", str(text).lower().replace("_", " ")) if w not in STOP}
+
+
+def hierarchy(model, loud=None):
+    """{event: [(higher-tier event, its loudness), ...]} for every higher-tier event this one outshouts."""
+    loud = loud or {n: (int(e["priority"]), metrics(model, n)["loudness"]) for n, e in model.events.items()}
+    out = {}
+    for n, (t, l) in loud.items():
+        out[n] = sorted([(o, lo) for o, (to, lo) in loud.items() if to < t and l > lo + 1e-9], key=lambda x: x[1])
+    return out, loud
+
+
+def shake_px(model, trauma):
+    """Upper bound of the camera motion one shake channel adds on the phone (trauma -> shake = trauma^power)."""
+    r, pv = model.r, model.phone()
+    sh, near = r["shake"], float(r["meta"]["near_depth_studs"])
+    s = min(1.0, trauma) ** sh["power"]
+    return pv.deg_px(math.hypot(*sh["max_angle_deg"][:2]) * s) + pv.studs_px(math.hypot(*sh["max_offset_studs"][:2]) * s, near) \
+        + pv.roll_edge_px(sh["max_angle_deg"][2] * s) * 0.5
+
+
+def oq_ids(model):
+    """(where, OQ id, context words) for every OQ cited by an event or a global section."""
+    r, out = model.r, []
+    for name, ev in r["events"].items():
+        ctx = words(" ".join([name, ev.get("group", ""), ev.get("trigger", ""), ev.get("intent", "")] + list(ev.get("canon", []))))
+        out += [(f"events.{name}", o, ctx) for o in ev.get("oq", [])]
+    out += [("lever", o, words("lever pull junction fork drag console input " + json.dumps(r["lever"]))) for o in r["lever"].get("oq", [])]
+    out += [("a11y", o, words("feel accessibility settings reduce motion shake flashes haptics")) for o in r["a11y"].get("oq", [])]
+    po = r["sustain"]["pressure"].get("oq")
+    if po:
+        out.append(("sustain.pressure", po, words("boiler pressure gauge redline rumble")))
+    return out
+
+
 def validate(model, strict=False):
-    r, raw, b = model.r, model.raw, model.bible
+    r, raw, b, notes = model.r, model.raw, model.bible, model.notes
     for name, ev in raw.get("events", {}).items():
         for i, ch in enumerate(ev.get("channels", [])):
             col = ch.get("color")
@@ -272,7 +391,8 @@ def validate(model, strict=False):
             errs.append(f"missing top-level section {key!r}")
     if errs:
         return errs, warns
-    # canon agreement
+    # canon agreement: strings equal the fact; numbers are bound to a phrase of the fact ("match") whose first
+    # number is v x scale (sign ignored); without match the number must appear, and must be unambiguous
     for where, ref in model.refs:
         f = b.fact(ref["canon"]) if b.ok() else None
         if not f:
@@ -282,15 +402,26 @@ def validate(model, strict=False):
             errs.append(f"{where}: {ref['canon']} is superseded")
         elif f["status"] == "conflict":
             warns.append(f"{where}: {ref['canon']} is a conflict: label output 'assumed (OQ default)'")
-        v = ref["v"]
+        v, fact = ref["v"], str(f["value"])
         if isinstance(v, str):
-            if v.strip().lower() != str(f["value"]).strip().lower():
-                errs.append(f"{where}: {v!r} contradicts canon {ref['canon']} = {f['value']!r}")
-        else:
-            want = v * ref.get("scale", 1)
-            nums = [float(x) for x in NUM_RE.findall(str(f["value"]).replace("+-", " "))]
-            if not any(abs(abs(n) - abs(want)) < 1e-6 for n in nums):
-                errs.append(f"{where}: {v} not found in canon {ref['canon']} = {f['value']!r}")
+            if v.strip().lower() != fact.strip().lower():
+                errs.append(f"{where}: {v!r} contradicts canon {ref['canon']} = {fact!r}")
+            continue
+        want = v * ref.get("scale", 1)
+        if "match" in ref:
+            mt = str(ref["match"])
+            n = first_num(mt)
+            if mt.lower() not in fact.lower():
+                errs.append(f"{where}: match {mt!r} is not in canon {ref['canon']} = {fact!r}")
+            elif n is None or abs(abs(n) - abs(want)) > 1e-6:
+                errs.append(f"{where}: {v} disagrees with canon {ref['canon']}: {mt!r} says {n}")
+            continue
+        nums = {abs(float(x)) for x in NUM_RE.findall(fact.replace("+-", " "))}
+        if not any(abs(n - abs(want)) < 1e-6 for n in nums):
+            errs.append(f"{where}: {v} not found in canon {ref['canon']} = {fact!r}")
+        elif len(nums) > 1:
+            warns.append(f"{where}: canon {ref['canon']} holds several numbers; bind the value with \"match\": "
+                         f"{json.dumps(canon_phrase(fact, want) or str(want))}")
     # colours
     for where, tok, f in model.colours:
         if f and f["status"] == "superseded":
@@ -315,12 +446,6 @@ def validate(model, strict=False):
                 errs.append(f"{where}: cites unknown canon {k}")
         if ev.get("alert") and b.ok() and not b.fact(ev["alert"]):
             errs.append(f"{where}: alert {ev['alert']} not in gameplay.alerts")
-        for oid in ev.get("oq", []):
-            o = b.oq(oid) if b.ok() else {}
-            if o is None:
-                errs.append(f"{where}: {oid} not found in rr-bible")
-            elif o and o.get("fields", {}).get("status", "open") != "open":
-                warns.append(f"{where}: {oid} is no longer open: update the preset to the decision")
         for inc in ev.get("include", []):
             if inc.get("event") not in r["events"]:
                 errs.append(f"{where}: include {inc.get('event')!r} is not an event")
@@ -331,6 +456,28 @@ def validate(model, strict=False):
             continue
         for i, ch in enumerate(ev.get("channels", [])):
             errs += check_channel(r, f"{where}.channels[{i}]", ch, roles, ev)
+    for g, names in groups.items():
+        if len(names) > 7:
+            warns.append(f"group {g}: {len(names)} events (keep <= 7: two images per critic)")
+    # open questions: exist, still open, and about this event (OQ numbers race between parallel skills)
+    for where, oid, ctx in oq_ids(model):
+        if re.match(r"^OQ-TBD", oid):
+            notes.append(f"{where}: {oid} is an unrecorded question: the owner records it (bible.py add-question "
+                         "TITLE --option 'A: ..' --option 'B: ..' --default 'A (why)' --src IDS --affects KEYS), "
+                         "then the preset cites the new number")
+            continue
+        o = b.oq(oid) if b.ok() else {}
+        if o is None:
+            errs.append(f"{where}: {oid} not found in rr-bible")
+            continue
+        if not o:
+            continue
+        if o.get("fields", {}).get("status", "open") != "open":
+            warns.append(f"{where}: {oid} is no longer open: update the preset to the decision")
+        title = o.get("title", "")
+        if ctx and not (words(title) & ctx):
+            warns.append(f"{where}: {oid} is {title!r}, which shares no word with what cites it: wrong number? "
+                         "(cite OQ-TBD-<slug> until the owner records it)")
     if errs:
         return errs, warns
     # alert coverage
@@ -341,8 +488,8 @@ def validate(model, strict=False):
         for k in alert_ids:
             if k not in covered:
                 warns.append(f"alert {k} has no feel event")
-    # comfort limits, reduce motion, hierarchy
-    lim, a11y = r["limits"], r["a11y"]["flash"]
+    # comfort limits, visibility, reduce motion, direction
+    lim, a11y, pv = r["limits"], r["a11y"]["flash"], model.phone()
     loud = {}
     for name, ev in r["events"].items():
         tier = str(ev["priority"])
@@ -355,10 +502,27 @@ def validate(model, strict=False):
             errs.append(f"{where}: roll {m['roll_deg']} deg > {lim['roll_deg_max']}")
         if m["kick_deg"] > lim["kick_deg_max"]:
             errs.append(f"{where}: camera kick {m['kick_deg']} deg > {lim['kick_deg_max']}")
-        kick_px = model.phone().deg_px(m["kick_deg"])
+        kick_px = pv.deg_px(m["kick_deg"])
         if 0 < kick_px < lim.get("kick_px_min", 0):
             warns.append(f"{where}: camera kick peaks at {kick_px:.1f} px on a phone, under {lim['kick_px_min']} px: "
                          "nobody will see it (raise it or drop it)")
+        for i, ch in enumerate(ev.get("channels", [])):
+            if ch["type"] == "shake":
+                px = shake_px(model, ch["trauma"])
+                if px < lim.get("kick_px_min", 0):
+                    warns.append(f"{where}.channels[{i}]: shake trauma {ch['trauma']} peaks at {px:.1f} px on a phone "
+                                 f"(shake = trauma^{r['shake']['power']}): invisible; raise it or use a camkick")
+            if ch["type"] == "punch" and ch["prop"] in ("x_px", "y_px") and abs(ch["amp"]) < lim.get("punch_px_min", 0):
+                warns.append(f"{where}.channels[{i}]: punch of {abs(ch['amp'])} px is under {lim['punch_px_min']} px: invisible")
+            if ch["type"] == "camkick" and ch["angles_deg"][0]:
+                txt = f"{ev.get('intent', '')} {ev.get('trigger', '')}".lower()
+                p = ch["angles_deg"][0]
+                if p > 0 and FWD_RE.search(txt):
+                    warns.append(f"{where}.channels[{i}]: pitch {p:+g} tips the view UP (Roblox: + looks up), but the "
+                                 "intent says forward/nod/dip: use a negative pitch")
+                elif p < 0 and BACK_RE.search(txt):
+                    warns.append(f"{where}.channels[{i}]: pitch {p:+g} tips the view DOWN, but the intent says "
+                                 "back: use a positive pitch (Roblox: + looks up)")
         if m["fov_deg"] > lim["fov_delta_max"]:
             errs.append(f"{where}: FOV kick {m['fov_deg']} > {lim['fov_delta_max']}")
         if m["hitstop_ms"] > lim["hitstop_ms_max"]:
@@ -371,17 +535,26 @@ def validate(model, strict=False):
         if ev["priority"] > 2 and any(ch["type"] == "flash" and is_red(ch["color"]) for ch, _ in fm.expand(r, name)):
             errs.append(f"{where}: red flash on a tier {tier} event; red is only the danger signal (style.dont.red_decoration)")
         rmm = metrics(model, name, reduce_motion=True)
-        if not rmm["communicates"]:
-            errs.append(f"{where}: with Reduce Motion on nothing is left (needs haptic, flash, alpha, punch or a cue)")
+        if not rmm["reaches_all"] and not ev.get("rm_reads"):
+            left = ", ".join(rmm["communicates"]) or "nothing"
+            errs.append(f"{where}: with Reduce Motion on only {left} is left (av.feel.reduce_motion): keep a visible "
+                        "channel (alpha, colour flash, scale >= limits.visible_scale_min) or a sound cue, or say in "
+                        "rm_reads what still shows it (a haptic alone misses PC and most tablets)")
         lm = metrics(model, name, profile="loud")
         if lm["cam_px"] > lim["tier_shake_px"][tier] * 1.25:
             warns.append(f"{where}: loud profile moves the camera {lm['cam_px']} px (tier {tier} limit x1.25)")
-    tiers = sorted({t for t, _ in loud.values()})
-    for hi in tiers:
-        top_hi = max(l for t, l in loud.values() if t == hi)
+    # hierarchy: a lower tier may beat single events of a higher tier, never most of it (median); pairs are noted
+    pairs, _ = hierarchy(model, loud)
+    for hi in sorted({t for t, _ in loud.values()}):
+        med = statistics.median(l for t, l in loud.values() if t == hi)
         for name, (t, l) in loud.items():
-            if t > hi and l > top_hi + 1e-9:
-                warns.append(f"hierarchy: {name} (tier {t}, loudness {l}) outshouts every tier {hi} event (max {top_hi})")
+            if t > hi and l > med + 1e-9:
+                warns.append(f"hierarchy: {name} (tier {t}, loudness {l}) is louder than most tier {hi} events "
+                             f"(median {med:.3f})")
+    n_pairs = sum(len(v) for v in pairs.values())
+    if n_pairs:
+        notes.append(f"hierarchy: {n_pairs} single pairs where a lower tier outshouts a higher-tier event "
+                     "(feel.py show EVENT lists them; never claim 'quieter than every X' without checking)")
     for src in ("speed", "pressure"):
         if r["sustain"][src]["gain"] > r["shake"]["sustain_cap"]:
             errs.append(f"sustain {src}: gain {r['sustain'][src]['gain']} > sustain_cap {r['shake']['sustain_cap']} "
@@ -393,14 +566,13 @@ def validate(model, strict=False):
     lv = r["lever"]
     if not 0.3 <= lv["detent"] <= 0.95:
         errs.append("lever.detent must be 0.3-0.95")
+    if "notch" in lv and not 0.2 <= lv["notch"] < lv["detent"]:
+        errs.append("lever.notch must be 0.2 or more and below lever.detent (the tick is felt before the commit)")
     for k in ("detent_event", "commit_event", "snapback_event"):
         if lv.get(k) not in r["events"]:
             errs.append(f"lever.{k}: {lv.get(k)!r} is not an event")
     for k in ("snap", "snapback"):
         errs += check_ease(f"lever.{k}", lv[k])
-    for oid in lv.get("oq", []) + r["a11y"].get("oq", []) + [r["sustain"]["pressure"].get("oq", "OQ-013")]:
-        if b.ok() and b.oq(oid) is None:
-            errs.append(f"{oid} not found in rr-bible")
     # profiles
     for p, d in r["profiles"].items():
         if p == "about":
@@ -408,18 +580,23 @@ def validate(model, strict=False):
         for k, v in d.items():
             if k in ("flash", "hitstop") and v > 1:
                 errs.append(f"profiles.{p}.{k} = {v}: flashes and hit-stop never go above default")
-    # vfx cues against rr-vfx-lighting
-    fx = find_sibling("rr-vfx-lighting", "RR_VFX_SKILL")
-    names = set()
-    if fx and (fx / "presets" / "vfx.json").is_file():
-        names = set(json.loads((fx / "presets" / "vfx.json").read_text()).get("presets", {}))
-    for name, ev in r["events"].items():
-        for ch in ev.get("channels", []):
-            if ch["type"] == "cue" and ch.get("vfx"):
-                if not names:
-                    warns.append(f"events.{name}: vfx cue {ch['vfx']} unchecked (rr-vfx-lighting not found)")
-                elif ch["vfx"] not in names:
-                    errs.append(f"events.{name}: vfx cue {ch['vfx']} is not an rr-vfx-lighting preset")
+    # cue names against the sibling skills (a missing sibling is a note, not a failure)
+    for label, skill, env, rel, key, field in (("rr-vfx-lighting preset", "rr-vfx-lighting", "RR_VFX_SKILL", "presets/vfx.json", "presets", "vfx"),
+                                               ("rr-soundsmith sound", "rr-soundsmith", "RR_SOUND_SKILL", "presets/soundmap.json", "sounds", "sfx")):
+        sib = find_sibling(skill, env)
+        known = set()
+        if sib and (sib / rel).is_file():
+            try:
+                known = set(json.loads((sib / rel).read_text(encoding="utf-8")).get(key, {}))
+            except ValueError:
+                known = set()
+        used = sorted({(n, ch[field]) for n, ev in r["events"].items() for ch in ev.get("channels", [])
+                       if ch["type"] == "cue" and ch.get(field)})
+        if not known and used:
+            notes.append(f"{field} cue names unchecked: {skill} not found (set {env})")
+        for n, c in used:
+            if known and c not in known:
+                errs.append(f"events.{n}: {field} cue {c} is not an {label}")
     if strict and warns:
         errs += [f"(strict) {w}" for w in warns]
     return errs, warns
@@ -470,9 +647,10 @@ def check_channel(r, where, ch, roles, ev):
             dlo, dhi = lim["damping"]
             if not dlo <= ch.get("damping", 0.3) <= dhi:
                 out.append(f"{where}: damping outside {dlo}-{dhi}")
-            resid = abs(fm.spring(ch["dur"] - 1e-3, 1, ch["freq_hz"], ch.get("damping", 0.3), ch.get("shape", "sin")))
+            z, shape = ch.get("damping", 0.3), ch.get("shape", "sin")
+            resid = abs(fm.spring(ch["dur"] - 1e-3, 1, ch["freq_hz"], z, shape)) / fm.peak_gain(ch["freq_hz"], z, shape, ch["dur"])
             if resid > 0.05:
-                out.append(f"{where}: spring still at {resid:.0%} of amp when it ends: raise dur or damping (visible snap)")
+                out.append(f"{where}: spring still at {resid:.0%} of its peak when it ends: raise dur or damping (visible snap)")
         if ch["prop"] == "scale" and ch["amp"] > lim["punch_scale_amp_max"]:
             out.append(f"{where}: scale punch {ch['amp']} > {lim['punch_scale_amp_max']}")
     if t == "camkick":
@@ -481,6 +659,9 @@ def check_channel(r, where, ch, roles, ev):
         dlo, dhi = lim["damping"]
         if not dlo <= ch.get("damping", 0.4) <= dhi:
             out.append(f"{where}: damping outside {dlo}-{dhi}")
+        flo, fhi = lim.get("camkick_freq_hz", [0.5, 14])
+        if not flo <= ch["freq_hz"] <= fhi:
+            out.append(f"{where}: camkick freq_hz {ch['freq_hz']} outside {flo}-{fhi}")
     if t == "shake" and not 0 < ch["trauma"] <= 1:
         out.append(f"{where}: trauma must be in (0, 1]")
     if t == "hitstop" and ev.get("who") == "crew":
@@ -498,7 +679,7 @@ def check_channel(r, where, ch, roles, ev):
                 out.append(f"{where}: flash peak {ch['peak']} > {cap} (photosensitivity cap)")
             if ch["in"] < 0.02:
                 out.append(f"{where}: flash in < 0.02 s (a one-frame strobe)")
-    if t == "fov" and abs(ch["delta_deg"]) > lim["fov_delta_max"]:
+    if t == "fovkick" and abs(ch["delta_deg"]) > lim["fov_delta_max"]:
         out.append(f"{where}: FOV delta {ch['delta_deg']} > {lim['fov_delta_max']}")
     if t == "haptic":
         if ch["effect"] not in HAPTIC_TYPES:
@@ -514,6 +695,8 @@ def check_channel(r, where, ch, roles, ev):
             out.append(f"{where}: last key must be 0 (a motor left running)")
     if t == "pulse" and ch["period"] < 0.5:
         out.append(f"{where}: pulse period {ch['period']} < 0.5 s flickers (photosensitivity)")
+    if t == "pulse" and not ch["min"] < ch["max"]:
+        out.append(f"{where}: pulse min {ch['min']} must be below max {ch['max']} (swapped range)")
     if t == "cue" and not (ch.get("sfx") or ch.get("vfx")):
         out.append(f"{where}: cue needs sfx or vfx")
     return out
@@ -531,11 +714,12 @@ def channel_line(ch, d, pv):
         what = f"{ch['prop']} {fmt(ch['from'])} -> {fmt(ch['to'])}, {ch.get('style', 'Quad')} {ch.get('dir', 'Out')}"
         span = ch["dur"]
     elif t == "punch":
-        what = f"{ch['prop']} punch {fmt(ch['amp'])} ({ch.get('shape', 'sin')}, {fmt(ch['freq_hz'])} Hz, damping {fmt(ch.get('damping', 0.3))})"
+        what = f"{ch['prop']} punch peak {fmt(ch['amp'])} ({ch.get('shape', 'sin')}, {fmt(ch['freq_hz'])} Hz, damping {fmt(ch.get('damping', 0.3))})"
         span = ch["dur"]
     elif t == "camkick":
         p, y, rr = ch["angles_deg"]
-        what = f"kick pitch {fmt(p)} yaw {fmt(y)} roll {fmt(rr)} deg{' toward the pulled side' if ch.get('side_sign') else ''}, {fmt(ch['freq_hz'])} Hz"
+        what = (f"kick peak pitch {fmt(p)} ({'view up' if p > 0 else 'view down' if p < 0 else '-'}) yaw {fmt(y)} roll {fmt(rr)} deg"
+                f"{' toward the pulled side' if ch.get('side_sign') else ''}, {fmt(ch['freq_hz'])} Hz")
         span = ch["dur"]
     elif t == "shake":
         what = f"add trauma {fmt(ch['trauma'])}"
@@ -577,7 +761,8 @@ def spec_event(model, name):
     if cites:
         out.append("- **Canon:** " + "; ".join(f"`{k}` = {model.bible.value(k)}" for k in dict.fromkeys(cites)))
     if ev.get("oq"):
-        out.append("- **Open:** " + "; ".join(f"{o} (default in use; label 'assumed ({o} default)')" for o in ev["oq"]))
+        out.append("- **Open:** " + "; ".join(f"{o} (unrecorded: owner gate)" if o.startswith("OQ-TBD") else
+                                              f"{o} (default in use; label 'assumed ({o} default)')" for o in ev["oq"]))
     out += ["", "| start s | end s | channel | target | what |", "|---|---|---|---|---|"]
     out += [channel_line(ch, d, pv) for ch, d in fm.expand(r, name)]
     out += ["", f"- **Measured (phone {r['meta']['phone']}, FOV {r['meta']['fov_deg']}):** camera {m['cam_px']} px "
@@ -585,7 +770,9 @@ def spec_event(model, name):
             f"screen flash {m['flash_peak']}, haptic {m['haptic_peak']} for {m['haptic_ms']} ms, lasts {m['total_s']} s"
             f"{' + loop' if m['loops'] else ''}, loudness {m['loudness']}.",
             f"- **Reduce motion:** camera {rm['cam_px']} px, FOV {rm['fov_deg']}; still reads through: "
-            f"{', '.join(rm['communicates']) or 'NOTHING (fails validate)'}.",
+            f"{', '.join(rm['communicates']) or 'nothing in the feel channels'}"
+            f"{'; outside feel: ' + ev['rm_reads'] if ev.get('rm_reads') else ''}.",
+            "- **Hierarchy:** " + hier_line(model, name),
             f"- **Studio check (owner):** trigger it from RR_FeelDemo; it should read as: {ev['intent']}.", ""]
     notes = [c.get("note") for c in raw.get("channels", []) if c.get("note")]
     if notes:
@@ -593,16 +780,27 @@ def spec_event(model, name):
     return "\n".join(out)
 
 
+def hier_line(model, name, pairs=None):
+    pairs = pairs or hierarchy(model)[0]
+    beats = pairs.get(name, [])
+    if not beats:
+        return "quieter than every event of a higher tier."
+    return ("louder than " + ", ".join(f"{o} (tier {model.events[o]['priority']}, {lo:.2f})" for o, lo in beats)
+            + f" at {metrics(model, name)['loudness']:.2f}; quieter than the rest of the higher tiers.")
+
+
 def spec(model, sel="all"):
     names = model.names(sel)
     r = model.r
     head = [f"# Risky Rails feel spec ({TODAY})", "",
-            f"Generated by rr-game-feel from `{model.path.name}`; do not edit, regenerate (`feel.py spec`). "
+            f"Generated by rr-game-feel from `{model.source(full=False)}`; do not edit, regenerate (`feel.py spec`). "
             "Times are seconds from the event; motion channels run on the feel clock and hold during hit-stop; "
             "flashes, haptics, hit-stop and cues run on real time. Phone pixels use "
             f"`tech.ui_platform.phone` {r['meta']['phone']} and `tech.camera.fov_v` {r['meta']['fov_deg']}.", "",
             "Tiers: " + ", ".join(f"{k} {v}" for k, v in r["limits"]["tiers"].items()) +
-            ". A lower tier never outshouts a higher one (validate checks loudness).", ""]
+            ". A lower tier is never louder than most of a higher tier (validate checks the median); single pairs "
+            "where it is are listed per event under Hierarchy. Punch amps and kick angles are the delivered peaks; "
+            "a positive pitch tips the view up.", ""]
     if sel in (None, "", "all"):
         sm = sustain_metrics(model)
         head += ["## Sustained shake (trauma floor)",
@@ -611,8 +809,10 @@ def spec(model, sel="all"):
                  f"- Pressure: floor = {r['sustain']['pressure']['gain']} x clamp((p - {r['sustain']['pressure']['threshold']}) / "
                  f"{1 - r['sustain']['pressure']['threshold']:.2f}); at redline {sm['pressure']['px_max']} px (numbers: OQ-013 default).",
                  f"- Cap {r['shake']['sustain_cap']}: both at once {sm['both']['px_max']} px; reduce motion: 0.", "",
-                 "## Lever drag", f"- Knob = detent x (finger / detent)^{r['lever']['resist']} until the finger passes "
-                 f"{r['lever']['detent']:.0%} of the travel (heavy), then {r['lever']['commit_event']}; the knob snaps home "
+                 "## Lever drag", f"- Two-way (gameplay.fork.lever): the finger's travel u is signed, - left, + right. "
+                 f"Knob = detent x (|u| / detent)^{r['lever']['resist']} (heavy); {r['lever']['detent_event']} ticks at "
+                 f"{r['lever'].get('notch', r['lever']['detent']):.0%}, {r['lever']['commit_event']} fires once at "
+                 f"{r['lever']['detent']:.0%} and the lever stays committed until the next junction (ctx.fork); the knob snaps home "
                  f"{r['lever']['snap']['style']} {r['lever']['snap']['dir']} {r['lever']['snap']['dur']} s. Released early: "
                  f"{r['lever']['snapback_event']} and a {r['lever']['snapback']['style']} {r['lever']['snapback']['dir']} "
                  f"{r['lever']['snapback']['dur']} s return. World handle throw +-{r['lever']['throw_deg']} deg. Input method: "

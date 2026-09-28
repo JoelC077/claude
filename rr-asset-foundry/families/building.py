@@ -65,8 +65,11 @@ def validate(p, canon):
         w.append("ERROR: a shelter needs wall_h at least plinth_h + 7 (front clear height)")
     if p["kind"] != "shelter" and p["plinth_h"] + p["door_h"] > p["wall_h"] - 0.8 and p["kind"] == "hut":
         w.append("door opening reaches the eave: raise wall_h or lower door_h")
-    if p["door_w"] < canon("tech.units.building_door") and p["kind"] == "hut":
-        w.append("door narrower than tech.units.building_door")
+    dmin = (canon("tech.units.building_door"), canon("tech.units.building_door#1"))
+    if p["kind"] == "hut" and (p["door_w"] < dmin[0] or p["door_h"] < dmin[1]):
+        w.append(f"door {p['door_w']:g} x {p['door_h']:g} is under tech.units.building_door {dmin[0]:g} x {dmin[1]:g}")
+    if p["kind"] != "hut" and (p["door_w"], p["door_h"]) != dmin:
+        w.append(f"door_w/door_h do not apply to {p['kind']} (signal box: a fixed lineside upper door; shelter: open front)")
     return w
 
 

@@ -1,0 +1,21 @@
+{
+ "sheet": [
+  512,
+  260
+ ],
+ "megapixels": 0.13,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "actions: hard_brake with reduce motion, then the other events",
+   "src": "/home/user/claude/trials/rr-game-feel/src/feel/preview/ev_hard_brake/actions/_grid.png",
+   "box": [
+    6,
+    24,
+    500,
+    230
+   ],
+   "scale": "1:1 true size"
+  }
+ ]
+}

@@ -1,0 +1,43 @@
+{
+ "plan": "onb_hint",
+ "hash_ok": true,
+ "srm": {
+  "chi2": 0.027855153203342618,
+  "df": 1,
+  "p": 0.8674498099358279,
+  "expected": [
+   1795.0,
+   1795.0
+  ]
+ },
+ "status": "GUARDRAIL FAIL: the winner hurts a guardrail; do not ship, investigate",
+ "fraction": 1.0090191657271703,
+ "look": 0,
+ "lines": [
+  "SRM check: counts A=1,800, B=1,790, p = 0.8674",
+  "progress: 101% of the planned sample, look 1 of 1",
+  "B vs A: 10.00% -> 13.41%, diff +3.41 pts (95% CI +1.31 to +5.52), lift +34.1%; p = 0.001491 [pooled-z] -> WIN",
+  "guardrail sess B: 55.56% -> 56.42%, CI low -2.38 pts vs margin -2.00: FAIL"
+ ],
+ "comparisons": [
+  {
+   "arm": "B",
+   "pa": 0.1,
+   "pb": 0.1340782122905028,
+   "diff": 0.034078212290502785,
+   "diff_ci": [
+    0.013057766451734839,
+    0.05515146986114085
+   ],
+   "lift": 0.34078212290502785,
+   "lift_ci": [
+    0.11785194392530918,
+    0.608170662376939
+   ],
+   "z": 3.176380491646334,
+   "p": 0.0014912521834745146,
+   "method": "pooled-z",
+   "p_z": 0.0014912521834745146
+  }
+ ]
+}

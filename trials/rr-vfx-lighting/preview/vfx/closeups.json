@@ -1,0 +1,21 @@
+{
+ "sheet": [
+  396,
+  142
+ ],
+ "megapixels": 0.06,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "pov_night (grassland.night)",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/vfx/pov_night.png",
+   "box": [
+    98,
+    24,
+    199,
+    112
+   ],
+   "scale": "fit x0.26"
+  }
+ ]
+}

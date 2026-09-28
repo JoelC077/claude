@@ -1,0 +1,185 @@
+{
+ "asset": "WagonBoxVan",
+ "family": "wagon",
+ "preset": "box_van",
+ "hash": "85a08b1b2a63",
+ "vkey": "143f39f30070",
+ "pov": "siding",
+ "status": "ok",
+ "made": "2026-09-28T03:46:24",
+ "seconds": 33.2,
+ "params": {
+  "kind": "box",
+  "length": 32.0,
+  "width": 17.4,
+  "gauge": 8.0,
+  "deck": 5.0,
+  "running": "auto",
+  "wheel_r": 2.0,
+  "side_h": 4.0,
+  "body_h": 7.0,
+  "planks": 4,
+  "load": "auto",
+  "heap": 2.75,
+  "peaks": 2,
+  "weathering": 0.4,
+  "door": true
+ },
+ "size_studs": [
+  34.8,
+  18.26,
+  13.2
+ ],
+ "parts": 58,
+ "proxies": 2,
+ "tris": {
+  "total": 1740,
+  "max_part": 120,
+  "max_name": "WagonBoxVan_Deck_Timber_01",
+  "over_target": [],
+  "over_cap": []
+ },
+ "groups": {
+  "Chassis": 14,
+  "Buffer": 2,
+  "Steel": 10,
+  "Iron": 20,
+  "Timber": 7,
+  "Door": 2,
+  "Roof": 1,
+  "Repair": 2
+ },
+ "features": {
+  "BufferHead": [
+   5.1,
+   "WagonBoxVan_BufferHead_Steel_04",
+   0
+  ],
+  "Door": [
+   26.5,
+   "WagonBoxVan_Door_Door_02",
+   0
+  ],
+  "Strap": [
+   5.4,
+   "WagonBoxVan_Strap_Iron_02",
+   0
+  ],
+  "EndStrap": [
+   5.6,
+   "WagonBoxVan_EndStrap_Iron_02",
+   0
+  ],
+  "Side": [
+   9.9,
+   "WagonBoxVan_Side_Timber_02",
+   0
+  ],
+  "Repair": [
+   7.6,
+   "WagonBoxVan_Repair_Repair_02",
+   0
+  ],
+  "Wheel": [
+   14.6,
+   "WagonBoxVan_Wheel_Steel_02",
+   0
+  ],
+  "Axlebox": [
+   8.1,
+   "WagonBoxVan_Axlebox_Chassis_02",
+   0
+  ]
+ },
+ "features_pov": {
+  "BufferHead": [
+   8.4,
+   "WagonBoxVan_BufferHead_Steel_04",
+   0
+  ],
+  "Door": [
+   47.9,
+   "WagonBoxVan_Door_Door_02",
+   0
+  ],
+  "Strap": [
+   10.7,
+   "WagonBoxVan_Strap_Iron_02",
+   0
+  ],
+  "EndStrap": [
+   8.9,
+   "WagonBoxVan_EndStrap_Iron_02",
+   0
+  ],
+  "Side": [
+   14.2,
+   "WagonBoxVan_Side_Timber_02",
+   0
+  ],
+  "Repair": [
+   13.5,
+   "WagonBoxVan_Repair_Repair_02",
+   0
+  ],
+  "Wheel": [
+   32.7,
+   "WagonBoxVan_Wheel_Steel_02",
+   0
+  ],
+  "Axlebox": [
+   12.5,
+   "WagonBoxVan_Axlebox_Chassis_02",
+   0
+  ]
+ },
+ "pov_stands": [
+  {
+   "render": "pov3p",
+   "label": "from the coach, abeam",
+   "stand": [
+    0.0,
+    -30.6,
+    5.0
+   ]
+  },
+  {
+   "render": "pov3p_2",
+   "label": "from the coach, approaching",
+   "stand": [
+    50.0,
+    -30.6,
+    5.0
+   ]
+  }
+ ],
+ "lod1": null,
+ "renders": {
+  "thumb": "renders/thumb.png",
+  "game": "renders/game.png",
+  "pov3p": "renders/pov3p.png",
+  "pov1p": "renders/pov1p.png",
+  "34": "renders/34.png",
+  "side": "renders/side.png",
+  "end": "renders/end.png",
+  "pov3p_2": "renders/pov3p_2.png"
+ },
+ "files": [
+  "WagonBoxVan.fbx",
+  "WagonBoxVan_atlas.fbx",
+  "palette.png",
+  "parts.csv",
+  "WagonBoxVan.blend",
+  "studio_setup.lua"
+ ],
+ "checks": {
+  "lua": "ok (luaparse: ok)",
+  "bible_check": "PASS"
+ },
+ "fails": [],
+ "warnings": [],
+ "open": [
+  "OQ-025",
+  "OQ-030"
+ ]
+}

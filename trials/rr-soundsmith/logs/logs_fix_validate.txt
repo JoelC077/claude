@@ -1,0 +1,23 @@
+== old trial soundmap (cites OQ-037) vs the real bible, fixed validator ==
+validate FAIL: 0 errors, 3 warnings, 4 notes
+  warn  OQ-037 (Release version scheme and channels (missing canon)) cited by lobby_bed never mentions audio, rr-soundsmith, the sound or its canon keys: wrong number? (`sound.py oq`)
+  warn  sounds.glass_smash: voices 3 can fill over half the Alarms cap 4 (it would push out other sounds of its tier)
+  warn  sounds.ui_click: voices 3 can fill over half the UI cap 4 (it would push out other sounds of its tier)
+  note  feel parity: ui_button_press exists in rr-game-feel without a cue; add {"type": "cue", "sfx": "ui_click"} there to route it through Feel (then set via feel here)
+  note  feel parity: alert_crew_joined exists in rr-game-feel without a cue; add {"type": "cue", "sfx": "ticket_chime"} there to route it through Feel (then set via feel here)
+  note  feel parity: alert_crew_left exists in rr-game-feel without a cue; add {"type": "cue", "sfx": "ticket_chime"} there to route it through Feel (then set via feel here)
+  note  27 alpha sounds not final yet (placeholder or unassigned); --release gates them
+== fixed trial soundmap (lobby from presets, pending:lobby-audio), no wrapper, real bible ==
+validate PASS: 0 errors, 0 warnings, 5 notes
+  note  pending:lobby-audio (Lobby audio: music bed or diegetic depot ambience?) is not in rr-bible yet: `sound.py oq` prints the add-question command; then cite the number it prints
+  note  feel parity: ui_button_press exists in rr-game-feel without a cue; add {"type": "cue", "sfx": "ui_click"} there to route it through Feel (then set via feel here)
+  note  feel parity: alert_crew_joined exists in rr-game-feel without a cue; add {"type": "cue", "sfx": "ticket_chime"} there to route it through Feel (then set via feel here)
+  note  feel parity: alert_crew_left exists in rr-game-feel without a cue; add {"type": "cue", "sfx": "ticket_chime"} there to route it through Feel (then set via feel here)
+  note  27 alpha sounds not final yet (placeholder or unassigned); --release gates them
+== --release (all unassigned) ==
+validate PASS: 0 errors, 0 warnings, 5 notes
+  note  pending:lobby-audio (Lobby audio: music bed or diegetic depot ambience?) is not in rr-bible yet: `sound.py oq` prints the add-question command; then cite the number it prints
+  note  feel parity: ui_button_press exists in rr-game-feel without a cue; add {"type": "cue", "sfx": "ui_click"} there to route it through Feel (then set via feel here)
+  note  feel parity: alert_crew_joined exists in rr-game-feel without a cue; add {"type": "cue", "sfx": "ticket_chime"} there to route it through Feel (then set via feel here)
+  note  feel parity: alert_crew_left exists in rr-game-feel without a cue; add {"type": "cue", "sfx": "ticket_chime"} there to route it through Feel (then set via feel here)
+  note  release: no alpha sound has audio yet: this build ships silent, which the plan allows (av.audio.priority_in_plan: sound is a COULD for the alpha)

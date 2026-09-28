@@ -1,0 +1,51 @@
+{
+ "name": "onb_hint",
+ "created": "2026-09-28",
+ "surface": "onboarding",
+ "hypothesis": "",
+ "metric": {
+  "kind": "prop",
+  "base": 0.1,
+  "target": 0.13,
+  "sd": null,
+  "price_a": null,
+  "price_b": null,
+  "better": "higher"
+ },
+ "arms": [
+  "A",
+  "B"
+ ],
+ "weights": [
+  1.0,
+  1.0
+ ],
+ "control": "A",
+ "alpha": 0.05,
+ "alpha_per_comparison": 0.05,
+ "power": 0.8,
+ "n_per_arm": [
+  1774,
+  1774
+ ],
+ "daily_eligible": 150.0,
+ "days": 28,
+ "start": "2026-10-05",
+ "readout": "2026-11-02",
+ "looks": [
+  1.0
+ ],
+ "bounds": [
+  1.9599639845400538
+ ],
+ "inflation": 1.0,
+ "guardrails": [
+  {
+   "name": "sess",
+   "margin": 0.02
+  }
+ ],
+ "salt": "onb_hint-2026-10-05",
+ "testable": true,
+ "hash": "1a84ecec7e90b38b"
+}

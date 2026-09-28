@@ -3,18 +3,20 @@
 
   easing  ease(style, direction, t) for the 11 Roblox EasingStyles x In/Out/InOut (Penner forms)
   spring  spring(t, amp, freq_hz, damping, shape)   damped sine/cos punch, or decaying noise shake
+  peak    peak_gain(freq_hz, damping, shape, dur)    largest |spring| of a unit spring: punches and camera kicks
+                                                     divide by it, so amp and angles_deg are the delivered peak
   noise   noise1(seed, x)                            deterministic 1D gradient noise in [-1, 1]
   env     envelope(t, in, hold, out, style_in, style_out)   attack-hold-release (flashes, FOV kicks)
   pulse   pulse(t, lo, hi, period)                   sine loop starting at lo
   keys    keys_at(keys_ms, t)                        piecewise-linear haptic waveform
-  lever   lever_display(u, detent, resist)           knob position for a finger at u (0..1 of travel)
+  lever   lever_display(u, detent, resist)           knob position for a finger at u (-1..1: sign = side)
   event   sample_event(model, name, ...)             simulate one event at 60 Hz: every lane, feel clock,
                                                      hit-stop freeze, trauma decay, reduce-motion, profiles
   phone   PhoneView(h_px, fov_deg)                   degrees and studs to phone pixels
 
 Standard library only. `python3 feelmath.py --help` prints this; `python3 feelmath.py --demo` prints samples.
 """
-import math, sys
+import functools, math, sys
 
 STYLES = ("Linear", "Sine", "Back", "Quad", "Quart", "Quint", "Bounce", "Elastic", "Exponential", "Circular", "Cubic")
 DIRECTIONS = ("In", "Out", "InOut")
@@ -116,6 +118,20 @@ def spring(t, amp, freq_hz, damping, shape="sin", dur=None, seed=67):
     return amp * math.exp(-z * w * t) * s
 
 
+PEAK_SAMPLES = 240
+
+
+@functools.lru_cache(maxsize=512)
+def peak_gain(freq_hz, damping, shape="sin", dur=0.5, seed=67):
+    """Largest |spring(t, 1, ...)| over [0, dur), sampled at PEAK_SAMPLES points (RR_FeelMath.peakGain is
+    identical). Dividing by it makes a punch's amp (and a camera kick's angles) the peak the player sees."""
+    d = dur or 0.5
+    g = 0.0
+    for i in range(PEAK_SAMPLES):
+        g = max(g, abs(spring(d * i / PEAK_SAMPLES, 1.0, freq_hz, damping, shape, d, seed)))
+    return g if g > 1e-6 else 1.0
+
+
 def envelope(t, t_in, hold, t_out, style_in="Quad", style_out="Quad"):
     """0 -> 1 over t_in (style_in Out), hold, 1 -> 0 over t_out (style_out InOut)."""
     if t < 0:
@@ -147,11 +163,12 @@ def keys_at(keys, t):
 
 
 def lever_display(u, detent, resist):
-    """Knob position (0..1 of travel) for a finger at u: heavy before the detent, commit at it."""
-    u = clamp(u, 0.0, 1.0)
-    if u >= detent:
-        return 1.0
-    return detent * (u / detent) ** resist
+    """Knob position for a finger at u (-1..1 of travel, sign = side): heavy before the detent, 1 at it."""
+    sgn = -1.0 if u < 0 else 1.0
+    a = clamp(abs(u), 0.0, 1.0)
+    if a >= detent:
+        return sgn
+    return sgn * detent * (a / detent) ** resist
 
 
 class PhoneView:
@@ -342,11 +359,13 @@ def channel_value(model, ch, lt, f, g, side=1):
         if num != 1.0:   # scaled motion: shrink the travel toward the end value
             v = ch["to"] + (v - ch["to"]) * num
         return v
-    if ct == "punch":
-        return spring(lt, ch["amp"] * g * num, ch["freq_hz"], ch.get("damping", 0.3), ch.get("shape", "sin"),
+    if ct == "punch":   # amp is the delivered peak (normalised by peak_gain)
+        z, shape = ch.get("damping", 0.3), ch.get("shape", "sin")
+        return spring(lt, ch["amp"] * g * num / peak_gain(ch["freq_hz"], z, shape, ch.get("dur")), ch["freq_hz"], z, shape,
                       ch.get("dur"))
-    if ct == "camkick":   # unit response; callers multiply by angles_deg (yaw and roll by the side if side_sign)
-        return spring(lt, g * num, ch["freq_hz"], ch.get("damping", 0.4), ch.get("shape", "sin"), ch.get("dur"))
+    if ct == "camkick":   # unit response peaking at 1; callers multiply by angles_deg (yaw, roll by the side if side_sign)
+        z, shape = ch.get("damping", 0.4), ch.get("shape", "sin")
+        return spring(lt, g * num / peak_gain(ch["freq_hz"], z, shape, ch.get("dur")), ch["freq_hz"], z, shape, ch.get("dur"))
     if ct == "fovkick":
         return ch["delta_deg"] * g * num * envelope(lt, ch["in"], ch.get("hold", 0.0), ch["out"],
                                                    ch.get("style_in", "Quad"), ch.get("style_out", "Sine"))
@@ -369,7 +388,9 @@ def demo():
               f"{ease('Elastic', 'Out', t):11.4f} {ease('Bounce', 'Out', t):10.4f}")
     print("noise1(11, x):", [round(noise1(11, x / 4), 4) for x in range(8)])
     print("spring sin 0.12 @ 6 Hz z0.35:", [round(spring(x / 20, 0.12, 6, 0.35), 4) for x in range(8)])
-    print("lever u->knob (detent 0.7, resist 1.6):", [round(lever_display(u / 10, 0.7, 1.6), 3) for u in range(11)])
+    print("lever u->knob (detent 0.7, resist 1.6):", [round(lever_display(u / 10, 0.7, 1.6), 3) for u in range(-2, 11)])
+    print("peak gain (unit spring peak) sin 6 Hz z0.35:", round(peak_gain(6, 0.35, "sin", 0.5), 4),
+          " noise 12 Hz:", round(peak_gain(12, 0.3, "noise", 0.5), 4))
     pv = PhoneView(844, 390, 70)
     print(f"phone: 1 deg = {pv.deg_px(1):.2f} px, 0.1 stud at 10 studs = {pv.studs_px(0.1, 10):.2f} px")
 

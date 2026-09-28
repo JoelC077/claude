@@ -18,3 +18,18 @@ back faces in view Cam_POV_3P: none
 00:01.847  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/variants/WagonBoxVan/renders/thumb.png'
 00:03.013  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/variants/WagonBoxVan/renders/game.png'
 00:06.314  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/variants/WagonBoxVan/renders/pov3p.png'
+00:10.289  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/variants/WagonBoxVan/renders/pov1p.png'
+00:13.369  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/variants/WagonBoxVan/renders/34.png'
+00:15.735  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/variants/WagonBoxVan/renders/side.png'
+00:18.062  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/variants/WagonBoxVan/renders/end.png'
+
+FBX export starting... '/home/user/claude/trials/rr-asset-foundry/variants/WagonBoxVan/WagonBoxVan.fbx'
+export finished in 0.0617 sec.
+
+FBX export starting... '/home/user/claude/trials/rr-asset-foundry/variants/WagonBoxVan/WagonBoxVan_atlas.fbx'
+export finished in 0.0612 sec.
+Info: Saved copy as "WagonBoxVan.blend"
+FBX version: 7400
+tris: 58 meshes, 1,692 total, 0 over the 10k target
+{'file': 'WagonBoxVan.fbx', 'meshes': 58, 'size': (34.8, 18.26, 13.2), 'tris': 1692, 'over_target': [], 'no_uv': ['WagonBoxVan_Collider_Proxy_01.001', 'WagonBoxVan_Collider_Proxy_02.001'], 'materials': ['Buffer.001', 'Chassis.001', 'Door.001', 'Iron.001', 'Patch.001', 'Proxy.001', 'Roof.001', 'Steel.001', 'Timber.001'], 'ratio': [1.0, 1.0, 1.0]}
+forge done: WagonBoxVan 56 parts, 1668 tris, 18.0s

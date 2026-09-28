@@ -1,0 +1,508 @@
+{
+ "daily": {
+  "2026-08-31": {
+   "dau": 82.0,
+   "new_users": 45.0,
+   "visits": 131.0,
+   "avg_session_min": 9.9,
+   "d1": 0.08900000000000001,
+   "d7": 0.02,
+   "revenue": 35.0,
+   "paying_users": 1.0
+  },
+  "2026-09-01": {
+   "dau": 97.0,
+   "new_users": 53.0,
+   "visits": 155.0,
+   "avg_session_min": 9.133333333333333,
+   "d1": 0.09300000000000001,
+   "d7": 0.021,
+   "revenue": 54.0,
+   "paying_users": 1.0
+  },
+  "2026-09-02": {
+   "dau": 95.0,
+   "new_users": 52.0,
+   "visits": 152.0,
+   "avg_session_min": 9.15,
+   "d1": 0.092,
+   "d7": 0.013000000000000001,
+   "revenue": 44.0,
+   "paying_users": 2.0
+  },
+  "2026-09-03": {
+   "dau": 105.0,
+   "new_users": 57.0,
+   "visits": 168.0,
+   "avg_session_min": 10.8,
+   "d1": 0.111,
+   "d7": 0.022000000000000002,
+   "revenue": 35.0,
+   "paying_users": 2.0
+  },
+  "2026-09-04": {
+   "dau": 110.0,
+   "new_users": 60.0,
+   "visits": 176.0,
+   "avg_session_min": 10.316666666666666,
+   "d1": 0.086,
+   "d7": 0.025,
+   "revenue": 49.0,
+   "paying_users": 2.0
+  },
+  "2026-09-05": {
+   "dau": 132.0,
+   "new_users": 72.0,
+   "visits": 211.0,
+   "avg_session_min": 10.466666666666667,
+   "d1": 0.099,
+   "d7": 0.021,
+   "revenue": 57.0,
+   "paying_users": 2.0
+  },
+  "2026-09-06": {
+   "dau": 128.0,
+   "new_users": 70.0,
+   "visits": 204.0,
+   "avg_session_min": 10.75,
+   "d1": 0.10800000000000001,
+   "d7": 0.03,
+   "revenue": 60.0,
+   "paying_users": 2.0
+  },
+  "2026-09-07": {
+   "dau": 103.0,
+   "new_users": 56.0,
+   "visits": 164.0,
+   "avg_session_min": 10.416666666666666,
+   "d1": 0.10400000000000001,
+   "d7": 0.027000000000000003,
+   "revenue": 53.0,
+   "paying_users": 2.0
+  },
+  "2026-09-08": {
+   "dau": 118.0,
+   "new_users": 64.0,
+   "visits": 188.0,
+   "avg_session_min": 10.7,
+   "d1": 0.121,
+   "d7": 0.017,
+   "revenue": 54.0,
+   "paying_users": 2.0
+  },
+  "2026-09-09": {
+   "dau": 114.0,
+   "new_users": 62.0,
+   "visits": 182.0,
+   "avg_session_min": 12.116666666666667,
+   "d1": 0.096,
+   "d7": 0.024,
+   "revenue": 50.0,
+   "paying_users": 2.0
+  },
+  "2026-09-10": {
+   "dau": 120.0,
+   "new_users": 66.0,
+   "visits": 192.0,
+   "avg_session_min": 10.266666666666666,
+   "d1": 0.085,
+   "d7": 0.02,
+   "revenue": 69.0,
+   "paying_users": 2.0
+  },
+  "2026-09-11": {
+   "dau": 123.0,
+   "new_users": 67.0,
+   "visits": 196.0,
+   "avg_session_min": 10.316666666666666,
+   "d1": 0.11599999999999999,
+   "d7": 0.025,
+   "revenue": 61.0,
+   "paying_users": 2.0
+  },
+  "2026-09-12": {
+   "dau": 148.0,
+   "new_users": 81.0,
+   "visits": 236.0,
+   "avg_session_min": 10.416666666666666,
+   "d1": 0.11,
+   "d7": 0.013000000000000001,
+   "revenue": 60.0,
+   "paying_users": 2.0
+  },
+  "2026-09-13": {
+   "dau": 166.0,
+   "new_users": 91.0,
+   "visits": 265.0,
+   "avg_session_min": 10.666666666666666,
+   "d1": 0.129,
+   "d7": 0.023,
+   "revenue": 67.0,
+   "paying_users": 2.0
+  },
+  "2026-09-14": {
+   "dau": 133.0,
+   "new_users": 73.0,
+   "visits": 212.0,
+   "avg_session_min": 11.1,
+   "d1": 0.114,
+   "d7": 0.023,
+   "revenue": 56.0,
+   "paying_users": 2.0
+  },
+  "2026-09-15": {
+   "dau": 147.0,
+   "new_users": 80.0,
+   "visits": 235.0,
+   "avg_session_min": 10.516666666666666,
+   "d1": 0.091,
+   "d7": 0.015,
+   "revenue": 70.0,
+   "paying_users": 2.0
+  },
+  "2026-09-16": {
+   "dau": 134.0,
+   "new_users": 73.0,
+   "visits": 214.0,
+   "avg_session_min": 12.3,
+   "d1": 0.09699999999999999,
+   "d7": 0.028999999999999998,
+   "revenue": 72.0,
+   "paying_users": 2.0
+  },
+  "2026-09-17": {
+   "dau": 132.0,
+   "new_users": 72.0,
+   "visits": 211.0,
+   "avg_session_min": 10.416666666666666,
+   "d1": 0.102,
+   "d7": 0.02,
+   "revenue": 76.0,
+   "paying_users": 2.0
+  },
+  "2026-09-18": {
+   "dau": 148.0,
+   "new_users": 81.0,
+   "visits": 236.0,
+   "avg_session_min": 12.183333333333334,
+   "d1": 0.109,
+   "d7": 0.023,
+   "revenue": 77.0,
+   "paying_users": 3.0
+  },
+  "2026-09-19": {
+   "dau": 166.0,
+   "new_users": 91.0,
+   "visits": 265.0,
+   "avg_session_min": 9.033333333333333,
+   "d1": 0.11800000000000001,
+   "d7": 0.022000000000000002,
+   "revenue": 77.0,
+   "paying_users": 3.0
+  },
+  "2026-09-20": {
+   "dau": 178.0,
+   "new_users": 97.0,
+   "visits": 284.0,
+   "avg_session_min": 10.316666666666666,
+   "d1": 0.10099999999999999,
+   "d7": 0.008,
+   "revenue": 74.0,
+   "paying_users": 3.0
+  },
+  "2026-09-21": {
+   "dau": 150.0,
+   "new_users": 82.0,
+   "visits": 240.0,
+   "avg_session_min": 10.966666666666667,
+   "d1": 0.11699999999999999,
+   "revenue": 83.0,
+   "paying_users": 3.0
+  },
+  "2026-09-22": {
+   "dau": 157.0,
+   "new_users": 86.0,
+   "visits": 251.0,
+   "avg_session_min": 10.85,
+   "d1": 0.11900000000000001,
+   "revenue": 80.0,
+   "paying_users": 3.0
+  },
+  "2026-09-23": {
+   "dau": 156.0,
+   "new_users": 85.0,
+   "visits": 249.0,
+   "avg_session_min": 11.516666666666666,
+   "d1": 0.13,
+   "revenue": 93.0,
+   "paying_users": 3.0
+  },
+  "2026-09-24": {
+   "dau": 171.0,
+   "new_users": 94.0,
+   "visits": 273.0,
+   "avg_session_min": 10.683333333333334,
+   "d1": 0.11800000000000001,
+   "revenue": 83.0,
+   "paying_users": 3.0
+  },
+  "2026-09-25": {
+   "dau": 162.0,
+   "new_users": 89.0,
+   "visits": 259.0,
+   "avg_session_min": 11.15,
+   "d1": 0.114,
+   "revenue": 101.0,
+   "paying_users": 3.0
+  },
+  "2026-09-26": {
+   "dau": 195.0,
+   "new_users": 107.0,
+   "visits": 312.0,
+   "avg_session_min": 9.966666666666667,
+   "d1": 0.125,
+   "revenue": 85.0,
+   "paying_users": 3.0
+  },
+  "2026-09-27": {
+   "dau": 193.0,
+   "new_users": 106.0,
+   "visits": 308.0,
+   "avg_session_min": 11.35,
+   "d1": 0.107,
+   "revenue": 92.0,
+   "paying_users": 3.0
+  }
+ },
+ "funnels": {
+  "onboarding": {
+   "steps": [
+    [
+     "Joined",
+     1000.0
+    ],
+    [
+     "Picked up tool",
+     820.0
+    ],
+    [
+     "Shovelled coal",
+     700.0
+    ],
+    [
+     "Pulled lever",
+     610.0
+    ],
+    [
+     "First bank",
+     380.0
+    ],
+    [
+     "Run end",
+     350.0
+    ]
+   ],
+   "source": "/home/user/claude/trials/rr-data-and-money/dash/exports/SYNTHETIC_onboarding_funnel.csv"
+  }
+ },
+ "economy": [
+  {
+   "date": "2026-09-21",
+   "flow": "source",
+   "type": "Gameplay",
+   "sku": "fare_bank",
+   "amount": 154788.0
+  },
+  {
+   "date": "2026-09-21",
+   "flow": "sink",
+   "type": "Shop",
+   "sku": "coal",
+   "amount": 20239.0
+  },
+  {
+   "date": "2026-09-21",
+   "flow": "sink",
+   "type": "Shop",
+   "sku": "loco_2",
+   "amount": 62219.0
+  },
+  {
+   "date": "2026-09-22",
+   "flow": "source",
+   "type": "Gameplay",
+   "sku": "fare_bank",
+   "amount": 149870.0
+  },
+  {
+   "date": "2026-09-22",
+   "flow": "sink",
+   "type": "Shop",
+   "sku": "coal",
+   "amount": 21950.0
+  },
+  {
+   "date": "2026-09-22",
+   "flow": "sink",
+   "type": "Shop",
+   "sku": "loco_2",
+   "amount": 52452.0
+  },
+  {
+   "date": "2026-09-23",
+   "flow": "source",
+   "type": "Gameplay",
+   "sku": "fare_bank",
+   "amount": 147409.0
+  },
+  {
+   "date": "2026-09-23",
+   "flow": "sink",
+   "type": "Shop",
+   "sku": "coal",
+   "amount": 19655.0
+  },
+  {
+   "date": "2026-09-23",
+   "flow": "sink",
+   "type": "Shop",
+   "sku": "loco_2",
+   "amount": 61608.0
+  },
+  {
+   "date": "2026-09-24",
+   "flow": "source",
+   "type": "Gameplay",
+   "sku": "fare_bank",
+   "amount": 155452.0
+  },
+  {
+   "date": "2026-09-24",
+   "flow": "sink",
+   "type": "Shop",
+   "sku": "coal",
+   "amount": 21556.0
+  },
+  {
+   "date": "2026-09-24",
+   "flow": "sink",
+   "type": "Shop",
+   "sku": "loco_2",
+   "amount": 62651.0
+  },
+  {
+   "date": "2026-09-25",
+   "flow": "source",
+   "type": "Gameplay",
+   "sku": "fare_bank",
+   "amount": 146922.0
+  },
+  {
+   "date": "2026-09-25",
+   "flow": "sink",
+   "type": "Shop",
+   "sku": "coal",
+   "amount": 19897.0
+  },
+  {
+   "date": "2026-09-25",
+   "flow": "sink",
+   "type": "Shop",
+   "sku": "loco_2",
+   "amount": 64435.0
+  },
+  {
+   "date": "2026-09-26",
+   "flow": "source",
+   "type": "Gameplay",
+   "sku": "fare_bank",
+   "amount": 146915.0
+  },
+  {
+   "date": "2026-09-26",
+   "flow": "sink",
+   "type": "Shop",
+   "sku": "coal",
+   "amount": 21584.0
+  },
+  {
+   "date": "2026-09-26",
+   "flow": "sink",
+   "type": "Shop",
+   "sku": "loco_2",
+   "amount": 63771.0
+  },
+  {
+   "date": "2026-09-27",
+   "flow": "source",
+   "type": "Gameplay",
+   "sku": "fare_bank",
+   "amount": 142371.0
+  },
+  {
+   "date": "2026-09-27",
+   "flow": "sink",
+   "type": "Shop",
+   "sku": "coal",
+   "amount": 20931.0
+  },
+  {
+   "date": "2026-09-27",
+   "flow": "sink",
+   "type": "Shop",
+   "sku": "loco_2",
+   "amount": 55706.0
+  }
+ ],
+ "files": [
+  {
+   "file": "/home/user/claude/trials/rr-data-and-money/dash/exports/SYNTHETIC_economy.csv",
+   "kind": "economy",
+   "ingested": "2026-09-28",
+   "mapping": {},
+   "notes": []
+  },
+  {
+   "file": "/home/user/claude/trials/rr-data-and-money/dash/exports/SYNTHETIC_engagement_wide.csv",
+   "kind": "daily",
+   "ingested": "2026-09-28",
+   "mapping": {
+    "Daily Active Users": "dau",
+    "New Users": "new_users",
+    "Visits": "visits",
+    "Average Session Length (s)": "avg_session_min"
+   },
+   "notes": [
+    "avg_session_min: seconds -> minutes"
+   ]
+  },
+  {
+   "file": "/home/user/claude/trials/rr-data-and-money/dash/exports/SYNTHETIC_retention.csv",
+   "kind": "daily",
+   "ingested": "2026-09-28",
+   "mapping": {
+    "D1 Retention": "d1",
+    "D7 Retention": "d7",
+    "D30 Retention": "d30"
+   },
+   "notes": []
+  },
+  {
+   "file": "/home/user/claude/trials/rr-data-and-money/dash/exports/SYNTHETIC_revenue_by_platform.csv",
+   "kind": "daily",
+   "ingested": "2026-09-28",
+   "mapping": {
+    "Revenue": "revenue",
+    "Paying Users": "paying_users"
+   },
+   "notes": []
+  },
+  {
+   "file": "/home/user/claude/trials/rr-data-and-money/dash/exports/SYNTHETIC_onboarding_funnel.csv",
+   "kind": "funnel",
+   "ingested": "2026-09-28",
+   "mapping": {},
+   "notes": []
+  }
+ ]
+}

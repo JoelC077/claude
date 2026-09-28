@@ -1,0 +1,179 @@
+[
+ {
+  "out": "preview/pack/pov_grassland.day.png",
+  "presets": [
+   "steam_chimney",
+   "smoke_chimney",
+   "sparks_brake"
+  ],
+  "speed": 50.0,
+  "t": 6.8,
+  "live": 111,
+  "hidden_by_depth": 44,
+  "overdraw_max": 27,
+  "overdraw_p95": 16,
+  "overdraw_mean": 3.57,
+  "screen_covered": 0.049,
+  "look": "grassland.day",
+  "camera": "roof3p",
+  "tier": "pc"
+ },
+ {
+  "out": "preview/pack/pov_grassland.day_door1p.png",
+  "presets": [
+   "steam_chimney",
+   "smoke_chimney",
+   "sparks_brake"
+  ],
+  "speed": 50.0,
+  "t": 6.8,
+  "live": 111,
+  "hidden_by_depth": 69,
+  "overdraw_max": 4,
+  "overdraw_p95": 1,
+  "overdraw_mean": 1.05,
+  "screen_covered": 0.004,
+  "look": "grassland.day",
+  "camera": "door1p",
+  "tier": "pc"
+ },
+ {
+  "out": "preview/pack/pov_grassland.day.phone.png",
+  "presets": [
+   "steam_chimney",
+   "smoke_chimney",
+   "sparks_brake"
+  ],
+  "speed": 50.0,
+  "t": 6.8,
+  "live": 75,
+  "hidden_by_depth": 31,
+  "overdraw_max": 19,
+  "overdraw_p95": 14,
+  "overdraw_mean": 4.09,
+  "screen_covered": 0.02,
+  "look": "grassland.day",
+  "camera": "roof3p",
+  "tier": "phone"
+ },
+ {
+  "out": "preview/pack/pov_grassland.dusk.png",
+  "presets": [
+   "steam_chimney",
+   "smoke_chimney",
+   "sparks_brake",
+   "headlamp"
+  ],
+  "speed": 50.0,
+  "t": 6.8,
+  "live": 111,
+  "hidden_by_depth": 44,
+  "overdraw_max": 27,
+  "overdraw_p95": 16,
+  "overdraw_mean": 3.57,
+  "screen_covered": 0.049,
+  "look": "grassland.dusk",
+  "camera": "roof3p",
+  "tier": "pc"
+ },
+ {
+  "out": "preview/pack/pov_grassland.dusk_door1p.png",
+  "presets": [
+   "steam_chimney",
+   "smoke_chimney",
+   "sparks_brake",
+   "headlamp"
+  ],
+  "speed": 50.0,
+  "t": 6.8,
+  "live": 111,
+  "hidden_by_depth": 69,
+  "overdraw_max": 4,
+  "overdraw_p95": 1,
+  "overdraw_mean": 1.05,
+  "screen_covered": 0.004,
+  "look": "grassland.dusk",
+  "camera": "door1p",
+  "tier": "pc"
+ },
+ {
+  "out": "preview/pack/pov_grassland.dusk.phone.png",
+  "presets": [
+   "steam_chimney",
+   "smoke_chimney",
+   "sparks_brake",
+   "headlamp"
+  ],
+  "speed": 50.0,
+  "t": 6.8,
+  "live": 75,
+  "hidden_by_depth": 31,
+  "overdraw_max": 19,
+  "overdraw_p95": 14,
+  "overdraw_mean": 4.09,
+  "screen_covered": 0.02,
+  "look": "grassland.dusk",
+  "camera": "roof3p",
+  "tier": "phone"
+ },
+ {
+  "out": "preview/pack/pov_grassland.night.png",
+  "presets": [
+   "steam_chimney",
+   "smoke_chimney",
+   "sparks_brake",
+   "headlamp"
+  ],
+  "speed": 50.0,
+  "t": 6.8,
+  "live": 111,
+  "hidden_by_depth": 44,
+  "overdraw_max": 27,
+  "overdraw_p95": 16,
+  "overdraw_mean": 3.57,
+  "screen_covered": 0.049,
+  "look": "grassland.night",
+  "camera": "roof3p",
+  "tier": "pc"
+ },
+ {
+  "out": "preview/pack/pov_grassland.night_door1p.png",
+  "presets": [
+   "steam_chimney",
+   "smoke_chimney",
+   "sparks_brake",
+   "headlamp"
+  ],
+  "speed": 50.0,
+  "t": 6.8,
+  "live": 111,
+  "hidden_by_depth": 69,
+  "overdraw_max": 4,
+  "overdraw_p95": 1,
+  "overdraw_mean": 1.05,
+  "screen_covered": 0.004,
+  "look": "grassland.night",
+  "camera": "door1p",
+  "tier": "pc"
+ },
+ {
+  "out": "preview/pack/pov_grassland.night.phone.png",
+  "presets": [
+   "steam_chimney",
+   "smoke_chimney",
+   "sparks_brake",
+   "headlamp"
+  ],
+  "speed": 50.0,
+  "t": 6.8,
+  "live": 75,
+  "hidden_by_depth": 31,
+  "overdraw_max": 19,
+  "overdraw_p95": 14,
+  "overdraw_mean": 4.09,
+  "screen_covered": 0.02,
+  "look": "grassland.night",
+  "camera": "roof3p",
+  "tier": "phone"
+ }
+]

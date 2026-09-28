@@ -4,15 +4,19 @@
   ui.py list                                    specs (specs/ or $RR_UI_SPECS) and kit templates
   ui.py show SPEC                               nodes, states, nav, boards, canon cites
   ui.py validate SPEC... [--strict] [--json]    every objective check; exit 1 on errors (--strict: warnings too)
-  ui.py render SPEC --out DIR [--devices a,b] [--skins A,C] [--boards x,y] [--text-scale 1.0] [--html-only]
-                                                HTML + PNG boards (device x board x skin), zone board, contact.png,
-                                                closeups.png, facts.md (multiuse-critic layout)
-  ui.py crit CRIT --pass N --from DIR --spec SPEC   pass-N files + brief.md from spec and canon; prints the
-                                                critic_kit.py command (Profile B). Never scores anything itself.
+  ui.py render SPEC... --out DIR [--kit] [--devices a,b] [--skins A,C] [--boards x,y] [--text-scale 1.3] [--html-only]
+                                                HTML + PNG boards (device x board x skin), zone board, contact.png
+                                                (phone @1 + a true-size PC crop), closeups.png, facts.md. Several
+                                                specs = one sheet for the set (each screen in DIR/<Screen>/);
+                                                --kit adds a board of every template x state x variant
+  ui.py crit CRIT --pass N --from DIR --spec A[,B] [--owner present|away]
+                                                pass-N files + brief.md (spec, source, the canon rules it keeps);
+                                                prints the critic_kit.py command (Profile B). Never scores.
   ui.py build SPEC... --out DIR [--skin C] [--assets ids.json] [--no-check] [--no-parity]
                                                 Rojo-ready package: RR_UIKit, RR_UITheme, RR_UITemplates,
-                                                screens/*, demo, icon sheet, ASSETS.md, UI_SPEC.md, manifest;
-                                                gates: luaparse, bible check, lupa parity (luatest.py)
+                                                screens/*, Studio demo, icon sheet, ASSETS.md, UI_SPEC.md, manifest;
+                                                gates: validate, luaparse, bible check, luatest (parity+runtime).
+                                                --no-check = BUILD DRAFT (never a handover)
   ui.py sheet [ICONDIR] --out DIR [--cell 64]   pack SVG/PNG icons into one sprite sheet + icons.json
   ui.py ingest HTML --out SPEC [--size 844x390] [--root ROOT] [--name Screen]
                                                 draft spec from an HTML mock or Design board (data-rr hints)
@@ -21,7 +25,9 @@ SPEC is a path or a name in specs/. Canon: rr-bible (found by glob or $RR_BIBLE_
 multiuse-critic ($RR_CRITIC_SKILL). Standard library, plus Playwright + Pillow for render/sheet/ingest and
 node luaparse / lupa for the build gates (each is skipped and named when missing).
 """
-import argparse, base64, datetime, hashlib, html, json, os, re, shutil, subprocess, sys
+import sys
+sys.dont_write_bytecode = True  # noqa: E402  (keep the skill folder free of __pycache__)
+import argparse, base64, datetime, difflib, hashlib, html, json, os, re, shutil, subprocess
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -45,17 +51,20 @@ def spec_path(s):
 
 
 def load(kit, s):
-    return U.Screen(kit, spec_path(s))
+    try:
+        return U.Screen(kit, spec_path(s))
+    except U.SpecError as e:
+        sys.exit(f"spec error: {e}")
 
 
 # ------------------------------------------------------------------ list / show / validate
 def cmd_list(kit, a):
     root = Path(os.environ.get("RR_UI_SPECS") or SKILL / "specs")
     for p in sorted(root.glob("*.json")):
-        sc = U.Screen(kit, p)
+        sc = load(kit, p)
         print(f"  {p.stem:24} {sc.name:20} {len(sc.index):3} nodes  boards: {', '.join(b.get('name', '?') for b in sc.boards)}")
     print("templates: " + ", ".join(f"{k}{' (runtime)' if v.get('runtime') else ''}" for k, v in kit.comps.items()))
-    print(f"skins: {', '.join(kit.skins)} (default {kit.default_skin}, {kit.roles['skin_oq']})  devices: {', '.join(kit.devices)}")
+    print(f"skins: {', '.join(kit.skins)} (main {kit.default_skin}: {kit.skin_status})  devices: {', '.join(kit.devices)}")
     return 0
 
 
@@ -99,8 +108,7 @@ def cmd_validate(kit, a):
             print(f"  W {w}")
         for i in I:
             print(f"  i {i}")
-        c = F["contrast"]
-        print("  contrast (lowest per skin): " + "; ".join(f"{k} {v[0]}:1 {v[1]}" for k, v in c.items() if v))
+        print("  contrast (lowest per skin): " + fmt_contrast(F["contrast"]))
         for d, v in F["devices"].items():
             print(f"  {d:12} k={','.join(f'{x:.3f}' for x in (v['k'] or {}).values())} min text {fmt_min(v['min_text'])}, "
                   f"min target {fmt_min(v['min_target'])}" + (f"; stack {v['stack']}" if v.get("stack") else ""))
@@ -113,6 +121,12 @@ def cmd_validate(kit, a):
 
 def fmt_min(v):
     return f"{v[0]:g} px ({v[1]})" if v else "-"
+
+
+def fmt_contrast(c):
+    """'A 3.19:1 diff_next.label (board insane; large text, AA 3:1)' per skin: the bar each text is held to."""
+    return "; ".join(f"{k} {v[0]}:1 {v[1]} (board {v[2]}; {'large text, AA 3:1' if v[3] < 4 else 'AA 4.5:1'})"
+                     for k, v in c.items() if v)
 
 
 def _jsonable(F):
@@ -154,13 +168,14 @@ def fonts_css(kit):
 
 
 def load_icons(screen):
+    """Icons for the boards: the spec's own folder wins, the skill's shared set fills the rest."""
     out = {}
-    d = screen.icons_dir
-    if d and d.is_dir():
-        for f in d.glob("*.svg"):
-            out[f.stem] = re.sub(r"<\?xml[^>]*>", "", f.read_text(encoding="utf-8"))
-        for f in d.glob("*.png"):
-            out.setdefault(f.stem, "data:image/png;base64," + base64.b64encode(f.read_bytes()).decode())
+    for d in screen.icon_dirs:
+        if d and d.is_dir():
+            for f in d.glob("*.svg"):
+                out.setdefault(f.stem, re.sub(r"<\?xml[^>]*>", "", f.read_text(encoding="utf-8")))
+            for f in d.glob("*.png"):
+                out.setdefault(f.stem, "data:image/png;base64," + base64.b64encode(f.read_bytes()).decode())
     return out
 
 
@@ -340,39 +355,73 @@ def find_critic():
 
 # ------------------------------------------------------------------ render
 def cmd_render(kit, a):
-    sc = load(kit, a.spec)
     out = Path(a.out)
+    out.mkdir(parents=True, exist_ok=True)
+    screens = [load(kit, x) for x in a.specs]
+    if a.kit:
+        kp = out / "kit_board.json"
+        kp.write_text(json.dumps(kit_spec(kit), indent=1), encoding="utf-8")
+        screens.append(load(kit, kp))
+    if not screens:
+        sys.exit("render: give one or more SPECs, or --kit")
+    devs = [d for d in (a.devices.split(",") if a.devices else list(kit.devices)) if d]
+    skins = [x for x in (a.skins.split(",") if a.skins else kit.skins) if x]
+    bad = [d for d in devs if d not in kit.devices] + [x for x in skins if x not in kit.skins]
+    if bad:
+        sys.exit(f"unknown device or skin: {', '.join(bad)} (devices {', '.join(kit.devices)}; skins {', '.join(kit.skins)})")
+    if a.html_only is False:
+        try:
+            import playwright  # noqa: F401
+        except ImportError:
+            print("Playwright missing: writing HTML only (pip install playwright; see SKILL.md limits)")
+            a.html_only = True
+    multi = len(screens) > 1
+    kit_devs = [d for d in devs if d in (kit.design_device.name, "pc")] or devs[:1]  # the kit board is not a screen
+    results = [render_one(kit, sc, out / sc.name if multi else out, a, kit_devs if sc.name == "KitBoard" else devs, skins)
+               for sc in screens]
+    if multi:
+        (out / "facts.md").write_text(f"## Facts: {' + '.join(r['sc'].name for r in results)} (one kit, one token set)\n\n"
+                                      + "\n".join(r["facts"].replace("## Facts:", "### Facts:", 1) for r in results), encoding="utf-8")
+    sheet_msg = "" if a.html_only else contact_sheets(out, results)
+    code = 0
+    for r in results:
+        over = [(n, m) for n, ms in r["measures"].items() for m in ms["overflow"] if not m["truncated"]]
+        trunc = sorted({m["id"] for ms in r["measures"].values() for m in ms["overflow"] if m["truncated"]})
+        print(f"{r['sc'].name}: {len(r['files'])} boards -> {r['out']}" + (" (HTML only)" if a.html_only else ""))
+        print(f"  checks: {len(r['E'])} errors, {len(r['W'])} warnings; text overflow {len(over)}; "
+              f"truncated {len(trunc)}{' (text stress: ' + ', '.join(trunc[:6]) + ')' if trunc and a.text_scale != 1 else ''}; "
+              f"fonts missing {r['missing_fonts'] or 'none'}")
+        if trunc and a.text_scale != 1:
+            print(f"  W text stress x{a.text_scale:g}: {len(trunc)} texts truncate (Roblox PreferredTextSize would cut them)")
+        code = max(code, 1 if r["E"] else 0)
+    if sheet_msg:
+        print("sheets" + sheet_msg)
+    return code
+
+
+def render_one(kit, sc, out, a, devs, skins):
     out.mkdir(parents=True, exist_ok=True)
     boards = [b for b in sc.boards if not a.boards or b.get("name") in a.boards.split(",")]
     if not boards:
-        sys.exit("no boards match --boards")
-    devs = [d for d in (a.devices.split(",") if a.devices else list(kit.devices)) if d]
-    skins = [s for s in (a.skins.split(",") if a.skins else kit.skins) if s]
-    for d in devs:
-        if d not in kit.devices:
-            sys.exit(f"unknown device {d} (have {', '.join(kit.devices)})")
+        sys.exit(f"{sc.name}: no boards match --boards")
     phone = kit.design_device.name
     main, dskin = boards[0], kit.default_skin if kit.default_skin in skins else skins[0]
     jobs = [(b, phone, dskin, False) for b in boards]
     jobs += [(main, d, dskin, False) for d in devs if d != phone]
-    jobs += [(main, phone, s, False) for s in skins if s != dskin]
+    jobs += [(main, phone, x, False) for x in skins if x != dskin]
     jobs.append((main, phone, dskin, True))
     fonts, missing_fonts = fonts_css(kit)
     icons = load_icons(sc)
     files = []
-    for b, d, s, z in jobs:
-        scene = U.resolve(sc, kit.devices[d], s, b, text_scale=a.text_scale)
-        name = f"{sc.name}__{b.get('name', 'board')}__{d}__{s}{'__zones' if z else ''}"
+    for b, d, x, z in jobs:
+        scene = U.resolve(sc, kit.devices[d], x, b, text_scale=a.text_scale)
+        name = f"{sc.name}__{b.get('name', 'board')}__{d}__{x}{'__zones' if z else ''}"
         (out / f"{name}.html").write_text(board_html(scene, sc, kit, fonts, icons, z), encoding="utf-8")
-        files.append({"name": name, "board": b.get("name"), "device": d, "skin": s, "zones": z,
-                      "size": kit.devices[d].screen, "stack": scene.get("stack", {}).get("hidden")})
+        tops = [bx["box"] for bx in scene["boxes"] if bx["top"] and bx["layer"] == "core"]
+        files.append({"name": name, "board": b.get("name"), "device": d, "skin": x, "zones": z, "screen": sc.name,
+                      "size": kit.devices[d].screen, "stack": scene.get("stack", {}).get("hidden"), "tops": tops,
+                      "png": str(out / f"{name}.png")})
     measures = {}
-    if not a.html_only:
-        try:
-            from playwright.sync_api import sync_playwright
-        except ImportError:
-            print("Playwright missing: wrote HTML only (pip install playwright; see SKILL.md limits)")
-            a.html_only = True
     if not a.html_only:
         from playwright.sync_api import sync_playwright
         with sync_playwright() as pw:
@@ -383,66 +432,133 @@ def cmd_render(kit, a):
                 page = ctx.new_page()
                 page.set_content((out / f"{f['name']}.html").read_text(encoding="utf-8"), wait_until="load")
                 page.evaluate("() => document.fonts.ready.then(() => true)")
-                page.screenshot(path=str(out / f"{f['name']}.png"), clip={"x": 0, "y": 0, "width": W, "height": H})
+                page.screenshot(path=f["png"], clip={"x": 0, "y": 0, "width": W, "height": H})
                 measures[f["name"]] = page.evaluate(MEASURE_JS)
                 ctx.close()
             br.close()
-    E, W_, I, F = U.check(sc, [kit.devices[d] for d in devs], skins)
+        pcf = next((f for f in files if f["device"] == "pc" and f["skin"] == dskin and not f["zones"]), None)
+        if pcf and pcf["tops"]:
+            crop = crop_true_size(pcf, out / f"{sc.name}__pc_crop.png")
+            if crop:
+                pcf["crop"] = str(crop)
+    E, W_, I, F = U.check(sc, [kit.devices[d] for d in devs], skins, text_scale=a.text_scale)
     facts = facts_md(sc, kit, F, E, W_, I, files, measures, missing_fonts, a.text_scale)
     (out / "facts.md").write_text(facts, encoding="utf-8")
     (out / "render.json").write_text(json.dumps({"spec": str(sc.path), "files": files, "measures": measures},
                                                 indent=1, default=str), encoding="utf-8")
-    sheet_msg = "" if a.html_only else contact_sheets(out, files, phone, dskin)
-    print(f"{sc.name}: {len(files)} boards -> {out}" + (" (HTML only)" if a.html_only else "") + sheet_msg)
-    over = [(n, m) for n, ms in measures.items() for m in ms["overflow"] if not m["truncated"]]
-    print(f"  checks: {len(E)} errors, {len(W_)} warnings; text overflow {len(over)}; fonts missing {missing_fonts or 'none'}")
-    return 1 if E else 0
+    return {"sc": sc, "out": out, "files": files, "measures": measures, "E": E, "W": W_, "I": I, "facts": facts,
+            "phone": phone, "dskin": dskin, "missing_fonts": missing_fonts}
 
 
-def contact_sheets(out, files, phone, dskin):
+def crop_true_size(f, path, pad=16):
+    """The screen's own groups on the PC board at 1:1 (the sheet would otherwise show PC at x0.3)."""
+    try:
+        from PIL import Image
+    except ImportError:
+        return None
+    W, H = f["size"]
+    x0 = max(0, min(b[0] for b in f["tops"]) - pad)
+    y0 = max(0, min(b[1] for b in f["tops"]) - pad)
+    x1 = min(W, max(b[0] + b[2] for b in f["tops"]) + pad)
+    y1 = min(H, max(b[1] + b[3] for b in f["tops"]) + pad)
+    if x1 - x0 > 900 or y1 - y0 > 520 or x1 <= x0 or y1 <= y0:
+        return None
+    Image.open(f["png"]).crop((int(x0), int(y0), int(x1), int(y1))).save(path)
+    return path
+
+
+def contact_sheets(out, results):
+    """contact.png: every screen's main phone board and its PC crop at true size, then the other states;
+    closeups.png: zones, other skins and the remaining devices. Tiles shrink until each sheet fits the reader."""
     critic = find_critic()
     if not critic:
         return "; multiuse-critic not found: no contact sheet"
     cs = critic / "scripts" / "contact_sheet.py"
-    main = [f for f in files if f["device"] == phone and f["skin"] == dskin and not f["zones"]]
-    band = [f"Phone {int(files[0]['size'][0])}x{int(files[0]['size'][1])} {main[0]['board']} ({dskin})={out / (main[0]['name'] + '.png')}@1"]
-    grid = [f"{f['board']} phone={out / (f['name'] + '.png')}" for f in main[1:]]
-    grid += [f"{f['board']} {f['device']}={out / (f['name'] + '.png')}" for f in files if f["device"] != phone]
-    close = [f"zones {f['device']}={out / (f['name'] + '.png')}" for f in files if f["zones"]]
-    close += [f"skin {f['skin']} {f['board']}={out / (f['name'] + '.png')}" for f in files
-              if f["skin"] != dskin and not f["zones"]]
-    msgs = []
-    for target, items, tile in (("contact.png", band + grid, "400x225"), ("closeups.png", close, "560x260")):
-        if not items:
+    multi = len(results) > 1
+    short = {r["sc"].name: (re.findall(r"[A-Z][a-z0-9]*", r["sc"].name) or [r["sc"].name])[0] for r in results}
+    if len(set(short.values())) < len(short):
+        short = {k: k for k in short}
+    band, band_pc, grid, close = [], [], [], []
+    for r in results:
+        phone, dskin, files = r["phone"], r["dskin"], r["files"]
+        main = [f for f in files if f["device"] == phone and f["skin"] == dskin and not f["zones"]]
+        if not main:
             continue
-        r = subprocess.run([sys.executable, str(cs), str(out / target), *items, "--tile", tile], capture_output=True, text=True)
-        msgs.append(f"{target}{' (' + r.stdout.strip().splitlines()[-1] + ')' if r.stdout.strip() else ''}"
-                    + ("" if r.returncode == 0 else f" exit {r.returncode}: {r.stderr.strip()[-200:]}"))
+        pre = f"{short[r['sc'].name]} " if multi else ""
+        W, H = main[0]["size"]
+        band.append(f"{pre}phone {int(W)}x{int(H)} {main[0]['board']} ({dskin})={main[0]['png']}@1")
+        pcf = next((f for f in files if f.get("crop")), None)
+        if pcf:
+            band_pc.append((f"{pre}PC {int(pcf['size'][0])}x{int(pcf['size'][1])} {pcf['board']}, crop", pcf["crop"]))
+        grid += [f"{pre}{f['board']} phone={f['png']}" for f in main[1:]]
+        others = [f for f in files if f["device"] != phone and not f["zones"]]
+        for f in others:
+            (grid if (not multi or f["device"] == "phone_notch") else close).append(f"{pre}{f['board']} {f['device']}={f['png']}")
+        close += [f"{pre}zones {f['device']}={f['png']}" for f in files if f["zones"]]
+        close += [f"{pre}skin {f['skin']} {f['board']}={f['png']}" for f in files if f["skin"] != dskin and not f["zones"]]
+    pcs1 = [f"{l}={p}@1" for l, p in band_pc]
+    pcs_t = [f"{l}={p}" for l, p in band_pc]
+    flat = [x[:-2] for x in band]
+    # contact variants (items, moved to closeups): true-size views first; drop grid tiles, then PC crops, then phones
+    variants = [(band + pcs1 + grid, []), (band + pcs1, grid), (band + pcs_t, grid), (band + grid + pcs_t, [])]
+    variants += [(band[:n] + flat[n:] + pcs_t, grid) for n in range(len(band) - 1, 0, -1)]
+    variants.append((flat + pcs_t, grid))
+    msgs = []
+
+    def run(target, items, tiles):
+        r = None
+        for tile in tiles:
+            r = subprocess.run([sys.executable, str(cs), str(out / target), *items, "--tile", tile], capture_output=True, text=True)
+            if r.returncode == 0:
+                break
+        return r
+    moved = []
+    if band:
+        for items, rest in variants:
+            r = run("contact.png", items, ("400x225", "320x180", "270x152"))
+            if r.returncode == 0:
+                moved = rest
+                break
+        msgs.append(sheet_msg("contact.png", r))
+    if close + moved:
+        r = run("closeups.png", moved + close, ("560x260", "400x185", "320x148", "260x120", "220x102"))
+        msgs.append(sheet_msg("closeups.png", r))
     return "; " + "; ".join(msgs)
 
 
+def sheet_msg(target, r):
+    last = r.stdout.strip().splitlines()[0] if r.stdout.strip() else ""
+    return f"{target} ({last.split(': ', 1)[-1]})" + ("" if r.returncode == 0 else
+                                                      f" exit {r.returncode}: {r.stderr.strip()[-200:] or 'over the reader budget'}")
+
+
 def facts_md(sc, kit, F, E, W, I, files, measures, missing_fonts, text_scale):
-    L = [f"# Facts: {sc.name} (measured by rr-ui-foundry; render = model + Chromium, not Roblox)", ""]
-    L.append(f"- Design space: {kit.design_device.name} screen {kit.design_device.screen[0]:g}x{kit.design_device.screen[1]:g}, "
-             f"ScreenGui {sc.insets} area {'x'.join(f'{v:g}' for v in kit.design_device.area(sc.insets)[2:])} px (top bar "
-             f"{kit.design_device.insets.get('top', 0):g} px, tech.ui_platform.topbar_inset).")
-    L.append(f"- Layout: pin + scale (Scale sizes + UIAspectRatioConstraint, pinned margins x the same scale); UIScale density "
-             + ", ".join(f"{k} {v:g}" for k, v in kit.density.items()) + " (tech.ui_platform.layout; Large = OQ-033 default).")
-    L.append(f"- Skin on the main boards: {kit.default_skin} = assumed ({kit.roles['skin_oq']} default); other skins on closeups.")
+    dd, pc = kit.design_device, kit.devices.get("pc")
+    L = [f"## Facts: {sc.name} (measured by rr-ui-foundry; render = model + Chromium, not Roblox)", ""]
+    L.append(f"- Design space: {dd.name} screen {dd.screen[0]:g}x{dd.screen[1]:g}, ScreenGui {sc.insets} area "
+             f"{'x'.join(f'{v:g}' for v in dd.area(sc.insets)[2:])} px (top bar {dd.insets.get('top', 0):g} px, tech.ui_platform.topbar_inset).")
+    pcx = kit.fit(pc, "CoreUISafeInsets") * kit.density.get(pc.display, 1) if pc else None
+    L.append("- Layout: pin + scale with own fit (a smaller area shrinks a group only as much as it needs). px per design px: "
+             + (f"PC {pcx:.2f} (tech.ui_platform.layout); " if pcx else "")
+             + "UIScale after the fit: " + ", ".join(f"{k} {v:g}" for k, v in kit.density.items()) + " (Large = OQ-033).")
+    L.append(f"- Skin on the main boards: {kit.default_skin} = {kit.skin_status}; other skins on closeups.")
     if text_scale != 1.0:
-        L.append(f"- Text stress: every text x{text_scale:g} (a stand-in for GuiService.PreferredTextSize, not its exact factor).")
+        L.append(f"- Text stress: every text x{text_scale:g} (a stand-in for GuiService.PreferredTextSize, not its exact "
+                 "factor); sizes below include it.")
+    if sc.raw.get("purpose"):
+        L.append(f"- Purpose: {sc.raw['purpose']}")
     L.append("")
     L.append("| device | px per design px | smallest text | smallest target | touch zones | stack |")
     L.append("|---|---|---|---|---|---|")
     for d, v in F["devices"].items():
         k = ", ".join(f"{x:.3f}" for x in (v["k"] or {}).values())
         L.append(f"| {d} | {k} | {fmt_min(v['min_text'])} | {fmt_min(v['min_target'])} | {v['zones'].get('size', '-') if v['zones'] else '-'} | "
-                 f"{'; '.join(f'{b}: {s}' for b, s in (v.get('stack') or {}).items()) or '-'} |")
+                 f"{'; '.join(f'{b}: {st}' for b, st in (v.get('stack') or {}).items()) or '-'} |")
     L.append("")
-    L.append("- Lowest text contrast per skin (WCAG, text vs the fill it sits on): " +
-             "; ".join(f"{s} {v[0]}:1 ({v[1]})" for s, v in F["contrast"].items() if v))
-    L.append(f"- Minimum text (ui.rules.min_text): display {kit.min_text['display']:g} px, body {kit.min_text['body']:g} px on "
-             f"{kit.design_device.name}; touch target {kit.touch_target:g} px (tech.ui_platform.touch_target_px).")
+    L.append("- Lowest text contrast per skin (WCAG vs the fill it sits on; canon ui.rules.contrast: 4.5:1 body, 3:1 large "
+             "text >= 18.66 px bold or 24 px): " + fmt_contrast(F["contrast"]))
+    L.append(f"- Minimum text (ui.rules.min_text): display {kit.min_text['display']:g} px, body {kit.min_text['body']:g} px, "
+             f"touch target {kit.touch_target:g} px (tech.ui_platform.touch_target_px); errors on every touch device.")
     over = sorted({(m["id"], m["truncated"]) for ms in measures.values() for m in ms["overflow"]})
     if measures:
         L.append("- Text wider than its box (Chromium): " + (", ".join(f"{i}{' (truncates)' if t else ''}" for i, t in over) or "none"))
@@ -462,14 +578,85 @@ def facts_md(sc, kit, F, E, W, I, files, measures, missing_fonts, text_scale):
     return "\n".join(L) + "\n"
 
 
+KIT_TEXTS = {"danger": "gameplay.alerts.coal_low", "risk": "gameplay.alerts.junction_ahead",
+             "cash": "gameplay.alerts.fare_banked", "info": "gameplay.alerts.crate_landed"}
+KIT_ICONS = {"danger": "coal", "risk": "lever", "cash": "coin", "info": "crate"}
+
+
+def kit_spec(kit):
+    """A generated spec that boards every kit template in every state and variant (ui.py render --kit):
+    controls (button variants x normal/hover/pressed/disabled, chips off/on/pressed/disabled), panels (with and
+    without close), tickets (four kinds full and compact, halo, stamp, count badge, +N MORE)."""
+    cols = (150, 290, 430, 570)
+    nodes, controls, dis, press, hover, grid = [], [], [], {}, {}, []
+    variants = [v for v in (kit.comps["button"].get("variants") or {}) if v != "icon"] + ["icon"]
+    for r, var in enumerate(variants[:4]):
+        for c, state in enumerate(("normal", "hover", "pressed", "disabled")):
+            nid = f"b_{var}_{state}"
+            w = 52 if var == "icon" else 130
+            slots = {"icon": "chevron_right"} if var == "icon" else {"text": var.upper()}
+            nodes.append({"id": nid, "use": "button", "variant": var, "rect": [cols[c], 66 + r * 58, w, 52], "slots": slots,
+                          "action": "noop"})
+            controls.append(nid)
+            if c == 0:
+                grid.append([])
+            grid[-1].append(nid)
+            {"hover": hover, "pressed": press}.get(state, {})[nid] = state
+            if state == "disabled":
+                dis.append(nid)
+    for c, state in enumerate(("off", "on", "pressed", "disabled")):
+        nid = f"c_{state}"
+        nodes.append({"id": nid, "use": "chip", "rect": [cols[c], 306, 44, 44], "slots": {"text": str(c + 1)},
+                      "on": "sel=1" if state == "on" else None, "action": "noop"})
+        nodes[-1] = {k: v for k, v in nodes[-1].items() if v is not None}
+        controls.append(nid)
+        if c == 0:
+            grid.append([])
+        grid[-1].append(nid)
+        if state == "pressed":
+            press[nid] = "pressed"
+        if state == "disabled":
+            dis.append(nid)
+    panels = ["pn_close", "pn_plain"]
+    nodes.append({"id": "pn_close", "use": "panel", "rect": [30, 70, 380, 180], "slots": {"title": "WITH CLOSE", "closable": True}})
+    nodes.append({"id": "pn_plain", "use": "panel", "rect": [434, 70, 380, 180], "slots": {"title": "NO CLOSE"}})
+    tickets = []
+    for r, kind in enumerate(("danger", "risk", "cash", "info")):
+        parts = [x.strip() for x in str(kit.b.value(KIT_TEXTS[kind]) or "?").split(" / ")]
+        base = {"kind": kind, "icon": KIT_ICONS[kind], "title": parts[0], "life": 0.6, "sticky": kind == "danger"}
+        full = dict(base, body=parts[1] if len(parts) > 1 else "", halo=kind == "danger", count=2 if kind == "info" else None)
+        if kind == "cash" and len(parts) > 2:
+            full["stamp"] = parts[2]
+        nodes.append({"id": f"t_{kind}", "use": "ticket", "rect": [150, 66 + r * 72, 290, 64], "slots": {k: v for k, v in full.items() if v is not None}})
+        nodes.append({"id": f"tc_{kind}", "use": "ticket_compact", "rect": [450, 66 + r * 48, 290, 44], "slots": base})
+        tickets += [f"t_{kind}", f"tc_{kind}"]
+    nodes.append({"id": "t_more", "use": "more_chip", "rect": [150, 360, 92, 26], "slots": {"n": 2}})
+    tickets.append("t_more")
+    return {"screen": "KitBoard", "title": "Component kit: every template x state x variant",
+            "purpose": "Kit board, not a screen: controls rows = " + ", ".join(variants[:4]) + " buttons, then chips; columns = "
+                       "normal, hover, pressed, disabled (chips: off, on, pressed, disabled). Panels with and without close. "
+                       "Tickets: danger (crisis halo), risk, cash (stamp), info (count badge) full and compact, +N MORE.",
+            "source": "generated by ui.py render --kit from kit/components.json", "design": {"device": kit.design_device.name},
+            "gui": {"display_order": 10, "insets": "CoreUISafeInsets"}, "canon": ["ui.hud.anatomy", "ui.lobby.controls", "ui.rules.one_accent"],
+            "data": {"sel": {"values": [0, 1], "default": 1}},
+            "nodes": nodes, "nav": {"grid": grid + [["pn_close.close"]], "default": grid[0][0]},
+            "machine": {"initial": "controls", "states": {
+                "controls": {"hide": panels + tickets, "disable": dis},
+                "panels": {"hide": controls + tickets},
+                "tickets": {"hide": controls + panels}},
+                "transitions": [["*", "controls", "controls", None], ["*", "panels", "panels", None], ["*", "tickets", "tickets", None]]},
+            "boards": [{"name": "controls", "state": "controls", "comp_states": dict(hover, **press)},
+                       {"name": "panels", "state": "panels"}, {"name": "tickets", "state": "tickets"}]}
+
+
 # ------------------------------------------------------------------ crit hand-off
 def cmd_crit(kit, a):
     critic = find_critic()
     if not critic:
         print("multiuse-critic not found: set RR_CRITIC_SKILL")
         return 2
-    sc = load(kit, a.spec)
-    C, src = Path(a.crit), Path(getattr(a, "from"))
+    scs = [load(kit, x) for x in a.spec.split(",") if x]
+    C, src = Path(a.crit).resolve(), Path(getattr(a, "from")).resolve()
     pdir = C / f"pass-{a.pass_}"
     pdir.mkdir(parents=True, exist_ok=True)
     got = []
@@ -481,39 +668,61 @@ def cmd_crit(kit, a):
         print(f"no contact.png in {src}: run ui.py render first")
         return 1
     if not (C / "brief.md").is_file():
-        (C / "brief.md").write_text(brief_md(sc, kit), encoding="utf-8")
+        (C / "brief.md").write_text(brief_md(scs, kit, a.owner), encoding="utf-8")
         got.append("brief.md (new)")
     img = " --images closeups.png" if "closeups.png" in got else ""
     print(f"wrote {pdir}: {', '.join(got)}")
     print(f"next: python3 {critic / 'scripts' / 'critic_kit.py'} build {C} --pass {a.pass_} --kind full --profile B "
           f"--role \"senior UI designer\"{img}")
     print("then spawn a fresh critic on the printed prompt (multiuse-critic step 5); never score it yourself")
+    if a.owner == "present":
+        print("owner present: ask multiuse-critic step 2's questions before pass 1 and write the answers into brief.md")
     return 0
 
 
-def brief_md(sc, kit):
-    aud = "; ".join(v for v in (kit.b.value("identity.audience.launch"), kit.b.value("identity.audience.target"),
-                                  kit.b.value("identity.audience.devices")) if v) or "see rr-bible identity.audience"
-    modal = "a modal panel over the game" if sc.gui.get("modal") else "a screen overlay over the running game (HUD)"
+def brief_md(scs, kit, owner="present"):
+    keys = ("identity.audience.launch", "identity.audience.target", "identity.audience.devices")
+    vals = [kit.b.value(k) for k in keys]
+    miss = [k for k, v in zip(keys, vals) if not v]
+    if miss:
+        print(f"warning: rr-bible lookup failed for {', '.join(miss)}; the brief says so (re-run ui.py crit once bible.py reads cleanly)")
+    aud = "; ".join(v for v in vals if v) or f"UNKNOWN: rr-bible lookup failed ({', '.join(miss)})"
+    one = len(scs) == 1
+    title = scs[0].raw.get("title", scs[0].name) if one else "UI kit set: " + " + ".join(sc.name for sc in scs)
+    L = [f"# {title}"]
+    for sc in scs:
+        pre = "" if one else f"{sc.name}: "
+        view = "a modal panel over the game" if sc.gui.get("modal") else "a screen overlay over the running game (HUD)"
+        L.append(f"Purpose: {pre}{sc.raw.get('purpose', 'see spec')} ({view})")
+        if sc.raw.get("source"):
+            L.append(f"Source: {pre}{sc.raw['source']}")
+    dd = kit.design_device
+    L += [f"Audience: {aud}",
+          f"Player view: phone landscape {dd.screen[0]:g}x{dd.screen[1]:g} at true size (ScreenGui CoreUISafeInsets, top bar "
+          f"{dd.insets.get('top', 0):g} px); the PC crop is true size too; other boards are scaled by the kit's pin + scale "
+          "rule. Grey pills and circles are Roblox's own top bar, jump button and thumbstick.",
+          "Stage: draft (generated from the spec by rr-ui-foundry; the same numbers build the Roblox package).",
+          f"Fixed constraints: rr-bible tokens only (skin {kit.default_skin} = {kit.skin_status}); fonts "
+          f"{', '.join(f['name'] for f in kit.fonts.values())}; text >= {kit.min_text['body']:g}/{kit.min_text['display']:g} px, "
+          f"targets >= {kit.touch_target:g} px; clear of top bar, jump and thumbstick; exact game strings from canon."]
+    canon = list(dict.fromkeys(k for sc in scs for k in sc.raw.get("canon", [])))
+    if canon:
+        rules = []
+        for k in canon:
+            v = kit.b.value(k)
+            rules.append(f"{k} = {str(v)[:150]}" if v is not None else f"{k} = (missing in rr-bible)")
+        L.append("Canon this design keeps (rr-bible; a fix that would break one goes under NEEDS OWNER, not ISSUES): "
+                 + "; ".join(rules))
     oqs = []
-    for oid in sc.raw.get("oq", []):
+    for oid in dict.fromkeys(o for sc in scs for o in sc.raw.get("oq", [])):
         q = kit.b.oq(oid)
         if q:
-            oqs.append(f"{oid} {q['title']} (default in use: {q['fields'].get('default', '?')})")
-    return "\n".join([
-        f"# {sc.raw.get('title', sc.name)}",
-        f"Purpose: {sc.raw.get('purpose', 'see spec')}",
-        f"Audience: {aud}",
-        f"Player view: {modal}; phone landscape {kit.design_device.screen[0]:g}x{kit.design_device.screen[1]:g} at true size "
-        f"(ScreenGui {sc.insets}, top bar {kit.design_device.insets.get('top', 0):g} px); PC/tablet/console boards are scaled "
-        "by the kit's pin + scale rule. Grey pills and circles are Roblox's own top bar, jump button and thumbstick.",
-        "Stage: draft (generated from the spec by rr-ui-foundry; the same numbers build the Roblox package).",
-        f"Fixed constraints: rr-bible tokens only (skin {kit.default_skin} = assumed, {kit.roles['skin_oq']} default); fonts "
-        f"{', '.join(f['name'] for f in kit.fonts.values())}; text >= {kit.min_text['body']:g}/{kit.min_text['display']:g} px, "
-        f"targets >= {kit.touch_target:g} px; clear of top bar, jump and thumbstick; exact game strings from canon.",
-        "Already decided / open: " + ("; ".join(oqs) if oqs else "none"),
-        "step 2: pre-answered (canon via rr-bible; owner away)",
-    ]) + "\n"
+            oqs.append(f"{oid} {q['title']} (" + (f"decided: {q['fields'].get('default', '?')}, {q['decided']}" if q.get("decided")
+                                                   else f"open; default in use: {q['fields'].get('default', '?')}") + ")")
+    L.append("Already decided / open: " + ("; ".join(oqs) if oqs else "none"))
+    L.append("step 2: pre-answered (canon via rr-bible; owner away)" if owner == "away"
+             else "step 2: ask the owner (multiuse-critic step 2) and write the answers here before pass 1")
+    return "\n".join(L) + "\n"
 
 
 # ------------------------------------------------------------------ icon sheet
@@ -525,7 +734,9 @@ def cmd_sheet(kit, a):
 
 
 def make_sheet(src, out, cell=64, scale=2):
-    icons = sorted(list(src.glob("*.svg")) + list(src.glob("*.png")))
+    """Pack icons (a folder, or a list of files) into one white sprite sheet + icons.json."""
+    icons = sorted(src, key=lambda f: f.stem) if isinstance(src, (list, tuple)) else \
+        sorted(list(Path(src).glob("*.svg")) + list(Path(src).glob("*.png")))
     if not icons:
         print(f"no icons in {src}")
         return 1
@@ -582,8 +793,7 @@ def make_hazard_tile(kit, skin, out, size=32):
 def theme_lua(kit, skin, icons_meta, ids=None):
     L = ["-- RR_UITheme (ModuleScript) - GENERATED by rr-ui-foundry from rr-bible canon. Do not edit:",
          "-- change canon (bible.py) or kit/roles.json and run ui.py build again.",
-         f"-- Skins are the options of {kit.roles['skin_oq']}; {skin} is active"
-         + (" (assumed: the open question's default)." if skin == kit.default_skin else "."), ""]
+         f"-- Skins are the options of {kit.skin_oq}; {skin} is active: {kit.skin_label(skin)}.", ""]
     T = {"generated": datetime.date.today().isoformat(), "skin": skin, "skinNote": kit.roles["skins"].get(skin, ""),
          "skins": {}, "sources": {}}
     for s in kit.skins:
@@ -647,12 +857,19 @@ def cmd_build(kit, a):
         for e in kit.errors:
             print(f"  E {e}")
         return 1
-    screens = [load(kit, s) for s in a.specs]
+    screens = [load(kit, x) for x in a.specs]
+    names = [sc.name for sc in screens]
+    if len(set(names)) != len(names):
+        sys.exit(f"two specs share a screen name: {', '.join(names)}")
     skin = a.skin or kit.default_skin
     if skin not in kit.skins:
-        sys.exit(f"unknown skin {skin}")
-    bad = 0
-    if not a.no_check:
+        sys.exit(f"unknown skin {skin} (have {', '.join(kit.skins)})")
+    gates = {}
+    if a.no_check:
+        gates["validate"] = "SKIPPED (draft)"
+        print("  SKIPPED validate (--no-check): this is a draft package, never a handover")
+    else:
+        bad = 0
         for sc in screens:
             E, W, I, F = U.check(sc)
             print(f"  {'PASS' if not E else 'FAIL'} validate {sc.name}: {len(E)} errors, {len(W)} warnings")
@@ -662,16 +879,28 @@ def cmd_build(kit, a):
         if bad:
             print("build stopped: fix the errors (or --no-check for a draft package)")
             return 1
+        gates["validate"] = "PASS"
     out = Path(a.out)
     lib = out / "src" / "shared" / "RR_UI"
+    shutil.rmtree(lib / "screens", ignore_errors=True)  # a rebuild must not keep another build's screens
     (lib / "screens").mkdir(parents=True, exist_ok=True)
     (out / "src" / "client").mkdir(parents=True, exist_ok=True)
     (out / "icons").mkdir(parents=True, exist_ok=True)
-    icon_dirs = {sc.icons_dir for sc in screens if sc.icons_dir and sc.icons_dir.is_dir()}
+    used, lost = {}, []
+    for sc in screens:
+        for name in sorted(sc.icon_refs()):
+            f = sc.icon_file(name)
+            if f:
+                used.setdefault(name, f)
+            else:
+                lost.append(f"{sc.name}: {name}")
+    for f in (out / "icons").glob("rr_ui_icons.png"):
+        f.unlink()
     icons_meta = {}
-    for d in icon_dirs:
-        if make_sheet(d, out / "icons") == 0:
-            icons_meta.update(json.loads((out / "icons" / "icons.json").read_text())["icons"])
+    if used and make_sheet(list(used.values()), out / "icons") == 0:
+        icons_meta = json.loads((out / "icons" / "icons.json").read_text())["icons"]
+    if lost:
+        print(f"  E icons without a file (boards show a placeholder, Roblox shows nothing): {', '.join(lost)}")
     tile = make_hazard_tile(kit, skin, out / "icons")
     ids_file = Path(a.assets) if a.assets else out / "asset_ids.json"
     ids = json.loads(ids_file.read_text(encoding="utf-8")) if ids_file.is_file() else {}
@@ -686,15 +915,15 @@ def cmd_build(kit, a):
         (lib / "screens" / f"{sc.name}.lua").write_text(screen_lua(sc), encoding="utf-8")
     shutil.copy2(SKILL / "assets" / "luau" / "RR_UIKit.lua", lib / "RR_UIKit.lua")
     shutil.copy2(SKILL / "assets" / "luau" / "RR_UIDemo.client.lua", out / "src" / "client" / "RR_UIDemo.client.lua")
-    (out / "default.project.json").write_text(json.dumps({"name": "RR_UI", "tree": {"$className": "DataModel",
-        "ReplicatedStorage": {"RR_UI": {"$path": "src/shared/RR_UI"}},
-        "StarterPlayer": {"StarterPlayerScripts": {"RR_UIDemo": {"$path": "src/client/RR_UIDemo.client.lua"}}}}}, indent=2),
-        encoding="utf-8")
+    ship = {"name": "RR_UI", "tree": {"$className": "DataModel", "ReplicatedStorage": {"RR_UI": {"$path": "src/shared/RR_UI"}}}}
+    demo = json.loads(json.dumps(ship))
+    demo["tree"]["StarterPlayer"] = {"StarterPlayerScripts": {"RR_UIDemo": {"$path": "src/client/RR_UIDemo.client.lua"}}}
+    (out / "default.project.json").write_text(json.dumps(ship, indent=2), encoding="utf-8")
+    (out / "demo.project.json").write_text(json.dumps(demo, indent=2), encoding="utf-8")
     (out / "ASSETS.md").write_text(assets_md(icons_meta, tile), encoding="utf-8")
     (out / "UI_SPEC.md").write_text(ui_spec_md(kit, screens, skin), encoding="utf-8")
     (out / "README.md").write_text(readme_md(screens), encoding="utf-8")
     luas = sorted(out.rglob("*.lua"))
-    gates = {}
     st, msg = luaparse_check(luas)
     gates["luaparse"] = st
     print(f"  {st} luaparse ({len(luas)} files){': ' + msg if st != 'PASS' and msg else ''}")
@@ -708,22 +937,44 @@ def cmd_build(kit, a):
     print(f"  {gates['bible_check']} bible check ({len(luas) + 1} files)" + ("".join(f"\n    {x}" for x in fails)))
     if not a.no_parity:
         r = subprocess.run([sys.executable, str(HERE / "luatest.py"), "--package", str(out),
-                            "--specs", ",".join(str(sc.path) for sc in screens)], capture_output=True, text=True)
-        tail = (r.stdout.strip().splitlines() or ["(no output)"])[-1]
-        gates["parity"] = "PASS" if r.returncode == 0 else ("SKIP" if r.returncode == 3 else "FAIL")
-        print(f"  {gates['parity']} luatest parity: {tail}")
+                            "--specs", ",".join(str(sc.path.resolve()) for sc in screens)], capture_output=True, text=True)
+        lines = r.stdout.strip().splitlines()
+        tail = "; ".join(x for x in lines if x.startswith(("parity:", "runtime:"))) or (lines or ["(no output)"])[-1]
+        gates["luatest"] = "PASS" if r.returncode == 0 else ("SKIP" if r.returncode == 3 else "FAIL")
+        print(f"  {gates['luatest']} luatest (parity+runtime): {tail}")
         if r.returncode not in (0, 3):
-            print(r.stdout[-1500:])
+            print(r.stdout[-1500:] + (("\n" + r.stderr[-1500:]) if r.stderr.strip() else ""))
+    else:
+        gates["luatest"] = "SKIPPED (--no-parity)"
     man = {"generated": datetime.datetime.now().isoformat(timespec="seconds"), "skin": skin,
-           "skin_status": f"assumed ({kit.roles['skin_oq']} default)" if skin == kit.default_skin else "chosen",
+           "skin_status": kit.skin_label(skin),
            "screens": {sc.name: hashlib.sha1(sc.path.read_bytes()).hexdigest()[:12] for sc in screens},
-           "kit": {f: hashlib.sha1((kit.dir / f).read_bytes()).hexdigest()[:12] for f in ("roles.json", "components.json")},
-           "canon_cited": sorted(kit.cites), "gates": gates, "density": kit.density,
+           "kit": kit_record(kit), "canon_cited": sorted(kit.cites), "gates": gates, "density": kit.density,
            "studio": "Studio test pending (owner); nothing here was published or uploaded"}
     (out / "manifest.json").write_text(json.dumps(man, indent=1), encoding="utf-8")
-    ok = all(v in ("PASS", "SKIP") for v in gates.values()) and not errs
-    print(f"{'BUILD PASS' if ok else 'BUILD FAIL'}: {out}  (Studio test pending (owner))")
-    return 0 if ok else 1
+    hard = [k for k, v in gates.items() if v not in ("PASS", "SKIP") and not v.startswith("SKIPPED")]
+    if hard or errs or lost:
+        verdict, code = "BUILD FAIL", 1
+    elif a.no_check or a.no_parity:
+        verdict, code = "BUILD DRAFT (gates skipped: " + ", ".join(k for k, v in gates.items() if v.startswith("SKIPPED")) + ")", 0
+    else:
+        verdict, code = "BUILD PASS", 0
+    print(f"{verdict}: {out}  (Studio test pending (owner))")
+    return code
+
+
+def kit_record(kit):
+    """Kit hashes, and when a mission kit copy (RR_UI_KIT) differs from the skill's kit, the diff to promote."""
+    rec = {"dir": str(kit.dir), "files": {f: hashlib.sha1((kit.dir / f).read_bytes()).hexdigest()[:12]
+                                          for f in ("roles.json", "components.json")}}
+    if kit.dir.resolve() != U.KIT_DIR.resolve():
+        diff = []
+        for f in ("roles.json", "components.json"):
+            a_, b_ = (U.KIT_DIR / f).read_text().splitlines(), (kit.dir / f).read_text().splitlines()
+            diff += [x for x in difflib.unified_diff(a_, b_, f"skill/{f}", f"mission/{f}", n=0, lineterm="")]
+        rec["diff_vs_skill_kit"] = diff[:200]
+        rec["promote"] = "owner OK needed before copying this kit change into the skill's kit/"
+    return rec
 
 
 def assets_md(icons_meta, tile):
@@ -744,7 +995,7 @@ def assets_md(icons_meta, tile):
 
 def ui_spec_md(kit, screens, skin):
     L = ["# UI spec (generated by rr-ui-foundry)", "",
-         f"Skin {skin} ({kit.roles['skins'].get(skin, '')}); density by GuiService.ViewportDisplaySize: "
+         f"Skin {skin} ({kit.roles['skins'].get(skin, '')}; {kit.skin_label(skin)}); density by GuiService.ViewportDisplaySize: "
          + ", ".join(f"{k} {v:g}" for k, v in kit.density.items()) + ".", ""]
     for sc in screens:
         E, W, I, F = U.check(sc)
@@ -772,34 +1023,58 @@ def ui_spec_md(kit, screens, skin):
 
 def readme_md(screens):
     names = ", ".join(sc.name for sc in screens)
+    use = ["local UI = require(game.ReplicatedStorage.RR_UI.RR_UIKit)"]
+    steps = []
+    for sc in screens:
+        var = re.sub(r"^[A-Z]", lambda m: m[0].lower(), sc.name)
+        use.append(f"local {var} = UI.mount(require(game.ReplicatedStorage.RR_UI.screens.{sc.name}))")
+        if sc.types:
+            t0 = next(iter(sc.types))
+            slot = next((m[0] for t in sc.types.values() for m in U.SLOT.findall(t["body"] or "")), None)
+            ts = next((t for t, v in sc.types.items() if slot and "{" + slot in (v["body"] or "")), None)
+            use.append(f'{var}:push("{t0}")' + " " * max(1, 28 - len(t0)) + "-- alert types: " + ", ".join(sc.types))
+            if ts:
+                use.append(f'{var}:push("{ts}", {{{slot} = "Sam"}})' + "   -- slots fill the body text")
+            use.append(f'{var}:clear("{t0}")' + " " * max(1, 27 - len(t0)) + "-- the server's clear alert (ID)")
+            steps.append(f"{sc.name}: push each alert type with the demo's H key; tickets stack, merge and expire as on the boards.")
+        if sc.machine:
+            evs = list(dict.fromkeys(t["event"] for t in sc.machine["transitions"]))
+            first = next((t["event"] for t in sc.machine["transitions"] if t["from"] in (sc.machine["initial"], "*")), evs[0])
+            use.append(f'{var}:send("{first}")' + " " * max(1, 27 - len(first)) + "-- machine events: " + ", ".join(evs))
+            use.append(f"{var}.Action.Event:Connect(function(name, data) end)   -- controls fire (name, data) for game code")
+            steps.append(f"{sc.name}: L sends the next event ({', '.join(evs)}); every state looks like its board.")
+        nav = sc.nav
+        if nav.get("default") or nav.get("back"):
+            steps.append(f"{sc.name} with a controller: focus starts on {nav.get('default')}, every control is reachable"
+                         + (f", ButtonB = {nav.get('back')}" if nav.get("back") else "") + ".")
+    use.append('UI.setSkin("A")                -- live reskin of every mounted screen')
+    st = "\n".join(f"{i}. {x}" for i, x in enumerate(
+        ["Play Solo with `demo.project.json` (or RR_UIDemo in StarterPlayerScripts): each screen cycles its boards; "
+         "compare with the rendered PNGs."] + steps +
+        ["Device emulator: iPhone 14 landscape, an iPad and 1920x1080: clear of the top bar, jump button and thumbstick; "
+         "note GuiService:GetGuiInset() and the JumpButton's AbsolutePosition if they differ from the facts.",
+         "Settings > Reduce Motion on: panels and tickets fade or snap, nothing slides.",
+         "Upload the images in ASSETS.md and write asset_ids.json, then rebuild."], 1))
     return f"""# RR_UI package (rr-ui-foundry)
 
 Screens: {names}. Generated; rebuild with `ui.py build` instead of editing generated files.
 
 ## Install
-- Rojo: `rojo serve` with default.project.json (RR_UI lands in ReplicatedStorage, the demo in StarterPlayerScripts).
+- Rojo: `rojo serve` with default.project.json (RR_UI lands in ReplicatedStorage; this is what ships).
+  `demo.project.json` adds the Studio demo (RR_UIDemo) for the check below.
 - By hand: make a Folder `RR_UI` in ReplicatedStorage with ModuleScripts RR_UIKit, RR_UITheme, RR_UITemplates and a
-  Folder `screens` holding one ModuleScript per screen; put RR_UIDemo in StarterPlayerScripts as a LocalScript.
+  Folder `screens` holding one ModuleScript per screen.
 - Optional: put rr-game-feel's RR_Feel, RR_FeelPresets and RR_FeelMath in the same RR_UI folder; the kit then plays
   its events (reduce motion included). Without it the kit only fades, and snaps when Reduce Motion is on.
+- **Remove RR_UIDemo before publishing** (it binds H/K/L and cycles boards; it returns at once outside Studio).
 
 ## Use (LocalScript)
 ```lua
-local UI = require(game.ReplicatedStorage.RR_UI.RR_UIKit)
-local hud = UI.mount(require(game.ReplicatedStorage.RR_UI.screens.HudTickets))
-hud:push("CoalLow")                 -- tickets: type name + slots, e.g. hud:push("CrewJoined", {{name = "Sam"}})
-hud:clear("CoalLow")                -- the server's clear alert (ID)
-local lobby = UI.mount(require(game.ReplicatedStorage.RR_UI.screens.LobbyCreateMatch))
-lobby:send("open")                  -- state machine events; lobby.Action.Event fires (name, data) for game code
-UI.setSkin("A")                     -- live reskin of every mounted screen
+{chr(10).join(use)}
 ```
 
 ## Studio test (owner; nothing here has run in Roblox)
-1. Play Solo with the demo: each screen cycles its boards; compare with the boards in the render folder.
-2. Device emulator: iPhone 14 landscape, an iPad and 1920x1080; check the HUD clears the jump button and top bar.
-3. Gamepad (or the emulator's controller): Select starts navigation on the lobby; ButtonB closes it.
-4. Settings > Reduce Motion on: panels and tickets fade instead of sliding.
-5. Upload the images in ASSETS.md and paste the ids.
+{st}
 """
 
 
@@ -833,6 +1108,8 @@ def cmd_ingest(kit, a):
     size = U.wh(a.size) or kit.design_device.screen
     W, H = int(size[0]), int(size[1])
     src = Path(a.html)
+    if not src.is_file():
+        sys.exit(f"ingest: no such file {src}")
     with sync_playwright() as pw:
         br = launch(pw)
         ctx = br.new_context(viewport={"width": W, "height": H})
@@ -878,24 +1155,49 @@ def serve_root(page, root):
 
 
 def draft_spec(kit, els, W, H, name, annotated):
-    notes = []
-    skin = kit.default_skin
-    roles = {r: c["hex"] for r, c in kit.colors[skin].items()}
-    special = ("kind.", "diff.", "on_diff.")
+    notes, decide = [], []
+    chrome = [r for r in kit.roles["roles"] if not r.startswith(U.SPECIAL_ROLES) and r not in ("danger", "hazard", "hazard_ink")]
+    by_key = {}                        # bible token key -> the chrome role that uses it (default skin first)
+    for sk in [kit.default_skin] + [x for x in kit.skins if x != kit.default_skin]:
+        for r in chrome:
+            c = kit.colors.get(sk, {}).get(r)
+            if c:
+                by_key.setdefault(c["key"], (r, sk))
+    code, out = kit.b.run("tokens", "--format", "json")
+    try:
+        tokens = json.loads(out).get("colors", {}) if code == 0 else {}
+    except ValueError:
+        tokens = {}
+    skins_hit = {}
 
     def snap(hexv, what):
+        """Exact bible token -> the role mapped to it (any skin), else that token as @key; otherwise the nearest
+        chrome role in any skin. Difficulty, kind and danger roles are never picked for chrome. Over 6 dE is a
+        decision for the owner, not a silent pick."""
         if not hexv:
             return None
-        if hexv.upper() in ("#000000", "#FFFFFF"):
-            return "ink" if hexv.upper() == "#000000" else "paper_top"
-        r, d = min(((r, U.delta_e(hexv, h)) for r, h in roles.items() if not r.startswith(special)), key=lambda x: x[1])
-        if d > 2:
-            sp = min(((r2, U.delta_e(hexv, h)) for r2, h in roles.items() if r2.startswith(special)), key=lambda x: x[1])
-            if sp[1] <= 2:
-                return sp[0]
-        if d > 6:
-            notes.append(f"{what}: {hexv} is off-palette (nearest role {r}, dE {d:.1f}); used {r}")
-        return r
+        hexv = hexv.upper()
+        if hexv in ("#000000", "#FFFFFF"):
+            notes.append(f"{what}: pure {'black' if hexv == '#000000' else 'white'} mapped to "
+                         f"{'ink' if hexv == '#000000' else 'paper_top'} (mock default, not a token)")
+            return "ink" if hexv == "#000000" else "paper_top"
+        exact = [k for k, v in tokens.items() if str(v).upper() == hexv]
+        for k in exact:
+            if k in by_key:
+                r, sk = by_key[k]
+                skins_hit[sk] = skins_hit.get(sk, 0) + 1
+                return r
+        if exact:
+            notes.append(f"{what}: {hexv} = rr-bible {exact[0]} (no role maps it; used @{exact[0]}: add a role if it recurs)")
+            return "@" + exact[0]
+        best = min(((r, sk, U.delta_e(hexv, c["hex"])) for sk in kit.skins for r in chrome
+                    for c in [kit.colors.get(sk, {}).get(r)] if c), key=lambda x: x[2])
+        if best[2] > 6:
+            decide.append(f"{what}: {hexv} is off-palette (nearest role {best[0]} in skin {best[1]}, dE {best[2]:.1f}): owner "
+                          "decides (new token via bible.py add-fact, or that role)")
+        elif best[2] > 2:
+            notes.append(f"{what}: {hexv} snapped to {best[0]} (skin {best[1]}, dE {best[2]:.1f})")
+        return best[0]
 
     def style_of(e):
         fam = "display" if kit.fonts["display"]["name"].lower() in e["family"].lower() else "body"
@@ -1007,6 +1309,10 @@ def draft_spec(kit, els, W, H, name, annotated):
     for n in tops:
         if n["rect"][1] < ay:
             notes.append(f"{n['id']}: starts at y {n['rect'][1]} inside the {ay:g} px top bar strip")
+    if skins_hit:
+        notes.append("exact token matches by skin: " + ", ".join(f"{k} {v}" for k, v in sorted(skins_hit.items()))
+                     + f" (main skin {kit.default_skin}: {kit.skin_status})")
+    notes = [f"DECIDE {d}" for d in decide] + notes
     return {"screen": re.sub(r"[^A-Za-z0-9]", "", name.title()) or "Screen", "title": name, "purpose": "TODO (owner words)",
             "design": {"device": kit.design_device.name}, "gui": {"display_order": 10, "insets": "CoreUISafeInsets"},
             "canon": [], "oq": [], "nodes": tops, "nav": nav, "boards": [{"name": "default"}]}, notes
@@ -1019,11 +1325,14 @@ def main(argv=None):
     sp.add_parser("list")
     p = sp.add_parser("show"); p.add_argument("spec")
     p = sp.add_parser("validate"); p.add_argument("specs", nargs="+"); p.add_argument("--strict", action="store_true"); p.add_argument("--json", action="store_true")
-    p = sp.add_parser("render"); p.add_argument("spec"); p.add_argument("--out", required=True); p.add_argument("--devices", default="")
+    p = sp.add_parser("render"); p.add_argument("specs", nargs="*"); p.add_argument("--out", required=True); p.add_argument("--devices", default="")
+    p.add_argument("--kit", action="store_true", help="add the kit board (every template x state x variant)")
     p.add_argument("--skins", default=""); p.add_argument("--boards", default=""); p.add_argument("--text-scale", type=float, default=1.0)
     p.add_argument("--html-only", action="store_true")
     p = sp.add_parser("crit"); p.add_argument("crit"); p.add_argument("--pass", dest="pass_", type=int, required=True)
-    p.add_argument("--from", required=True); p.add_argument("--spec", required=True)
+    p.add_argument("--from", required=True); p.add_argument("--spec", required=True, help="SPEC or A,B for a set rendered together")
+    p.add_argument("--owner", choices=("present", "away"), default="present",
+                   help="present (default): the brief asks multiuse-critic step 2's questions; away: canon pre-answers them")
     p = sp.add_parser("build"); p.add_argument("specs", nargs="+"); p.add_argument("--out", required=True); p.add_argument("--skin", default="")
     p.add_argument("--no-check", action="store_true"); p.add_argument("--no-parity", action="store_true")
     p.add_argument("--assets", default="", help="JSON of uploaded ids (iconSheet, hazardTile); default <out>/asset_ids.json")

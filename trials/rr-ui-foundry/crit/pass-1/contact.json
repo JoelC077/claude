@@ -1,0 +1,105 @@
+{
+ "sheet": [
+  856,
+  1138
+ ],
+ "megapixels": 0.97,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "HUD phone 844x390 routine (C)",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/hud/HudTickets__routine__phone__C.png",
+   "box": [
+    6,
+    24,
+    844,
+    390
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "Create match phone 844x390 open (C)",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/lobby/LobbyCreateMatch__open__phone__C.png",
+   "box": [
+    6,
+    438,
+    844,
+    390
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 3,
+   "label": "HUD crisis phone",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/hud/HudTickets__crisis__phone__C.png",
+   "box": [
+    6,
+    852,
+    276,
+    128
+   ],
+   "scale": "fit x0.33"
+  },
+  {
+   "n": 4,
+   "label": "HUD overflow phone",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/hud/HudTickets__overflow__phone__C.png",
+   "box": [
+    288,
+    852,
+    276,
+    128
+   ],
+   "scale": "fit x0.33"
+  },
+  {
+   "n": 5,
+   "label": "HUD notched phone",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/hud/HudTickets__routine__phone_notch__C.png",
+   "box": [
+    570,
+    852,
+    276,
+    128
+   ],
+   "scale": "fit x0.33"
+  },
+  {
+   "n": 6,
+   "label": "Match INSANE, pad focus",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/lobby/LobbyCreateMatch__insane__phone__C.png",
+   "box": [
+    6,
+    1004,
+    276,
+    128
+   ],
+   "scale": "fit x0.33"
+  },
+  {
+   "n": 7,
+   "label": "Match joining",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/lobby/LobbyCreateMatch__joining__phone__C.png",
+   "box": [
+    288,
+    1004,
+    276,
+    128
+   ],
+   "scale": "fit x0.33"
+  },
+  {
+   "n": 8,
+   "label": "Match notched phone",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/lobby/LobbyCreateMatch__open__phone_notch__C.png",
+   "box": [
+    570,
+    1004,
+    276,
+    128
+   ],
+   "scale": "fit x0.33"
+  }
+ ]
+}

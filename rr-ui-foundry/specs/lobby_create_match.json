@@ -2,27 +2,41 @@
   "screen": "LobbyCreateMatch",
   "title": "Create match (lobby modal)",
   "purpose": "Pick crew size and difficulty, then join the queue; one obvious primary action.",
-  "source": "DTU Create match sketch; canon ui.lobby.*, ui.difficulty.*, gameplay.difficulty.tiers",
+  "source": "DTU Depot Ticket UI 'Create match': rows (label left, controls right); one accent for the selected count, the current difficulty and Join; tier colours only as difficulty. Canon ui.lobby.*, ui.rules.*",
   "design": {"device": "phone"},
   "gui": {"display_order": 30, "insets": "CoreUISafeInsets", "modal": true},
-  "canon": ["ui.lobby.controls", "ui.rules.one_accent", "ui.rules.difficulty_never_chrome", "tech.ui_platform.touch_target_px"],
+  "canon": ["ui.lobby.controls", "ui.rules.one_accent", "ui.rules.difficulty_never_chrome", "ui.rules.colourblind", "tech.ui_platform.touch_target_px", "gameplay.difficulty.tiers", "gameplay.crew.max"],
   "oq": ["OQ-001", "OQ-017", "OQ-033"],
   "data": {
-    "players": {"values": [1, 2, 3], "default": 2, "note": "ui.lobby.controls draws 1/2/3 chips; gameplay.crew.max is 6"},
+    "players": {"values": [1, 2, 3], "default": 2, "note": "ui.lobby.controls draws 1/2/3 chips; gameplay.crew.max is 6: an owner question (draft in the trial's oq-drafts.txt); the kit renders any chip count"},
     "difficulty": {"values": {"canon": "gameplay.difficulty.tiers", "upper": true}, "default": "MEDIUM"}
   },
   "nodes": [
     {"id": "scrim", "type": "frame", "layer": "backdrop", "rect": [0, 0, 844, 390], "stretch": "xy", "fill": "scrim", "alpha": 0.55},
-    {"id": "panel", "use": "panel", "rect": [242, 64, 360, 304], "pin": "cc", "slots": {"title": "CREATE MATCH", "closable": true}, "children": [
-      {"id": "lbl_players", "type": "text", "rect": [20, 62, 150, 18], "text": "PLAYERS", "style": "label", "color": "text"},
-      {"id": "p1", "use": "chip", "rect": [20, 84, 44, 44], "slots": {"text": "1"}, "on": "players=1", "action": {"set": {"players": 1}}},
-      {"id": "p2", "use": "chip", "rect": [72, 84, 44, 44], "slots": {"text": "2"}, "on": "players=2", "action": {"set": {"players": 2}}},
-      {"id": "p3", "use": "chip", "rect": [124, 84, 44, 44], "slots": {"text": "3"}, "on": "players=3", "action": {"set": {"players": 3}}},
-      {"id": "lbl_diff", "type": "text", "rect": [20, 140, 150, 18], "text": "DIFFICULTY", "style": "label", "color": "text"},
-      {"id": "diff_prev", "use": "button", "variant": "icon", "rect": [20, 162, 44, 48], "slots": {"text": "<"}, "action": {"cycle": {"difficulty": -1}}},
-      {"id": "diff_plate", "type": "text", "rect": [72, 162, 216, 44], "fill": "diff.{difficulty|lower}", "stroke": ["ink", 2], "radius": 10, "text": "{difficulty}", "style": "value", "color": "on_diff.{difficulty|lower}", "align": "center"},
-      {"id": "diff_next", "use": "button", "variant": "icon", "rect": [296, 162, 44, 48], "slots": {"text": ">"}, "action": {"cycle": {"difficulty": 1}}},
-      {"id": "join", "use": "button", "variant": "primary", "rect": [20, 226, 320, 56], "slots": {"text": "JOIN", "hint": "ButtonA"}, "action": "join"}
+    {"id": "panel", "use": "panel", "rect": [202, 79, 440, 290], "pin": "cc", "slots": {"title": "CREATE MATCH", "closable": true},
+     "note": "one 16 px gap token: header 64 -> row 80, rows 44/48, divider centred between rows, Join 204, 16 below; controls share the 20 px left and right edges",
+     "children": [
+      {"id": "ico_players", "type": "image", "rect": [20, 92, 30, 20], "image": "icon.crew", "tint": "header"},
+      {"id": "lbl_players", "type": "text", "rect": [56, 80, 150, 44], "text": "PLAYERS", "style": "label", "color": "text"},
+      {"id": "p1", "use": "chip", "rect": [272, 80, 44, 44], "slots": {"text": "1"}, "on": "players=1", "action": {"set": {"players": 1}}},
+      {"id": "p2", "use": "chip", "rect": [324, 80, 44, 44], "slots": {"text": "2"}, "on": "players=2", "action": {"set": {"players": 2}}},
+      {"id": "p3", "use": "chip", "rect": [376, 80, 44, 44], "slots": {"text": "3"}, "on": "players=3", "action": {"set": {"players": 3}}},
+      {"id": "row_rule", "type": "frame", "rect": [20, 131, 400, 2], "fill": "trim", "alpha": 0.5},
+      {"id": "ico_diff", "type": "image", "rect": [20, 152, 30, 20], "image": "icon.tiers", "tint": "header"},
+      {"id": "lbl_diff", "type": "text", "rect": [56, 140, 106, 44], "text": "DIFFICULTY", "style": "label", "color": "text"},
+      {"id": "diff_prev", "use": "button", "variant": "icon", "rect": [168, 140, 44, 48], "slots": {"icon": "chevron_left"}, "action": {"cycle": {"difficulty": -1}}},
+      {"id": "diff_plate", "type": "frame", "rect": [220, 140, 148, 44], "fill": "btn", "stroke": ["ink", 3], "radius": 12,
+       "note": "the current difficulty is selected like a chip (ink edge, inner accent ring, underline: ui.rules.one_accent); the tier colour is only the pip (ui.rules.difficulty_never_chrome), the name is the non-colour cue",
+       "children": [
+        {"id": "diff_sel", "type": "frame", "rect": [3, 3, 142, 38], "stroke": ["accent", 4], "radius": 9},
+        {"id": "diff_ring", "type": "frame", "rect": [12, 11, 22, 22], "fill": "btn", "stroke": ["ink", 2], "radius": "circle", "children": [
+          {"id": "diff_pip", "type": "frame", "rect": [5, 5, 12, 12], "fill": "diff.{difficulty|lower}", "radius": "circle"}
+        ]},
+        {"id": "diff_value", "type": "text", "rect": [38, 0, 102, 38], "text": "{difficulty}", "style": "value", "color": "on_btn", "align": "center"},
+        {"id": "diff_mark", "type": "frame", "rect": [80, 32, 18, 4], "fill": "ink", "radius": 2}
+      ]},
+      {"id": "diff_next", "use": "button", "variant": "icon", "rect": [376, 140, 44, 48], "slots": {"icon": "chevron_right"}, "action": {"cycle": {"difficulty": 1}}},
+      {"id": "join", "use": "button", "variant": "cta", "rect": [20, 204, 400, 64], "slots": {"text": "JOIN", "hint": "ButtonA"}, "action": "join"}
     ]}
   ],
   "nav": {"grid": [["close"], ["p1", "p2", "p3"], ["diff_prev", "diff_next"], ["join"]], "default": "join", "back": "close", "modal": "panel"},

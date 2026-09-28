@@ -1,0 +1,33 @@
+{
+ "sheet": [
+  1564,
+  700
+ ],
+ "megapixels": 1.09,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "hard_brake peak frame (phone true size) + feel matrix",
+   "src": "/home/user/claude/trials/rr-game-feel/src/feel/preview/ev_hard_brake/actions/_row1.png",
+   "box": [
+    6,
+    24,
+    1552,
+    390
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "hard_brake timeline (dashed: reduce motion) + filmstrip",
+   "src": "/home/user/claude/trials/rr-game-feel/src/feel/preview/ev_hard_brake/actions/_row2.png",
+   "box": [
+    6,
+    438,
+    1552,
+    256
+   ],
+   "scale": "1:1 true size"
+  }
+ ]
+}

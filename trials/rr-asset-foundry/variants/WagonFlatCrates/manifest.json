@@ -1,0 +1,85 @@
+{
+ "asset": "WagonFlatCrates",
+ "family": "wagon",
+ "preset": "flat_crates",
+ "hash": "06855f15fbf1",
+ "status": "ok",
+ "made": "2026-09-28T03:00:44",
+ "seconds": 15.9,
+ "params": {
+  "kind": "flat",
+  "length": 36.0,
+  "width": 17.4,
+  "gauge": 8.0,
+  "deck": 5.0,
+  "running": "auto",
+  "wheel_r": 1.6,
+  "side_h": 4.0,
+  "body_h": 7.0,
+  "planks": 4,
+  "load": "crates",
+  "weathering": 0.2,
+  "door": true
+ },
+ "size_studs": [
+  38.8,
+  17.3,
+  8.65
+ ],
+ "parts": 40,
+ "proxies": 4,
+ "tris": {
+  "total": 1176,
+  "max_part": 120,
+  "max_name": "WagonFlatCrates_Deck_Timber_01",
+  "over_target": [],
+  "over_cap": []
+ },
+ "groups": {
+  "Chassis": 16,
+  "Buffer": 2,
+  "Steel": 10,
+  "Iron": 7,
+  "Timber": 1,
+  "Crate": 3,
+  "Patch": 1
+ },
+ "features": {
+  "BufferHead": [
+   9.8,
+   "WagonFlatCrates_BufferHead_Steel_02"
+  ],
+  "Stanchion": [
+   154.3,
+   "WagonFlatCrates_Stanchion_Iron_02"
+  ]
+ },
+ "lod1": null,
+ "renders": {
+  "thumb": "renders/thumb.png",
+  "game": "renders/game.png",
+  "pov3p": "renders/pov3p.png",
+  "pov1p": "renders/pov1p.png",
+  "34": "renders/34.png",
+  "side": "renders/side.png",
+  "end": "renders/end.png"
+ },
+ "files": [
+  "WagonFlatCrates.fbx",
+  "WagonFlatCrates_atlas.fbx",
+  "palette.png",
+  "parts.csv",
+  "WagonFlatCrates.blend",
+  "studio_setup.lua"
+ ],
+ "checks": {
+  "lua": "ok (luaparse: ok)",
+  "bible_check": "PASS"
+ },
+ "fails": [],
+ "warnings": [],
+ "open": [
+  "OQ-025",
+  "OQ-030"
+ ]
+}

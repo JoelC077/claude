@@ -4,14 +4,16 @@
 Writes into OUT: tiles/<id>.png (waveform + log-frequency spectrogram, measurements in the header), ladder.png (in-game
 level per sound by tier, the phone-speaker level beside it, ducked ambient levels), timeline.png (each rr-game-feel
 event: the sound's envelope against the feel channels: hit-stop, kicks, flashes, haptics), contact.png + closeups.png
-(multiuse-critic contact_sheet.py; under 1.15 MP each), facts.md (measurements, mix, hierarchy on phones, coverage).
+(multiuse-critic contact_sheet.py; under 1.15 MP each), facts.md (measurements, mix, hierarchy on phones, the event and
+brief table the critic scores S5/S6 on, coverage split into mapped/briefed and files in this pass).
 Needs numpy and Pillow. Images are evidence for a critic who cannot hear; the owner's ears are the final check.
 """
 import json, math, subprocess, sys
 from pathlib import Path
 
-import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+sys.dont_write_bytecode = True
+import numpy as np  # noqa: E402
+from PIL import Image, ImageDraw, ImageFont  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import audiolib as al  # noqa: E402
@@ -94,7 +96,7 @@ def tile(sid, s, x, rate, rep, std, placeholder, w=250, h=100):
 
 def ladder_png(m, rows, path, w=780):
     """rows: [(sid, tier, target, phone_level or None)]"""
-    top, rh, left = 34, 13, 132
+    top, rh, left = 48, 13, 132
     h = top + rh * len(rows) + 50
     im = Image.new("RGB", (w, h), BG)
     d = ImageDraw.Draw(im)
@@ -105,9 +107,13 @@ def ladder_png(m, rows, path, w=780):
         d.line([(X(v), top - 4), (X(v), h - 44)], fill=GRID)
         d.text((X(v) - 8, h - 42), str(v), fill=DIM, font=font(9))
     L = m.ladder
-    for k in ("t1", "t2", "t3", "t4", "t5", "ambient", "music"):
-        d.line([(X(L[k]), top - 8), (X(L[k]), top - 2)], fill=INK)
-        d.text((X(L[k]) - 6, top - 20), k, fill=DIM, font=font(9))
+    placed = []  # (x, row): labels closer than 40 px go on a second row
+    for k in sorted(("t1", "t2", "t3", "t4", "t5", "ambient", "music"), key=lambda k_: L[k_]):
+        x = X(L[k])
+        row = 1 if any(abs(x - px) < 40 and pr == 0 for px, pr in placed) else 0
+        placed.append((x, row))
+        d.line([(x, top - 8), (x, top - 2)], fill=INK)
+        d.text((x - 6, top - 20 - row * 10), k, fill=DIM, font=font(9))
     amb = L["ambient"]
     for name, dbv in (("crisis", -8), ("fail", -14)):
         rule = next((r for r in m.r["ducking"] if r["name"] == name), None)
@@ -307,12 +313,32 @@ def facts_md(m, reps, files, items):
     for d in m.r["ducking"]:
         lines.append(f"- {d['name']}: {', '.join(d['when'].get('sounds', []) + ['group ' + g for g in d['when'].get('groups', [])])} "
                      f"-> {', '.join(f'{g} {v} dB' for g, v in d['duck'].items())}; attack {d['attack']} s, hold {d['hold']} s, release {d['release']} s")
+    lines += ["", "## Event and brief table (phase order; from soundmap.json)", "",
+              "| phase | sound | tier/group | space | events | must say | sounds like | avoid |", "|---|---|---|---|---|---|---|---|"]
+    cut = lambda s, n: s if len(s) <= n else s[:n - 1].rstrip() + "…"  # noqa: E731
+    for sid in m.by_phase():
+        s, br = m.sounds[sid], m.sounds[sid]["brief"]
+        sp = s["space"] + (f" @{s['emitter']}" if s.get("emitter") else "") + (
+            f" +3d @{s['layer3d']['emitter']} {s['layer3d'].get('gain_db', -4)} dB" if s.get("layer3d") else "")
+        evs = ", ".join(f"{e} ({m.events[e]['via']})" for e in m.events_for(sid)) or "NONE"
+        lines.append(f"| {m.sound_phase(sid)} | {sid} | t{s['tier']} {s['group']} | {sp} | {evs} | {br.get('must_say', '')} | "
+                     f"{cut(br.get('sounds_like', ''), 90)} | {cut(br.get('avoid', ''), 80)} |")
+    silent = [e for e, ev in m.events.items() if not ([ev.get("play"), ev.get("toggle")] + ev.get("start", []) + ev.get("stop", []))]
+    played = [k for k in m.sounds if m.events_for(k)]
+    briefed = [k for k in m.sounds if all(m.sounds[k]["brief"].get(f) for f in ("moment", "must_say", "sounds_like", "avoid", "len"))]
+    d3 = [k for k in m.sounds if m.sounds[k]["space"] == "3d"]
+    d3ok = [k for k in d3 if m.sounds[k].get("emitter") in m.r["emitters"]]
+    nofile = [k for k in m.by_phase() if k not in reps]
     lines += ["", "## Coverage", "",
-              f"{len(reps)} of {len(m.sounds)} sounds have a file here; {len(items)} rr-game-feel events drawn in the timeline. "
-              f"Missing: {', '.join(k for k in m.sounds if k not in reps) or 'none'}.",
+              f"Mapped: {len(m.events) - len(silent)}/{len(m.events)} events play a sound"
+              f"{' (silent: ' + ', '.join(silent) + ')' if silent else ''}; {len(played)}/{len(m.sounds)} sounds are played "
+              f"by an event; {len(briefed)}/{len(m.sounds)} briefed; {len(d3ok)}/{len(d3)} 3D sounds have an emitter role.",
+              f"Files in this pass: {len(reps)}/{len(m.sounds)} (the scope of this sheet). No file here (mapped and briefed "
+              f"above; not a coverage gap): {', '.join(nofile) or 'none'}. {len(items)} rr-game-feel events drawn in the timeline.",
               "Asset states: " + ", ".join(f"{k} {m.asset_state(k)}" for k in m.sounds if m.asset_state(k) != "unassigned")
               if any(m.asset_state(k) != "unassigned" for k in m.sounds) else "Asset states: all unassigned (no uploads registered yet).",
-              "Voices: " + json.dumps(m.r["voices"]["per_group"]) + f", max {m.r['voices']['max']}; crisis tiers never dropped."]
+              "Voices: " + json.dumps(m.r["voices"]["per_group"]) + f", max {m.r['voices']['max']}; new fail and crisis "
+              "sounds always get a voice; a playing crisis alarm is cut only by the fail or another alarm."]
     return "\n".join(lines) + "\n"
 
 

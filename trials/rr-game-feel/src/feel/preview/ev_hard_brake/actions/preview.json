@@ -1,0 +1,9 @@
+{
+ "group": "actions",
+ "hero": "hard_brake",
+ "events": [
+  "hard_brake"
+ ],
+ "rm": false,
+ "peak_t": 0.15
+}

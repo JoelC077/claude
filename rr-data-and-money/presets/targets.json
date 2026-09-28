@@ -1,0 +1,19 @@
+{
+ "_doc": "Metric -> canon key. The number and comparator are read from rr-bible at run time: 'pick' = which comparison in the canon text (0 = first). 'gate' puts it in the release-gate table; 'trigger' means the canon line describes a stop condition (met = ALERT). Never write the numbers here.",
+ "targets": [
+  {"metric": "avg_session_min", "canon": "release.kpi.session_min", "pick": 0},
+  {"metric": "d1", "canon": "release.kpi.d1", "pick": 0, "label": "D1 soft launch"},
+  {"metric": "d7", "canon": "release.kpi.d7", "pick": 0},
+  {"metric": "d30", "canon": "release.kpi.d30", "pick": 0},
+  {"metric": "payer_conversion", "canon": "release.kpi.conversion", "pick": 0},
+  {"metric": "bounce", "canon": "release.kpi.bounce_60s", "pick": 0},
+  {"metric": "d1", "canon": "release.kpi.d1", "pick": 1, "gate": "scale", "label": "D1 before scaling spend"},
+  {"metric": "d1", "canon": "release.gates.spend", "pick": 0, "gate": "spend", "label": "D1 before any ad spend"},
+  {"metric": "bounce", "canon": "release.gates.spend", "pick": 1, "gate": "spend", "label": "bounce before any ad spend"},
+  {"metric": "dau", "canon": "release.gates.continue", "pick": 0, "gate": "continue", "label": "DAU"},
+  {"metric": "payer_conversion", "canon": "release.gates.continue", "pick": 1, "gate": "continue", "label": "payer conversion"},
+  {"metric": "robux_per_visit", "canon": "release.gates.continue", "pick": 2, "gate": "continue", "label": "R$ per visit"},
+  {"metric": "d1", "canon": "release.gates.abandon", "pick": 0, "gate": "abandon", "trigger": true, "label": "stop-spending trigger"},
+  {"metric": "avg_session_min", "canon": "release.gates.closed_test", "pick": 0, "gate": "closed_test", "label": "session (mean; canon says median)"}
+ ]
+}

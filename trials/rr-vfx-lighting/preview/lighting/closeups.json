@@ -1,0 +1,33 @@
+{
+ "sheet": [
+  332,
+  414
+ ],
+ "megapixels": 0.14,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "grassland.dusk@door1p",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/lighting/grassland.dusk_door1p.png",
+   "box": [
+    6,
+    24,
+    320,
+    180
+   ],
+   "scale": "fit x0.42"
+  },
+  {
+   "n": 2,
+   "label": "grassland.night@door1p",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/lighting/grassland.night_door1p.png",
+   "box": [
+    6,
+    228,
+    320,
+    180
+   ],
+   "scale": "fit x0.42"
+  }
+ ]
+}

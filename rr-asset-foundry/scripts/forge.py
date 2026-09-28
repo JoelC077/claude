@@ -17,6 +17,7 @@ RENDERS = {  # name: (camera, resolution, samples)
     "34": ("Cam_34", (640, 360), 16), "side": ("Cam_Side", (640, 360), 16), "end": ("Cam_End", (640, 360), 16),
     "top": ("Cam_Top", (640, 360), 16)}
 SETS = {"none": [], "thumb": ["thumb", "game"], "full": ["thumb", "game", "pov3p", "pov1p", "34", "side", "end"]}
+# extra POV stands (a family's stands() beyond the first) render as pov3p_2, pov3p_3 from Cam_POV_3P_2, _3
 
 
 def args_after_dashes():
@@ -56,12 +57,28 @@ def main():
     fam = load_family(plan["family_file"])
     t0, res = time.time(), {"asset": asset, "timing": {}}
     rpath = os.path.join(out, "result.json")
-    if a.render_only:
+    if a.render_only:              # out may be a copy of the folder the variant was made in
         old = json.load(open(rpath)) if os.path.isfile(rpath) else {}
         bpy.ops.wm.open_mainfile(filepath=os.path.join(out, f"{asset}.blend"))
+        for im in bpy.data.images:  # the atlas image is referenced by path: use this folder's palette.png
+            local = os.path.join(out, os.path.basename(im.filepath_raw or ""))
+            if im.filepath_raw and os.path.isfile(local):
+                im.filepath_raw = local
+                im.reload()
         parts = [o for o in bpy.data.objects if o.get("rr_group") and o.name.startswith(asset + "_")]
-        old.setdefault("renders", {}).update(render_set(bpy, bk, plan, out, a.render_only, parts, fkit, old))
-        old["timing"]["render_only_s"] = round(time.time() - t0, 1)
+        lo, hi = bbox(parts, Vector)
+        old["pov"] = pov_cams(bpy, bk, plan, fam, lo, hi, ground_z(plan["view"], lo))   # the premise may have changed
+        bfs = {c: n for c, n in old.get("backfaces", {}).items() if not c.startswith("Cam_POV_")}
+        bfs.update(check_backfaces(bpy, fkit, plan, parts, old, pov_only=True))
+        old["backfaces"] = bfs
+        old["features_pov"] = fkit.feature_px(bpy.data.objects["Cam_POV_3P"], parts, plan["view"].get("features", []),
+                                              res=(768, 432), min_px=plan["canon"]["min_feature_px"])
+        rend = old.setdefault("renders", {})
+        if a.render_only == "full":
+            for n in [n for n in rend if n.startswith("pov3p_")]:
+                rend.pop(n)
+        rend.update(render_set(bpy, bk, plan, out, a.render_only, parts, fkit, old))
+        old.setdefault("timing", {})["render_only_s"] = round(time.time() - t0, 1)
         json.dump(old, open(rpath, "w"), indent=1)
         print(f"rendered {a.render_only} set in {time.time() - t0:.0f}s")
         return
@@ -110,14 +127,11 @@ def main():
     res["timing"]["checks_s"] = round(time.time() - t0, 1)
 
     # ---------- stage, cameras, renders ----------
-    stage(bpy, bk, plan, fam, parts, lo, hi, Vector)
-    res["backfaces"] = {}
-    for cam in ("Cam_34", "Cam_POV_3P"):
-        bf = fkit.backfaces(bpy.data.objects[cam], parts, res=(200, 112))
-        res["backfaces"][cam] = sum(bf.values())
-        if bf:
-            res.setdefault("backface_parts", {}).update(bf)
-    res["features"] = fkit.feature_px(bpy.data.objects["Cam_34"], parts, plan["view"].get("features", []))
+    res["pov"] = stage(bpy, bk, plan, fam, parts, lo, hi, Vector)
+    res["backfaces"] = check_backfaces(bpy, fkit, plan, parts, res)
+    keys, mpx = plan["view"].get("features", []), cn["min_feature_px"]
+    res["features"] = fkit.feature_px(bpy.data.objects["Cam_34"], parts, keys, res=(400, 225), min_px=mpx)
+    res["features_pov"] = fkit.feature_px(bpy.data.objects["Cam_POV_3P"], parts, keys, res=(768, 432), min_px=mpx)
     res["renders"] = render_set(bpy, bk, plan, out, plan["options"]["renders"], parts, fkit, res)
     res["timing"]["renders_s"] = round(time.time() - t0, 1)
     if a.no_export:
@@ -130,7 +144,7 @@ def main():
     files.append(f"{asset}.blend")
     rep = bk.reimport(os.path.join(out, f"{asset}.fbx"), expect=tuple(size))
     res["reimport"] = {k2: rep.get(k2) for k2 in ("meshes", "size", "tris", "ratio", "unit_warning", "no_uv")}
-    lua = setup_lua(bk, plan, asset, bool(proxies))
+    lua = setup_lua(bk, plan, asset, bool(proxies), set(res["groups"]))
     open(os.path.join(out, "studio_setup.lua"), "w").write(lua)
     files.append("studio_setup.lua")
     res["timing"]["export_s"] = round(time.time() - t0, 1)
@@ -154,6 +168,56 @@ def main():
     res["timing"]["total_s"] = round(time.time() - t0, 1)
     json.dump(res, open(rpath, "w"), indent=1)
     print(f"forge done: {asset} {len(parts)} parts, {res['tris']['total']} tris, {res['timing']['total_s']}s")
+
+
+def check_backfaces(bpy, fkit, plan, parts, res, pov_only=False):
+    """Back faces (Roblox culls them) from every POV and construction camera, as multiuse-critic asks."""
+    cams = [o.name for o in bpy.data.objects if o.name.startswith("Cam_POV_")]
+    if not pov_only:
+        cams += ["Cam_34", "Cam_Side", "Cam_End"] + (["Cam_Top"] if plan["view"].get("top") else [])
+    out = {}
+    for cam in sorted(cams):
+        bf = fkit.backfaces(bpy.data.objects[cam], parts, res=(200, 112))
+        out[cam] = sum(bf.values())
+        if bf:
+            res.setdefault("backface_parts", {}).update(bf)
+    return out
+
+
+def ground_z(view, lo):
+    gz = -2.2 if view.get("stage") == "track" else (lo[2] if view.get("ground_z") is None else view["ground_z"])
+    return gz - 0.02                 # the stage ground never shares a plane with the asset's underside
+
+
+def pov_cams(bpy, bk, plan, fam, lo, hi, gz):
+    """Player cameras for the chosen premise: family stands(p, lo, hi, view) -> [(label, stand, look)] (1-3), else
+    pov() or a generic stand plus a second one 35 degrees round the look point (the player walked on or the world
+    scrolled). Stand 1 gets Cam_POV_3P and Cam_POV_1P; stands 2-3 get Cam_POV_3P_2, _3."""
+    from mathutils import Vector
+    p, cn = plan["params"], plan["canon"]
+    view = dict(plan["view"], premise=plan["options"].get("pov"), gz=gz)
+    if hasattr(fam, "stands"):
+        st = list(fam.stands(p, lo, hi, view))[:3]
+    else:
+        if hasattr(fam, "pov"):
+            stand, look = fam.pov(p, lo, hi)
+        else:
+            mid = Vector([(lo[i] + hi[i]) / 2 for i in range(3)])
+            dd = Vector((0.45, -1, 0)).normalized() * max(14, 1.6 * max(hi[0] - lo[0], hi[1] - lo[1]))
+            stand, look = (mid.x + dd.x, mid.y + dd.y, gz), tuple(mid)
+        a, dx, dy = math.radians(35), stand[0] - look[0], stand[1] - look[1]
+        st = [("stand 1", stand, look), ("stand 2, 35 degrees on", (look[0] + dx * math.cos(a) - dy * math.sin(a),
+                                                                    look[1] + dx * math.sin(a) + dy * math.cos(a), stand[2]), look)]
+    for o in [o for o in bpy.data.objects if o.name.startswith("Cam_POV_3P_")]:
+        bpy.data.objects.remove(o)
+    rows = []
+    for i, (label, stand, look) in enumerate(st):
+        name = "Cam_POV_3P" if i == 0 else f"Cam_POV_3P_{i + 1}"
+        bk.pov_camera(name, stand, look, eye_height=cn["eye_3p"], fov_v=cn["fov_v"])
+        rows.append({"render": "pov3p" if i == 0 else f"pov3p_{i + 1}", "label": label,
+                     "stand": [round(v, 1) for v in stand]})
+    bk.pov_camera("Cam_POV_1P", st[0][1], st[0][2], eye_height=cn["eye_1p"], fov_v=cn["fov_v"])
+    return {"premise": plan["options"].get("pov"), "stands": rows}
 
 
 def bbox(objs, Vector):
@@ -206,7 +270,7 @@ def stage(bpy, bk, plan, fam, parts, lo, hi, Vector):
     coll.objects.link(sun)
     cx, cy = (lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2
     ext = max(hi[0] - lo[0], hi[1] - lo[1], 8)
-    gz = lo[2] if view.get("ground_z") is None else view["ground_z"]
+    gz = ground_z(view, lo)
     if view.get("stage") == "track":        # rails and ballast under rolling stock, from the same canon tokens
         g = plan["params"]["gauge"]
         rail, bal = _flat_mat(bpy, "Stage_Rail", st["rail"]), _flat_mat(bpy, "Stage_Ballast", st["ballast"])
@@ -214,8 +278,6 @@ def stage(bpy, bk, plan, fam, parts, lo, hi, Vector):
         for s in (-1, 1):
             _stage_box(bpy, f"Stage_Rail_{s}", (cx, s * g / 2, -0.6), (L, 0.8, 1.2), rail, coll)
         _stage_box(bpy, "Stage_Ballast", (cx, 0, -1.7), (L, 20, 1.0), bal, coll)
-        gz = -2.2
-    gz -= 0.02                       # the stage ground never shares a plane with the asset's underside
     ground = _stage_box(bpy, "Stage_Ground", (cx, cy, gz - 0.5), (ext * 12, ext * 12, 1.0),
                         _flat_mat(bpy, "Stage_Ground", st["ground"]), coll)
     n = int(view.get("tile_x", 0))                       # tiling pieces: copies show the seams
@@ -245,21 +307,16 @@ def stage(bpy, bk, plan, fam, parts, lo, hi, Vector):
     d = Vector(view.get("dir34", (1.0, -1.3, 0.75))).normalized()
     cam34 = _cam(bpy, "Cam_34", c3 + d * 10, c3, view_deg=30)       # construction lens, not the player camera
     _fit(bpy, cam34, corners, c3, d)
-    size = [hi[i] - lo[i] for i in range(3)]
-    mid = Vector([(lo[i] + hi[i]) / 2 for i in range(3)])
+    size = [focus[1][i] - focus[0][i] for i in range(3)]       # side and end frames hold the avatar (scale)
+    mid = Vector([(focus[0][i] + focus[1][i]) / 2 for i in range(3)])
     far = 10 * max(size) + 50
     _cam(bpy, "Cam_Side", mid + Vector((0, -far, 0)), mid, ortho=max(size[0], size[2] * 16 / 9) * 1.12)
     _cam(bpy, "Cam_End", mid + Vector((far, 0, 0)), mid, ortho=max(size[1], size[2] * 16 / 9) * 1.12)
-    top = _cam(bpy, "Cam_Top", mid + Vector((0, 0, far)), mid, ortho=max(size[0], size[1] * 16 / 9) * 1.12)
+    asz = [hi[i] - lo[i] for i in range(3)]
+    amid = Vector([(lo[i] + hi[i]) / 2 for i in range(3)])
+    top = _cam(bpy, "Cam_Top", amid + Vector((0, 0, far)), amid, ortho=max(asz[0], asz[1] * 16 / 9) * 1.12)
     top.rotation_euler = (0, 0, 0)          # straight down, +y up in the frame
-    if hasattr(fam, "pov"):
-        stand, look = fam.pov(plan["params"], lo, hi)
-    else:
-        dd = Vector((0.45, -1, 0)).normalized() * max(14, 1.6 * max(size[0], size[1]))
-        stand, look = (mid.x + dd.x, mid.y + dd.y, gz), tuple(mid)
-    bk.pov_camera("Cam_POV_3P", stand, look, eye_height=plan["canon"]["eye_3p"], fov_v=plan["canon"]["fov_v"])
-    bk.pov_camera("Cam_POV_1P", stand, look, eye_height=plan["canon"]["eye_1p"], fov_v=plan["canon"]["fov_v"])
-    return cam34
+    return pov_cams(bpy, bk, plan, fam, lo, hi, gz)
 
 
 def _fit(bpy, cam, pts, center, d, margin=0.06):
@@ -303,11 +360,16 @@ def _cam(bpy, name, loc, look, view_deg=30, ortho=None, up="Y"):
 
 def render_set(bpy, bk, plan, out, which, parts, fkit, res):
     names = list(SETS.get(which, []))
-    if which == "full" and plan["view"].get("top"):
-        names.append("top")
+    if which == "full":
+        names += sorted(o.name.replace("Cam_POV_3P_", "pov3p_") for o in bpy.data.objects if o.name.startswith("Cam_POV_3P_"))
+        if plan["view"].get("top"):
+            names.append("top")
+        for f in os.listdir(os.path.join(out, "renders")):      # stands that no longer exist
+            if f.startswith("pov3p_") and f[:-4] not in names:
+                os.remove(os.path.join(out, "renders", f))
     done = {}
     for n in names:
-        cam, rr, samples = RENDERS[n]
+        cam, rr, samples = RENDERS.get(n) or ("Cam_POV_3P_" + n.split("_")[1], (768, 432), 16)
         p = os.path.join(out, "renders", f"{n}.png")
         bk.render(bpy.data.objects[cam], p, res=rr, samples=samples)
         done[n] = os.path.relpath(p, out)
@@ -380,7 +442,7 @@ def collision(plan, has_proxies):
     return collide, rules
 
 
-def setup_lua(bk, plan, asset, has_proxies):
+def setup_lua(bk, plan, asset, has_proxies, used):
     collide, rules = collision(plan, has_proxies)
     head = [f"-- {asset} (rr-asset-foundry {plan['family']}, preset {plan['preset']}). Studio command bar, model selected.",
             f"-- Collision: {'box proxies (Collider_Proxy parts) collide; visual parts do not' if has_proxies else ('visual parts collide' if collide else 'nothing collides (visual only)')}.",
@@ -388,6 +450,8 @@ def setup_lua(bk, plan, asset, has_proxies):
     body = bk.studio_setup_lua(asset, {"Anchored": True, "CanCollide": collide, "CastShadow": True}, rules)
     g = ["", "local KEEP_ATLAS = false", "local GROUPS = {"]
     for name, spec in plan["groups"].items():
+        if name not in used:         # a line for an unused group would recolour nothing, silently
+            continue
         extra = f", reflectance = {spec['reflectance']}" if spec.get("reflectance") else ""
         g.append(f'  {name} = {{color = Color3.fromHex("{spec["hex"].lstrip("#")}"), '
                  f'material = Enum.Material.{spec["material"]}{extra}}}, -- {spec["token"]}')

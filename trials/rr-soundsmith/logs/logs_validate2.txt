@@ -1,0 +1,5 @@
+validate PASS: 0 errors, 0 warnings, 4 notes
+  note  feel parity: ui_button_press exists in rr-game-feel without a cue; add {"type": "cue", "sfx": "ui_click"} there to route it through Feel (then set via feel here)
+  note  feel parity: alert_crew_joined exists in rr-game-feel without a cue; add {"type": "cue", "sfx": "ticket_chime"} there to route it through Feel (then set via feel here)
+  note  feel parity: alert_crew_left exists in rr-game-feel without a cue; add {"type": "cue", "sfx": "ticket_chime"} there to route it through Feel (then set via feel here)
+  note  27 alpha sounds not final yet (placeholder or unassigned); --release gates them

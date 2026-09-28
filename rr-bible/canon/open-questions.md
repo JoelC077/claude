@@ -455,3 +455,64 @@ Undecided canon. Each has options and a recommended default: skills may proceed 
 - default: A (rights cannot be verified and a takedown silences the sound in live servers)
 - affects: av.audio.licence
 - blocks: rr-soundsmith licence gate
+
+### OQ-037 · Release version scheme and channels (missing canon)
+- status: open
+- raised: 2026-09-28
+- src: RT
+- context: Nothing in canon says how builds are numbered. rr-release-train needs one to name builds, write the changelog and check the RR_Version stamp in the place.
+- options:
+  - A: semver 0.MINOR.PATCH with a channel tag: 0.1.0-alpha.1, -alpha.2 for the closed alpha, -beta.N for closed tests, 1.0.0 at soft launch; MINOR = new content or rules, PATCH = fixes only
+  - B: date versions (2026.10.12, 2026.10.12.2)
+  - C: Roblox place version numbers only
+- default: A (sorts correctly, says how big a change is, keeps test builds apart)
+- blocks: none (default in use by rr-release-train)
+
+### OQ-038 · Patch notes: voice and where they go (missing canon)
+- status: open
+- raised: 2026-09-28
+- src: RT
+- context: Canon has the tone (identity.tone.*), the lexicon and store rules, but nothing for patch notes. rr-release-train drafts them.
+- options:
+  - A: headline and one sign-off line in the company notice-board voice (the under-resourced train company, lexicon jokes), every bullet plain and exact; posted to Discord plus a one-line update blurb for the store description
+  - B: plain dev voice (Joel, casual, direct), no character bits
+  - C: fully in character
+- default: A (on brand where it is cheap, exact where players need facts)
+- affects: identity.tone.comedy_tell
+- blocks: first alpha patch notes
+
+### OQ-039 · Place-level performance budgets (missing canon)
+- status: open
+- raised: 2026-09-28
+- src: RT
+- context: Canon budgets meshes (tech.mesh) and effects (OQ-029) but not places: instances, parts, script size, memory, phone FPS. rr-release-train can only compare a build with the last release.
+- options:
+  - A: regression only until measured: warn when instances, parts, unanchored parts, script bytes or file size grow more than 15% release to release; live releases also need the owner's live check (tech.streaming.live_check) and the 4x soak with F9 memory flat
+  - B: measure the alpha build on the owner's phone and record absolute budgets (instances, client memory MB, FPS floor) as measured facts
+- default: A until B is measured at the alpha live check
+- affects: tech.streaming.live_check
+- blocks: release gate G7 absolute budgets
+
+### OQ-040 · Staging place for release candidates (missing canon)
+- status: open
+- raised: 2026-09-28
+- src: RT
+- context: No staging experience in canon: a publish goes straight to the experience testers and players join.
+- options:
+  - A: no staging during the closed alpha (the alpha experience is private; testers are the staging); set up B before the soft launch
+  - B: a private copy of the experience (same places, separate universe) where each candidate is published and smoke-tested first
+  - C: never
+- default: A (zero setup now; B before the public soft launch, when a bad publish hits real players)
+- blocks: release-train live channel publishing
+
+### OQ-041 · How should the server respond to rejected remote calls (bad arguments, spam, wrong state)?
+- status: open
+- raised: 2026-09-28
+- src: R2A
+- context: rr-exploit-guard RR_Guard rejects hostile calls; tech.security.never_trust_client and tech.security.fare_grants say validate, not how to respond
+- options:
+  - A: Ignore and log: count strikes per player, never kick
+  - B: Kick after repeated strikes (e.g. 20 rejects in 60 s)
+  - C: Log and flag to the owner (analytics or webhook), no kick
+- default: A (lag and double taps also trip guards; a wrong kick costs a real player, a rejected call gains an exploiter nothing)
+- blocks: none

@@ -1,0 +1,247 @@
+{
+ "asset": "WagonOpenCoal",
+ "timing": {
+  "build_s": 0.3,
+  "checks_s": 0.4,
+  "renders_s": 46.3,
+  "export_s": 46.6,
+  "total_s": 46.6
+ },
+ "parts": 56,
+ "proxies": 5,
+ "size": [
+  32.8,
+  18.06,
+  12.66
+ ],
+ "lo": [
+  -16.4,
+  -9.03,
+  0.0
+ ],
+ "hi": [
+  16.4,
+  9.03,
+  12.66
+ ],
+ "measures": {
+  "deck top above rail": "5 studs",
+  "open wagon inside": "29 x 16.4 x 4 studs"
+ },
+ "dropped_details": 0,
+ "groups": {
+  "Chassis": 14,
+  "Buffer": 2,
+  "Steel": 10,
+  "Iron": 16,
+  "Timber": 5,
+  "Cap": 4,
+  "Door": 2,
+  "Load": 2,
+  "Repair": 1
+ },
+ "tris": {
+  "total": 1858,
+  "max_part": 250,
+  "max_name": "WagonOpenCoal_Heap_Load_01",
+  "over_target": [],
+  "over_cap": []
+ },
+ "palette": {
+  "cells_exact": true,
+  "bad_cells": 0,
+  "faces": 793,
+  "spanning": 0,
+  "near_edge": 0,
+  "off_palette": 0,
+  "ok": true
+ },
+ "names_bad": [],
+ "coplanar": [],
+ "floating": [],
+ "pov": {
+  "premise": "siding",
+  "stands": [
+   {
+    "render": "pov3p",
+    "label": "from the coach, abeam",
+    "stand": [
+     0.0,
+     -30.6,
+     5.0
+    ]
+   },
+   {
+    "render": "pov3p_2",
+    "label": "from the coach, approaching",
+    "stand": [
+     50.0,
+     -30.6,
+     5.0
+    ]
+   }
+  ]
+ },
+ "backfaces": {
+  "Cam_34": 0,
+  "Cam_End": 0,
+  "Cam_POV_1P": 0,
+  "Cam_POV_3P": 0,
+  "Cam_POV_3P_2": 0,
+  "Cam_Side": 0
+ },
+ "features": {
+  "BufferHead": [
+   5.3,
+   "WagonOpenCoal_BufferHead_Steel_04",
+   0
+  ],
+  "Door": [
+   16.1,
+   "WagonOpenCoal_Door_Door_02",
+   0
+  ],
+  "DoorStrap": [
+   5.4,
+   "WagonOpenCoal_DoorStrap_Iron_02",
+   0
+  ],
+  "Strap": [
+   5.6,
+   "WagonOpenCoal_Strap_Iron_02",
+   0
+  ],
+  "EndStrap": [
+   5.7,
+   "WagonOpenCoal_EndStrap_Iron_02",
+   0
+  ],
+  "Cap": [
+   5.8,
+   "WagonOpenCoal_Cap_Cap_02",
+   0
+  ],
+  "Side": [
+   6.3,
+   "WagonOpenCoal_Side_Timber_02",
+   0
+  ],
+  "Repair": [
+   6.9,
+   "WagonOpenCoal_Repair_Repair_01",
+   0
+  ],
+  "Lump": [
+   5.4,
+   "WagonOpenCoal_Lump_Load_01",
+   0
+  ],
+  "Wheel": [
+   15.2,
+   "WagonOpenCoal_Wheel_Steel_02",
+   0
+  ],
+  "Axlebox": [
+   8.4,
+   "WagonOpenCoal_Axlebox_Chassis_02",
+   0
+  ]
+ },
+ "features_pov": {
+  "BufferHead": [
+   8.0,
+   "WagonOpenCoal_BufferHead_Steel_02",
+   0
+  ],
+  "Door": [
+   25.5,
+   "WagonOpenCoal_Door_Door_02",
+   0
+  ],
+  "DoorStrap": [
+   8.5,
+   "WagonOpenCoal_DoorStrap_Iron_02",
+   0
+  ],
+  "Strap": [
+   10.8,
+   "WagonOpenCoal_Strap_Iron_02",
+   0
+  ],
+  "EndStrap": [
+   8.3,
+   "WagonOpenCoal_EndStrap_Iron_02",
+   0
+  ],
+  "Cap": [
+   7.8,
+   "WagonOpenCoal_Cap_Cap_03",
+   0
+  ],
+  "Side": [
+   8.4,
+   "WagonOpenCoal_Side_Timber_02",
+   0
+  ],
+  "Repair": [
+   13.7,
+   "WagonOpenCoal_Repair_Repair_01",
+   0
+  ],
+  "Lump": [
+   10.5,
+   "WagonOpenCoal_Lump_Load_01",
+   0
+  ],
+  "Wheel": [
+   32.7,
+   "WagonOpenCoal_Wheel_Steel_02",
+   0
+  ],
+  "Axlebox": [
+   12.4,
+   "WagonOpenCoal_Axlebox_Chassis_04",
+   0
+  ]
+ },
+ "renders": {
+  "thumb": "renders/thumb.png",
+  "game": "renders/game.png",
+  "pov3p": "renders/pov3p.png",
+  "pov1p": "renders/pov1p.png",
+  "34": "renders/34.png",
+  "side": "renders/side.png",
+  "end": "renders/end.png",
+  "pov3p_2": "renders/pov3p_2.png"
+ },
+ "reimport": {
+  "meshes": 61,
+  "size": [
+   32.8,
+   18.06,
+   12.66
+  ],
+  "tris": 1918,
+  "ratio": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "unit_warning": null,
+  "no_uv": [
+   "WagonOpenCoal_Collider_Proxy_01.001",
+   "WagonOpenCoal_Collider_Proxy_02.001",
+   "WagonOpenCoal_Collider_Proxy_03.001",
+   "WagonOpenCoal_Collider_Proxy_04.001",
+   "WagonOpenCoal_Collider_Proxy_05.001"
+  ]
+ },
+ "files": [
+  "WagonOpenCoal.fbx",
+  "WagonOpenCoal_atlas.fbx",
+  "palette.png",
+  "parts.csv",
+  "WagonOpenCoal.blend",
+  "studio_setup.lua"
+ ]
+}

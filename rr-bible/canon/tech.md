@@ -111,6 +111,12 @@ Units, avatar and camera, mesh budgets, import/export pitfalls, lighting and mat
 - `tech.publish.testers` = `Trusted Friends of the age-checked owner can playtest at any age once the maturity questionnaire is done` | src: LPB | platform
 - `tech.publish.prereqs` = `age check, 2FA, ID verification, content maturity questionnaire, 1,000 R$ publishing fee` | src: PLAN, LPB | platform
 - `tech.publish.thumbnails` = `16:9, 1920 x 1080, up to 10; personalisation from 2; nothing essential in the bottom strip` | src: LPB | platform
+- `tech.publish.oc_publish` = `POST https://apis.roblox.com/universes/v1/{universeId}/places/{placeId}/versions?versionType=Saved|Published` | header x-api-key; body = the .rbxl (Content-Type application/octet-stream) or .rbxlx (application/xml); returns {versionNumber}; Saved stores without publishing; API marked BETA | src: RBXOC | platform
+- `tech.publish.oc_size_limit` = `10485760` | bytes (10 MiB) per place upload (x-roblox-size-limit); bigger files publish from Studio | src: RBXOC | platform
+- `tech.publish.oc_unsupported` = `EditableImage, EditableMesh, PartOperation, SurfaceAppearance, BaseWrap` | the place publishing API does not update these classes (PartOperation covers unions and negates; BaseWrap covers WrapLayer and WrapTarget): publish from Studio after changing them | src: RBXOC | platform
+- `tech.publish.oc_key_scopes` = `universe-places:write (publish); universe.place.luau-execution-session:write (Luau tests on a saved version); universe:write (restart servers)` | Creator Dashboard API key limited to the one experience; IP restriction optional (leave off for changing IPs); an expiry date needs a rotation habit | src: RBXOC | platform
+- `tech.publish.oc_luau_tasks` = `POST /cloud/v2/universes/{u}/places/{p}/versions/{v}/luau-execution-session-tasks {script, timeout}` | runs Luau in a headless server of that place version; poll GET cloud/v2/{task path} until COMPLETE or FAILED; output.results = the script's return values; default timeout 5 min | src: RBXOC | platform
+- `tech.publish.oc_restart` = `POST /cloud/v2/universes/{u}:restartServers {placeIds, closeAllVersions, bleedOffServers, bleedOffDurationMinutes 1-60}` | defaults to restarting only servers on older versions; bleed-off stops matchmaking and lets old servers finish | src: RBXOC | platform
 
 ## cloud · What the cloud session can and cannot do (measured 2026-09-27)
 - `tech.cloud.blender` = `headless bpy 5.0 (Cycles only, no viewport)` | src: DEPM, REX | measured

@@ -1,0 +1,3 @@
+luatest: 59/59 passed
+loaded /home/user/claude/trials/rr-soundsmith/export/sound/RR_SoundMap.lua: 29 sounds, 32 events
+luatest: 59/59 passed

@@ -1,0 +1,15 @@
+{
+ "group": "crisis",
+ "hero": "alert_breakdown",
+ "events": [
+  "hud_crisis_arrival",
+  "alert_coal_low",
+  "alert_pressure_high",
+  "alert_breakdown",
+  "alert_passengers_upset",
+  "windows_smash",
+  "coupling_snap"
+ ],
+ "rm": false,
+ "peak_t": 0.03333333333333333
+}

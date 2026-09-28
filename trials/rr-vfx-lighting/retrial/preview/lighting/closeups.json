@@ -1,0 +1,21 @@
+{
+ "sheet": [
+  396,
+  246
+ ],
+ "megapixels": 0.1,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "grassland.day@cab1p: luma 16.6, train/world 5.4:1",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/retrial/preview/lighting/grassland.day_cab1p.png",
+   "box": [
+    6,
+    24,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  }
+ ]
+}

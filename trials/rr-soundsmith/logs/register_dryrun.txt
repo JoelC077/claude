@@ -1,0 +1,65 @@
+## placeholder posing as final (expect refusal)
+register refused: PLACEHOLDER_whistle.wav carries the PLACEHOLDER tag in its INFO chunk; register it with --source placeholder, or register the final file
+exit=1
+## re-exported placeholder, tags stripped (the gap)
+{
+ "ids": [
+  "rbxassetid://1234567"
+ ],
+ "source": "owner_upload",
+ "origin": "self-made",
+ "licence": "",
+ "proof": "trial",
+ "credit": "",
+ "creator": "",
+ "community": false,
+ "files": [
+  "whistle_v2_std.wav"
+ ],
+ "sha1": [
+  "f379bb4bc376"
+ ],
+ "measured": [
+  {
+   "m_max": -14.0,
+   "integrated": -14.12,
+   "true_peak": -6.92,
+   "duration": 1.7998,
+   "phone_loss_db": 0.46
+  }
+ ],
+ "registered": "2026-09-28"
+}
+dry run: nothing written
+exit=0
+## honest placeholder registration
+{
+ "ids": [
+  "rbxassetid://1234567"
+ ],
+ "source": "placeholder",
+ "origin": "rr-soundsmith synth",
+ "licence": "",
+ "proof": "",
+ "credit": "",
+ "creator": "",
+ "community": false,
+ "files": [
+  "PLACEHOLDER_whistle.wav"
+ ],
+ "sha1": [
+  "de7962988f46"
+ ],
+ "measured": [
+  {
+   "m_max": -14.0,
+   "integrated": -14.24,
+   "true_peak": -6.93,
+   "duration": 1.8,
+   "phone_loss_db": 0.46
+  }
+ ],
+ "registered": "2026-09-28"
+}
+dry run: nothing written
+exit=0

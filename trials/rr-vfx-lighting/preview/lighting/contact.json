@@ -1,0 +1,93 @@
+{
+ "sheet": [
+  780,
+  1074
+ ],
+ "megapixels": 0.84,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "grassland.day",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/lighting/grassland.day.png",
+   "box": [
+    6,
+    24,
+    768,
+    432
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "grassland.day (phone)",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/lighting/grassland.day.phone.png",
+   "box": [
+    6,
+    480,
+    320,
+    180
+   ],
+   "scale": "fit x0.42"
+  },
+  {
+   "n": 3,
+   "label": "grassland.dusk",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/lighting/grassland.dusk.png",
+   "box": [
+    332,
+    480,
+    320,
+    180
+   ],
+   "scale": "fit x0.42"
+  },
+  {
+   "n": 4,
+   "label": "grassland.dusk (phone)",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/lighting/grassland.dusk.phone.png",
+   "box": [
+    6,
+    684,
+    320,
+    180
+   ],
+   "scale": "fit x0.42"
+  },
+  {
+   "n": 5,
+   "label": "grassland.night",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/lighting/grassland.night.png",
+   "box": [
+    332,
+    684,
+    320,
+    180
+   ],
+   "scale": "fit x0.42"
+  },
+  {
+   "n": 6,
+   "label": "grassland.night (phone)",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/lighting/grassland.night.phone.png",
+   "box": [
+    6,
+    888,
+    320,
+    180
+   ],
+   "scale": "fit x0.42"
+  },
+  {
+   "n": 7,
+   "label": "grassland.day@door1p",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/lighting/grassland.day_door1p.png",
+   "box": [
+    332,
+    888,
+    320,
+    180
+   ],
+   "scale": "fit x0.42"
+  }
+ ]
+}

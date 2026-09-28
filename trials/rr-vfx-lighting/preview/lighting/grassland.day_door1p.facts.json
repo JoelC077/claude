@@ -1,0 +1,30 @@
+{
+ "look": "grassland.day@door1p",
+ "camera": "door1p",
+ "scene": "grassland",
+ "sun": {
+  "clock": 14.2,
+  "elevation_deg": 38.8,
+  "dir_roblox": [
+   -0.558,
+   0.626,
+   -0.545
+  ],
+  "moon": false
+ },
+ "mean_luma": 110.4,
+ "clipped_pct": 0.0,
+ "crushed_pct": 14.66,
+ "frame_mean": "#687354",
+ "sky_mean": "#A9BDAF",
+ "ground_mean": "#7B9148",
+ "ground_sat_hsl": 0.34,
+ "train_mean": "#3D3E27",
+ "train_vs_world_contrast": 2.46,
+ "spawn_edge_fog": 0.956,
+ "spawn_edge_studs": 2048.0,
+ "fx_on": [],
+ "bands": [],
+ "phone": false,
+ "png": "grassland.day_door1p.png"
+}

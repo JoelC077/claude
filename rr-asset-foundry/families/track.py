@@ -51,6 +51,9 @@ OPTIONS = {"merge": "group", "collide": False, "lod": False}
 
 def validate(p, canon):
     w = []
+    seg = canon("tech.units.segment_len")
+    if p["kind"] == "straight" and abs(seg / p["length"] - round(seg / p["length"])) > 1e-6:
+        w.append(f"length {p['length']:g} does not divide tech.units.segment_len {seg:g}: pieces will not fill a segment")
     if p["sleeper_len"] < p["gauge"] + 3:
         w.append("sleepers barely reach past the rails: raise sleeper_len")
     top_w = p["ballast_w"] - 2 * p["ballast_h"] * 1.5
@@ -130,6 +133,9 @@ def tile_offsets(p):
     return [] if p["kind"] == "buffer_stop" else [s * i * p["length"] for i in (1, 2, 3) for s in (-1, 1)]
 
 
-def pov(p, lo, hi):
-    """From the end balcony of a coach standing on this track, looking along it."""
-    return (lo[0] - 10.0, -2.0, p["floor"]), (hi[0], 0.0, -1.5)
+def stands(p, lo, hi, view):
+    """From the end balcony of a coach standing on this track, looking along it; then two pieces further off, as the
+    scrolling world brings it in (D-002)."""
+    look = (hi[0], 0.0, -1.5)
+    return [("coach end balcony", (lo[0] - 10.0, -2.0, p["floor"]), look),
+            ("coach end balcony, piece further ahead", (lo[0] - 10.0 - 2 * p["length"], -2.0, p["floor"]), look)]

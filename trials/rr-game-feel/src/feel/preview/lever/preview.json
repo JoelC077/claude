@@ -1,0 +1,14 @@
+{
+ "group": "lever",
+ "hero": "lever_commit",
+ "events": [
+  "fork_countdown_tick",
+  "lever_detent_tick",
+  "lever_commit",
+  "lever_commit_crew",
+  "lever_snapback",
+  "route_locked"
+ ],
+ "rm": false,
+ "peak_t": 0.11666666666666667
+}

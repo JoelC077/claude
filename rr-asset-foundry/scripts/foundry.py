@@ -6,15 +6,16 @@
   foundry.py plan FAMILY [VARIANT OPTIONS] [--json]   resolve canon + params, no Blender
   foundry.py make FAMILY [VARIANT OPTIONS] [--out DIR] [--renders full|thumb|none] [--force]
   foundry.py batch FAMILY [VARIANT OPTIONS] --vary K=a:b:step | K=a:b | K=x,y,z ... [--n N] [--mode grid|random]
-                  [--out DIR] [--jobs J] [--timeout S] [--dry-run]      N variants + variant sheets + batch.md
-  foundry.py sheet BATCH_DIR                      rebuild the variant sheets and batch.md
-  foundry.py crit VARIANT_DIR [VARIANT_DIR ...] --crit CRIT [--pass N]   Profile A pass folder for multiuse-critic
+                  [--same-seed] [--out DIR] [--jobs J] [--timeout S] [--dry-run]   N variants + sheets + batch.md
+  foundry.py sheet BATCH_DIR | VARIANT_DIR... [--out FILE.png]   batch sheets + batch.md, or a sheet of any variants
+  foundry.py crit VARIANT_DIR [VARIANT_DIR ...] --crit CRIT [--pass N] [--pov PREMISE] [--allow-fail]
+                                                  Profile A pass folder for multiuse-critic (works on copies)
   foundry.py verify VARIANT_DIR                   re-check an export folder (files, Lua syntax, canon gate)
   foundry.py new-family NAME                      scaffold families/NAME.py from the template
 
 VARIANT OPTIONS: --preset P  --set KEY=VALUE (repeat)  --group GROUP=bible.token.key (repeat)  --params FILE.json
   (a plan.json works: rebuild or tweak an earlier variant)  --name AssetName  --seed N  --lod  --merge none|group
-  --no-atlas  --blender PATH
+  --no-atlas  --pov PREMISE (player-view premise for the POV renders; `show` lists them)  --blender PATH
 Env: RR_BIBLE (bible.py), RR_CRITIC (multiuse-critic folder), RR_FOUNDRY_OUT (default out root, else ~/.rr-foundry),
 RR_BLENDER (a blender binary when python3 has no bpy). Exit: 0 ok, 1 a check failed, 2 usage or canon error.
 """
@@ -43,6 +44,15 @@ def die(msg, code=2):
     e = SystemExit(code)
     e.msg = msg                      # batch catches refusals per variant instead of stopping
     raise e
+
+
+def load_json(path, what="file"):
+    try:
+        return json.load(open(path))
+    except FileNotFoundError:
+        die(f"no {what}: {path}")
+    except ValueError as e:
+        die(f"{path} is not valid JSON ({e})")
 
 
 # ---------- sibling skills (portable: env, sibling folder, ~/.claude/skills, /home/user) ----------
@@ -104,9 +114,9 @@ class Bible:
             die(f"canon key {key} not found. {(out + err).strip()[:300]}\nRecord the gap: bible.py add-question ...")
         if f["status"] == "superseded":
             die(f"canon key {key} is superseded; the family must reference its replacement")
-        nums = re.findall(r"-?\d+(?:\.\d+)?", f["value"])
-        if not nums:
-            die(f"canon key {key} = {f['value']!r} holds no number")
+        nums = re.findall(r"-?\d+(?:\.\d+)?", f["value"]) or re.findall(r"-?\d+(?:\.\d+)?", f.get("note", ""))
+        if not nums or int(idx or 0) >= len(nums):          # a value with no number: its note's numbers
+            die(f"canon key {key} = {f['value']!r} ({f.get('note', '')!r}) holds no number #{idx or 0}")
         return float(nums[int(idx or 0)]), f
 
     def colour(self, key):
@@ -184,7 +194,11 @@ def resolve(fam, a, bible, overrides=None, name=None, seed=None, out=None):
     """Build the frozen plan dict. overrides: extra {param: value} (batch)."""
     pfile = {}
     if getattr(a, "params", None):
-        pfile = json.load(open(a.params))
+        pfile = load_json(a.params, "--params file")
+    sets = getattr(a, "set", None) or []
+    bad = [kv for kv in sets if "=" not in kv]
+    if bad:
+        die(f"--set needs KEY=VALUE, got {bad[0]!r}")
     preset = (overrides or {}).get("preset") or getattr(a, "preset", None) or pfile.get("preset") \
         or getattr(fam, "DEFAULT_PRESET", None) or next(iter(fam.PRESETS))
     if preset not in fam.PRESETS:
@@ -201,7 +215,7 @@ def resolve(fam, a, bible, overrides=None, name=None, seed=None, out=None):
             d = val
         params[k] = d
     layers = [fam.PRESETS[preset].get("params", {}), pfile.get("params", {}),
-              dict(kv.split("=", 1) for kv in (getattr(a, "set", None) or [])), overrides or {}]
+              dict(kv.split("=", 1) for kv in sets), overrides or {}]
     for layer in layers:
         for k, v in layer.items():
             if k == "preset":
@@ -249,6 +263,13 @@ def resolve(fam, a, bible, overrides=None, name=None, seed=None, out=None):
         die(f"asset name {asset!r} must be CamelCase letters and digits (it prefixes every part name)")
     view = dict(fam.VIEW)
     ground_key = view.pop("ground", "style.ground.pasture")
+    view["nums"] = {k: bible.number(v)[0] for k, v in view.get("nums", {}).items()}   # canon numbers the POV needs
+    prem = view.get("premises", {})
+    pov = getattr(a, "pov", None) or pfile.get("options", {}).get("pov") or view.get("premise")
+    if prem and pov not in prem:
+        die(f"{fam.FAMILY} has no player-view premise {pov!r}; premises: {', '.join(prem)}")
+    if not prem and getattr(a, "pov", None):
+        die(f"{fam.FAMILY} has one player view (no --pov premises)")
     stage = {k: bible.colour(v)[0] for k, v in STAGE_TOKENS.items() if k in ("rail", "ballast")}
     stage["ground"] = bible.colour(ground_key)[0]
     stage["avatar"] = {k: bible.colour(STAGE_TOKENS[k])[0] for k in ("dark", "vest", "skin")}
@@ -270,17 +291,32 @@ def resolve(fam, a, bible, overrides=None, name=None, seed=None, out=None):
                     "merge": getattr(a, "merge", None) or opts.get("merge", "none"),
                     "atlas": not getattr(a, "no_atlas", False) and opts.get("atlas", True),
                     "collide": opts.get("collide", True),
-                    "renders": getattr(a, "renders", None) or "full"},
+                    "renders": getattr(a, "renders", None) or "full", "pov": pov if prem else None},
         "open": sorted(set(getattr(fam, "OPEN", [])) | {q for s in sources.values() for q in s["oq"]}),
         "warnings": warnings, "out": os.path.abspath(os.path.join(root, asset)),
         "critic_scripts": os.path.join(critic, "scripts"), "foundry_scripts": SCRIPTS,
     }
-    fam_hash = hashlib.sha1(open(fam.__file_path__, "rb").read()).hexdigest()[:10]
-    key = {k: plan[k] for k in ("asset", "params", "seed", "groups")}
-    key["options"] = {k: v for k, v in plan["options"].items() if k != "renders"}   # renders are not identity
-    plan["family_hash"] = fam_hash
-    plan["hash"] = hashlib.sha1((fam_hash + json.dumps(key, sort_keys=True)).encode()).hexdigest()[:12]
+    code = hashlib.sha1(b"".join(open(f, "rb").read() for f in code_files(fam))).hexdigest()[:10]
+    plan["family_hash"] = code
+    plan["vkey"] = vkey_of(plan)
+    ctx = {k: plan[k] for k in ("canon", "stage", "view")}
+    plan["hash"] = hashlib.sha1((code + plan["vkey"] + json.dumps(ctx, sort_keys=True)).encode()).hexdigest()[:12]
     return plan
+
+
+def code_files(fam):
+    """Everything that shapes a variant: the family, the helpers it imports (families/_*.py), the kit and the forge."""
+    src = open(fam.__file_path__).read()
+    helpers = sorted(set(re.findall(r"^\s*(?:import|from)\s+(_\w+)", src, re.M)))
+    return [fam.__file_path__] + [f for f in (os.path.join(FAMILIES, h + ".py") for h in helpers) if os.path.isfile(f)] \
+        + [os.path.join(SCRIPTS, "fkit.py"), FORGE]
+
+
+def vkey_of(plan):
+    """Variant identity: asset, numbers, seed, colours and build options (not renders or the POV premise)."""
+    key = {k: plan.get(k) for k in ("asset", "params", "seed", "groups")}
+    key["options"] = {k: v for k, v in plan.get("options", {}).items() if k not in ("renders", "pov")}
+    return hashlib.sha1(json.dumps(key, sort_keys=True).encode()).hexdigest()[:12]
 
 
 def plan_lines(plan):
@@ -290,7 +326,11 @@ def plan_lines(plan):
     gs = ", ".join(f"{g} {s['hex']}" for g, s in plan["groups"].items())
     lines = [f"{plan['asset']}: {plan['family']} preset {plan['preset']} seed {plan['seed']} -> {plan['out']}",
              f"params: {ps}", f"groups ({len(plan['palette'])} atlas cells): {gs}",
-             f"options: {', '.join(f'{k} {v}' for k, v in plan['options'].items())}"]
+             f"options: {', '.join(f'{k} {v}' for k, v in plan['options'].items() if k != 'pov')}"]
+    if plan["options"].get("pov"):
+        prem = plan["view"]["premises"]
+        lines.append(f"player view: premise {plan['options']['pov']} (of {', '.join(prem)}; --pov to change): "
+                     f"{prem[plan['options']['pov']][:110]}...")
     if plan["open"]:
         lines.append(f"open questions labelling this output: {', '.join(plan['open'])} (outputs are 'assumed' until decided)")
     lines += [f"WARNING: {w}" for w in plan["warnings"]]
@@ -381,7 +421,8 @@ def post(plan, res, bible):
         fails.append(f"{len(res['floating'])} floating parts: {res['floating'][:4]}")
     small = {k: v for k, v in res.get("features", {}).items() if v[0] < cn["min_feature_px"]}
     if small:
-        warns.append(f"features under {cn['min_feature_px']:.0f} px at game distance: {small}")
+        warns.append(f"key features under {cn['min_feature_px']:.0f} px at the 400 px game view (smallest piece): "
+                     + ", ".join(f"{k} {v[0]} px ({v[2] if len(v) > 2 else '?'} pieces under)" for k, v in small.items()))
     ri = res.get("reimport") or {}
     if ri.get("unit_warning"):
         fails.append(f"FBX reimport: {ri['unit_warning']} (size {ri.get('size')})")
@@ -407,14 +448,20 @@ def post(plan, res, bible):
     return fails, warns, checks
 
 
+def a5(feats):
+    return ", ".join(f"{k} {v[0]} px" for k, v in sorted((feats or {}).items(), key=lambda kv: kv[1][0])) or "none listed"
+
+
 def write_reports(plan, res, fails, warns, checks, secs):
     out, a = plan["out"], plan["asset"]
     size = res["size"]
     status = "fail" if fails else "ok"
-    man = {"asset": a, "family": plan["family"], "preset": plan["preset"], "hash": plan["hash"], "status": status,
+    man = {"asset": a, "family": plan["family"], "preset": plan["preset"], "hash": plan["hash"],
+           "vkey": plan.get("vkey") or vkey_of(plan), "pov": plan["options"].get("pov"), "status": status,
            "made": datetime.datetime.now().isoformat(timespec="seconds"), "seconds": round(secs, 1),
            "params": plan["params"], "size_studs": size, "parts": res["parts"], "proxies": res["proxies"],
            "tris": res["tris"], "groups": res["groups"], "features": res.get("features", {}),
+           "features_pov": res.get("features_pov", {}), "pov_stands": (res.get("pov") or {}).get("stands", []),
            "lod1": res.get("lod1"), "renders": res.get("renders", {}), "files": res.get("files", []),
            "checks": checks, "fails": fails, "warnings": warns, "open": plan["open"]}
     json.dump(man, open(os.path.join(out, "manifest.json"), "w"), indent=1)
@@ -434,12 +481,18 @@ def write_reports(plan, res, fails, warns, checks, secs):
          f"- palette atlas: {len(plan['palette'])} cells exact={res['palette']['cells_exact']}; {res['palette']['faces']} "
          f"faces, {res['palette']['spanning']} span cells, {res['palette']['near_edge']} near an edge, "
          f"{res['palette']['off_palette']} off-palette",
-         "- colours (rr-bible tokens): " + ", ".join(f"{g} {s['token']} {s['hex']} {s['material']}"
-                                                   for g, s in plan["groups"].items()),
-         f"- back faces in view: {res.get('backfaces')}; coplanar overlaps: {len(res.get('coplanar', []))}; "
-         f"floating parts: {len(res.get('floating', []))}",
-         f"- game-distance spans (400 px view, key features >= {plan['canon']['min_feature_px']:.0f} px): "
-         + (", ".join(f"{k} {v[0]} px" for k, v in res.get("features", {}).items()) or "none listed")]
+         "- colours used (rr-bible tokens): " + ", ".join(f"{g} {s['token']} {s['hex']} {s['material']}"
+                                                        for g, s in plan["groups"].items() if g in res["groups"]),
+         f"- back faces (every POV and construction camera): "
+         f"{sum((res.get('backfaces') or {}).values())} px in {len(res.get('backfaces') or {})} views; coplanar overlaps: "
+         f"{len(res.get('coplanar', []))}; floating parts: {len(res.get('floating', []))}",
+         f"- A5, smallest on-screen side of any single piece (key features >= {plan['canon']['min_feature_px']:.0f} px): "
+         f"400 px game view: {a5(res.get('features'))}; POV 3P 768 px: {a5(res.get('features_pov'))}"]
+    pv = res.get("pov") or {}
+    if pv.get("stands"):
+        prem = plan["view"].get("premises", {}).get(pv.get("premise") or "", plan["view"].get("player", ""))
+        L.append(f"- player view{' premise ' + pv['premise'] if pv.get('premise') else ''}: " + "; ".join(
+            f"{s['render']} = {s['label']} at {s['stand']}" for s in pv["stands"]) + f" ({prem[:90]}...)")
     L += [f"- measured: {k}: {v}" for k, v in res.get("measures", {}).items()]
     if res.get("reimport"):
         r = res["reimport"]
@@ -461,8 +514,9 @@ def write_reports(plan, res, fails, warns, checks, secs):
               f"Expected size X {size[0]} x Y(up) {size[2]} x Z {size[1]} studs; about 3.57x off = unit bug, fix the importer scale.",
               "2. Select the imported model, paste `studio_setup.lua` into the command bar: anchors, collision "
               "(invisible Collider_Proxy boxes), recolour groups.",
-              f"3. Recolour: edit one GROUPS line (a group per material, e.g. {next(iter(plan['groups']))}) and re-run. "
-              f"`{a}_atlas.fbx` + `palette.png` = palette-atlas look (set KEEP_ATLAS = true; Color is then hidden).",
+              f"3. Recolour: edit one GROUPS line (a group per material, e.g. {next(iter(res['groups']))}) and re-run. "
+              + (f"`{a}_atlas.fbx` + `palette.png` = palette-atlas look (set KEEP_ATLAS = true; Color is then hidden)."
+                 if plan["options"]["atlas"] else "No atlas FBX (made with --no-atlas)."),
               (f"4. `{a}_LOD1.fbx` = far-ground version (one part per group, no collision)." if res.get("lod1") else
                "4. No LOD1 file (make with --lod for a far-ground version)."),
               f"5. Vary it: `python3 <rr-asset-foundry>/scripts/foundry.py make {plan['family']} --params plan.json "
@@ -474,24 +528,60 @@ def write_reports(plan, res, fails, warns, checks, secs):
     return man
 
 
+POV_RENDERS = ("pov3p", "pov1p")
+
+
+def render_only(v, plan, which, a, timeout=None):
+    """Render into folder v (the variant or a copy of it) through a temporary plan whose out, sibling paths and family
+    file are the current ones; the stored plan.json is never trusted for paths. Returns the exit code."""
+    critic = find_skill("multiuse-critic", "RR_CRITIC")
+    tmp = dict(plan, out=v, foundry_scripts=SCRIPTS, family_file=os.path.join(FAMILIES, f"{plan['family']}.py"),
+               critic_scripts=os.path.join(critic, "scripts") if critic else plan["critic_scripts"])
+    tp = os.path.join(v, ".plan-render.json")
+    json.dump(tmp, open(tp, "w"), indent=1)
+    try:
+        with open(os.path.join(v, "forge.log"), "a") as log:
+            return subprocess.run(blender_cmd(a)(tp, "--render-only", which), stdout=log, stderr=subprocess.STDOUT,
+                                  timeout=timeout).returncode
+    except subprocess.TimeoutExpired:
+        return "timeout"
+    finally:
+        os.remove(tp)
+
+
 def make_one(plan, a, bible, force=False, quiet=False, timeout=None):
+    """Build unless up to date. Same variant (vkey) + same hash + ok/fail = up to date (renders topped up). Same
+    variant but the family, kit or canon changed, or the last build errored or timed out = rebuilt. A different
+    variant in the folder is refused unless force."""
     out = plan["out"]
     mpath = os.path.join(out, "manifest.json")
-    if os.path.isfile(mpath):
-        old = json.load(open(mpath))
-        if old.get("hash") == plan["hash"] and not force and old.get("status") in ("ok", "fail"):
+    if os.path.isfile(mpath) and not force:
+        old = load_json(mpath, "manifest")
+        ppath = os.path.join(out, "plan.json")
+        okey = old.get("vkey") or (vkey_of(load_json(ppath)) if os.path.isfile(ppath) else None)
+        if okey != plan["vkey"]:
+            die(f"{out} holds a different variant; pass --name NewName to keep both, or --force to replace it")
+        if old.get("hash") == plan["hash"] and old.get("status") in ("ok", "fail"):
             want = {"none": set(), "thumb": {"thumb", "game"}, "full": {"thumb", "game", "pov3p", "pov1p", "34", "side", "end"}}
-            if not want[plan["options"]["renders"]] <= set(old.get("renders", {})):
-                with open(os.path.join(out, "forge.log"), "a") as log:
-                    subprocess.run(blender_cmd(a)(os.path.join(out, "plan.json"), "--render-only", plan["options"]["renders"]),
-                                   stdout=log, stderr=subprocess.STDOUT, timeout=timeout)
-                old["renders"] = json.load(open(os.path.join(out, "result.json"))).get("renders", {})
-                json.dump(old, open(mpath, "w"), indent=1)
+            have = set(old.get("renders", {}))
+            moved = old.get("pov") != plan["options"].get("pov") and bool(have & set(POV_RENDERS))
+            if not want[plan["options"]["renders"]] <= have or moved:
+                which = "full" if moved or plan["options"]["renders"] == "full" else plan["options"]["renders"]
+                code = render_only(out, plan, which, a, timeout)
+                if code != 0:
+                    die(f"{plan['asset']}: render-only exit {code}; see {out}/forge.log", 1)
+                json.dump(plan, open(ppath, "w"), indent=1)          # current paths and premise
+                res = load_json(os.path.join(out, "result.json"))
+                fails, warns, checks = post(plan, res, bible)       # facts, README, manifest follow the new renders
+                old = write_reports(plan, res, fails, warns, checks, old.get("seconds") or 0)
             if not quiet:
                 print(f"{plan['asset']}: up to date ({old['status']}), renders {', '.join(old.get('renders', {})) or 'none'}; {out}")
             return old
-        if not force:
-            die(f"{out} holds a different variant; pass --name NewName to keep both, or --force to replace it")
+        why = f"last build {old.get('status')}" if old.get("hash") == plan["hash"] else \
+            "family, kit or canon changed since it was made"
+        if not quiet:
+            print(f"{plan['asset']}: rebuilding ({why})")
+        force = True
     if os.path.isdir(out) and force:
         shutil.rmtree(out)
     os.makedirs(out, exist_ok=True)
@@ -508,8 +598,8 @@ def make_one(plan, a, bible, force=False, quiet=False, timeout=None):
     rpath = os.path.join(out, "result.json")
     if code != 0 or not os.path.isfile(rpath):
         tail = open(os.path.join(out, "forge.log")).read().splitlines()[-12:]
-        man = {"asset": plan["asset"], "hash": plan["hash"], "status": "error", "fails": [f"forge exit {code}"],
-               "log_tail": tail, "params": plan["params"]}
+        man = {"asset": plan["asset"], "hash": plan["hash"], "vkey": plan["vkey"], "status": "error",
+               "fails": [f"forge exit {code}"], "log_tail": tail, "params": plan["params"]}
         json.dump(man, open(mpath, "w"), indent=1)
         if not quiet:
             print(f"{plan['asset']}: FORGE ERROR (exit {code}); last log lines:\n  " + "\n  ".join(tail))
@@ -532,14 +622,18 @@ def make_one(plan, a, bible, force=False, quiet=False, timeout=None):
 
 def cmd_list(a):
     words = set(re.findall(r"[a-z]+", (a.match or "").lower()))
-    hits = 0
+    ranked = []
     for n in family_names():
         fam = load_family(n)
-        tags = set(getattr(fam, "TAGS", [])) | {fam.FAMILY}
-        if not words or words & {t for tag in tags for t in tag.split()}:
-            hits += 1
-            print(f"{n}: {fam.DESC}")
-            print(f"  presets: {', '.join(fam.PRESETS)}")
+        vocab = {t for tag in set(getattr(fam, "TAGS", [])) | {fam.FAMILY} for t in tag.split()} | set(fam.PRESETS) \
+            | {w for p in fam.PRESETS for w in p.split("_")}
+        score = len(words & vocab)
+        if not words or score:
+            ranked.append((-score, n, fam))
+    for neg, n, fam in sorted(ranked, key=lambda r: (r[0], r[1])):          # best match first
+        print(f"{n}: {fam.DESC}" + (f" [{-neg} word{'s' * (neg != -1)} matched]" if words else ""))
+        print(f"  presets: {', '.join(fam.PRESETS)}")
+    hits = len(ranked)
     if not hits:
         print(f"no family matches {a.match!r} (have: {', '.join(family_names())}); a recurring asset gets one with "
               "`new-family`, a one-off goes to rr-mission-control")
@@ -559,8 +653,16 @@ def cmd_show(a):
     for p, v in fam.PRESETS.items():
         print(f"  {p}: {v.get('note', '')} {json.dumps(v.get('params', {}))}"
               + (f" groups {json.dumps(v['groups'])}" if v.get("groups") else ""))
-    if getattr(fam, "OPEN", None):
-        print(f"open questions: {', '.join(fam.OPEN)}")
+    prem = fam.VIEW.get("premises")
+    if prem:
+        print(f"player-view premises (--pov; default {fam.VIEW.get('premise')}):")
+        for k, v in prem.items():
+            print(f"  {k}: {v}")
+    try:
+        opens = resolve(fam, argparse.Namespace(), Bible())["open"]      # the family's OPEN + OQs of its canon keys
+        print(f"open questions: {', '.join(opens) or 'none'} (labels on every output)")
+    except SystemExit:
+        print(f"open questions: {', '.join(getattr(fam, 'OPEN', [])) or 'none'} (canon keys not checked: rr-bible unreachable)")
 
 
 def cmd_plan(a):
@@ -592,11 +694,19 @@ def parse_vary(specs, fam):
             vals = [v for v in rng.split(",") if v]
             out[k] = ("list", vals if k == "preset" else [coerce(k, params[k], v) for v in vals])
         elif ":" in rng:
-            parts = [float(x) for x in rng.split(":")]
+            try:
+                parts = [float(x) for x in rng.split(":")]
+            except ValueError:
+                die(f"--vary {s}: a range is lo:hi or lo:hi:step, numbers only")
+            if len(parts) not in (2, 3) or parts[0] > parts[1] or (len(parts) == 3 and parts[2] <= 0):
+                die(f"--vary {s}: need lo <= hi and step > 0 (lo:hi:step, or lo:hi with --mode random)")
             out[k] = ("range", parts)
         else:
             out[k] = ("list", [coerce(k, params[k], rng)])
     return out, params
+
+
+MAX_GRID = 400
 
 
 def expand(vary, params, mode, n, seed):
@@ -614,7 +724,13 @@ def expand(vary, params, mode, n, seed):
         return vals
     keys = list(vary)
     if mode == "grid":
-        combos = [dict(zip(keys, c)) for c in itertools.product(*(grid_values(k, vary[k]) for k in keys))]
+        vals = [grid_values(k, vary[k]) for k in keys]
+        total = 1
+        for v in vals:
+            total *= len(v)
+        if total > MAX_GRID and not n:
+            die(f"grid of {total} variants (over {MAX_GRID}): coarser steps, fewer --vary, or --n N for a seeded subset")
+        combos = [dict(zip(keys, c)) for c in itertools.product(*vals)]
         if n and len(combos) > n:
             combos = sorted(rnd.sample(combos, n), key=lambda c: [str(c[k]) for k in keys])
         return combos
@@ -640,14 +756,16 @@ def cmd_batch(a):
     fam, bible = load_family(a.family), Bible()
     vary, pspecs = parse_vary(a.vary, fam)
     combos = expand(vary, pspecs, a.mode, a.n, a.seed or 1)
-    base = a.name or camel(fam.FAMILY, a.preset or getattr(fam, "DEFAULT_PRESET", "") or "")
+    base = a.name or camel(fam.FAMILY, "mix" if "preset" in vary else
+                           (a.preset or getattr(fam, "DEFAULT_PRESET", "") or ""))
     root = a.out or os.environ.get("RR_FOUNDRY_OUT") or os.path.expanduser("~/.rr-foundry")
     bdir = os.path.abspath(os.path.join(root, f"batch-{base}"))
     a.renders = a.renders or "thumb"
     plans, refused = [], []
     for i, combo in enumerate(combos, 1):
         try:
-            plan = resolve(fam, a, bible, overrides=combo, name=f"{base}V{i:03d}", seed=(a.seed or 1) + i, out=bdir)
+            plan = resolve(fam, a, bible, overrides=combo, name=f"{base}V{i:03d}",
+                           seed=(a.seed or 1) + (0 if a.same_seed else i), out=bdir)
         except SystemExit as e:
             if not getattr(e, "msg", None):
                 raise
@@ -676,7 +794,12 @@ def cmd_batch(a):
 
     def one(item):
         i, combo, plan = item
-        man = make_one(plan, a, bible, force=a.force, quiet=True, timeout=a.timeout)
+        try:                         # a refusal or crash stays with its variant; the batch carries on
+            man = make_one(plan, a, bible, force=a.force, quiet=True, timeout=a.timeout)
+        except SystemExit as e:
+            man = {"status": "error", "fails": [getattr(e, "msg", None) or f"exit {e.code}"]}
+        except Exception as e:       # noqa: BLE001 (a batch must survive any one variant)
+            man = {"status": "error", "fails": [f"{type(e).__name__}: {e}"]}
         with lock:
             row = {"id": f"v{i:03d}", "asset": plan["asset"], "vary": combo, "status": man["status"],
                    "fails": man.get("fails", []), "seconds": man.get("seconds")}
@@ -687,6 +810,10 @@ def cmd_batch(a):
     with cf.ThreadPoolExecutor(max_workers=max(1, a.jobs)) as ex:
         list(ex.map(one, plans))
     sheet(bdir)
+    bad = [r["id"] for r in state["variants"] if r["status"] in ("error", "fail")]
+    if bad:
+        print(f"{len(bad)} variant(s) failed or errored ({', '.join(bad[:8])}); fix and re-run the same command to resume")
+        sys.exit(1)
 
 
 def sheet(bdir):
@@ -731,7 +858,28 @@ def sheet(bdir):
 
 
 def cmd_sheet(a):
-    sheet(os.path.abspath(a.batch_dir))
+    paths = [os.path.abspath(p) for p in a.paths]
+    if len(paths) == 1 and os.path.isfile(os.path.join(paths[0], "batch.json")):
+        return sheet(paths[0])
+    items = []
+    for v in paths:
+        man = load_json(os.path.join(v, "manifest.json"), "variant manifest (is this a variant folder?)")
+        img = next((os.path.join(v, "renders", f"{n}.png") for n in ("thumb", "34", "game")
+                    if os.path.isfile(os.path.join(v, "renders", f"{n}.png"))), None)
+        if not img:
+            plan = load_json(os.path.join(v, "plan.json"))
+            if render_only(v, plan, "thumb", a) != 0:
+                die(f"{v}: could not render a thumbnail; see forge.log", 1)
+            img = os.path.join(v, "renders", "thumb.png")
+        lab = f"{man['asset']} {man.get('preset', '')}"[:34] + ("" if man.get("status") == "ok" else " FAIL")
+        items.append(f"{lab}={img}")
+    out = os.path.abspath(a.out or os.path.join(os.path.dirname(paths[0]), "sheet-variants.png"))
+    critic = find_skill("multiuse-critic", "RR_CRITIC")
+    r = subprocess.run([sys.executable, os.path.join(critic, "scripts", "contact_sheet.py"), out, *items, "--tile", "320x180"],
+                       capture_output=True, text=True)
+    if r.returncode:
+        die(f"contact_sheet.py exit {r.returncode}: {(r.stdout + r.stderr)[-300:]}", 1)
+    print(f"variant sheet: {out} ({len(items)} variants; the 5-stud avatar is the scale)")
 
 
 def cmd_crit(a):
@@ -740,32 +888,50 @@ def cmd_crit(a):
     cs = os.path.join(critic, "scripts", "contact_sheet.py")
     crit = os.path.abspath(a.crit)
     pdir = os.path.join(crit, f"pass-{a.pass_}")
-    os.makedirs(pdir, exist_ok=True)
     band, grid, close, facts, mans = [], [], [], [], []
     multi = len(a.variants) > 1
     for v in a.variants:
-        v = os.path.abspath(v)
-        plan, man = json.load(open(os.path.join(v, "plan.json"))), json.load(open(os.path.join(v, "manifest.json")))
+        v = os.path.abspath(v)                 # may be a copy (CRIT/round-N, export): everything stays in v
+        man = load_json(os.path.join(v, "manifest.json"), "variant manifest (is this a variant folder?)")
+        plan = load_json(os.path.join(v, "plan.json"))
+        if man.get("status") != "ok" and not a.allow_fail:
+            die(f"{man.get('asset', v)} is {man.get('status')}: fix the objective checks before a critic pass "
+                f"({(man.get('fails') or ['?'])[0][:120]}); --allow-fail to override", 1)
+        prem = plan["view"].get("premises", {})
+        if a.pov and a.pov not in prem:
+            die(f"{plan['asset']}: no premise {a.pov!r}; premises: {', '.join(prem) or 'none (one player view)'}")
+        want_pov = a.pov or plan["options"].get("pov")
         need = ["pov3p", "game", "pov1p", "34", "side", "end"] + (["top"] if plan["view"].get("top") else [])
-        if any(not os.path.isfile(os.path.join(v, "renders", f"{n}.png")) for n in need):
-            print(f"{plan['asset']}: rendering the full critic set ...", flush=True)
-            with open(os.path.join(v, "forge.log"), "a") as log:
-                r = subprocess.run(blender_cmd(a)(os.path.join(v, "plan.json"), "--render-only", "full"),
-                                   stdout=log, stderr=subprocess.STDOUT)
-            if r.returncode:
+        moved = want_pov != man.get("pov", plan["options"].get("pov"))
+        if moved or any(not os.path.isfile(os.path.join(v, "renders", f"{n}.png")) for n in need):
+            plan["options"]["pov"] = want_pov
+            print(f"{plan['asset']}: rendering the full critic set" + (f" (premise {want_pov})" if want_pov else "")
+                  + " ...", flush=True)
+            if render_only(v, plan, "full", a) != 0:
                 die(f"render-only failed for {v}; see forge.log", 1)
+            res = load_json(os.path.join(v, "result.json"))
+            fails, warns, checks = post(dict(plan, out=v), res, bible)
+            man = write_reports(dict(plan, out=v), res, fails, warns, checks, man.get("seconds") or 0)
+            json.dump(dict(plan, out=v), open(os.path.join(v, "plan.json"), "w"), indent=1)
+        extra = sorted(n for n in man.get("renders", {}) if n.startswith("pov3p_"))
+        os.makedirs(pdir, exist_ok=True)
         pre = f"{plan['asset']}_" if multi else ""
-        for n in need:
+        for n in need + extra:
             shutil.copy(os.path.join(v, "renders", f"{n}.png"), os.path.join(pdir, f"{pre}{n}.png"))
+        labels = {s["render"]: s["label"] for s in man.get("pov_stands", [])}
         tag = f"{plan['asset']} " if multi else ""
+        img = lambda n: os.path.join(pdir, pre + n + ".png")
         if multi:
-            band.append(f"{tag}game 400px={os.path.join(pdir, pre + 'game.png')}@1")
-            close.append(f"{tag}POV 3P={os.path.join(pdir, pre + 'pov3p.png')}@1")
+            band.append(f"{tag}game 400px={img('game')}@1")
+            close += [f"{tag}POV 3P {labels.get('pov3p', '')}={img('pov3p')}@1"] + \
+                [f"{tag}POV 3P {labels.get(n, n)}={img(n)}" for n in extra]
+            views = [("pov1p", "POV 1P"), ("34", "3/4"), ("side", "side"), ("end", "end"), ("top", "top")]
         else:
-            band += [f"POV 3P={os.path.join(pdir, 'pov3p.png')}@1", f"game 400px={os.path.join(pdir, 'game.png')}@1"]
-        grid += [f"{tag}{lab}={os.path.join(pdir, pre + n + '.png')}"
-                 for n, lab in (("pov1p", "POV 1P"), ("34", "3/4"), ("side", "side"), ("end", "end"), ("top", "top"))
-                 if n in need]
+            band += [f"POV 3P {labels.get('pov3p', '')}={img('pov3p')}@1", f"game 400px={img('game')}@1"]
+            views = [("pov1p", "POV 1P")] + [(n, f"POV 3P {labels.get(n, n)}") for n in extra[:1]] + \
+                [("34", "3/4"), ("side", "side"), ("end", "end"), ("top", "top")]
+            close += [f"POV 3P {labels.get(n, n)}={img(n)}" for n in extra[1:]]
+        grid += [f"{tag}{lab}={img(n)}" for n, lab in views if n in need + extra]
         facts.append(open(os.path.join(v, "facts.md")).read().strip())
         mans.append((plan, man))
     for tile in ("320x180", "288x162", "256x144"):
@@ -775,44 +941,55 @@ def cmd_crit(a):
             break
     if r.returncode:
         die(f"contact sheet over budget even at 256x144: {r.stdout[-300:]}", 1)
-    extra = ""
+    extra_arg = ""
     if close:
         rc = subprocess.run([sys.executable, cs, os.path.join(pdir, "closeups.png"), *close], capture_output=True, text=True)
-        extra = " --images closeups.png" if rc.returncode == 0 else ""
+        extra_arg = " --images closeups.png" if rc.returncode == 0 else ""
     open(os.path.join(pdir, "facts.md"), "w").write("\n\n".join(facts) + "\n")
     brief = os.path.join(crit, "brief.md")
     if not os.path.isfile(brief):
-        plan0, _ = mans[0]
-        fam = load_family(plan0["family"])
         aud = [bible.fact(k) for k in ("identity.audience.launch", "identity.audience.target")]
-        cn = plan0["canon"]
+        cn = mans[0][0]["canon"]
         opens = sorted({q for p, _ in mans for q in p["open"]})
-        names = ", ".join(p["asset"] for p, _ in mans)
+        views = []
+        for p, m in mans:
+            fam = load_family(p["family"])
+            pr = p["options"].get("pov")
+            txt = fam.VIEW.get("premises", {}).get(pr) if pr else fam.VIEW.get("player", "")
+            st = ", ".join(s["label"] for s in m.get("pov_stands", []))
+            views.append(f"{p['asset']}: {'premise ' + pr + ': ' if pr else ''}{txt} POV stands: {st or 'one'}.")
         open(brief, "w").write("\n".join([
-            f"# {names}",
-            f"- Purpose: {fam.DESC} Variant(s): " + "; ".join(f"{p['asset']} = preset {p['preset']} ({p['preset_note']})" for p, _ in mans),
+            f"# {', '.join(p['asset'] for p, _ in mans)}",
+            "- Purpose: TODO one job per variant, in one sentence (what it is for in the game, and where). Variants: "
+            + "; ".join(f"{p['asset']} = {p['family']} preset {p['preset']} ({p['preset_note']})" for p, _ in mans),
             "- Audience: " + "; ".join(f["value"] for f in aud if f),
             f"- Player view: third-person eye {cn['eye_3p']:g} studs above the floor, first-person {cn['eye_1p']:g}, "
-            f"vertical FOV {cn['fov_v']:g}. {fam.VIEW.get('player', '')}",
+            f"vertical FOV {cn['fov_v']:g}. " + " ".join(views),
             "- Stage: generated draft (parametric: fixes are parameter or family-code changes, then a rebuild).",
             f"- Fixed constraints: <= {cn['tris_target']:,.0f} tris per MeshPart (cap {cn['tris_cap']:,.0f}); colours only "
-            "rr-bible tokens (listed in facts); separate named parts per recolour group; invisible box collision proxies.",
+            "rr-bible tokens (listed in facts); flat palette colours, no textures, decals or text "
+            "(style.dont.invented_text); separate named parts per recolour group; invisible box collision proxies.",
             f"- Owner worries / decided: open questions {', '.join(opens) or 'none'} (their values are assumptions, not "
-            "style choices to critique). Step 2 NOT answered by the foundry: ask the owner or pre-answer before pass 1."]) + "\n")
-    print(f"pass folder ready: {pdir} (contact.png{', closeups.png' if extra else ''}, facts.md); brief: {brief}")
+            "style choices to critique). TODO step 2 NOT answered by the foundry: ask the owner; if they cannot be asked "
+            "(subagent, overnight), replace each TODO with an ASSUMPTION line citing canon keys and repeat the "
+            "assumptions when presenting."]) + "\n")
+    todo = [ln for ln in open(brief).read().splitlines() if "TODO" in ln]
+    print(f"pass folder ready: {pdir} (contact.png{', closeups.png' if extra_arg else ''}, facts.md); brief: {brief}")
+    if todo:
+        print(f"brief.md has {len(todo)} TODO line(s) (Purpose, step 2): answer them before critic_kit build")
     print(f"next: python3 {os.path.join(critic, 'scripts', 'critic_kit.py')} build {crit} --pass {a.pass_} --kind full "
-          f"--profile A --role \"senior game artist\"{extra}")
+          f"--profile A --role \"senior game artist\"{extra_arg}")
     print("then a fresh critic per multiuse-critic steps 5-6; the foundry never scores.")
 
 
 def cmd_verify(a):
     v = os.path.abspath(a.variant_dir)
-    man = json.load(open(os.path.join(v, "manifest.json")))
-    plan = json.load(open(os.path.join(v, "plan.json")))
+    man = load_json(os.path.join(v, "manifest.json"), "variant manifest (is this a variant folder?)")
+    plan = load_json(os.path.join(v, "plan.json"))
     plan["out"] = v                     # check the folder given (it may be a copy), not where it was made
     missing = [f for f in man.get("files", []) + ["studio_setup.lua", "parts.csv", "facts.md", "README.md"]
                if not os.path.isfile(os.path.join(v, f))]
-    res = json.load(open(os.path.join(v, "result.json")))
+    res = load_json(os.path.join(v, "result.json"), "result.json (the forge never finished here)")
     fails, warns, checks = post(plan, res, Bible())
     fails += [f"missing file {f}" for f in missing]
     print(f"{man['asset']}: {'PASS' if not fails else 'FAIL'}; {len(man.get('files', [])) - len(missing)} export files present"
@@ -852,6 +1029,7 @@ def main():
         p.add_argument("--no-atlas", action="store_true")
         p.add_argument("--out")
         p.add_argument("--renders", choices=["full", "thumb", "none"], default=renders_default)
+        p.add_argument("--pov", help="player-view premise for the POV renders (show FAMILY lists them)")
         p.add_argument("--blender")
         p.add_argument("--force", action="store_true")
         p.add_argument("--timeout", type=int, default=1800)
@@ -870,13 +1048,18 @@ def main():
     p.add_argument("--n", type=int)
     p.add_argument("--mode", choices=["grid", "random"], default="grid")
     p.add_argument("--jobs", type=int, default=1)
+    p.add_argument("--same-seed", action="store_true", help="every variant gets --seed (default 1), not seed+i")
     p.add_argument("--dry-run", action="store_true")
     p = sub.add_parser("sheet")
-    p.add_argument("batch_dir")
+    p.add_argument("paths", nargs="+", help="one batch folder, or any variant folders")
+    p.add_argument("--out", help="PNG for a variant sheet (default: sheet-variants.png beside the first variant)")
+    p.add_argument("--blender")
     p = sub.add_parser("crit")
     p.add_argument("variants", nargs="+")
     p.add_argument("--crit", required=True)
     p.add_argument("--pass", dest="pass_", type=int, default=1)
+    p.add_argument("--pov", help="player-view premise (re-renders the POV set when it changes)")
+    p.add_argument("--allow-fail", action="store_true", help="crit a variant whose objective checks failed")
     p.add_argument("--blender")
     p = sub.add_parser("verify")
     p.add_argument("variant_dir")

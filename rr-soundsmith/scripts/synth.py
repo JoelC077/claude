@@ -4,18 +4,20 @@
   python3 synth.py --list                      recipe names
   python3 synth.py ID [ID...] --out DIR        (sound.py synth is the normal entry: it adds the class standard)
 
+A sound gets its recipe from, in order: <presets>/recipes.py (functions r_<name>, may `from synth import *`), the
+sound's "synth" field (a recipe name, or a layer spec: references/schema.md), then the built-in recipe of the same id.
 Every recipe is deterministic (seeded) and returns mono float samples at 48 kHz. `render()` normalises to the class
 standard with audiolib's BS.1770 meter (momentary max for one-shots, integrated for loops), soft-clipping peaks
 to the -1 dBTP ceiling when needed, and writes PLACEHOLDER_<id>.wav (16-bit mono) whose INFO chunk says PLACEHOLDER.
 They exist to prototype timing and mix in Studio; they are not final audio. Needs numpy.
 """
-import argparse, hashlib, math, sys
+import argparse, hashlib, importlib.util, math, sys
 from pathlib import Path
 
-import numpy as np
-
+sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import audiolib as al  # noqa: E402
+import audiolib as al  # noqa: E402  (adds ~/.cache/rr-tools/py to the path)
+import numpy as np  # noqa: E402
 
 SR = 48000
 CEIL = 10 ** (-1.2 / 20)
@@ -443,7 +445,119 @@ def r_radio_loop(rng):
     return b
 
 
+def r_lobby_bed(rng):
+    L, xf = 12.0, 0.5
+    b = 0.35 * loopify(filt(noise(L + xf, rng, "brown"), lo=40, hi=200), L, xf)       # resting loco idle rumble
+    b += 0.02 * osc(100, L, [(1, 1.0), (2, 0.6), (3, 0.3), (4, 0.15)])               # lantern buzz (whole cycles)
+    for k in range(3):                                                                  # slow steam breaths, 4 s apart
+        puff = filt(noise(1.1, rng), lo=1500, hi=7000) * env(1.1, 0.18, 0.7)
+        place_wrap(b, puff, k * 4.0 + 0.4 + rng.uniform(-0.1, 0.1), 0.22)
+    for _ in range(5):                                                                  # sparse distant birds
+        at = rng.uniform(0, L)
+        for j in range(int(rng.integers(2, 4))):
+            chirp = osc(sweep(rng.uniform(2800, 3400), rng.uniform(4000, 4800), 0.07), 0.07) * env(0.07, 0.01, 0.03)
+            place_wrap(b, chirp, at + j * 0.11, 0.05)
+    return b
+
+
+def r_queue_punch(rng):
+    b = buf(0.3)
+    for at, g in ((0.0, 1.0), (0.07, 0.85)):
+        place(b, click(0.012, rng, lo=1200, tau=0.0015), at, 0.9 * g)                   # punch bite
+        place(b, filt(noise(0.03, rng), lo=1000, hi=3000) * decay(0.03, 0.008), at + 0.002, 0.6 * g)  # card snap
+        place(b, modal(0.12, [(1650, 0.025, 0.7), (2890, 0.018, 0.45), (4100, 0.01, 0.25)], rng), at + 0.001, 0.5 * g)
+    return b
+
+
+def r_queue_bell(rng):
+    b = buf(0.45)
+    place(b, click(0.006, rng, lo=2000, tau=0.0008), 0, 0.5)
+    place(b, bell(1568, 0.44, 0.1, bright=1.2), 0, 0.9)
+    return b
+
+
+def r_guard_whistle(rng):
+    dur = 0.95
+    t = t_(dur)
+    trill = 0.55 + 0.45 * np.sin(2 * np.pi * 30 * t) ** 2                                 # the pea rattling
+    f = 2850 * (1 + 0.012 * np.sin(2 * np.pi * 30 * t)) * (1 - 0.04 * np.exp(-t / 0.03))
+    tone = osc(f, dur, [(1, 1.0), (2, 0.12), (3, 0.05)]) * trill
+    breath = filt(noise(dur, rng), lo=2000, hi=5500) * (0.25 + 0.75 * np.exp(-t / 0.06))
+    return (tone + 0.35 * breath) * env(dur, 0.015, 0.09)
+
+
 RECIPES = {k[2:]: v for k, v in globals().items() if k.startswith("r_")}
+
+
+# ------------------------------------------------------------------ data recipes (soundmap "synth" field)
+def _layer(ly, rng, d):
+    wave = {"sine": lambda f: osc(f, d), "square": lambda f: square(f, d), "saw": lambda f: saw(f, d)}
+    if "tone" in ly:
+        f = ly["tone"]
+        x = wave[ly.get("wave", "sine")](sweep(f[0], f[1], d) if isinstance(f, list) else f)
+    elif "noise" in ly:
+        lo, hi = (list(ly["noise"]) + [None, None])[:2]
+        x = filt(noise(d, rng, ly.get("color", "white")), lo=lo or None, hi=hi or None)
+    elif "bell" in ly:
+        return bell(ly["bell"], d, ly.get("tau", 0.1))
+    elif "click" in ly:
+        return click(min(d, 0.02), rng, lo=ly["click"])
+    else:
+        x = modal(d, [tuple(m_) for m_ in ly["modes"]], rng)
+    if ly.get("tau"):
+        x = x * decay(d, ly["tau"])
+    if ly.get("attack") or ly.get("release"):
+        x = x * env(d, ly.get("attack", 0), ly.get("release", 0))
+    return x
+
+
+def spec_recipe(spec, looped=False):
+    """A recipe from a soundmap layer spec: {"len": s, "layers": [{tone|noise|bell|click|modes: .., "at", "gain",
+    "dur", "tau", "attack", "release", "wave", "color"}], "repeat": [offsets]}. Loops wrap every layer (seamless)."""
+    def fn(rng):
+        L, xf = float(spec["len"]), 0.3
+        b = buf(L)
+        for off in spec.get("repeat", [0]):
+            for ly in spec["layers"]:
+                d = float(ly.get("dur", L if looped else 0.3))
+                if looped and d >= L:
+                    x = loopify(_layer(ly, rng, L + xf), L, xf)
+                else:
+                    x = _layer(ly, rng, d)
+                (place_wrap if looped else place)(b, x, off + ly.get("at", 0), ly.get("gain", 1.0))
+        return b
+    return fn
+
+
+_EXTRA = {}
+
+
+def extra_recipes(presets_dir):
+    """r_<name> functions from <presets>/recipes.py (a mission's own placeholders), loaded once."""
+    p = Path(presets_dir) / "recipes.py"
+    if str(p) not in _EXTRA:
+        found = {}
+        if p.is_file():
+            spec = importlib.util.spec_from_file_location("rr_sound_recipes", p)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            found = {k[2:]: v for k, v in vars(mod).items() if k.startswith("r_") and callable(v)}
+        _EXTRA[str(p)] = found
+    return _EXTRA[str(p)]
+
+
+def resolve(sid, sound, presets_dir=None):
+    """(name, fn) for a sound, or (None, None) when it has no recipe."""
+    extra = extra_recipes(presets_dir) if presets_dir else {}
+    sy = sound.get("synth")
+    if isinstance(sy, dict):
+        return f"spec:{sid}", spec_recipe(sy, bool(sound.get("looped")))
+    for name in ([sy] if isinstance(sy, str) else []) + [sid]:
+        if name in extra:
+            return name, extra[name]
+        if name in RECIPES:
+            return name, RECIPES[name]
+    return None, None
 
 
 # ------------------------------------------------------------------ render
@@ -475,12 +589,13 @@ def normalise(x, std):
     return y, notes
 
 
-def render(sid, recipe, std, out_dir, seed=7):
-    """Write PLACEHOLDER_<sid>.wav; return a manifest row (measured by audiolib)."""
-    if recipe not in RECIPES:
+def render(sid, recipe, std, out_dir, seed=7, fn=None):
+    """Write PLACEHOLDER_<sid>.wav from recipe name (or fn); return a manifest row (measured by audiolib)."""
+    fn = fn or RECIPES.get(recipe)
+    if fn is None:
         raise KeyError(f"no recipe {recipe!r}")
     rng = np.random.default_rng(seed + sum(map(ord, recipe)))
-    x = RECIPES[recipe](rng)
+    x = fn(rng)
     y, notes = normalise(np.asarray(x, dtype=np.float64), std)
     if std["metric"] != "integrated":
         y[-min(len(y), n_(0.004)):] *= np.linspace(1, 0, min(len(y), n_(0.004)))

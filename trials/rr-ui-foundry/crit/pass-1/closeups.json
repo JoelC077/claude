@@ -1,0 +1,81 @@
+{
+ "sheet": [
+  1218,
+  890
+ ],
+ "megapixels": 1.08,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "HUD PC 1280x720, bottom-right crop (C)",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/crops/hud_pc_crop.png",
+   "box": [
+    6,
+    24,
+    600,
+    420
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "Create match PC 1280x720, centre crop (C)",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/crops/lobby_pc_crop.png",
+   "box": [
+    612,
+    24,
+    600,
+    420
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 3,
+   "label": "HUD skin A (OQ-001 option)",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/hud/HudTickets__routine__phone__A.png",
+   "box": [
+    6,
+    469,
+    420,
+    194
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 4,
+   "label": "Create match skin A",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/lobby/LobbyCreateMatch__open__phone__A.png",
+   "box": [
+    432,
+    469,
+    420,
+    194
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 5,
+   "label": "HUD skin B (OQ-001 option)",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/hud/HudTickets__routine__phone__B.png",
+   "box": [
+    6,
+    689,
+    420,
+    194
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 6,
+   "label": "Create match skin B",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/lobby/LobbyCreateMatch__open__phone__B.png",
+   "box": [
+    432,
+    689,
+    420,
+    194
+   ],
+   "scale": "fit x0.50"
+  }
+ ]
+}

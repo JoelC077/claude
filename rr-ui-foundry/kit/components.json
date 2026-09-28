@@ -86,9 +86,10 @@
   },
   "button": {
     "size": [160, 52],
-    "doc": "Button: shadow, face, label, gamepad glyph (left of the label; icon buttons show it in place of the label). Variants set the face and label roles. States: hover, pressed, disabled (focus is the themed SelectionImageObject).",
-    "slots": {"text": "text", "hint": "keycode?"},
+    "doc": "Button: shadow, face, label or icon, gamepad glyph (left of the label; icon buttons show it in place of the label). Variants set the face and label roles; cta = the screen's one call to action (solid accent, bigger label; keep it the only solid-accent area). States: hover, pressed, disabled (focus is the themed SelectionImageObject).",
+    "slots": {"text": "text", "hint": "keycode?", "icon": "icon name? (drawn instead of the text, tinted like the label)"},
     "variants": {
+      "cta":       {"face": "accent", "face_dark": "accent_dark", "label": "on_accent", "style": "button_cta", "glyph_left": true},
       "primary":   {"face": "accent", "face_dark": "accent_dark", "label": "on_accent", "style": "button", "glyph_left": true},
       "secondary": {"face": "btn", "face_dark": "btn_dark", "label": "on_btn", "style": "button", "glyph_left": true},
       "icon":      {"face": "btn", "face_dark": "btn_dark", "label": "on_btn", "style": "chip", "glyph_center": true}
@@ -98,7 +99,8 @@
     "parts": [
       {"id": "shadow", "type": "frame", "rect": [0, 4, "100%", "100%-4"], "fill": "shadow", "alpha": 0.9, "radius": 12},
       {"id": "face", "type": "frame", "rect": [0, 0, "100%", "100%-4"], "fill": "{face}", "stroke": ["ink", 3], "radius": 12, "children": [
-        {"id": "label", "type": "text", "rect": [6, 0, "100%-12", "100%"], "text": "{text}", "style": "{style}", "color": "{label}", "align": "center", "truncate": true},
+        {"id": "label", "type": "text", "unless": "icon", "rect": [6, 0, "100%-12", "100%"], "text": "{text}", "style": "{style}", "color": "{label}", "align": "center", "truncate": true},
+        {"id": "icon", "type": "image", "if": "icon", "rect": ["50%-11", "50%-11", 22, 22], "image": "icon.{icon}", "tint": "{label}"},
         {"id": "glyphs", "type": "frame", "if": "hint", "rect": [0, 0, "100%", "100%"], "children": [
           {"id": "glyph", "type": "image", "if": "glyph_left", "rect": [8, "50%-12", 24, 24], "image": "key.{hint}", "gamepad_only": true},
           {"id": "glyph_c", "type": "image", "if": "glyph_center", "rect": ["50%-14", "50%-14", 28, 28], "fill": "{face}", "radius": "circle", "image": "key.{hint}", "gamepad_only": true}
@@ -113,36 +115,39 @@
   },
   "chip": {
     "size": [44, 44],
-    "doc": "Toggle chip (ui.lobby.controls: 44 x 44, radius 12). On = accent face, thicker ink edge and an underline mark (colour is never the only cue).",
+    "doc": "Toggle chip (ui.lobby.controls: 44 x 44, radius 12). On = thicker ink edge, an inner accent ring and an ink underline mark (colour is never the only cue); the face stays cream so the screen's cta stays the only solid-accent area.",
     "canon": ["ui.lobby.controls", "ui.rules.one_accent", "ui.rules.colourblind"],
     "slots": {"text": "text"},
     "root": {"type": "hit", "comp": "chip", "feel": "button"},
     "parts": [
       {"id": "face", "type": "frame", "rect": [0, 0, "100%", "100%"], "fill": "btn", "stroke": ["ink", 2], "radius": 12, "children": [
-        {"id": "label", "type": "text", "rect": [0, 0, "100%", "100%-4"], "text": "{text}", "style": "chip", "color": "on_btn", "align": "center"},
-        {"id": "mark", "type": "frame", "rect": ["50%-9", "100%-9", 18, 4], "fill": "ink", "radius": 2, "visible": false}
+        {"id": "sel", "type": "frame", "rect": [3, 3, "100%-6", "100%-6"], "stroke": ["accent", 4], "radius": 9, "visible": false},
+        {"id": "label", "type": "text", "rect": [0, 0, "100%", "100%-6"], "text": "{text}", "style": "chip", "color": "on_btn", "align": "center"},
+        {"id": "mark", "type": "frame", "rect": ["50%-9", "100%-12", 18, 4], "fill": "ink", "radius": 2, "visible": false}
       ]}
     ],
     "states": {
-      "on":       {"face": {"fill": "accent", "stroke": ["ink", 3]}, "label": {"color": "on_accent"}, "mark": {"visible": true}},
+      "on":       {"face": {"stroke": ["ink", 3]}, "sel": {"visible": true}, "mark": {"visible": true}},
       "pressed":  {"face": {"dy": 2}},
       "disabled": {"root": {"alpha": 0.45}}
     }
   },
   "panel": {
     "size": [360, 300],
-    "doc": "Modal panel: shadow, body, header with title, brass rule, optional close button. Screen children are laid out relative to the panel and parented to the body.",
+    "doc": "Modal panel: shadow, body, header with title, the ticket seam under it (perforation dots every 8 px and 16 px punch notches in both sides, as ui.hud.anatomy), optional close button inset 8 px. Screen children are laid out relative to the panel (content starts at y 80) and parented to the body.",
     "slots": {"title": "text", "closable": "bool"},
     "root": {"type": "frame", "comp": "panel", "feel": "panel"},
     "parts": [
       {"id": "shadow", "type": "frame", "rect": [0, 6, "100%", "100%-6"], "fill": "shadow", "alpha": 0.5, "radius": 16},
       {"id": "body", "type": "frame", "rect": [0, 0, "100%", "100%-6"], "fill": "panel", "stroke": ["ink", 3], "radius": 16, "clip": true, "content": true, "children": [
-        {"id": "header", "type": "frame", "rect": [0, 0, "100%", 50], "fill": "header", "children": [
-          {"id": "title", "type": "text", "rect": [16, 0, "100%-72", 50], "text": "{title}", "style": "title", "color": "on_header"}
+        {"id": "header", "type": "frame", "rect": [0, 0, "100%", 64], "fill": "header", "children": [
+          {"id": "title", "type": "text", "rect": [20, 0, "100%-84", 64], "text": "{title}", "style": "title", "color": "on_header"}
         ]},
-        {"id": "rule", "type": "frame", "rect": [0, 50, "100%", 3], "fill": "trim"}
+        {"id": "perf", "type": "frame", "rect": [14, 68, 4, 4], "fill": "ink", "alpha": 0.8, "radius": "circle", "repeat": {"dx": 8, "n": "fit"}},
+        {"id": "notch_l", "type": "frame", "rect": [-8, 62, 16, 16], "fill": "ink", "radius": "circle"},
+        {"id": "notch_r", "type": "frame", "rect": ["100%-8", 62, 16, 16], "fill": "ink", "radius": "circle"}
       ]},
-      {"id": "close", "use": "button", "variant": "icon", "if": "closable", "rect": ["100%-50", 3, 44, 44], "slots": {"text": "X", "hint": "ButtonB"}, "action": "close"}
+      {"id": "close", "use": "button", "variant": "icon", "if": "closable", "rect": ["100%-56", 8, 48, 48], "slots": {"text": "X", "hint": "ButtonB"}, "action": "close"}
     ]
   }
 }

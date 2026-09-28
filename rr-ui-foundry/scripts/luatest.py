@@ -7,17 +7,24 @@
            GuiObject with the stub layout engine (Scale + Offset, AnchorPoint, UIAspectRatioConstraint
            FitWithinMaxSize, UIScale, ScreenInsets) and compare with uimodel.resolve (the HTML boards):
            rects within 0.5 px, same visibility, texts, text sizes, fills, gradients and text colours
-  runtime  state machine (legal, illegal, disabled), chips and data slots, difficulty cycle, ButtonB bind and
-           unbind, gamepad focus and edges, modal SelectionGroup, reduce motion (no tweens), live reskin,
-           resize to another device, HUD push / merge / expiry / clear / overflow chip, jump-button lift with
-           the zone table and with a real TouchGui, RR_Feel hand-off (event names and targets)
+  runtime  derived from each spec (any screen name, ids, states, data, types): every machine transition
+           (state + look == the model), illegal events, disabled controls, set/cycle actions (data + look),
+           string actions, gamepad default focus, NextSelection links, modal SelectionGroup, key glyphs,
+           ButtonB bind/unbind, press feedback, reduce motion, fallback fade, live reskin, resize phone -> PC
+           and -> notched phone, HUD push / merge / expiry / sticky / clear / overflow / slot fill / unknown
+           type, touch-zone lift (worst case, real JumpButton, TouchGui added late, button shown late),
+           RR_Feel hand-off. A check the spec gives nothing to test is a named SKIP; 0 checks = FAIL.
 
-Without --package it builds a temporary package from specs/*.json (ui.py build --no-parity). Needs lupa:
+  luatest.py --package PKG --specs a.json,b.json    (ui.py build passes both)
+Without --package it builds a temporary package from specs/*.json (ui.py build --no-parity) and deletes it.
+Needs lupa:
   pip install --target ~/.cache/rr-tools/py lupa     (this script adds that folder to sys.path)
 Stubs model what RR_UIKit touches; they prove logic and layout math, not Roblox rendering.
-Exit 0 = all passed, 1 = failures, 3 = skipped (lupa missing).
+Exit 0 = all passed, 1 = failures (or nothing tested), 3 = skipped (lupa missing).
 """
-import argparse, json, subprocess, sys, tempfile
+import sys
+sys.dont_write_bytecode = True  # noqa: E402  (keep the skill folder free of __pycache__)
+import argparse, re, shutil, subprocess, tempfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -84,7 +91,7 @@ end
 
 local GUIOBJ = { Frame = true, TextLabel = true, ImageLabel = true, TextButton = true, ImageButton = true }
 local EVENTS = { MouseEnter = true, MouseLeave = true, MouseButton1Down = true, MouseButton1Up = true, Activated = true,
-	Event = true, SelectionGained = true, SelectionLost = true }
+	Event = true, SelectionGained = true, SelectionLost = true, ChildAdded = true, DescendantAdded = true }
 local IM = {}
 local function defaults(class)
 	local p = { Name = class, Visible = true, ZIndex = 1 }
@@ -123,6 +130,16 @@ IMT.__newindex = function(o, k, v)
 		p.Parent = v
 		if v then table.insert(rawget(v, "_kids"), o) end
 		if v and p.ClassName == "ScreenGui" then T.placeGui(o) end
+		if v then
+			local ca = rawget(v, "_p").ChildAdded
+			if ca then ca:Fire(o) end
+			local a = v
+			while a do
+				local da = rawget(a, "_p").DescendantAdded
+				if da then da:Fire(o) for _, d in ipairs(o:GetDescendants()) do da:Fire(d) end end
+				a = rawget(a, "_p").Parent
+			end
+		end
 		return
 	end
 	p[k] = v
@@ -327,210 +344,396 @@ def board_lua(b):
     return U.lua(b)
 
 
-def parity(h, kit, verbose):
-    fails, checks, skipped_img = [], 0, 0
-    for path in sorted((U.SKILL / "specs").glob("*.json")) if not h.spec_paths else h.spec_paths:
-        sc = U.Screen(kit, path)
-        if sc.name not in h.screens:
+def compare(want, got, tag, fails):
+    """Model tree (uimodel.resolve, flattened) vs Lua measure rows; appends failures, returns checks made."""
+    checks = 0
+    for i, w in want.items():
+        g = got.get(i)
+        if w["type"] == "image" and str(w.get("image", "")).startswith("icon.") and not g:
             continue
+        checks += 1
+        if not g:
+            fails.append(f"{tag}: {i} drawn on the board but missing or hidden in Lua")
+            continue
+        d = max(abs(g["x"] - w["box"][0]), abs(g["y"] - w["box"][1]), abs(g["w"] - w["box"][2]), abs(g["h"] - w["box"][3]))
+        if d > 0.5:
+            fails.append(f"{tag}: {i} rect lua ({g['x']:.1f},{g['y']:.1f},{g['w']:.1f},{g['h']:.1f}) vs board "
+                         f"({w['box'][0]:.1f},{w['box'][1]:.1f},{w['box'][2]:.1f},{w['box'][3]:.1f})")
+        if w["type"] == "text":
+            if (g.get("text") or "") != (w.get("text") or ""):
+                fails.append(f"{tag}: {i} text {g.get('text')!r} vs {w.get('text')!r}")
+            if abs((g.get("tsize") or 0) - w["size"]) > 0.05:
+                fails.append(f"{tag}: {i} text size {g.get('tsize') or 0:.2f} vs {w['size']:.2f}")
+            if w.get("color") and g.get("tcolor") != w["color"]:
+                fails.append(f"{tag}: {i} text colour {g.get('tcolor')} vs {w['color']}")
+        if w.get("gradient") and all(w["gradient"]):
+            if (g.get("g1"), g.get("g2")) != tuple(w["gradient"]):
+                fails.append(f"{tag}: {i} gradient {g.get('g1')},{g.get('g2')} vs {w['gradient']}")
+        elif w.get("fill") and g.get("fill") != w["fill"]:
+            fails.append(f"{tag}: {i} fill {g.get('fill')} vs {w['fill']}")
+        if w.get("stroke") and w["stroke"][0]:
+            if g.get("stroke") != w["stroke"][0] or abs((g.get("sw") or 0) - w["stroke"][1]) > 0.05:
+                fails.append(f"{tag}: {i} stroke {g.get('stroke')} {g.get('sw')} vs {w['stroke']}")
+    for i in got:
+        if i not in want and not i.startswith("RR_"):
+            fails.append(f"{tag}: {i} visible in Lua but not on the board")
+    return checks
+
+
+def measure(L, T, name):
+    return {e["id"]: e for e in rows(L, T.measure(L.eval(f"{{'{name}'}}")))}
+
+
+def look_diff(L, T, sc, dev, board, skin=None):
+    """Live Lua tree vs the model's board for the same state/data/pushes: [] when they agree."""
+    fails = []
+    compare(flatten_py(U.resolve(sc, dev, skin or sc.kit.default_skin, board)), measure(L, T, sc.name),
+            f"{sc.name}/{dev.name}", fails)
+    return fails
+
+
+def load_specs(h, kit):
+    """Screen models for the package's screens, from --specs (never the skill's examples by name)."""
+    specs, missing = {}, []
+    for path in h.spec_paths:
+        sc = U.Screen(kit, path)
+        if sc.name in h.screens:
+            specs[sc.name] = sc
+        else:
+            missing.append(f"{path.name} ({sc.name}) is not in the package")
+    return specs, missing
+
+
+def parity(h, kit, specs, verbose):
+    fails, checks = [], 0
+    for name, sc in specs.items():
         for dname, dev in kit.devices.items():
             for b in sc.boards:
                 L, T = h.world(dev)
-                h.mount(L, sc.name)
-                L.execute(f"RRT.screen:board({board_lua(b)})")
-                got = {}
-                for e in rows(L, T.measure(L.eval(f"{{'{sc.name}'}}"))):
-                    got[e["id"]] = e
+                h.mount(L, name)
+                L.execute(f"RRT.screen:board({U.lua(b)})")
                 want = flatten_py(U.resolve(sc, dev, kit.default_skin, b))
-                tag = f"{sc.name}/{dname}/{b.get('name')}"
-                for i, w in want.items():
-                    g = got.get(i)
-                    if w["type"] == "image" and str(w.get("image", "")).startswith("icon.") and not g:
-                        skipped_img += 1
-                        continue
-                    checks += 1
-                    if not g:
-                        fails.append(f"{tag}: {i} drawn on the board but missing or hidden in Lua")
-                        continue
-                    d = max(abs(g["x"] - w["box"][0]), abs(g["y"] - w["box"][1]), abs(g["w"] - w["box"][2]), abs(g["h"] - w["box"][3]))
-                    if d > 0.5:
-                        fails.append(f"{tag}: {i} rect lua ({g['x']:.1f},{g['y']:.1f},{g['w']:.1f},{g['h']:.1f}) vs board "
-                                     f"({w['box'][0]:.1f},{w['box'][1]:.1f},{w['box'][2]:.1f},{w['box'][3]:.1f})")
-                    if w["type"] == "text":
-                        if (g.get("text") or "") != (w.get("text") or ""):
-                            fails.append(f"{tag}: {i} text {g.get('text')!r} vs {w.get('text')!r}")
-                        if abs((g.get("tsize") or 0) - w["size"]) > 0.05:
-                            fails.append(f"{tag}: {i} text size {g.get('tsize'):.2f} vs {w['size']:.2f}")
-                        if w.get("color") and g.get("tcolor") != w["color"]:
-                            fails.append(f"{tag}: {i} text colour {g.get('tcolor')} vs {w['color']}")
-                    if w.get("gradient") and all(w["gradient"]):
-                        if (g.get("g1"), g.get("g2")) != tuple(w["gradient"]):
-                            fails.append(f"{tag}: {i} gradient {g.get('g1')},{g.get('g2')} vs {w['gradient']}")
-                    elif w.get("fill") and g.get("fill") != w["fill"]:
-                        fails.append(f"{tag}: {i} fill {g.get('fill')} vs {w['fill']}")
-                    if w.get("stroke") and w["stroke"][0]:
-                        if g.get("stroke") != w["stroke"][0] or abs((g.get("sw") or 0) - w["stroke"][1]) > 0.05:
-                            fails.append(f"{tag}: {i} stroke {g.get('stroke')} {g.get('sw')} vs {w['stroke']}")
-                extra = [i for i, g in got.items() if i not in want and not i.startswith("RR_")]
-                for i in extra:
-                    fails.append(f"{tag}: {i} visible in Lua but not on the board")
+                checks += compare(want, measure(L, T, name), f"{name}/{dname}/{b.get('name')}", fails)
                 if verbose:
-                    print(f"  parity {tag}: {len(want)} nodes")
-    return fails, checks, skipped_img
+                    print(f"  parity {name}/{dname}/{b.get('name')}: {len(want)} nodes")
+    return fails, checks
 
 
-def runtime(h, kit):
+def dev_lua(dev):
+    return (f"{{ w = {dev.screen[0]}, h = {dev.screen[1]}, top = {dev.insets.get('top', 0)}, left = {dev.insets.get('left', 0)}, "
+            f"right = {dev.insets.get('right', 0)}, bottom = {dev.insets.get('bottom', 0)}, display = '{dev.display}', input = '{dev.input}' }}")
+
+
+def feel_stub(L, names):
+    ev = ", ".join(f"{n} = true" for n in sorted(set(n for n in names if n)))
+    L.execute("RRT.calls = {} RRT.Kit.useFeel({ Presets = { events = { " + ev + " } }, settings = { reduceMotion = false }, "
+              "play = function(name, ctx) table.insert(RRT.calls, { name = name, ctx = ctx }) end })")
+
+
+def calls(L, T):
+    return [c["name"] for c in lua_list(L, T.calls)]
+
+
+def runtime(h, kit, specs):
+    """Behaviour tests derived from each spec. Rows: (name, True/False, detail) or (name, None, why) for a SKIP."""
     R = []
 
     def ok(name, cond, detail=""):
         R.append((name, bool(cond), detail))
 
-    lobby = next((n for n in h.screens if "Lobby" in n), None)
-    hud = next((n for n in h.screens if "Hud" in n), None)
-    phone, console, pc = kit.devices["phone"], kit.devices["console"], kit.devices["pc"]
-    if lobby:
+    def skip(name, why):
+        R.append((name, None, why))
+    phone, pc, notch, console = (kit.devices[d] for d in ("phone", "pc", "phone_notch", "console"))
+    for name, sc in specs.items():
+        P = f"{name}: "
+        m = sc.machine
+        b0 = sc.boards[0] if sc.boards else {"name": "default"}
+        st0 = b0.get("state") or (m["initial"] if m else None)
+        look0 = (m["states"].get(st0, {}) if m else {}) or {}
+        disabled0 = {sc.ref(r) for r in look0.get("disable", [])}
+        hits = [i for i, n in sc.index.items() if n.get("type") == "hit"]
+        feels = [t["feel"] for t in (m["transitions"] if m else [])] + ["ui_button_press"]
+        # ---- state machine
+        if not m:
+            skip(P + "state machine", "no machine in the spec")
+        else:
+            L, T = h.world(phone)
+            s = h.mount(L, name)
+            ok(P + f"starts in {m['initial']}", s.state == m["initial"])
+            tweens = {}
+            for t in m["transitions"]:
+                fr = m["initial"] if t["from"] == "*" else t["from"]
+                L, T = h.world(phone)
+                s = h.mount(L, name, state=fr)
+                sent = L.eval(f"RRT.screen:send('{t['event']}')")
+                tw = T.tweens
+                L.execute("RRT.advance(1)")
+                bad = look_diff(L, T, sc, phone, {"state": t["to"]})
+                ok(P + f"{fr} -{t['event']}-> {t['to']}: state and look match the model", sent and s.state == t["to"] and not bad,
+                   "; ".join(bad[:2]))
+                tweens[id(t)] = tw
+            hides = {k: {sc.ref(x) for x in v.get("hide", [])} for k, v in m["states"].items()}
+            shower = next((t for t in m["transitions"] if t["from"] != "*" and hides.get(t["from"], set()) - hides.get(t["to"], set())), None)
+            if shower:
+                ok(P + f"fallback fade runs without RR_Feel ({shower['event']})", tweens[id(shower)] > 0, f"{tweens[id(shower)]} tweens")
+            else:
+                skip(P + "fallback fade", "no transition shows a hidden node")
+            allowed = {t["event"] for t in m["transitions"] if t["from"] in (m["initial"], "*")}
+            ill = next((t["event"] for t in m["transitions"] if t["event"] not in allowed), "__rr_nope")
+            L, T = h.world(phone)
+            s = h.mount(L, name)
+            nw = len(T.warns)
+            ok(P + f"illegal event '{ill}' in {m['initial']} is ignored and warned",
+               L.eval(f"RRT.screen:send('{ill}')") is False and s.state == m["initial"] and len(T.warns) == nw + 1)
+            for sname, look in m["states"].items():
+                dis = [r for r in (sc.ref(x) for x in look.get("disable", [])) if r and sc.index[r].get("type") == "hit"]
+                if dis:
+                    L, T = h.world(phone)
+                    s = h.mount(L, name, state=sname)
+                    good = all(L.eval(f"RRT.screen:activate('{x}')") is False and L.eval(f"RRT.screen.nodes['{x}'].Selectable") is False
+                               for x in dis)
+                    ok(P + f"{sname}: {len(dis)} disabled controls ignore activation and are not selectable", good and s.state == sname)
+            hider = next((t for t in m["transitions"] if m["states"].get(t["to"], {}).get("hide")
+                          and t["from"] != "*" and not m["states"].get(t["from"], {}).get("hide")), None)
+            if hider:
+                L, T = h.world(phone, reduce=True)
+                h.mount(L, name, state=hider["from"])
+                L.execute(f"RRT.screen:send('{hider['event']}') RRT.advance(0)")
+                ids = [r for r in (sc.ref(x) for x in m["states"][hider["to"]]["hide"]) if r]
+                ok(P + f"reduce motion: {hider['event']} hides at once, no tweens", T.tweens == 0
+                   and all(L.eval(f"RRT.screen.nodes['{i}'].Visible") is False for i in ids), f"{T.tweens} tweens")
+            else:
+                skip(P + "reduce motion", "no transition hides anything")
+            ft = next((t for t in m["transitions"] if t["feel"]), None)
+            if ft and any(n.get("feel") == "panel" for n in sc.index.values()):
+                L, T = h.world(phone)
+                feel_stub(L, feels)
+                h.mount(L, name, state=m["initial"] if ft["from"] == "*" else ft["from"])
+                L.execute(f"RRT.screen:send('{ft['event']}')")
+                ok(P + f"RR_Feel plays {ft['feel']} on the panel", ft["feel"] in calls(L, T)
+                   and L.eval("(function() for _, c in ipairs(RRT.calls) do if c.ctx and c.ctx.targets and c.ctx.targets.panel "
+                              "== RRT.screen.feel.panel then return true end end return false end)()"))
+            else:
+                skip(P + "RR_Feel transition hand-off", "no feel event or no panel feel target")
+        # ---- actions and data
+        acts = [(i, sc.index[i]["action"]) for i in hits if sc.index[i].get("action") is not None and i not in disabled0]
+        if not acts:
+            skip(P + "actions", "no enabled controls with an action")
+        for hid, a in acts:
+            L, T = h.world(phone)
+            s = h.mount(L, name, state=st0)
+            if isinstance(a, dict):
+                data = {k: v["default"] for k, v in sc.data.items()}
+                for k, v in (a.get("set") or {}).items():
+                    data[k] = v
+                for k, d in (a.get("cycle") or {}).items():
+                    vals = sc.data[k]["values"]
+                    data[k] = vals[(vals.index(data[k]) + d) % len(vals)] if data[k] in vals else vals[0]
+                L.execute(f"RRT.screen:activate('{hid}')")
+                got = {k: L.eval(f"RRT.screen.data['{k}']") for k in data}
+                bad = look_diff(L, T, sc, phone, {"state": st0, "data": data})
+                ok(P + f"{hid} {json_short(a)}: data and look match the model", got == data and not bad,
+                   "; ".join(bad[:2]) or (f"data {got} vs {data}" if got != data else ""))
+                for k, d in (a.get("cycle") or {}).items():
+                    vals = sc.data[k]["values"]
+                    for _ in range(len(vals) - 1):
+                        L.execute(f"RRT.screen:activate('{hid}')")
+                    ok(P + f"{hid} cycles {k} through all {len(vals)} values and wraps",
+                       L.eval(f"RRT.screen.data['{k}']") == sc.data[k]["default"])
+            else:
+                L.globals().RRT.acts = L.table()
+                L.execute("RRT.screen.Action.Event:Connect(function(x) table.insert(RRT.acts, x) end)")
+                to = next((t["to"] for t in (m["transitions"] if m else []) if t["from"] in (st0, "*") and t["event"] == a), None)
+                L.execute(f"RRT.screen:activate('{hid}')")
+                ok(P + f"{hid} fires Action '{a}'" + (f" and moves {st0} -> {to}" if to else ""),
+                   lua_list(L, T.acts)[:1] == [a] and (to is None or s.state == to))
+        # ---- gamepad and back button
+        nav = sc.nav
+        edges = {a: e for a, e in nav["edges"].items() if e}
+        if not edges:
+            skip(P + "gamepad nav", "no nav graph")
+        else:
+            L, T = h.world(console)
+            h.mount(L, name, state=st0)
+            if nav.get("default") and nav.get("modal") and m:
+                ok(P + f"gamepad: focus starts on {nav['default']}", L.eval(f"GuiService.SelectedObject == RRT.screen.nodes['{nav['default']}']"))
+            wrong = [f"{a}.{d}" for a, e in edges.items() for d, b in e.items()
+                     if b and not L.eval(f"RRT.screen.nodes['{a}'].NextSelection{d.title()} == RRT.screen.nodes['{b}']")]
+            ok(P + f"gamepad: {sum(len(e) for e in edges.values())} NextSelection links follow the nav graph", not wrong, ", ".join(wrong[:4]))
+            ok(P + "gamepad: themed focus ring on every control",
+               all(L.eval(f"RRT.screen.nodes['{a}'].SelectionImageObject == RRT.screen.focusRing") for a in edges))
+            if nav.get("modal"):
+                ok(P + "gamepad: modal is a SelectionGroup that stops", L.eval(f"RRT.screen.nodes['{nav['modal']}'].SelectionGroup") is True
+                   and L.eval(f"RRT.screen.nodes['{nav['modal']}'].SelectionBehaviorUp.Name") == "Stop")
+            glyphs = [i for i, n in sc.index.items() if n.get("gamepad_only")]
+            if glyphs:
+                shown = all(L.eval(f"RRT.screen.nodes['{g}'] ~= nil and RRT.screen.nodes['{g}'].Visible") for g in glyphs)
+                L2, T2 = h.world(phone)
+                h.mount(L2, name, state=st0)
+                hidden = all(L2.eval(f"RRT.screen.nodes['{g}'] == nil or RRT.screen.nodes['{g}'].Visible == false") for g in glyphs)
+                ok(P + f"key glyphs ({len(glyphs)}) show with a gamepad, hide on touch", shown and hidden)
+                ok(P + "touch: no forced gamepad selection", L2.eval("GuiService.SelectedObject") is None)
+        if nav.get("back") and nav.get("modal") and m:
+            L, T = h.world(phone)
+            s = h.mount(L, name, state=st0)
+            key = f"RR_UI_Back_{name}"
+            bound = L.eval(f"RRT.bound['{key}']")
+            ok(P + "ButtonB bound while the modal is open", bound is not None and lua_list(L, bound["keys"])[0].Name == "ButtonB")
+            if bound is not None:
+                act = sc.index[nav["back"]].get("action")
+                to = next((t["to"] for t in m["transitions"] if t["from"] in (st0, "*") and t["event"] == act), st0)
+                L.execute(f"RRT.bound['{key}'].fn('x', Enum.UserInputState.Begin) RRT.advance(1)")
+                still = L.eval(f"RRT.bound['{key}']") is not None
+                ok(P + f"ButtonB activates {nav['back']} ({st0} -> {to}) and unbinds when closed",
+                   s.state == to and (still == L.eval("RRT.screen:isOpen()")))
+        else:
+            skip(P + "ButtonB back", "no nav.back on a modal with a machine")
+        press = nav.get("default") if nav.get("default") in hits and nav.get("default") not in disabled0 else \
+            next((x for x in hits if x not in disabled0 and sc.index[x].get("comp")), None)
+        if press:
+            L, T = h.world(phone)
+            feel_stub(L, feels)
+            h.mount(L, name, state=st0)
+            L.execute(f"RRT.screen.nodes['{press}'].MouseButton1Down:Fire()")
+            ok(P + f"press {press}: pressed state + ui_button_press", L.eval(f"RRT.screen.comps['{press}'].flags.pressed") is True
+               and calls(L, T)[-1:] == ["ui_button_press"])
+            L.execute(f"RRT.screen.nodes['{press}'].MouseButton1Up:Fire()")
+            ok(P + "release clears pressed", L.eval(f"RRT.screen.comps['{press}'].flags.pressed") in (None, False))
+        # ---- stack (HUD)
+        stn = next((n for n in sc.index.values() if n.get("stack")), None)
+        if stn:
+            stack_tests(h, kit, sc, stn, ok, skip)
+        else:
+            skip(P + "HUD stack", "no stack node")
+        # ---- reskin and resize (every screen)
         L, T = h.world(phone)
-        s = h.mount(L, lobby)
-        panel = L.eval("RRT.screen.nodes.panel")
-        ok("lobby starts closed (panel hidden)", s.state == "closed" and panel.Visible is False)
-        ok("open -> open, panel visible", L.eval("RRT.screen:send('open')") and s.state == "open" and panel.Visible is True)
-        ok("fallback fade tweens ran (no RR_Feel)", T.tweens > 0, f"{T.tweens} tweens")
-        nw = len(T.warns)
-        ok("illegal event ignored and warned", L.eval("RRT.screen:send('joined')") is False and s.state == "open" and len(T.warns) == nw + 1)
-        L.execute("RRT.screen:activate('p1')")
-        ok("chip p1 sets players=1 and turns on", s.data.players == 1 and L.eval("RRT.screen.comps.p1.flags.on") is True
-           and L.eval("RRT.screen.comps.p2.flags.on") in (None, False))
-        ok("chip on shows its mark", L.eval("RRT.screen.nodes['p1.mark'].Visible") is True and L.eval("RRT.screen.nodes['p2.mark'].Visible") is False)
-        L.execute("RRT.screen:activate('diff_next')")
-        hard = kit.color(kit.default_skin, "diff.hard")
-        ok("difficulty cycles MEDIUM -> HARD (text and plate role)", s.data.difficulty == "HARD"
-           and L.eval("RRT.screen.nodes.diff_plate.Text") == "HARD" and L.eval("RRT.screen.nodes.diff_plate.BackgroundColor3.hex") == hard)
-        L.execute("RRT.screen:activate('diff_prev') RRT.screen:activate('diff_prev') RRT.screen:activate('diff_prev')")
-        ok("difficulty wraps backwards to INSANE", s.data.difficulty == "INSANE")
-        acts = []
-        L.globals().RRT.acts = L.table()
-        L.execute("RRT.screen.Action.Event:Connect(function(a) table.insert(RRT.acts, a) end)")
-        L.execute("RRT.screen:activate('join')")
-        ok("join -> joining, Action fired", s.state == "joining" and lua_list(L, T.acts)[:1] == ["join"])
-        ok("joining disables join and shows JOINING...", L.eval("RRT.screen.comps.join.flags.disabled") is True
-           and L.eval("RRT.screen.nodes['join.label'].Text") == "JOINING..." and L.eval("RRT.screen.nodes.join.Selectable") is False)
-        ok("disabled join ignores activation", L.eval("RRT.screen:activate('join')") is False and s.state == "joining")
-        L.execute("RRT.screen:send('cancel')")
-        ok("cancel -> open restores JOIN", s.state == "open" and L.eval("RRT.screen.nodes['join.label'].Text") == "JOIN"
-           and L.eval("RRT.screen.comps.join.flags.disabled") in (None, False))
-        bound = L.eval("RRT.bound['RR_UI_Back_" + lobby + "']")
-        ok("ButtonB bound while open", bound is not None and lua_list(L, bound["keys"])[0].Name == "ButtonB")
-        L.execute("RRT.bound['RR_UI_Back_" + lobby + "'].fn('x', Enum.UserInputState.Begin)")
-        ok("ButtonB closes the modal and unbinds", s.state == "closed" and L.eval("RRT.bound['RR_UI_Back_" + lobby + "']") is None)
-        L.execute("RRT.advance(1)")
-        ok("closed hides the panel after the fade", panel.Visible is False)
-        L.execute("RRT.Kit.setSkin('A')")
-        a_panel = kit.color("A", "panel")
-        ok("setSkin A reskins bound roles live", L.eval("RRT.screen.nodes['panel.body'].BackgroundColor3.hex") == a_panel)
-        L.execute("RRT.Kit.setSkin('" + kit.default_skin + "')")
-        ok("setSkin back restores", L.eval("RRT.screen.nodes['panel.body'].BackgroundColor3.hex") == kit.color(kit.default_skin, "panel"))
-        ok("unknown skin refused", L.eval("RRT.Kit.setSkin('Z')") is False)
-
-        L, T = h.world(console)
-        s = h.mount(L, lobby)
-        L.execute("RRT.screen:send('open')")
-        ok("gamepad: open selects the default (join)", L.eval("GuiService.SelectedObject == RRT.screen.nodes.join"))
-        sc = U.Screen(kit, next(p for p in (U.SKILL / "specs").glob("*.json") if U.Screen(kit, p).name == lobby))
-        e = sc.nav["edges"]["join"]
-        ok("gamepad: join.NextSelectionUp follows the nav graph", L.eval(f"RRT.screen.nodes.join.NextSelectionUp == RRT.screen.nodes['{e['up']}']"))
-        ok("gamepad: modal panel is a SelectionGroup that stops", L.eval("RRT.screen.nodes.panel.SelectionGroup") is True
-           and L.eval("RRT.screen.nodes.panel.SelectionBehaviorUp.Name") == "Stop")
-        ok("gamepad: themed focus ring is the SelectionImageObject", L.eval("RRT.screen.nodes.join.SelectionImageObject == RRT.screen.focusRing"))
-        ok("gamepad: key glyph visible with a gamepad", L.eval("RRT.screen.nodes['join.glyph'].Visible") is True
-           and L.eval("RRT.screen.nodes['join.glyph'].Image") == "rbxasset://glyph/ButtonA")
-        L, T = h.world(phone)
-        h.mount(L, lobby)
-        L.execute("RRT.screen:send('open')")
-        ok("touch: key glyph hidden", L.eval("RRT.screen.nodes['join.glyph'].Visible") is False)
-        ok("touch: no forced selection", L.eval("GuiService.SelectedObject") is None)
-
-        L, T = h.world(phone, reduce=True)
-        h.mount(L, lobby)
-        L.execute("RRT.screen:send('open') RRT.screen:send('close')")
-        ok("reduce motion: no tweens, hides at once", T.tweens == 0 and L.eval("(RRT.advance(0) or true) and RRT.screen.nodes.panel.Visible") is False,
-           f"{T.tweens} tweens")
-
-        L, T = h.world(phone)
-        L.execute("RRT.calls = {} RRT.Kit.useFeel({ Presets = { events = { ui_panel_open = true, ui_panel_close = true, ui_button_press = true } }, "
-                  "settings = { reduceMotion = false }, play = function(name, ctx) table.insert(RRT.calls, { name = name, ctx = ctx }) end })")
-        h.mount(L, lobby)
-        L.execute("RRT.screen:send('open')")
-        calls = lua_list(L, T.calls)
-        ok("RR_Feel plays ui_panel_open on the panel", calls and calls[0]["name"] == "ui_panel_open"
-           and L.eval("RRT.calls[1].ctx.targets.panel == RRT.screen.nodes.panel"))
-        L.execute("RRT.screen.nodes.join.MouseButton1Down:Fire()")
-        calls = lua_list(L, T.calls)
-        ok("RR_Feel plays ui_button_press on press", calls[-1]["name"] == "ui_button_press"
-           and L.eval("RRT.screen.comps.join.flags.pressed") is True)
-        L.execute("RRT.screen.nodes.join.MouseButton1Up:Fire()")
-        ok("release clears pressed", L.eval("RRT.screen.comps.join.flags.pressed") in (None, False))
-
-        L, T = h.world(phone)
-        h.mount(L, lobby, state="open")
-        L.execute("RRT.setDevice = RRT.setDevice")
-        L.execute(f"RRT.setDevice({{ w = {pc.screen[0]}, h = {pc.screen[1]}, top = {pc.insets.get('top', 0)}, left = 0, right = 0, bottom = 0, display = 'Medium', input = 'KeyboardAndMouse' }})")
-        want = flatten_py(U.resolve(sc, pc, kit.default_skin, {"state": "open"}))
-        got = {e["id"]: e for e in rows(L, T.measure(L.eval(f"{{'{lobby}'}}")))}
-        worst = max(abs(got[i]["w"] - w["box"][2]) + abs(got[i]["x"] - w["box"][0]) for i, w in want.items() if i in got)
-        ok("resize phone -> PC re-lays out to the PC board", worst < 0.5 and len(got) >= len(want) - 2, f"max err {worst:.3f}")
-    if hud:
-        L, T = h.world(pc)
-        s = h.mount(L, hud)
-        L.execute("RRT.screen:push('CoalLow') RRT.screen:push('FareBanked')")
-        st = L.eval("(function() for _, st in pairs(RRT.screen.stacks) do return st end end)()")
-        ok("push two alerts", len(lua_list(L, st["items"])) == 2)
-        L.execute("RRT.screen:push('FareBanked')")
-        ok("same type merges (count 2, badge shows 2)", len(lua_list(L, st["items"])) == 2
-           and L.eval("RRT.screen.nodes['stack.t2.badge'] and RRT.screen.nodes['stack.t2.badge'].Text") == "2")
-        cash = [x for x in lua_list(L, st["items"]) if x["type"] == "FareBanked"][0]
-        ok("merged ticket keeps its place and refreshes its life", cash["seq"] == 2)
-        life_cash = next(n for n in U.Screen(kit, next(p for p in (U.SKILL / "specs").glob("*.json") if U.Screen(kit, p).name == hud)).nodes
-                         if n.get("stack"))["stack"]["life_s"]["cash"]
-        L.execute(f"RRT.advance({life_cash + 0.05}) RRT.advance(1)")
-        items = lua_list(L, st["items"])
-        ok("cash ticket expires after its canon life; sticky crisis stays", len(items) == 1 and items[0]["type"] == "CoalLow",
-           f"life {life_cash}s")
-        L.execute("RRT.screen:clear('CoalLow') RRT.advance(1)")
-        ok("clear(type) removes the sticky crisis", len(lua_list(L, st["items"])) == 0 and L.eval("RRT.screen.nodes['stack.t1']") is None)
-        for tname in ("CrewJoined", "CrateLanded", "PressureHigh", "RiskyRoute", "FareBanked", "CrewLeft"):
-            L.execute(f"RRT.screen:push('{tname}', {{ name = 'Sam' }})")
-        ok("overflow: 4 visible + '+2 MORE' chip", L.eval("RRT.screen.nodes['stack.more.chip'] and RRT.screen.nodes['stack.more.chip'].Text") == "+2 MORE")
-        texts = [e.get("text") for e in rows(L, T.measure(L.eval(f"{{'{hud}'}}")))]
-        ok("slot fill in body ({name} -> Sam)", "Sam left the train" in texts)
-        nw = len(T.warns)
-        ok("unknown alert type warns and returns nil", L.eval("RRT.screen:push('Nope')") is None and len(T.warns) == nw + 1)
-        L, T = h.world(phone)
-        h.mount(L, hud)
-        ok("touch phone: stack lifted above the jump zone", L.eval("RRT.screen.lift.stack") > 0, f"{L.eval('RRT.screen.lift.stack'):.1f}px")
-        for tname in ("CrewJoined", "CrateLanded", "PressureHigh", "RiskyRoute", "FareBanked"):
-            L.execute(f"RRT.screen:push('{tname}', {{ name = 'Sam' }})")
-        vis = L.eval("(function() for _, st in pairs(RRT.screen.stacks) do local v, h = st:visible() return #v end end)()")
-        ok("lifted stack shows max_lifted (3)", vis == 3)
-        L, T = h.world(phone)
-        L.execute("local tg = Instance.new('ScreenGui') tg.Name = 'TouchGui' tg.Parent = RRT.playerGui "
-                  "local f = Instance.new('Frame') f.Name = 'TouchControlFrame' f.Size = UDim2.fromScale(1, 1) f.Parent = tg "
-                  "local j = Instance.new('ImageButton') j.Name = 'JumpButton' j.Size = UDim2.fromOffset(70, 70) "
-                  "j.Position = UDim2.new(1, -95, 1, -90) j.Parent = f")
-        h.mount(L, hud)
-        ok("real classic JumpButton: no lift, 4 visible", L.eval("RRT.screen.lift.stack") == 0)
-        L, T = h.world(pc)
-        L.execute("RRT.calls = {} RRT.Kit.useFeel({ Presets = { events = { hud_ticket_enter = true, hud_crisis_arrival = true, hud_merge_bump = true, hud_ticket_leave = true } }, "
-                  "settings = { reduceMotion = false }, play = function(name, ctx) table.insert(RRT.calls, { name = name, ctx = ctx }) end })")
-        h.mount(L, hud)
-        L.execute("RRT.screen:push('Breakdown')")
-        names = [c["name"] for c in lua_list(L, T.calls)]
-        ok("RR_Feel: ticket enter + crisis arrival", names[:2] == ["hud_ticket_enter", "hud_crisis_arrival"]
-           and L.eval("RRT.calls[1].ctx.targets.ticket == RRT.screen.nodes['stack.t1.mover']")
-           and L.eval("RRT.calls[2].ctx.targets.halo == RRT.screen.nodes['stack.t1.halo_red']"))
-        L.execute("RRT.screen:push('Breakdown')")
-        names = [c["name"] for c in lua_list(L, T.calls)]
-        ok("RR_Feel: merge bump on the badge", names[-1] == "hud_merge_bump" and L.eval("RRT.calls[#RRT.calls].ctx.targets.stamp ~= nil"))
+        h.mount(L, name, state=st0)
+        L.execute(f"RRT.screen:board({U.lua(b0)})")
+        other = next((k for k in kit.skins if k != kit.default_skin), None)
+        if other:
+            L.execute(f"RRT.Kit.setSkin('{other}')")
+            bad = look_diff(L, T, sc, phone, b0, skin=other)
+            ok(P + f"setSkin {other} rebinds every colour live", not bad, "; ".join(bad[:2]))
+            L.execute(f"RRT.Kit.setSkin('{kit.default_skin}')")
+            bad = look_diff(L, T, sc, phone, b0)
+            ok(P + f"setSkin {kit.default_skin} restores", not bad, "; ".join(bad[:2]))
+        ok(P + "unknown skin refused", L.eval("RRT.Kit.setSkin('__nope')") is False)
+        for dev in (pc, notch):
+            L, T = h.world(phone)
+            h.mount(L, name, state=st0)
+            L.execute(f"RRT.screen:board({U.lua(b0)}) RRT.setDevice({dev_lua(dev)}) RRT.advance(1)")
+            bad = look_diff(L, T, sc, dev, b0)
+            ok(P + f"resize phone -> {dev.name} re-lays out to the {dev.name} board", not bad, "; ".join(bad[:2]))
     return R
+
+
+def json_short(a):
+    return " ".join(f"{k} {v}" for k, v in a.items())
+
+
+def stack_tests(h, kit, sc, stn, ok, skip):
+    name, st, P = sc.name, stn["stack"], f"{sc.name}: "
+    phone, pc = kit.devices["phone"], kit.devices["pc"]
+    types = sc.types
+    kind = {t: {"kind": v["kind"]} for t, v in types.items()}
+    sticky = [t for t in types if U.cond_ok(st.get("sticky"), kind[t])]
+    crisis = [t for t in types if U.cond_ok(st.get("crisis"), kind[t])]
+    routine = [t for t in types if t not in sticky]
+
+    def extra(t):
+        return {m[0]: "Sam" for m in U.SLOT.findall(types[t]["body"] or "")}
+
+    def push_lua(t):
+        ex = extra(t)
+        return f"RRT.screen:push('{t}'{', ' + U.lua(ex) if ex else ''})"
+    if not types:
+        skip(P + "HUD stack", "no alert types")
+        return
+    a = routine[0] if routine else next(iter(types))
+    b = next((t for t in sticky if t != a), None) or next((t for t in types if t != a), a)
+    L, T = h.world(pc)
+    h.mount(L, name)
+    L.execute(push_lua(a) + " " + push_lua(b))
+    bad = look_diff(L, T, sc, pc, {"push": [[a, extra(a)], [b, extra(b)]]})
+    ok(P + f"push {a} + {b}: tickets match the model", not bad, "; ".join(bad[:2]))
+    if st.get("merge") == "type":
+        L.execute(push_lua(a))
+        bad = look_diff(L, T, sc, pc, {"push": [[a, extra(a)], [b, extra(b)], [a, extra(a)]]})
+        ok(P + f"same type merges ({a} x2: count badge, keeps its place)", not bad, "; ".join(bad[:2]))
+    life = st.get("life_s", {}).get(types[a]["kind"])
+    if life and a not in sticky:
+        L.execute(f"RRT.advance({life + 0.05}) RRT.advance(1)")
+        left = [x["type"] for x in lua_list(L, L.eval("(function() for _, s in pairs(RRT.screen.stacks) do return s.items end end)()"))]
+        ok(P + f"{a} expires after its canon life ({life:g} s)" + ("; sticky " + b + " stays" if b in sticky else ""),
+           a not in left and (b not in sticky or b in left), f"left {left}")
+    L.execute(f"RRT.screen:clear('{b}') RRT.advance(1)")
+    left = [x["type"] for x in lua_list(L, L.eval("(function() for _, s in pairs(RRT.screen.stacks) do return s.items end end)()"))]
+    ok(P + f"clear('{b}') removes it", b not in left)
+    nw = len(T.warns)
+    ok(P + "unknown alert type warns and returns nil", L.eval("RRT.screen:push('__Nope')") is None and len(T.warns) == nw + 1)
+    order = list(types)[: int(st.get("max", 4)) + 2]
+    if len(order) > int(st.get("max", 4)):
+        L, T = h.world(pc)
+        h.mount(L, name)
+        L.execute(" ".join(push_lua(t) for t in order))
+        bad = look_diff(L, T, sc, pc, {"push": [[t, extra(t)] for t in order]})
+        ok(P + f"overflow: {len(order)} live pushes match the model (cap, compact, halo, +N chip, slot fill)", not bad, "; ".join(bad[:2]))
+    else:
+        skip(P + "overflow", f"fewer than max+1 alert types ({len(types)})")
+    if crisis and st.get("feel"):
+        fe = st["feel"]
+        L, T = h.world(pc)
+        feel_stub(L, list(fe.values()))
+        h.mount(L, name)
+        L.execute(push_lua(crisis[0]))
+        want = [fe.get("enter"), fe.get("crisis")]
+        ok(P + "RR_Feel: ticket enter + crisis arrival", calls(L, T)[:2] == [w for w in want if w],
+           f"{calls(L, T)[:3]}")
+        if st.get("merge") == "type" and fe.get("merge"):
+            L.execute(push_lua(crisis[0]))
+            ok(P + "RR_Feel: merge bump", calls(L, T)[-1:] == [fe["merge"]])
+    else:
+        skip(P + "stack RR_Feel hand-off", "no crisis type or no feel events")
+    # touch-zone lift: the model's worst case, then Roblox's real controls (added late, shown late)
+    top = next((n for n in sc.nodes if n["id"] == stn["id"] or U._find(n.get("children", []), lambda x: x is stn)), stn)
+    if not top.get("avoid"):
+        skip(P + "touch-zone lift", "no avoid on the stack's group")
+        return
+    mode = sc.insets
+    base, _ = U.place_top(kit, phone, top, mode)
+    want0 = base[1] - U.avoid_lift(kit, phone, top, base)[1]
+    ax, ay, aw, ah = phone.area(mode)
+
+    def lift_for(jx, jy, jw, jh):  # a real JumpButton at layer px
+        bx, by, bw, bh = base[0] - ax, base[1] - ay, base[2], base[3]
+        return max(0.0, by + bh - jy) if (bx < jx + jw and jx < bx + bw and by < jy + jh and jy < by + bh) else 0.0
+    L, T = h.world(phone)
+    h.mount(L, name)
+    got0 = L.eval(f"RRT.screen.lift['{top['id']}']")
+    ok(P + f"touch phone, no TouchGui yet: lifted {want0:.0f} px above the worst-case jump zone", abs(got0 - want0) < 0.5, f"{got0:.1f}")
+    if st.get("max_lifted") and want0 > 0:
+        L.execute(" ".join(push_lua(t) for t in list(types)[: int(st.get("max", 4)) + 1]))
+        n_vis = L.eval("(function() for _, s in pairs(RRT.screen.stacks) do local v = s:visible() return #v end end)()")
+        ok(P + f"lifted stack shows max_lifted ({int(st['max_lifted'])})", n_vis == int(st["max_lifted"]))
+    classic = (aw - 95, ah - 90, 70, 70)
+    ability = (aw - 136, ah - 136, 72, 72)
+    L.execute("RRT.tg = Instance.new('ScreenGui') RRT.tg.Name = 'TouchGui' local f = Instance.new('Frame') f.Name = 'TouchControlFrame' "
+              "f.Size = UDim2.fromScale(1, 1) f.Parent = RRT.tg local j = Instance.new('ImageButton') j.Name = 'JumpButton' "
+              "j.Size = UDim2.fromOffset(70, 70) j.Position = UDim2.new(1, -95, 1, -90) j.Parent = f RRT.tg.Parent = RRT.playerGui")
+    got = L.eval(f"RRT.screen.lift['{top['id']}']")
+    ok(P + f"TouchGui added after mount: re-lifts to the real classic JumpButton ({lift_for(*classic):.0f} px)",
+       abs(got - lift_for(*classic)) < 0.5, f"{got:.1f}")
+    L, T = h.world(phone)
+    L.execute("local tg = Instance.new('ScreenGui') tg.Name = 'TouchGui' tg.Parent = RRT.playerGui local f = Instance.new('Frame') "
+              "f.Name = 'TouchControlFrame' f.Size = UDim2.fromScale(1, 1) f.Parent = tg RRT.jb = Instance.new('ImageButton') "
+              "RRT.jb.Name = 'JumpButton' RRT.jb.Visible = false RRT.jb.Size = UDim2.fromOffset(72, 72) "
+              "RRT.jb.Position = UDim2.new(1, -136, 1, -136) RRT.jb.Parent = f")
+    h.mount(L, name)
+    hidden = L.eval(f"RRT.screen.lift['{top['id']}']")
+    L.execute("RRT.jb.Visible = true")
+    shown = L.eval(f"RRT.screen.lift['{top['id']}']")
+    ok(P + f"JumpButton hidden at mount then shown: lift 0 -> {lift_for(*ability):.0f} px", hidden == 0 and abs(shown - lift_for(*ability)) < 0.5,
+       f"{hidden:.1f} -> {shown:.1f}")
 
 
 def build_temp():
@@ -540,14 +743,15 @@ def build_temp():
                        capture_output=True, text=True)
     if r.returncode != 0:
         print(r.stdout[-2000:], r.stderr[-1000:])
+        shutil.rmtree(tmp, ignore_errors=True)
         sys.exit("temp build failed")
-    return tmp
+    return tmp, [Path(p) for p in specs]
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--package", default="")
-    ap.add_argument("--specs", default="", help="comma-separated spec files for parity (default: the package's screens found in specs/)")
+    ap.add_argument("--package", default="", help="a ui.py build output folder (default: a temp build of specs/)")
+    ap.add_argument("--specs", default="", help="comma-separated spec files of the package's screens (ui.py build passes them)")
     ap.add_argument("--only", choices=["parity", "runtime"])
     ap.add_argument("-v", action="store_true")
     a = ap.parse_args(argv)
@@ -556,27 +760,60 @@ def main(argv=None):
     except ImportError:
         print("SKIP: lupa missing (pip install --target ~/.cache/rr-tools/py lupa)")
         return 3
-    pkg = Path(a.package) if a.package else build_temp()
-    h = Harness(pkg, lua51)
-    h.spec_paths = [Path(p) for p in a.specs.split(",") if p] or sorted((U.SKILL / "specs").glob("*.json"))
-    kit = U.Kit()
-    bad = 0
-    if a.only in (None, "parity"):
-        fails, checks, skipped = parity(h, kit, a.v)
-        for f in fails[:40]:
-            print(f"  FAIL parity {f}")
-        print(f"parity: {checks - len(fails)}/{checks} node checks match" + (f" ({skipped} icons without a sheet entry skipped)" if skipped else ""))
-        bad += bool(fails)
-    if a.only in (None, "runtime"):
-        R = runtime(h, kit)
-        for name, passed, detail in R:
-            if a.v or not passed:
-                print(f"  {'PASS' if passed else 'FAIL'} {name}{' (' + detail + ')' if detail else ''}")
-        n = sum(1 for _, p, _ in R if p)
-        print(f"runtime: {n}/{len(R)} passed")
-        bad += n != len(R)
-    print("luatest: all passed" if not bad else "luatest: FAILED")
-    return 1 if bad else 0
+    tmp = None
+    if a.package:
+        pkg = Path(a.package)
+        if not (pkg / "src" / "shared" / "RR_UI" / "RR_UIKit.lua").is_file():
+            print(f"luatest: FAILED (no package at {pkg}: expected src/shared/RR_UI/RR_UIKit.lua)")
+            return 1
+        spec_paths = [Path(p) for p in a.specs.split(",") if p]
+        if not spec_paths:
+            print("luatest: FAILED (--package needs --specs: the spec files the package was built from)")
+            return 1
+    else:
+        tmp, spec_paths = build_temp()
+        pkg = tmp
+    try:
+        h = Harness(pkg, lua51)
+        h.spec_paths = spec_paths
+        kit = U.Kit()
+        specs, missing = load_specs(h, kit)
+        bad = 0
+        for x in missing:
+            print(f"  FAIL {x}")
+        bad += bool(missing)
+        untested = sorted(set(h.screens) - set(specs))
+        if untested:
+            print(f"  note: no spec given for {', '.join(untested)} (not tested)")
+        total = 0
+        if a.only in (None, "parity"):
+            fails, checks = parity(h, kit, specs, a.v)
+            for f in fails[:40]:
+                print(f"  FAIL parity {f}")
+            print(f"parity: {checks - len(fails)}/{checks} node checks match")
+            bad += bool(fails)
+            total += checks
+        if a.only in (None, "runtime"):
+            R = runtime(h, kit, specs)
+            for n, passed, detail in R:
+                if passed is False or (a.v and passed) :
+                    print(f"  {'PASS' if passed else 'FAIL'} {n}{' (' + detail + ')' if detail else ''}")
+                elif passed is None and a.v:
+                    print(f"  SKIP {n} ({detail})")
+            ran = [r for r in R if r[1] is not None]
+            n = sum(1 for r in ran if r[1])
+            sk = len(R) - len(ran)
+            print(f"runtime: {n}/{len(ran)} passed" + (f", {sk} skipped (nothing in the spec to test; -v names them)" if sk else ""))
+            bad += n != len(ran)
+            total += len(ran)
+        if total == 0:
+            print("luatest: FAILED (0 checks ran: no spec matched a screen in the package)")
+            return 1
+        print("luatest: all passed" if not bad else "luatest: FAILED")
+        return 1 if bad else 0
+    finally:
+        if tmp:
+            shutil.rmtree(tmp, ignore_errors=True)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,21 @@
+{
+ "sheet": [
+  1528,
+  498
+ ],
+ "megapixels": 0.76,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "info: alert_fare_banked with reduce motion, then the other events",
+   "src": "/home/user/claude/trials/rr-game-feel/src/feel/preview/info/_grid.png",
+   "box": [
+    6,
+    24,
+    1516,
+    468
+   ],
+   "scale": "1:1 true size"
+  }
+ ]
+}

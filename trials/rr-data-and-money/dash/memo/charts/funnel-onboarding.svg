@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="c" viewBox="0 0 640 248" width="640" height="248" role="img" aria-label="Funnel: onboarding">
+<style>.c{--s:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--mut:#898781;--grid:#e1e0d9;--base:#c3c2b7;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a}@media (prefers-color-scheme: dark){:root:where(:not([data-theme="light"])) .c{--s:#1a1a19;--ink:#ffffff;--ink2:#c3c2b7;--mut:#898781;--grid:#2c2c2a;--base:#383835;--s1:#3987e5;--s2:#d95926;--s3:#199e70}}:root[data-theme="dark"] .c{--s:#1a1a19;--ink:#ffffff;--ink2:#c3c2b7;--mut:#898781;--grid:#2c2c2a;--base:#383835;--s1:#3987e5;--s2:#d95926;--s3:#199e70}.c text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:11px;fill:var(--ink2)}.c .t{fill:var(--ink);font-size:13px;font-weight:600}.c .st{fill:var(--mut)}.c .ax{fill:var(--mut);font-variant-numeric:tabular-nums}.c .v{fill:var(--ink)}.c .hit{fill:transparent}</style>
+<rect width="640" height="248" fill="var(--s)" rx="8"/>
+<text class="t" x="16" y="22">Funnel: onboarding</text>
+<text class="st" x="16" y="38">players reaching each step; % of step 1</text>
+<line x1="170" x2="170" y1="52" y2="236" stroke="var(--base)" stroke-width="1"/>
+<text x="162" y="69" text-anchor="end">Joined</text>
+<path d="M170.0,56.0 H470.0 Q474.0,56.0 474.0,60.0 V70.0 Q474.0,74.0 470.0,74.0 H170.0 Z" fill="var(--s1)"><title>Joined: 1,000 · 100%</title></path>
+<text class="v" x="480.0" y="69">1,000 · 100%</text>
+<text x="162" y="99" text-anchor="end">Picked up tool</text>
+<path d="M170.0,86.0 H415.3 Q419.3,86.0 419.3,90.0 V100.0 Q419.3,104.0 415.3,104.0 H170.0 Z" fill="var(--s1)"><title>Picked up tool: 820 · 82%</title></path>
+<text class="v" x="425.3" y="99">820 · 82%</text>
+<text x="162" y="129" text-anchor="end">Shovelled coal</text>
+<path d="M170.0,116.0 H378.8 Q382.8,116.0 382.8,120.0 V130.0 Q382.8,134.0 378.8,134.0 H170.0 Z" fill="var(--s1)"><title>Shovelled coal: 700 · 70%</title></path>
+<text class="v" x="388.8" y="129">700 · 70%</text>
+<text x="162" y="159" text-anchor="end">Pulled lever</text>
+<path d="M170.0,146.0 H351.4 Q355.4,146.0 355.4,150.0 V160.0 Q355.4,164.0 351.4,164.0 H170.0 Z" fill="var(--s1)"><title>Pulled lever: 610 · 61%</title></path>
+<text class="v" x="361.4" y="159">610 · 61%</text>
+<text x="162" y="189" text-anchor="end">First bank</text>
+<path d="M170.0,176.0 H281.5 Q285.5,176.0 285.5,180.0 V190.0 Q285.5,194.0 281.5,194.0 H170.0 Z" fill="var(--s1)"><title>First bank: 380 · 38%</title></path>
+<text class="v" x="291.5" y="189">380 · 38%</text>
+<text x="162" y="219" text-anchor="end">Run end</text>
+<path d="M170.0,206.0 H272.4 Q276.4,206.0 276.4,210.0 V220.0 Q276.4,224.0 272.4,224.0 H170.0 Z" fill="var(--s1)"><title>Run end: 350 · 35%</title></path>
+<text class="v" x="282.4" y="219">350 · 35%</text>
+</svg>

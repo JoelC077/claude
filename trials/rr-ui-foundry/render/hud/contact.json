@@ -1,0 +1,93 @@
+{
+ "sheet": [
+  856,
+  1167
+ ],
+ "megapixels": 1.0,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "Phone 844x390 routine (C)",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/hud/HudTickets__routine__phone__C.png",
+   "box": [
+    6,
+    24,
+    844,
+    390
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "crisis phone",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/hud/HudTickets__crisis__phone__C.png",
+   "box": [
+    6,
+    458,
+    400,
+    185
+   ],
+   "scale": "fit x0.47"
+  },
+  {
+   "n": 3,
+   "label": "overflow phone",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/hud/HudTickets__overflow__phone__C.png",
+   "box": [
+    412,
+    458,
+    400,
+    185
+   ],
+   "scale": "fit x0.47"
+  },
+  {
+   "n": 4,
+   "label": "routine phone_notch",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/hud/HudTickets__routine__phone_notch__C.png",
+   "box": [
+    6,
+    707,
+    400,
+    185
+   ],
+   "scale": "fit x0.47"
+  },
+  {
+   "n": 5,
+   "label": "routine tablet",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/hud/HudTickets__routine__tablet__C.png",
+   "box": [
+    450,
+    687,
+    324,
+    225
+   ],
+   "scale": "fit x0.27"
+  },
+  {
+   "n": 6,
+   "label": "routine pc",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/hud/HudTickets__routine__pc__C.png",
+   "box": [
+    6,
+    936,
+    400,
+    225
+   ],
+   "scale": "fit x0.31"
+  },
+  {
+   "n": 7,
+   "label": "routine console",
+   "src": "/home/user/claude/trials/rr-ui-foundry/render/hud/HudTickets__routine__console__C.png",
+   "box": [
+    412,
+    936,
+    400,
+    225
+   ],
+   "scale": "fit x0.21"
+  }
+ ]
+}

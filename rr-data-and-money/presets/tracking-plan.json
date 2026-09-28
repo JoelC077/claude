@@ -1,0 +1,133 @@
+{
+ "_doc": "Risky Rails tracking plan: the single source for RR_AnalyticsPlan.lua and TRACKING_PLAN.md (track.py build). Every event names the decision it informs. Field values are enums or numeric buckets so dashboard cardinality stays bounded; the player argument already carries the UserId, so no field may hold names, ids or free text. Custom fields map in order to CustomField01..03; an experiment tag takes the next free slot.",
+ "version": "2026-09-28",
+ "currency": {"name": "Coins", "note": "data name per OQ-003 default C (player-facing '$'); change with the owner's decision"},
+ "platform_limits": {"custom_events": 100, "funnels": 10, "funnel_steps": 100, "skus": 100, "transaction_types": 20, "custom_fields": 3, "field_values": 8000, "source": "Roblox creator-docs production/analytics/event-types.md, fetched 2026-09-28"},
+ "budgets": {"custom_events": 30, "fields_per_event": 3, "enum_values": 20, "skus": 40, "funnels": 5, "funnel_steps": 12, "max_per_min_default": 20},
+ "onboarding": {
+  "canon": "release.kpi.funnel",
+  "question": "Where do first-time players drop before their first banked fare and first finished run?",
+  "steps": [
+   {"id": "join", "name": "Joined", "where": "lobby PlayerAdded, first session only (profile flag)"},
+   {"id": "picked_up_tool", "name": "Picked up tool", "where": "server tool-equip handler (shovel, wrench, sandwich)"},
+   {"id": "shovelled_coal", "name": "Shovelled coal", "where": "server firebox deposit handler"},
+   {"id": "pulled_lever", "name": "Pulled lever", "where": "server lever commit (gameplay.fork.lock)"},
+   {"id": "first_bank", "name": "First bank", "where": "server station payout (gameplay.station.bank)"},
+   {"id": "run_end", "name": "Run end", "where": "server results start (arrive or fail)"}
+  ]
+ },
+ "funnels": {
+  "trip": {
+   "question": "Which part of a trip loses crews: queue, boarding, first fork, first bank or arrival?",
+   "session": "trip id made in the lobby and sent in TeleportData next to the canon UserIds (tech.data.teleport_data)",
+   "steps": [
+    {"id": "queued", "name": "Queued", "where": "lobby queue pad join"},
+    {"id": "boarded", "name": "Boarded", "where": "trip place: player loaded on the train"},
+    {"id": "departed", "name": "Departed", "where": "trip place: whistle / depart"},
+    {"id": "first_fork", "name": "First fork", "where": "first junction resolved"},
+    {"id": "first_bank", "name": "First bank", "where": "first station payout"},
+    {"id": "arrived", "name": "Arrived", "where": "terminus arrival (not a fail)"}
+   ]
+  },
+  "supply": {
+   "question": "Does the Depotron order flow lose players between opening and fetching the crate?",
+   "session": "one id per terminal open (HttpService:GenerateGUID(false))",
+   "steps": [
+    {"id": "opened", "name": "Terminal opened", "where": "ProximityPrompt triggered"},
+    {"id": "ordered", "name": "Order placed", "where": "server accepted the order and took the coins"},
+    {"id": "fetched", "name": "Crate fetched", "where": "crate picked up from the roof"}
+   ]
+  },
+  "purchase": {
+   "question": "Where do Robux purchases fail: prompt shown, accepted, or granted?",
+   "session": "one id per prompt",
+   "steps": [
+    {"id": "prompt_shown", "name": "Prompt shown", "where": "server just before Prompt*Purchase"},
+    {"id": "accepted", "name": "Accepted", "where": "PromptGamePassPurchaseFinished / PromptProductPurchaseFinished (isPurchased)"},
+    {"id": "granted", "name": "Granted", "where": "after ProcessReceipt saved the grant (rr-exploit-guard pattern)"}
+   ]
+  }
+ },
+ "economy": {
+  "question": "Do faucets and sinks match the economy sim? Which sinks carry the economy?",
+  "transaction_types": ["Gameplay", "Shop", "IAP", "ContextualPurchase", "TimedReward", "Onboarding", "Promo"],
+  "fields": [
+   {"name": "difficulty", "enum": ["Easy", "Medium", "Hard", "Insane", "Lobby"]}
+  ],
+  "sources": [
+   {"sku": "fare_bank", "type": "Gameplay", "where": "station payout, per player, after the server adds the coins"},
+   {"sku": "fare_pack_s", "type": "IAP", "where": "ProcessReceipt grant"},
+   {"sku": "fare_pack_m", "type": "IAP", "where": "ProcessReceipt grant"},
+   {"sku": "fare_pack_l", "type": "IAP", "where": "ProcessReceipt grant"},
+   {"sku": "promo_code", "type": "Promo", "where": "code redeem (custom type: codes are not a schedule)"}
+  ],
+  "sinks": [
+   {"sku": "coal", "type": "Shop", "where": "Depotron order accepted"},
+   {"sku": "toolbox", "type": "Shop", "where": "Depotron order accepted"},
+   {"sku": "sandwich", "type": "Shop", "where": "Depotron order accepted"},
+   {"sku": "medkit", "type": "Shop", "where": "Depotron order accepted"},
+   {"sku": "recovery_fee", "type": "Gameplay", "where": "fell-off recovery (economy.currency.recovery_fee)"},
+   {"sku": "loco_2", "type": "Shop", "where": "locomotive unlock"},
+   {"sku": "loco_3", "type": "Shop", "where": "locomotive unlock"},
+   {"sku": "loco_4", "type": "Shop", "where": "locomotive unlock"},
+   {"sku": "loco_5", "type": "Shop", "where": "locomotive unlock"},
+   {"sku": "livery", "type": "Shop", "where": "livery bought with fare (post-launch)"}
+  ]
+ },
+ "progression": {
+  "trip": {
+   "question": "Completion rate per difficulty (canon target release.kpi.completion) and how far failed trips get.",
+   "levels": ["Easy", "Medium", "Hard", "Insane"],
+   "where": "Start at depart, Complete at arrival, Fail at the fail cinematic",
+   "fields": [
+    {"name": "crew", "buckets": [2, 3, 5], "unit": "players"},
+    {"name": "reason", "enum": ["arrived", "boiler_explosion", "passengers_dead", "stall", "buffer_overrun", "abandoned"]}
+   ]
+  },
+  "locomotives": {
+   "question": "How long until each unlock (canon gameplay.progress.*) versus the economy sim?",
+   "levels": ["loco_2", "loco_3", "loco_4", "loco_5"],
+   "where": "Complete when the unlock is saved",
+   "fields": []
+  }
+ },
+ "events": [
+  {"id": "lever_pulled", "canon": "release.kpi.funnel", "question": "Is the fork a real choice (risky share by difficulty) and do crews pull in time?",
+   "where": "server lever commit", "value": "seconds left on the gantry countdown", "implicit": ["by"],
+   "fields": [
+    {"name": "choice", "enum": ["safe", "risky", "none"]},
+    {"name": "time_left", "buckets": [2, 5, 8], "unit": "s"},
+    {"name": "crew", "buckets": [2, 3, 5], "unit": "players"}
+   ], "max_per_min": 12},
+  {"id": "run_end", "canon": "release.kpi.funnel", "question": "Why do runs end, and how often at each difficulty?",
+   "where": "server results start", "value": "miles travelled",
+   "fields": [
+    {"name": "reason", "enum": ["arrived", "boiler_explosion", "passengers_dead", "stall", "buffer_overrun", "abandoned"]},
+    {"name": "difficulty", "enum": ["Easy", "Medium", "Hard", "Insane"]},
+    {"name": "crew", "buckets": [2, 3, 5], "unit": "players"}
+   ], "max_per_min": 4},
+  {"id": "player_left", "canon": "release.kpi.funnel", "question": "In which phase do players quit (lobby, queue, boarding, run, results)?",
+   "where": "PlayerRemoving on each place", "value": "seconds in the current phase",
+   "fields": [
+    {"name": "phase", "enum": ["lobby", "queue", "boarding", "run", "results"]},
+    {"name": "difficulty", "enum": ["Easy", "Medium", "Hard", "Insane", "Lobby"]}
+   ], "max_per_min": 2},
+  {"id": "crisis_end", "question": "Which crisis systems fail crews, and how long fixes take (four_systems balance)?",
+   "where": "server crisis resolver", "value": "seconds from alert to fix or fail",
+   "fields": [
+    {"name": "kind", "enum": ["coal_low", "pressure_high", "breakdown", "passengers"]},
+    {"name": "outcome", "enum": ["fixed", "failed", "expired"]},
+    {"name": "crew", "buckets": [2, 3, 5], "unit": "players"}
+   ], "max_per_min": 20},
+  {"id": "results_action", "question": "Does the results screen drive re-queues and invites (gameplay.results.*)?",
+   "where": "results screen button handlers (server-validated)", "value": "seconds on the results screen",
+   "fields": [
+    {"name": "action", "enum": ["requeue", "invite", "share", "leave", "idle_home"]}
+   ], "max_per_min": 6}
+ ],
+ "experiments": {
+  "_doc": "Plan first (abtest.py plan), then set active true. salt reshuffles arms; tag = event ids, funnel ids or 'onboarding' whose next free custom field carries 'experiment:arm'.",
+  "example_onboarding_hint": {"arms": ["A", "B"], "weights": [50, 50], "salt": "obh-2026-10", "active": false,
+   "tag": ["onboarding"], "who": "new players only: call expose() at their first join"}
+ }
+}

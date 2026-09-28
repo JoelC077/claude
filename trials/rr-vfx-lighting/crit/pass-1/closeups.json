@@ -1,0 +1,81 @@
+{
+ "sheet": [
+  786,
+  726
+ ],
+ "megapixels": 0.57,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "steam_chimney side strip, Speed 35",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/vfx/strip_steam_chimney.png",
+   "box": [
+    6,
+    76,
+    384,
+    111
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 2,
+   "label": "smoke_chimney side strip, Speed 35",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/vfx/strip_smoke_chimney.png",
+   "box": [
+    396,
+    76,
+    384,
+    111
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 3,
+   "label": "POV door1p grassland.day",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/pack/pov_grassland.day_door1p.png",
+   "box": [
+    6,
+    264,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 4,
+   "label": "POV door1p grassland.night (+headlamp)",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/pack/pov_grassland.night_door1p.png",
+   "box": [
+    396,
+    264,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 5,
+   "label": "POV roof3p day PHONE",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/pack/pov_grassland.day.phone.png",
+   "box": [
+    6,
+    504,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 6,
+   "label": "POV roof3p dusk PHONE",
+   "src": "/home/user/claude/trials/rr-vfx-lighting/preview/pack/pov_grassland.dusk.phone.png",
+   "box": [
+    396,
+    504,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  }
+ ]
+}

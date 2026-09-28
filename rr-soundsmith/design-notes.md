@@ -9,14 +9,14 @@ licence register that refuses anything not owner-uploaded or Roblox-licensed.
 ## Pipeline
 ```
 bible get (canon slice) -> presets/soundmap.json   design, hand-edited: standards, ladder, groups, voices, ducking,
-                                                    speed link, emitters, 25 sounds, 26 events (event -> actions)
+                                                    speed link, emitters, 29 sounds, 32 events (event -> actions, phase)
                            presets/assets.json      register, script-written: asset ids, licence, measured levels
   -> sound.py validate   schema, canon agreement, rr-game-feel cue parity (both ways), tiers, ladder hierarchy,
                          ducking sanity, Roblox ranges, licence rules (--release: no placeholder or unlicensed audio)
   -> sound.py synth      PLACEHOLDER_<id>.wav (numpy, seeded, 48 kHz mono, INFO chunk says placeholder),
                          normalised to the file standard by the analyser, PLACEHOLDERS.md
   -> sound.py analyze    any .wav natively; .ogg/.mp3/.flac through ffmpeg if present (else header-only length)
-                         BS.1770-4 loudness (momentary max, short-term max, integrated, LRA), true peak (4x),
+                         BS.1770-4 loudness (momentary max, short-term max, integrated, LRA), true peak (8x),
                          clipping, DC, lead/tail silence, loop seam, phone-band share, platform limits; --fix-out
                          writes gain-normalised copies (never touches the owner's file)
   -> sound.py register   file + asset id + licence proof -> assets.json (measured level feeds the mix)
@@ -43,7 +43,7 @@ bible get (canon slice) -> presets/soundmap.json   design, hand-edited: standard
    Heartbeat step: deterministic, testable in a Lua VM, no self-ducking. CompressorSoundEffect.SideChain stays
    documented as the alternative (Studio-test only).
 5. **Client pool** (canon av.audio.client_pool): Sound instances pre-made on the client per sound (its voice
-   count), global and per-group voice caps, steal by tier then age, crisis tiers never dropped, cooldowns,
+   count), global and per-group voice caps, steal by tier then age (new fail and crisis sounds always get a voice; playing alarms yield only to the fail or another alarm), cooldowns,
    pitch spread and no-repeat variations. 3D sounds use emitter roles set at run time; missing role = 2D + warn.
 6. **Crisis alarms reach the other carriage** (av.audio.priority): 2D train-wide plus a quieter positional layer
    at the source, the default of a new open question (placement). Wheel sound follows Speed (av.audio.speed_link).
@@ -68,3 +68,18 @@ bible get (canon slice) -> presets/soundmap.json   design, hand-edited: standard
 No Studio and no speakers in the cloud: Roblox's Volume-to-gain curve, rolloff feel, phone speakers and the
 real mix need the owner's listening test (references/fidelity.md). Uploading, publishing and spending are the
 owner's gate. Placeholders are for prototyping only.
+
+## Fix round (2026-09-28, after the trial and two reviews)
+- Placeholders from data: a sound's `synth` names a recipe or holds a layer spec, and `<presets>/recipes.py` adds
+  recipes, so a mission adds sounds without editing skill code; "no recipe" is a note. Lobby sounds ship built in.
+- Events carry a `phase`; list, briefs, SOUND_SPEC and the critic facts are phase-ordered. Facts carry the event and
+  brief table and a coverage line that separates "mapped and briefed" from "files in this pass".
+- Open questions come from data: cited OQs are read through rr-bible (title, default) and checked for relevance;
+  unrecorded ones live in `meta.pending_oq` as `pending:<key>` with a printed add-question command, so a sandbox never
+  invents a number that a sibling can take.
+- Runtime: a playing alarm-class voice yields only to a more important tier or another alarm (Alarms cap 6); each
+  voice owns its positional layer (same take, stops with it); Studio group volumes are the base.
+- Register home: the skill folder is read-only; `promote` moves a mission's soundmap and register to the project home
+  that later runs and rr-release-train read. Release gate: silent builds pass (sound is a COULD), placeholders never.
+- Licence gate follows canon exactly (no CC-BY), needs asset ids, anchors the rip pattern; the analyzer fails empty,
+  silent, truncated and .opus files; true peak is 8x.

@@ -7,6 +7,8 @@
 --   Lighting.apply("grassland.day", 1.5)     tween to a look
 --   Lighting.push("tunnel_under")             streamer: tunnel segment under the train; Lighting.pop("tunnel_under")
 --   Lighting.push("overbridge_flash")         overrides with a duration pop themselves
+--   Lighting.setFlashes(false)                players' flashes setting: overrides marked flash (overbridge) are skipped
+-- Looks switch their fx_on presets through VFX.setLookFx, so a preset attached later still follows the look.
 -- Studio test pending (owner).
 
 local LightingService = game:GetService("Lighting")
@@ -21,7 +23,7 @@ if not okV then
 	VFX = nil
 end
 
-local M = {current = nil, stack = {}}
+local M = {current = nil, stack = {}, flashes = true}
 local tweens = {}
 local phone = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
@@ -36,6 +38,9 @@ for _, ov in pairs(P.overrides) do
 	for _, f in ipairs(ov.fx_on) do
 		lookDriven[f] = true
 	end
+end
+if VFX and VFX.setLookFx then
+	VFX.setLookFx(lookDriven, {})   -- known before any look is applied: look-driven presets start off
 end
 
 local function ensure(cls)
@@ -163,16 +168,21 @@ function M.apply(name, t)
 		end
 		tweenTo(inst, props, t)
 	end
-	if VFX and VFX.setActive then
-		for fname in pairs(lookDriven) do
-			VFX.setActive(fname, fx[fname] == true)
-		end
+	if VFX and VFX.setLookFx then
+		VFX.setLookFx(lookDriven, fx)
 	end
+end
+
+function M.setFlashes(on)
+	M.flashes = on ~= false
 end
 
 function M.push(name, t)
 	local ov = P.overrides[name]
 	assert(ov, "RR_Lighting: no override " .. tostring(name))
+	if ov.flash and not M.flashes then
+		return
+	end
 	for _, n in ipairs(M.stack) do
 		if n == name then
 			return

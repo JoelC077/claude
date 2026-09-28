@@ -1,0 +1,99 @@
+== track
+  W currency 'Coins': canon economy.currency.name is a conflict (OQ-003); label it assumed
+PASS tracking plan: 0 errors, 1 warnings
+  W currency 'Coins': canon economy.currency.name is a conflict (OQ-003); label it assumed
+built /home/user/claude/trials/rr-data-and-money/track/RR_AnalyticsPlan.lua and /home/user/claude/trials/rr-data-and-money/track/TRACKING_PLAN.md
+luaparse: PASS
+luatest: 28/28 passed
+  I planned onboarding never called in code: join
+  I planned funnel never called in code: purchase
+  I planned event never called in code: crisis_end, results_action
+PASS scan of 3 Luau files: 0 issues
+== dash
+wrote SYNTHETIC exports to /home/user/claude/trials/rr-data-and-money/dash/exports
+ingested /home/user/claude/trials/rr-data-and-money/dash/exports/SYNTHETIC_economy.csv: economy, 0 days, 0 funnels, 21 economy rows
+ingested /home/user/claude/trials/rr-data-and-money/dash/exports/SYNTHETIC_engagement_wide.csv: daily, 28 days, 0 funnels, 0 economy rows
+  note: avg_session_min: seconds -> minutes
+ingested /home/user/claude/trials/rr-data-and-money/dash/exports/SYNTHETIC_retention.csv: daily, 28 days, 0 funnels, 0 economy rows
+ingested /home/user/claude/trials/rr-data-and-money/dash/exports/SYNTHETIC_revenue_by_platform.csv: daily, 28 days, 0 funnels, 0 economy rows
+store /home/user/claude/trials/rr-data-and-money/root/metrics.json: 28 days
+ingested /home/user/claude/trials/rr-data-and-money/dash/exports/SYNTHETIC_onboarding_funnel.csv: funnel, 0 days, 1 funnels, 0 economy rows
+store /home/user/claude/trials/rr-data-and-money/root/metrics.json: 28 days
+== econ
+PASS economy + catalogue presets: 0 errors, 0 warnings
+  PASS  time to first upgrade: loco_2: median 2.0 runs / 27 min (p90 3.0 runs); target about 2 runs inside 30 min
+  INFO  new players who get it on day 0: 39% of installs (ever: 46%); day-0 runs mean 1.8 (assumed)
+  PASS  pacing loco_3: +1.8 h after the previous unlock (at 2.2 h); target about 2 h
+  PASS  pacing loco_4: +1.8 h after the previous unlock (at 4.0 h); target about 2 h
+  PASS  pacing loco_5: +2.0 h after the previous unlock (at 6.1 h); target about 2 h
+  PASS  pacing line_2: +2.2 h after the previous unlock (at 8.3 h); target about 2 h
+  MISS  fare pack cap: largest pack 20,000 vs 10 x run fare 1,702 (mean, first 12 h) = 17,019
+  PASS  fare packs vs playing well: best pack 33.4 fare/R$ vs Double Fare 304.1 fare/R$ over 12 h of play (interpretation: buying fare must not beat earning it with the pass)
+  PASS  completion: 59% of runs arrive; canon 30%-60%
+  WATCH payer conversion: 0.48% of DAU pay per day (driven by assumed buying odds)
+  PASS  sink left for veterans: 1% of active players own every unlock in the last week; balances 1,491 -> 1,758 (median, first vs last week)
+  31 assumed values (listed in the report); wrote /home/user/claude/trials/rr-data-and-money/econ/ECON_REPORT.md
+  - one-time passes total 1,495 R$ before liveries; canon whale total 2,000-3,000 R$ (inside the range once a few liveries are added)
+  - earned R$ = price x creator share 70%; USD at DevEx 0.0038 per earned R$ (economy.platform.*); Creator Rewards (the Premium Payouts replacement) is rounding, not pricing (economy.platform.creator_rewards)
+  FAIL fare_pack_l     M07 20,000 fare > 10 runs of earnings (17,019; run fare 1,702 from sim, assumed fares) [economy.passes.fare_packs]
+  HOLD express_depot   M01 sells access: not named in D-007 (time, status, identity); owner confirms it is time or identity in practice [D-007]
+  HOLD private_server  M01 sells access: not named in D-007 (time, status, identity); owner confirms it is time or identity in practice [D-007]
+  HOLD toolbelt        M01 sells convenience: not named in D-007 (time, status, identity); owner confirms it is time or identity in practice [D-007]
+  HOLD toolbelt        M03 changes gameplay (gameplay.supplies.hand): run risky-rails-mechanic-reviewer, then the owner decides [gameplay.supplies.hand]
+MONEY GATE FAIL: 1 fail, 4 hold, 2 future, 13 info -> /home/user/claude/trials/rr-data-and-money/gate/MONEY_GATE.md
+== abtest
+10.0% -> 13.0% (alpha 0.05, power 0.8, 2 arms): 1,774 per arm, 3,548 total
+at 150/day: 28 days (4 whole weeks)
+  detectable in 2 weeks: 10.0% -> 14.0%
+  detectable in 4 weeks: 10.0% -> 12.7%
+  detectable in 6 weeks: 10.0% -> 12.2%
+plan onb_hint (onboarding, prop): 10.00% -> 13.00%; A=1,774, B=1,774 (total 3,548)
+  150 eligible/day -> 28 days = 4 whole weeks; start 2026-10-05, readout 2026-11-02
+  fixed horizon: no verdict before the readout (analyze refuses)
+plan thumb_rotation (thumbnail, prop): 3.00% -> 3.45%; A=24,407, B=24,407 (total 48,814)
+  2,000 eligible/day -> 28 days = 4 whole weeks; start 2026-10-05, readout 2026-11-02
+  planned looks at 33%, 67%, 100%: stop only if |z| >= 3.46, 2.45, 2.00 (O'Brien-Fleming, sample x1.009)
+GUARDRAIL FAIL: the winner hurts a guardrail; do not ship, investigate
+  SRM check: counts A=1,800, B=1,790, p = 0.8674
+  progress: 101% of the planned sample, look 1 of 1
+  B vs A: 10.00% -> 13.41%, diff +3.41 pts (95% CI +1.31 to +5.52), lift +34.1%; p = 0.001491 [pooled-z] -> WIN
+  guardrail sess B: 55.56% -> 56.42%, CI low -2.38 pts vs margin -2.00: FAIL
+wrote /home/user/claude/trials/rr-data-and-money/root/experiments/onb_hint/RESULT.md
+descriptive only: traffic was adaptive (personalization), so there is no SRM check and no winner call;
+each rate is conditional on the players Roblox chose to show it to. qualified_plays / impressions:
+  CREW                 3.33%  95% CI 2.46%-4.51%  n 1,200  (under 2,000 impressions: too early to judge)
+  PULL IT?             3.15%  95% CI 2.99%-3.31%  n 48,000
+  BANK IT              2.69%  95% CI 2.14%-3.39%  n 2,600
+  WRONG LEVER          2.56%  95% CI 2.25%-2.90%  n 9,000  <- clearly below the best: a candidate to replace at the next update
+Roblox advice: keep several thumbnails active; swap losers at the next major update, not mid-week.
+== memo
+memo week ending 2026-09-27: 10 KPIs, 9 gate checks, 2 flags, 4 charts -> /home/user/claude/trials/rr-data-and-money/dash/memo
+  DAU (daily avg)               169  (last 148, +14%)  -
+  New users                     649  (last 567, +14%)  -
+  Session length           10.9 min  (last 10.8 min, +1%)  PASS
+  D1 retention                11.8%  (last 10.5%, +1.4 pts)  UNCLEAR  CI 9.6%-14.6% (n 649)
+  D7 retention                1.95%  (last 2.10%, -0.1 pts)  UNCLEAR  CI 1.1%-3.4% (n 567)
+  Revenue                    617 R$  (last 502 R$, +23%)  -
+  ARPDAU                    0.52 R$  (last 0.48 R$, +8%)  -
+  Payer conversion            1.77%  (last 1.64%, +0.1 pts)  UNCLEAR  CI 1.2%-2.7% (n 1,184)
+  ARPPU                    29.38 R$  (last 29.53 R$, -1%)  -
+  R$ per visit              0.33 R$  (last 0.30 R$, +8%)  -
+  gate scale     D1 before scaling spend: 11.8% vs >= 13.0% -> UNCLEAR
+  gate spend     D1 before any ad spend: 11.8% vs >= 10.0% -> UNCLEAR
+  gate spend     bounce before any ad spend: n/a vs < 25.0% -> NO DATA
+  gate continue  DAU: 169 vs >= 100 -> PASS
+  gate continue  payer conversion: 1.77% vs >= 1.50% -> UNCLEAR
+  gate continue  R$ per visit: 0.33 R$ vs >= 0.40 R$ -> MISS
+  gate abandon   stop-spending trigger: 11.8% vs < 8.00% -> OK
+  gate closed_test session (mean; canon says median): 10.9 min vs >= 10.0 min -> PASS
+  gate spend     weekly D1 cohorts at/above the gate (need 2): 3 of last 4 vs >= 10.0% -> PASS
+  flag: 2026-09-26: dau 195 is +3.0 sd vs the prior 14 days (check updates, featuring, outages)
+  flag: 2026-09-26: new_users 107 is +3.0 sd vs the prior 14 days (check updates, featuring, outages)
+  onboarding: Joined 1,000 > Picked up tool 820 > Shovelled coal 700 > Pulled lever 610 > First bank 380 > Run end 350. Biggest drop: Pulled lever -> First bank loses 38%
+  sources 1,043,727, sinks 568,654, sink/source 0.54
+  source fare_bank: 1,043,727
+  sink loco_2: 422,842
+  sink coal: 145,812
+  sim predicted sink/source 0.52; live 0.54
+  onb_hint (onboarding): planned, starts 2026-10-05
+  thumb_rotation (thumbnail): planned, starts 2026-10-05

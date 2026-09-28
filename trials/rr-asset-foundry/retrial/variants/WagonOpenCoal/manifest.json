@@ -1,0 +1,216 @@
+{
+ "asset": "WagonOpenCoal",
+ "family": "wagon",
+ "preset": "open_coal",
+ "hash": "4f1afd1c17c5",
+ "vkey": "d566eb8242bd",
+ "pov": "siding",
+ "status": "ok",
+ "made": "2026-09-28T03:45:50",
+ "seconds": 47.8,
+ "params": {
+  "kind": "open",
+  "length": 30.0,
+  "width": 17.4,
+  "gauge": 8.0,
+  "deck": 5.0,
+  "running": "auto",
+  "wheel_r": 2.0,
+  "side_h": 4.0,
+  "body_h": 7.0,
+  "planks": 4,
+  "load": "coal",
+  "heap": 2.75,
+  "peaks": 2,
+  "weathering": 0.3,
+  "door": true
+ },
+ "size_studs": [
+  32.8,
+  18.06,
+  12.66
+ ],
+ "parts": 56,
+ "proxies": 5,
+ "tris": {
+  "total": 1858,
+  "max_part": 250,
+  "max_name": "WagonOpenCoal_Heap_Load_01",
+  "over_target": [],
+  "over_cap": []
+ },
+ "groups": {
+  "Chassis": 14,
+  "Buffer": 2,
+  "Steel": 10,
+  "Iron": 16,
+  "Timber": 5,
+  "Cap": 4,
+  "Door": 2,
+  "Load": 2,
+  "Repair": 1
+ },
+ "features": {
+  "BufferHead": [
+   5.3,
+   "WagonOpenCoal_BufferHead_Steel_04",
+   0
+  ],
+  "Door": [
+   16.1,
+   "WagonOpenCoal_Door_Door_02",
+   0
+  ],
+  "DoorStrap": [
+   5.4,
+   "WagonOpenCoal_DoorStrap_Iron_02",
+   0
+  ],
+  "Strap": [
+   5.6,
+   "WagonOpenCoal_Strap_Iron_02",
+   0
+  ],
+  "EndStrap": [
+   5.7,
+   "WagonOpenCoal_EndStrap_Iron_02",
+   0
+  ],
+  "Cap": [
+   5.8,
+   "WagonOpenCoal_Cap_Cap_02",
+   0
+  ],
+  "Side": [
+   6.3,
+   "WagonOpenCoal_Side_Timber_02",
+   0
+  ],
+  "Repair": [
+   6.9,
+   "WagonOpenCoal_Repair_Repair_01",
+   0
+  ],
+  "Lump": [
+   5.4,
+   "WagonOpenCoal_Lump_Load_01",
+   0
+  ],
+  "Wheel": [
+   15.2,
+   "WagonOpenCoal_Wheel_Steel_02",
+   0
+  ],
+  "Axlebox": [
+   8.4,
+   "WagonOpenCoal_Axlebox_Chassis_02",
+   0
+  ]
+ },
+ "features_pov": {
+  "BufferHead": [
+   8.0,
+   "WagonOpenCoal_BufferHead_Steel_02",
+   0
+  ],
+  "Door": [
+   25.5,
+   "WagonOpenCoal_Door_Door_02",
+   0
+  ],
+  "DoorStrap": [
+   8.5,
+   "WagonOpenCoal_DoorStrap_Iron_02",
+   0
+  ],
+  "Strap": [
+   10.8,
+   "WagonOpenCoal_Strap_Iron_02",
+   0
+  ],
+  "EndStrap": [
+   8.3,
+   "WagonOpenCoal_EndStrap_Iron_02",
+   0
+  ],
+  "Cap": [
+   7.8,
+   "WagonOpenCoal_Cap_Cap_03",
+   0
+  ],
+  "Side": [
+   8.4,
+   "WagonOpenCoal_Side_Timber_02",
+   0
+  ],
+  "Repair": [
+   13.7,
+   "WagonOpenCoal_Repair_Repair_01",
+   0
+  ],
+  "Lump": [
+   10.5,
+   "WagonOpenCoal_Lump_Load_01",
+   0
+  ],
+  "Wheel": [
+   32.7,
+   "WagonOpenCoal_Wheel_Steel_02",
+   0
+  ],
+  "Axlebox": [
+   12.4,
+   "WagonOpenCoal_Axlebox_Chassis_04",
+   0
+  ]
+ },
+ "pov_stands": [
+  {
+   "render": "pov3p",
+   "label": "from the coach, abeam",
+   "stand": [
+    0.0,
+    -30.6,
+    5.0
+   ]
+  },
+  {
+   "render": "pov3p_2",
+   "label": "from the coach, approaching",
+   "stand": [
+    50.0,
+    -30.6,
+    5.0
+   ]
+  }
+ ],
+ "lod1": null,
+ "renders": {
+  "thumb": "renders/thumb.png",
+  "game": "renders/game.png",
+  "pov3p": "renders/pov3p.png",
+  "pov1p": "renders/pov1p.png",
+  "34": "renders/34.png",
+  "side": "renders/side.png",
+  "end": "renders/end.png",
+  "pov3p_2": "renders/pov3p_2.png"
+ },
+ "files": [
+  "WagonOpenCoal.fbx",
+  "WagonOpenCoal_atlas.fbx",
+  "palette.png",
+  "parts.csv",
+  "WagonOpenCoal.blend",
+  "studio_setup.lua"
+ ],
+ "checks": {
+  "lua": "ok (luaparse: ok)",
+  "bible_check": "PASS"
+ },
+ "fails": [],
+ "warnings": [],
+ "open": [
+  "OQ-025",
+  "OQ-030"
+ ]
+}

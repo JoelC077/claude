@@ -1,0 +1,40 @@
+tris: 42 meshes, 1,248 total, 0 over the 10.0k target
+palette: 13 cells exact; 504 faces; 0 span two cells; 0 too close to a cell edge; 0 off-palette
+names: 46 parts, 0 off the <Asset>_<Part>_<Group>_<nn> pattern
+coplanar: 0 overlapping same-facing face pairs
+floating: 0 parts not connected to the ground
+/home/user/claude/rr-asset-foundry/scripts/forge.py:262: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  if hasattr(w, "use_nodes"):
+/home/user/claude/rr-asset-foundry/scripts/forge.py:263: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  w.use_nodes = True
+/home/user/claude/rr-asset-foundry/scripts/forge.py:232: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if hasattr(m, "use_nodes"):
+/home/user/claude/rr-asset-foundry/scripts/forge.py:233: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m.use_nodes = True
+back faces in view Cam_34: none
+back faces in view Cam_End: none
+back faces in view Cam_POV_1P: none
+back faces in view Cam_POV_3P: none
+back faces in view Cam_POV_3P_2: none
+back faces in view Cam_Side: none
+00:01.822  cycles           | WARNING CUEW initialization failed: Error opening the library
+00:01.822  cycles           | WARNING HIPEW initialization failed: Error opening HIP dynamic library
+00:02.663  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonFlatCrates/renders/thumb.png'
+00:04.127  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonFlatCrates/renders/game.png'
+00:08.433  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonFlatCrates/renders/pov3p.png'
+00:12.675  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonFlatCrates/renders/pov1p.png'
+00:16.221  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonFlatCrates/renders/34.png'
+00:18.485  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonFlatCrates/renders/side.png'
+00:22.648  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonFlatCrates/renders/end.png'
+00:27.769  render           | Saved: '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonFlatCrates/renders/pov3p_2.png'
+
+FBX export starting... '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonFlatCrates/WagonFlatCrates.fbx'
+export finished in 0.0524 sec.
+
+FBX export starting... '/home/user/claude/trials/rr-asset-foundry/retrial/variants/WagonFlatCrates/WagonFlatCrates_atlas.fbx'
+export finished in 0.0474 sec.
+Info: Saved copy as "WagonFlatCrates.blend"
+FBX version: 7400
+tris: 46 meshes, 1,296 total, 0 over the 10k target
+{'file': 'WagonFlatCrates.fbx', 'meshes': 46, 'size': (38.8, 17.6, 8.65), 'tris': 1296, 'over_target': [], 'no_uv': ['WagonFlatCrates_Collider_Proxy_01.001', 'WagonFlatCrates_Collider_Proxy_02.001', 'WagonFlatCrates_Collider_Proxy_03.001', 'WagonFlatCrates_Collider_Proxy_04.001'], 'materials': ['Buffer.001', 'Chassis.001', 'Crate.001', 'Iron.001', 'Patch.001', 'Proxy.001', 'Steel.001', 'Timber.001'], 'ratio': [1.0, 1.0, 1.0]}
+forge done: WagonFlatCrates 42 parts, 1248 tris, 27.6s

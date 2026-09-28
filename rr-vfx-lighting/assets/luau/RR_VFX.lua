@@ -8,8 +8,13 @@
 --   VFX.setSpeed(speed, forwardVector)               every throttle notch change (also sets GlobalWind)
 --   VFX.burst(anchor, "coal_dust")                   one-shot presets; cleans itself up
 --   VFX.setActive("sparks_axle", true)               start/stop every handle of a loop preset
+--   VFX.setFlashes(false)                             players' flashes setting: soft pulses, no flicker (av.feel.flash_limit)
 --   VFX.detach(h); VFX.budget()                       remove one; live-particle estimate vs the tier budget
--- Studio test pending (owner): generated and syntax-checked in the cloud, never run in Studio.
+-- Loops start ON, except: priority-1 crisis loops and presets marked start = "off" (sparks_brake) start OFF until
+-- setActive; presets a look switches (headlamp, rain) follow the current look, even when attached after
+-- Lighting.apply (RR_Lighting calls VFX.setLookFx). attach(anchor, name, {enabled = true/false}) overrides both.
+-- Studio test pending (owner): generated and syntax-checked in the cloud, run against stubs in a Lua VM
+-- (scripts/luatest.py), never run in Studio.
 
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -23,7 +28,10 @@ VFX.presets = P.presets
 VFX.budgetGuard = true
 
 local handles = {}
+local lookDriven, lookOn = {}, {}   -- set by RR_Lighting: presets looks switch, and which the current look has on
 local speed, speedK = 0, 0
+VFX.flashes = true
+local FLASH_OFF_PEAK = 1.5   -- flashes setting off: pulses peak at most this and last twice as long
 local forward = Vector3.new(1, 0, 0)
 local heartbeat = nil
 
@@ -91,6 +99,9 @@ local function applyProps(inst, props)
 end
 
 local function pulse(light, peak, duration)
+	if not VFX.flashes then
+		peak, duration = math.min(peak, FLASH_OFF_PEAK), duration * 2
+	end
 	light.Brightness = peak
 	TweenService:Create(light, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Brightness = 0}):Play()
 end
@@ -109,35 +120,62 @@ local function handleLive(h)
 	return live
 end
 
+local function linked(p, L)
+	if p.speed_link then
+		for _, n in ipairs(p.speed_link.layers) do
+			if n == L.name then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+-- 0..1 share of the speed-linked rate at the current Speed (lights named in speed_link dim with it)
+local function linkFrac(p)
+	local sl = p.speed_link
+	if not sl or sl.max <= 0 then
+		return 1
+	end
+	return (sl.idle + (sl.max - sl.idle) * speedK) / sl.max
+end
+
 local function loopRate(h, rec)
 	local p, L = h.preset, rec.L
 	if p.crackle then
 		return 0
 	end
 	local rate = L.props.Rate or 0
-	if p.speed_link then
-		for _, n in ipairs(p.speed_link.layers) do
-			if n == L.name then
-				rate = p.speed_link.idle + (p.speed_link.max - p.speed_link.idle) * speedK
-			end
-		end
+	if linked(p, L) then
+		rate = p.speed_link.idle + (p.speed_link.max - p.speed_link.idle) * speedK
 	end
 	return rate * h.scale * (h.intensity or 1) * (h.guard or 1)
 end
 
 local function refresh(h)
 	h.scale = rateScale(h.preset.priority)
+	if h.preset.kind ~= "loop" then
+		-- bursts own their emitters and lights (VFX.burst); a refresh must never switch a flash off mid-burst
+		for _, rec in ipairs(h.layers) do
+			if rec.inst and rec.inst:IsA("ParticleEmitter") then
+				rec.inst.Enabled = false
+			end
+		end
+		return
+	end
 	for _, rec in ipairs(h.layers) do
 		local inst = rec.inst
 		if inst then
 			if inst:IsA("ParticleEmitter") then
-				if h.preset.kind == "loop" then
-					inst.Rate = loopRate(h, rec)
-					inst.Enabled = h.active
-				else
-					inst.Enabled = false
+				inst.Rate = loopRate(h, rec)
+				inst.Enabled = h.active
+			elseif inst:IsA("Light") then
+				inst.Enabled = h.active
+				rec.scale = linked(h.preset, rec.L) and linkFrac(h.preset) or 1
+				if not rec.L.flicker and rec.L.props.Brightness then
+					inst.Brightness = rec.L.props.Brightness * rec.scale
 				end
-			elseif inst:IsA("Beam") or inst:IsA("Light") then
+			elseif inst:IsA("Beam") then
 				inst.Enabled = h.active
 			end
 		end
@@ -221,8 +259,11 @@ local function step()
 			for _, rec in ipairs(h.layers) do
 				local f = rec.L.flicker
 				if f and rec.inst then
-					local k = f.min + (f.max - f.min) * (0.5 + 0.5 * math.sin(t * f.hz * 2 * math.pi + rec.phase))
-					rec.inst.Brightness = (rec.L.props.Brightness or 1) * k
+					local k = (f.min + f.max) / 2   -- flashes off: steady glow, no flicker
+					if VFX.flashes then
+						k = f.min + (f.max - f.min) * (0.5 + 0.5 * math.sin(t * f.hz * 2 * math.pi + rec.phase))
+					end
+					rec.inst.Brightness = (rec.L.props.Brightness or 1) * k * (rec.scale or 1)
 				end
 			end
 			local c = h.preset.crackle
@@ -246,8 +287,18 @@ function VFX.attach(anchor, name, opts)
 	assert(p, "RR_VFX: no preset " .. tostring(name))
 	assert(anchor and (anchor:IsA("BasePart") or anchor:IsA("Attachment")), "RR_VFX: anchor must be a BasePart or Attachment")
 	local part, baseCF = basePart(anchor)
+	local active = false
+	if p.kind == "loop" then
+		if opts.enabled ~= nil then
+			active = opts.enabled ~= false
+		elseif lookDriven[name] then
+			active = lookOn[name] == true
+		else
+			active = p.start ~= "off"
+		end
+	end
 	local h = {name = name, preset = p, anchor = anchor, layers = {}, holders = {}, scale = rateScale(p.priority),
-		active = opts.enabled ~= false and p.kind == "loop", intensity = opts.intensity}
+		active = active, intensity = opts.intensity}
 	for _, L in ipairs(p.layers) do
 		local rec = {L = L, phase = math.random() * 6.28}
 		local tag = "RRFX_" .. name .. "_" .. L.name
@@ -373,6 +424,22 @@ function VFX.setActive(name, on)
 		end
 	end
 	enforceBudget()
+end
+
+-- RR_Lighting: which presets looks drive, and which the current look has on (late attaches follow it)
+function VFX.setLookFx(driven, on)
+	lookDriven, lookOn = driven or {}, on or {}
+	for _, h in ipairs(handles) do
+		if lookDriven[h.name] and h.preset.kind == "loop" then
+			h.active = lookOn[h.name] == true
+			refresh(h)
+		end
+	end
+	enforceBudget()
+end
+
+function VFX.setFlashes(on)
+	VFX.flashes = on ~= false
 end
 
 function VFX.setTier(tier)

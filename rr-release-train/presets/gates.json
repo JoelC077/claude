@@ -1,0 +1,96 @@
+{
+ "_about": "rr-release-train rules. Numbers here are release-process settings (source RT, proposed), not game canon; game facts are read from rr-bible at run time.",
+ "channels": {
+  "alpha": {"prerelease": "alpha", "strict": false},
+  "beta": {"prerelease": "beta", "strict": false},
+  "live": {"prerelease": "", "strict": true}
+ },
+ "evidence": {
+  "tests": {
+   "channels": ["alpha", "beta", "live"],
+   "why": "specs pass on this build (Open Cloud Luau task on the saved version, or the owner's Studio run)"
+  },
+  "bugbash": {"channels": ["alpha", "beta", "live"], "min_bump": "minor", "canon": "release.alpha.bug_bash"},
+  "livecheck": {"channels": ["live"], "min_bump": "minor", "canon": "tech.streaming.live_check"}
+ },
+ "conventional": {
+  "feat": ["Added", "minor"],
+  "fix": ["Fixed", "patch"],
+  "perf": ["Changed", "patch"],
+  "security": ["Security", "patch"],
+  "sec": ["Security", "patch"],
+  "revert": ["Changed", "patch"],
+  "remove": ["Removed", "minor"],
+  "balance": ["Changed", "patch"],
+  "content": ["Added", "minor"],
+  "ui": ["Changed", "patch"],
+  "art": ["Changed", "patch"],
+  "audio": ["Changed", "patch"],
+  "refactor": ["Internal", "none"],
+  "chore": ["Internal", "none"],
+  "docs": ["Internal", "none"],
+  "test": ["Internal", "none"],
+  "ci": ["Internal", "none"],
+  "build": ["Internal", "none"],
+  "style": ["Internal", "none"],
+  "wip": ["Internal", "none"]
+ },
+ "keywords": [
+  ["^(add|adds|added|new|introduce)\\b", "Added", "minor"],
+  ["^(fix|fixes|fixed|bug|patch)\\b", "Fixed", "patch"],
+  ["^(remove|removes|removed|delete|drop)\\b", "Removed", "minor"]
+ ],
+ "tools_repo_markers": ["rr-bible", "rr-mission-control", "multiuse-critic"],
+ "game_repo_markers": ["default.project.json", "*.project.json", "wally.toml", "aftman.toml", "rokit.toml"],
+ "mission_bump": {"ui": "minor", "3d": "minor", "vfx": "patch", "audio": "patch", "code": "patch", "default": "minor"},
+ "notes": {
+  "discord_max": 2000,
+  "store_max": 300,
+  "title_max": 50,
+  "max_emoji": 1,
+  "jargon": ["RemoteEvent", "RemoteFunction", "DataStore", "ProfileStore", "ModuleScript", "refactor", "server-authoritative", "Open Cloud", "rr-", "JARVIS", "Claude", "mission", "critic", "canon", "OQ-", "D-0", "TODO", "TBD", "FIXME", "lorem", "placeholder", "semver", "pcall", "Luau"],
+  "odds_words": "\\b(odds|chance|chances|luck|lucky|revive|revives|reroll|rerolls|guaranteed? win)\\b",
+  "buy_words": "\\b(robux|r\\$|buy|buying|purchase|game ?pass|dev(eloper)? product|shop|premium)\\b",
+  "store_banned": ["\\bfree\\b", "\\bgiveaway\\b"]
+ },
+ "perf": {
+  "warn_growth_pct": 15,
+  "metrics": ["instances", "parts", "meshparts", "unanchored_parts", "scripts", "script_bytes", "effects", "bytes"]
+ },
+ "hygiene": {
+  "debug_flag": "\\b(\\w*(?:DEBUG|DEV_?MODE|TEST_?MODE|CHEATS?|GOD_?MODE|ADMIN_?ALL|UNLOCK_?ALL)\\w*)\\s*=\\s*true\\b",
+  "store_calls": ["GetDataStore\\(\\s*[\"']([^\"']+)", "ProfileStore\\.New\\(\\s*[\"']([^\"']+)", "GetProfileStore\\(\\s*[\"']([^\"']+)"]
+ },
+ "visual_kinds": ["ui", "3d", "vfx", "thumbnail", "design"],
+ "extra_checks": [
+  {
+   "gate": "G9",
+   "name": "audio: no placeholder or unlicensed sound (rr-soundsmith)",
+   "skill": "rr-soundsmith",
+   "cmd": ["{python}", "{skill}/scripts/sound.py", "validate", "--release"]
+  },
+  {
+   "gate": "G7",
+   "name": "effects: phone concurrency budget (rr-vfx-lighting)",
+   "skill": "rr-vfx-lighting",
+   "cmd": ["{python}", "{skill}/scripts/vfx.py", "budget", "--tier", "phone"]
+  }
+ ],
+ "gate_names": {
+  "G1": "version",
+  "G2": "changes",
+  "G3": "patch notes",
+  "G4": "canon",
+  "G5": "security",
+  "G6": "tests",
+  "G7": "performance",
+  "G8": "visuals",
+  "G9": "hygiene",
+  "G10": "open questions"
+ },
+ "blocking": {
+  "alpha": ["G1", "G2", "G3", "G4", "G5", "G6", "G9"],
+  "beta": ["G1", "G2", "G3", "G4", "G5", "G6", "G9"],
+  "live": ["G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9"]
+ }
+}

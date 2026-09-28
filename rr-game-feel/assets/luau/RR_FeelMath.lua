@@ -108,6 +108,25 @@ function M.spring(t, amp, freq, damping, shape, dur, seed)
 	return amp * exp(-z * w * t) * s
 end
 
+-- largest |spring| of a unit spring over [0, dur), 240 samples (feelmath.peak_gain is identical); punches and
+-- camera kicks divide by it, so a preset's amp (and angles_deg) is the peak the player sees
+M.PEAK_SAMPLES = 240
+local peakCache = {}
+function M.peakGain(freq, damping, shape, dur, seed)
+	local d = dur or 0.5
+	local key = string.format("%.17g|%.17g|%s|%.17g|%s", freq, damping or 0.3, shape or "sin", d, tostring(seed or M.SEEDS.ui))
+	local g = peakCache[key]
+	if g then return g end
+	g = 0
+	for i = 0, M.PEAK_SAMPLES - 1 do
+		local v = math.abs(M.spring(d * i / M.PEAK_SAMPLES, 1, freq, damping, shape, d, seed))
+		if v > g then g = v end
+	end
+	if g <= 1e-6 then g = 1 end
+	peakCache[key] = g
+	return g
+end
+
 -- 0 -> 1 over tIn (styleIn Out), hold, 1 -> 0 over tOut (styleOut InOut)
 function M.envelope(t, tIn, hold, tOut, styleIn, styleOut)
 	if t < 0 then return 0 end
@@ -138,11 +157,13 @@ function M.keysAt(keys, t)
 	return keys[n][2]
 end
 
--- knob position (0..1 of travel) for a finger at u: heavy before the detent, commit at it
+-- knob position for a finger at u (-1..1 of travel, sign = side): heavy before the detent, 1 at it
 function M.leverDisplay(u, detent, resist)
-	u = M.clamp(u, 0, 1)
-	if u >= detent then return 1 end
-	return detent * (u / detent) ^ resist
+	local sgn = 1
+	if u < 0 then sgn = -1 end
+	local a = M.clamp(math.abs(u), 0, 1)
+	if a >= detent then return sgn end
+	return sgn * detent * (a / detent) ^ resist
 end
 
 return M

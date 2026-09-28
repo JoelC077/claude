@@ -1,0 +1,57 @@
+{
+ "sheet": [
+  792,
+  328
+ ],
+ "megapixels": 0.26,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "Timeline",
+   "src": "/home/user/claude/trials/rr-soundsmith/src/sound/sheet/timeline.png",
+   "box": [
+    6,
+    24,
+    780,
+    174
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "brake_hiss",
+   "src": "/home/user/claude/trials/rr-soundsmith/src/sound/sheet/tiles/brake_hiss.png",
+   "box": [
+    6,
+    222,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 3,
+   "label": "whistle",
+   "src": "/home/user/claude/trials/rr-soundsmith/src/sound/sheet/tiles/whistle.png",
+   "box": [
+    262,
+    222,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 4,
+   "label": "lobby_bed",
+   "src": "/home/user/claude/trials/rr-soundsmith/src/sound/sheet/tiles/lobby_bed.png",
+   "box": [
+    518,
+    222,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  }
+ ]
+}

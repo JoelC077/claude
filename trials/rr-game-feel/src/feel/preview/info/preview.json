@@ -1,0 +1,14 @@
+{
+ "group": "info",
+ "hero": "alert_fare_banked",
+ "events": [
+  "alert_junction_ahead",
+  "alert_risky_route",
+  "alert_fare_banked",
+  "alert_crate_landed",
+  "alert_crew_joined",
+  "alert_crew_left"
+ ],
+ "rm": false,
+ "peak_t": 0.21666666666666667
+}

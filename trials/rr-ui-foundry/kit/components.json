@@ -1,0 +1,148 @@
+{
+  "_doc": "Component templates built from five primitives (frame, text, image, hit, stack). Rects are design px relative to the parent; strings like \"100%-6\" or \"50%-14\" scale with the instance size. {slot} fills from the instance's slots; if/unless test a slot (\"stamp\", \"kind=risk\"). runtime: true templates ship to Luau with slots intact (the kit fills them live); the rest are expanded into each screen. See references/kit.md.",
+  "ticket": {
+    "runtime": true,
+    "size": [290, 64],
+    "doc": "HUD notification ticket (ui.hud.anatomy): ink frame r11 3 px, paper card, 57 px kind stub, punch notches, perforation every 8 px, 40 px medallion, title, body, life bar, optional -8 deg stamp, merge badge.",
+    "canon": ["ui.hud.ticket_size", "ui.hud.anatomy", "ui.hud.title_type", "ui.hud.body_type", "ui.hud.stamp", "ui.hud.life_bar", "ui.hud.crisis_extra"],
+    "slots": {"kind": ["danger", "risk", "cash", "info"], "title": "text", "body": "text", "stamp": "text?", "icon": "asset", "count": "number?", "life": "0..1", "halo": "bool", "sticky": "bool"},
+    "variants": {"compact": "ticket_compact"},
+    "parts": [
+      {"id": "mover", "type": "frame", "rect": [0, 0, 290, 64], "feel": "ticket", "children": [
+        {"id": "halo_ink", "type": "frame", "if": "halo", "rect": [-7, -7, 304, 78], "fill": "ink", "radius": 17},
+        {"id": "halo_red", "type": "frame", "if": "halo", "rect": [-4, -4, 298, 72], "fill": "danger", "alpha": 0.9, "radius": 14, "feel": "halo"},
+        {"id": "shadow", "type": "frame", "rect": [0, 4, 290, 64], "fill": "shadow", "alpha": 0.45, "radius": 11},
+        {"id": "frame", "type": "frame", "rect": [0, 0, 290, 64], "gradient": ["frame_top", "frame_bottom"], "stroke": ["ink", 3], "radius": 11, "clip": true, "children": [
+          {"id": "card", "type": "frame", "rect": [3, 3, 284, 58], "gradient": ["paper_top", "paper_bottom"], "stroke": ["trim", 1.5], "radius": 8, "clip": true, "children": [
+            {"id": "stub", "type": "frame", "rect": [0, 0, 54, 58], "gradient": ["kind.{kind}.top", "kind.{kind}.bottom"]},
+            {"id": "stripes", "type": "frame", "if": "kind=risk", "rect": [0, 0, 54, 58], "pattern": "hazard"},
+            {"id": "medallion", "type": "frame", "rect": [7, 9, 40, 40], "fill": "ink", "radius": "circle", "children": [
+              {"id": "ring", "type": "frame", "rect": [2, 2, 36, 36], "gradient": ["trim_light", "trim_dark"], "radius": "circle", "children": [
+                {"id": "disc", "type": "frame", "rect": [3, 3, 30, 30], "fill": "paper_top", "radius": "circle", "children": [
+                  {"id": "icon", "type": "image", "rect": [4, 4, 22, 22], "image": "icon.{icon}", "tint": "ink"}
+                ]}
+              ]}
+            ]},
+            {"id": "title", "type": "text", "unless": "stamp", "rect": [62, 5, 206, 24], "text": "{title}", "style": "ticket_title", "color": "title", "truncate": true},
+            {"id": "title_s", "type": "text", "if": "stamp", "rect": [62, 5, 131, 24], "text": "{title}", "style": "ticket_title", "color": "title", "truncate": true},
+            {"id": "body", "type": "text", "rect": [62, 29, 206, 17], "text": "{body}", "style": "ticket_body", "color": "text", "truncate": true},
+            {"id": "track", "type": "frame", "unless": "sticky", "rect": [62, 50, 206, 4], "fill": "ink", "alpha": 0.16, "radius": 2, "children": [
+              {"id": "life", "type": "frame", "rect": [0, 0, 206, 4], "fill": "kind.{kind}.bar", "radius": 2, "bar": "life", "pin": "tl"}
+            ]},
+            {"id": "stamp", "type": "text", "if": "stamp", "rect": [204, 9, 68, 36], "rot": -8, "fill": "paper_top", "alpha": 0.9, "stroke": ["kind.{kind}.stamp", 2.5], "radius": 6, "text": "{stamp}", "style": "stamp", "color": "kind.{kind}.stamp", "align": "center", "feel": "stamp"}
+          ]},
+          {"id": "notch_top", "type": "frame", "rect": [49, -8, 16, 16], "fill": "ink", "radius": "circle"},
+          {"id": "notch_bottom", "type": "frame", "rect": [49, 56, 16, 16], "fill": "ink", "radius": "circle"},
+          {"id": "perf", "type": "frame", "rect": [55, 14, 4, 4], "fill": "ink", "alpha": 0.8, "radius": "circle", "repeat": {"n": 5, "dy": 8}}
+        ]},
+        {"id": "badge", "type": "text", "if": "count", "rect": [272, -10, 26, 26], "fill": "ink", "stroke": ["trim", 2], "radius": "circle", "text": "{count}", "style": "badge", "color": "trim_light", "align": "center", "feel": "badge"}
+      ]}
+    ]
+  },
+  "ticket_compact": {
+    "runtime": true,
+    "size": [290, 44],
+    "doc": "Older ticket (ui.hud.compact_rule): title + bar only, same stub, notches and medallion.",
+    "canon": ["ui.hud.compact_rule", "ui.hud.ticket_size"],
+    "slots": {"kind": ["danger", "risk", "cash", "info"], "title": "text", "icon": "asset", "count": "number?", "life": "0..1", "halo": "bool", "sticky": "bool"},
+    "parts": [
+      {"id": "mover", "type": "frame", "rect": [0, 0, 290, 44], "feel": "ticket", "children": [
+        {"id": "halo_ink", "type": "frame", "if": "halo", "rect": [-7, -7, 304, 58], "fill": "ink", "radius": 17},
+        {"id": "halo_red", "type": "frame", "if": "halo", "rect": [-4, -4, 298, 52], "fill": "danger", "alpha": 0.9, "radius": 14, "feel": "halo"},
+        {"id": "shadow", "type": "frame", "rect": [0, 4, 290, 44], "fill": "shadow", "alpha": 0.45, "radius": 11},
+        {"id": "frame", "type": "frame", "rect": [0, 0, 290, 44], "gradient": ["frame_top", "frame_bottom"], "stroke": ["ink", 3], "radius": 11, "clip": true, "children": [
+          {"id": "card", "type": "frame", "rect": [3, 3, 284, 38], "gradient": ["paper_top", "paper_bottom"], "stroke": ["trim", 1.5], "radius": 8, "clip": true, "children": [
+            {"id": "stub", "type": "frame", "rect": [0, 0, 54, 38], "gradient": ["kind.{kind}.top", "kind.{kind}.bottom"]},
+            {"id": "stripes", "type": "frame", "if": "kind=risk", "rect": [0, 0, 54, 38], "pattern": "hazard"},
+            {"id": "medallion", "type": "frame", "rect": [13, 5, 28, 28], "fill": "ink", "radius": "circle", "children": [
+              {"id": "ring", "type": "frame", "rect": [2, 2, 24, 24], "gradient": ["trim_light", "trim_dark"], "radius": "circle", "children": [
+                {"id": "disc", "type": "frame", "rect": [2, 2, 20, 20], "fill": "paper_top", "radius": "circle", "children": [
+                  {"id": "icon", "type": "image", "rect": [3, 3, 14, 14], "image": "icon.{icon}", "tint": "ink"}
+                ]}
+              ]}
+            ]},
+            {"id": "title", "type": "text", "rect": [62, 3, 206, 22], "text": "{title}", "style": "ticket_title_c", "color": "title", "truncate": true},
+            {"id": "track", "type": "frame", "unless": "sticky", "rect": [62, 28, 206, 4], "fill": "ink", "alpha": 0.16, "radius": 2, "children": [
+              {"id": "life", "type": "frame", "rect": [0, 0, 206, 4], "fill": "kind.{kind}.bar", "radius": 2, "bar": "life", "pin": "tl"}
+            ]}
+          ]},
+          {"id": "notch_top", "type": "frame", "rect": [49, -8, 16, 16], "fill": "ink", "radius": "circle"},
+          {"id": "notch_bottom", "type": "frame", "rect": [49, 36, 16, 16], "fill": "ink", "radius": "circle"},
+          {"id": "perf", "type": "frame", "rect": [55, 12, 4, 4], "fill": "ink", "alpha": 0.8, "radius": "circle", "repeat": {"n": 3, "dy": 8}}
+        ]},
+        {"id": "badge", "type": "text", "if": "count", "rect": [272, -10, 26, 26], "fill": "ink", "stroke": ["trim", 2], "radius": "circle", "text": "{count}", "style": "badge", "color": "trim_light", "align": "center", "feel": "badge"}
+      ]}
+    ]
+  },
+  "more_chip": {
+    "runtime": true,
+    "size": [92, 26],
+    "doc": "Overflow chip \"+N MORE\" beside the top ticket (ui.hud.max_visible).",
+    "canon": ["ui.hud.max_visible"],
+    "slots": {"n": "number"},
+    "parts": [
+      {"id": "chip", "type": "text", "rect": [0, 0, 92, 26], "fill": "ink", "stroke": ["trim", 2], "radius": 13, "text": "+{n} MORE", "style": "badge", "color": "trim_light", "align": "center"}
+    ]
+  },
+  "button": {
+    "size": [160, 52],
+    "doc": "Button: shadow, face, label, gamepad glyph (left of the label; icon buttons show it in place of the label). Variants set the face and label roles. States: hover, pressed, disabled (focus is the themed SelectionImageObject).",
+    "slots": {"text": "text", "hint": "keycode?"},
+    "variants": {
+      "primary":   {"face": "accent", "face_dark": "accent_dark", "label": "on_accent", "style": "button", "glyph_left": true},
+      "secondary": {"face": "btn", "face_dark": "btn_dark", "label": "on_btn", "style": "button", "glyph_left": true},
+      "icon":      {"face": "btn", "face_dark": "btn_dark", "label": "on_btn", "style": "chip", "glyph_center": true}
+    },
+    "default_variant": "secondary",
+    "root": {"type": "hit", "comp": "button", "feel": "button"},
+    "parts": [
+      {"id": "shadow", "type": "frame", "rect": [0, 4, "100%", "100%-4"], "fill": "shadow", "alpha": 0.9, "radius": 12},
+      {"id": "face", "type": "frame", "rect": [0, 0, "100%", "100%-4"], "fill": "{face}", "stroke": ["ink", 3], "radius": 12, "children": [
+        {"id": "label", "type": "text", "rect": [6, 0, "100%-12", "100%"], "text": "{text}", "style": "{style}", "color": "{label}", "align": "center", "truncate": true},
+        {"id": "glyphs", "type": "frame", "if": "hint", "rect": [0, 0, "100%", "100%"], "children": [
+          {"id": "glyph", "type": "image", "if": "glyph_left", "rect": [8, "50%-12", 24, 24], "image": "key.{hint}", "gamepad_only": true},
+          {"id": "glyph_c", "type": "image", "if": "glyph_center", "rect": ["50%-14", "50%-14", 28, 28], "fill": "{face}", "radius": "circle", "image": "key.{hint}", "gamepad_only": true}
+        ]}
+      ]}
+    ],
+    "states": {
+      "hover":    {"face": {"dy": -1}},
+      "pressed":  {"face": {"dy": 3, "fill": "{face_dark}"}},
+      "disabled": {"root": {"alpha": 0.45}}
+    }
+  },
+  "chip": {
+    "size": [44, 44],
+    "doc": "Toggle chip (ui.lobby.controls: 44 x 44, radius 12). On = accent face, thicker ink edge and an underline mark (colour is never the only cue).",
+    "canon": ["ui.lobby.controls", "ui.rules.one_accent", "ui.rules.colourblind"],
+    "slots": {"text": "text"},
+    "root": {"type": "hit", "comp": "chip", "feel": "button"},
+    "parts": [
+      {"id": "face", "type": "frame", "rect": [0, 0, "100%", "100%"], "fill": "btn", "stroke": ["ink", 2], "radius": 12, "children": [
+        {"id": "label", "type": "text", "rect": [0, 0, "100%", "100%-4"], "text": "{text}", "style": "chip", "color": "on_btn", "align": "center"},
+        {"id": "mark", "type": "frame", "rect": ["50%-9", "100%-9", 18, 4], "fill": "ink", "radius": 2, "visible": false}
+      ]}
+    ],
+    "states": {
+      "on":       {"face": {"fill": "accent", "stroke": ["ink", 3]}, "label": {"color": "on_accent"}, "mark": {"visible": true}},
+      "pressed":  {"face": {"dy": 2}},
+      "disabled": {"root": {"alpha": 0.45}}
+    }
+  },
+  "panel": {
+    "size": [360, 300],
+    "doc": "Modal panel: shadow, body, header with title, brass rule, optional close button. Screen children are laid out relative to the panel and parented to the body.",
+    "slots": {"title": "text", "closable": "bool"},
+    "root": {"type": "frame", "comp": "panel", "feel": "panel"},
+    "parts": [
+      {"id": "shadow", "type": "frame", "rect": [0, 6, "100%", "100%-6"], "fill": "shadow", "alpha": 0.5, "radius": 16},
+      {"id": "body", "type": "frame", "rect": [0, 0, "100%", "100%-6"], "fill": "panel", "stroke": ["ink", 3], "radius": 16, "clip": true, "content": true, "children": [
+        {"id": "header", "type": "frame", "rect": [0, 0, "100%", 56], "fill": "header", "children": [
+          {"id": "title", "type": "text", "rect": [16, 0, "100%-76", 56], "text": "{title}", "style": "title", "color": "on_header"}
+        ]},
+        {"id": "rule", "type": "frame", "rect": [0, 56, "100%", 3], "fill": "trim"}
+      ]},
+      {"id": "close", "use": "button", "variant": "icon", "if": "closable", "rect": ["100%-56", 2, 52, 52], "slots": {"text": "X", "hint": "ButtonB"}, "action": "close"}
+    ]
+  }
+}

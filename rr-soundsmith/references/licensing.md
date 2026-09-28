@@ -10,15 +10,21 @@ assets.json, and `validate` re-checks every entry.
 | `owner_upload` | `self-made` | project file or "made by owner DATE" | includes recordings the owner made himself |
 | | `commissioned` | the contract or message granting rights for use in the game | name the author in `--credit` if they asked |
 | | `cc0` | the licence URL on the source page | keep a copy of the page; sites change |
-| | `purchased` | receipt + licence URL; the licence must cover games or interactive media and uploading to a platform | many "royalty-free" packs allow games; check "no redistribution of raw files" is satisfied (Roblox serves the audio inside the game) |
-| | `cc-by` | licence URL | needs `--credit`, shown in the game description (LICENCES.md lists it) |
-| `roblox_licensed` | (none) | the Creator Store URL | `--creator` must be Roblox or a Roblox audio partner shown on the asset; anything else warns; `--community` is refused (OQ-036 A). Licensed for use inside Roblox only: do not reuse it in trailers or ads |
+| | `purchased` | receipt + licence URL; the licence must cover games or interactive media and uploading to a platform | many "royalty-free" packs allow games but forbid redistributing the raw files: keep the uploaded asset private to your experiences and never distribute it on the Creator Store |
+| `roblox_licensed` | (none) | the Creator Store URL | needs `--id`; `--creator` must be Roblox or a Roblox audio partner shown on the asset; anything else warns; `--community` is refused (OQ-036 A). Licensed for use inside Roblox only: do not reuse it in trailers or ads |
 | `placeholder` | `rr-soundsmith synth` | none | files must be named `PLACEHOLDER_*` (the INFO chunk says so); never ship |
 
+`owner_upload` and `roblox_licensed` need `--id` (the asset id the game plays). Every uploaded file also passes
+`analyze` first: empty, silent, truncated or clipped files are refused. `--credit` records an author who asked to be
+named (LICENCES.md lists it for the game description).
+
 ## Refused (register exits 1, nothing written)
-NC (non-commercial), ND (no derivatives: levelling and trimming are edits), SA (share-alike), rips from games, films,
-YouTube or TikTok, "free download" with no licence, unknown or "not sure" terms, a PLACEHOLDER-tagged file registered
-as final, a community upload of Creator Store audio.
+NC (non-commercial), ND (no derivatives: levelling and trimming are edits), SA (share-alike), CC-BY (canon
+av.audio.licence names self-made, commissioned, CC0 and game-licensed purchases only; the owner can extend the rule,
+then the gate follows), an origin `cc0` whose licence text names attribution, rips from games, films, YouTube or TikTok
+(matched as whole words: "Ripley" is fine), "free download" with no licence, unknown or "not sure" terms, a
+PLACEHOLDER-tagged file registered as final, a community upload of Creator Store audio. The gate reads text: it
+cannot prove a claim, so the proof (receipt, URL, contract) is what the owner keeps.
 
 ## Why this strict
 Roblox requires the uploader to hold the rights (tech.audio.rights); a takedown or a moderation strike silences the

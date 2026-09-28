@@ -1,0 +1,33 @@
+{
+ "sheet": [
+  1312,
+  756
+ ],
+ "megapixels": 0.99,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "lever drag curve: finger to knob, detent and commit at 70%, snap home, snapback (OQ-031 default)",
+   "src": "/home/user/claude/trials/rr-game-feel/plots/lever.png",
+   "box": [
+    6,
+    24,
+    900,
+    300
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "lever: lever_commit with reduce motion, then the other events",
+   "src": "/home/user/claude/trials/rr-game-feel/src/feel/preview/lever/_grid.png",
+   "box": [
+    6,
+    348,
+    1300,
+    401
+   ],
+   "scale": "fit x0.86"
+  }
+ ]
+}

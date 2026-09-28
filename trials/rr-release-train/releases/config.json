@@ -1,0 +1,30 @@
+{
+ "places": [
+  {
+   "name": "Lobby",
+   "universe_id": 1111,
+   "place_id": 2222,
+   "start": true
+  },
+  {
+   "name": "Trip",
+   "universe_id": 1111,
+   "place_id": 3333
+  }
+ ],
+ "repos": [
+  {
+   "path": "/tmp/claude-0/-home-user-claude/025e6bab-05c4-57af-b37d-7bdbf9fb328f/scratchpad/rt-game-repo",
+   "kind": "auto"
+  },
+  {
+   "path": "/home/user/claude",
+   "kind": "auto"
+  }
+ ],
+ "missions": [
+  "/home/user/claude/missions"
+ ],
+ "luau_tests": true,
+ "bleed_minutes": 10
+}
