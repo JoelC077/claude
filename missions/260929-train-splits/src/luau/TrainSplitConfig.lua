@@ -21,7 +21,7 @@ Config.SpeedAttribute = "Speed" -- attribute on the train Model, studs/s (your g
 Config.SpeedDefault = 35 -- canon gameplay.speed.normal; used when the attribute is missing
 Config.Brake = 12 -- break_spec motion.brake: studs/s^2 the lost part slows by until it moves with the terrain
 Config.Recoil = { dist = 0.8, time = 0.2 } -- break_spec motion.recoil: the blast shoves the wreck back
-Config.LeadTime = 0.25 -- the snap happens this long after SplitAt, so metal_tear (t = -0.25) is heard first
+Config.LeadTime = 0.25 -- the snap happens this long after SplitAt, so metal_tear (t = -0.25) lands on the boom
 Config.LateTolerance = 0.5 -- a client that learns of the snap later than this skips the one-shot fx
 Config.Despawn = { distance = 700, time = 30 } -- break_spec: studs behind where it broke off / seconds
 
@@ -72,57 +72,60 @@ Config.Cells = {
 -- CELLS END
 
 -- Timeline (break_spec events). t = seconds after the snap. fx = key into Config.FX, sound = key into
--- Config.Sounds, at = key into Config.Anchors (or "impact" / "wreck", resolved per lost body).
+-- Config.Sounds, at = key into Config.Anchors, or "impact" (where each body lands) / "wreck" (a body's root).
+-- soundAt overrides where the sound plays. loop = seconds a looping fx runs, fade = its fade-out after that.
 Config.Events = {
-	{ t = -0.25, id = "metal_tear", sound = "metal_tear", at = "explosion" },
-	{ t = 0.0, id = "split_explosion", fx = "split_explosion", sound = "split_explosion", shake = "big", at = "explosion" },
-	{ t = 0.0, id = "glass_burst", fx = "glass_burst", sound = "split_glass", at = "windows" },
-	{ t = 0.05, id = "torn_edge_smoke", fx = "torn_edge_smoke", loop = 20, at = "torn_edges" },
+	{ t = -0.25, id = "metal_tear", sound = "metal_tear", at = "split_core" },
+	{ t = 0.0, id = "split_explosion", fx = "split_explosion", sound = "split_explosion", shake = "big", at = "split_core" },
+	{ t = 0.0, id = "glass_burst", fx = "glass_burst", sound = "split_glass", at = "glass" },
+	{ t = 0.05, id = "torn_edge_smoke", fx = "torn_edge_smoke", loop = 20, fade = 3.5, at = "torn_edge" },
+	{ t = 0.3, t_end = "stop", id = "wreck_scrape", sound = "wreck_scrape", at = "wreck" },
 	{ t = 0.8, id = "debris_rain", sound = "debris_rain", at = "debris" },
-	{ t = "impact", id = "topple_crash", fx = "topple_dust", sound = "topple_crash", shake = "medium", at = "impact" },
-	{ t = 0.3, t_end = "stop", id = "wreck_scrape", sound = "wreck_scrape", at = "wreck", perBody = true },
+	{ t = "impact", id = "topple_crash", fx = "topple_dust", sound = "topple_crash", shake = "medium", at = "impact", soundAt = "wreck" },
 }
 
--- Anchors in the break frame (studs). Window and torn-edge points were read off the export near the break.
+-- Anchor points in the break frame (studs). RR_VFX anchors are Attachments turned X forward, Y up, Z right:
+-- CFrame = BreakCF * CFrame.new(p) * CFrame.Angles(0, rad(yaw), 0), yaw 90 unless given.
 Config.Anchors = {
-	explosion = Vector3.new(0, 5, 0), -- break_spec events: split_explosion / metal_tear
+	split_core = Vector3.new(0, 5, 0), -- SplitCore: split_explosion burst; the "break" sound emitter (metal_tear)
 	debris = Vector3.new(0, 3, 2), -- break_spec events: debris_rain
-	windows = { -- panes either side of the break pillar (windows 4 and 5), both walls
-		Vector3.new(-9.4, 6.6, -4.5),
-		Vector3.new(9.4, 6.6, -4.5),
-		Vector3.new(-9.4, 6.6, 4.5),
-		Vector3.new(9.4, 6.6, 4.5),
+	glass = { -- SplitGlassL/R: outer face of the kept half's window pane nearest the break, Z pointing out
+		{ p = Vector3.new(-9.75, 6.6, -4.5), yaw = -90 },
+		{ p = Vector3.new(9.75, 6.6, -4.5), yaw = 90 },
 	},
-	torn_edges = { -- points on the tear: west wall, east wall, roof, floor (smoke on the kept end and the wreck)
-		Vector3.new(-9.5, 5, 0.9),
-		Vector3.new(9.5, 5, -0.2),
-		Vector3.new(0, 13, -2.2),
-		Vector3.new(0, 0.2, 0.9),
-	},
+	torn_edge = Vector3.new(0, 12.4, -2.2), -- TornEdge: torn_edge_smoke on the kept half (roof bite)
+	-- WreckDust (topple_dust) is placed per body where it lands: (+-Pivot.X_abs, Pivot.Y, body mid-length)
 }
 
--- FX preset names, played through ReplicatedStorage.RR_VFX (VFX.burst / VFX.attach) when it exists.
--- split_explosion, torn_edge_smoke and topple_dust are the T3 split presets; glass_burst is from the fx library.
--- A missing library or preset falls back to Config.FallbackFX below.
+-- FX presets (T3, src/fx/build/RR_FXPresets.lua), played through RR_VFX (ReplicatedStorage.RR_VFX or
+-- ReplicatedStorage.RRFX.RR_VFX): VFX.burst for one-shots, VFX.attach + setIntensity/detach for the loop.
+-- A missing RR_VFX or a failing preset falls back to Config.FallbackFX below.
 Config.FX = {
-	split_explosion = "split_explosion",
-	glass_burst = "glass_burst",
-	torn_edge_smoke = "torn_edge_smoke",
-	topple_dust = "topple_dust",
+	split_explosion = "split_explosion", -- burst, SplitCore
+	glass_burst = "glass_burst", -- burst, SplitGlassL/R
+	torn_edge_smoke = "torn_edge_smoke", -- loop, TornEdge
+	topple_dust = "topple_dust", -- burst, WreckDust
 }
 Config.FxAnchorLife = 12 -- seconds a one-shot fx anchor lives: longer than any preset's particles
 
--- Sounds: synthesised by the T4 sound pass (rr-soundsmith, mission 260929-train-splits), licence-clean.
--- Upload each file (Studio Asset Manager > Bulk Import, or the Creator Hub), then paste "rbxassetid://<id>".
--- An empty SoundId is skipped. Volumes keep the mix order boom > tear > crash > debris.
-Config.SoundGroupName = "SFX" -- optional SoundGroup in SoundService; used when it exists
+-- Sounds: made from code by the T4 pass (rr-soundsmith), licence-clean, files in src/sound/final/.
+-- Upload each rr_split_<id>.wav (Studio Asset Manager or Creator Hub) and paste "rbxassetid://<id>".
+-- An empty SoundId is skipped. Numbers are from src/sound/final/SOUNDS.md (mix boom > tear > crash > debris).
+-- Group = SoundGroup name in SoundService, used when it exists. Pitch = random PlaybackSpeed range per play.
 Config.Sounds = {
-	metal_tear = { SoundId = "", Volume = 0.8, Is3D = true, RollOffMaxDistance = 350 }, -- T4 "metal_tear": rip just before the snap
-	split_explosion = { SoundId = "", Volume = 1.0, Is3D = true, RollOffMaxDistance = 600 }, -- T4 "split_explosion": the boom
-	split_glass = { SoundId = "", Volume = 0.6, Is3D = true, RollOffMaxDistance = 250 }, -- T4 glass burst: the windows at the break
-	debris_rain = { SoundId = "", Volume = 0.45, Is3D = true, RollOffMaxDistance = 250 }, -- T4 "debris_rain": bits landing
-	topple_crash = { SoundId = "", Volume = 0.75, Is3D = true, RollOffMaxDistance = 450 }, -- T4 "topple_crash": wreck hits the ground
-	wreck_scrape = { SoundId = "", Volume = 0.5, Is3D = true, Looped = true, RollOffMaxDistance = 300 }, -- T4 "wreck_scrape": grind while braking
+	-- rr_split_metal_tear.wav, t -0.25: the snap is 0.25 s into the file, so it lands on the boom
+	metal_tear = { SoundId = "", Volume = 0.594, Is3D = true, RollOffMinDistance = 16, RollOffMaxDistance = 240, Group = "Alarms", Pitch = { 0.97, 1.03 } },
+	-- rr_split_split_explosion.wav, t 0: positional layer at the break plus a flat train-wide layer (Volume2D)
+	split_explosion = { SoundId = "", Volume = 0.5, Volume2D = 0.792, Is3D = true, RollOffMinDistance = 16, RollOffMaxDistance = 240, Group = "Alarms", Pitch = { 0.96, 1.04 } },
+	-- rr_split_split_glass.wav (same audio as glass_smash: one upload serves both), t 0, once per side 0.1 s apart
+	split_glass = { SoundId = "", Volume = 0.562, Is3D = true, RollOffMinDistance = 16, RollOffMaxDistance = 240, Group = "Alarms", Pitch = { 0.93, 1.07 }, Stagger = 0.1 },
+	-- rr_split_debris_rain.wav, t 0.8
+	debris_rain = { SoundId = "", Volume = 0.397, Is3D = true, RollOffMinDistance = 10, RollOffMaxDistance = 140, Group = "Actions", Pitch = { 0.9, 1.1 } },
+	-- rr_split_topple_crash.wav, each landing (break 1: carriage 2 lands 0.5 s later, a bigger body pitched 0.94)
+	topple_crash = { SoundId = "", Volume = 0.561, Is3D = true, RollOffMinDistance = 16, RollOffMaxDistance = 240, Group = "Actions", Pitch = { 0.92, 1.06 }, BodyPitch = { 1, 0.94 } },
+	-- rr_split_wreck_scrape.wav, t 0.3 .. V/brake on the front-most wreck. Authored 2.7 s for Speed 35: the
+	-- client fits PlaybackSpeed to the slide (within FitSpeed) and fades it out when the wreck reaches terrain speed.
+	wreck_scrape = { SoundId = "", Volume = 0.398, Is3D = true, RollOffMinDistance = 10, RollOffMaxDistance = 140, Group = "Actions", Pitch = { 0.95, 1.05 }, Length = 2.7, FitSpeed = { 0.8, 1.25 } },
 }
 
 -- Camera shake (client). amplitude in degrees, fading to 0 at `falloff` studs from the camera.
@@ -132,7 +135,7 @@ Config.Shake = {
 	medium = { amplitude = 0.6, duration = 0.5, frequency = 12, falloff = 150 },
 }
 
--- Built-in fallback emitters (only when RR_VFX or a preset is missing). Built-in textures, phone-sized counts.
+-- Built-in fallback emitters, only when RR_VFX or a preset is missing. Built-in textures, phone-sized counts.
 -- Lists are evenly spaced keypoints over a particle's life; colours are hex (canon soot/ironwork/brass/hazard).
 local TEX_FIRE = "rbxasset://textures/particles/fire_main.dds"
 local TEX_SMOKE = "rbxasset://textures/particles/smoke_main.dds"
@@ -159,7 +162,7 @@ Config.FallbackFX = {
 		loop = true,
 		life = 3.5,
 		emitters = {
-			{ Texture = TEX_SMOKE, Rate = 4, Lifetime = { 2, 3.5 }, Speed = { 1, 3 }, Size = { 1.5, 5 }, Transparency = { 0.35, 1 }, Color = { "#4A4E55", "#15181B" }, Drag = 1, Wind = true },
+			{ Texture = TEX_SMOKE, Rate = 6, Lifetime = { 2, 3.5 }, Speed = { 1, 3 }, Size = { 1.5, 5 }, Transparency = { 0.35, 1 }, Color = { "#4A4E55", "#15181B" }, Drag = 1, Wind = true },
 		},
 	},
 	topple_dust = {

@@ -54,6 +54,7 @@ SIDE = {1: +1, 2: -1}            # renders: break 1 falls toward +X, break 2 tow
 AFTER = ['Cam_Hero', 'Cam_POV_In', 'Cam_Roof3P', 'Cam_Wide', 'Cam_Side', 'Cam_Game']
 STATES = {   # state: (kind, breaking carriage k, t, cameras in render order)
     'intact':      ('intact', 1, None, ['Cam_SeamOut', 'Cam_SeamRoof_debug', 'Cam_SeamRoof', 'Cam_SeamIn']),
+    'seamref':     ('seamref', 1, None, ['Cam_SeamOut', 'Cam_SeamIn']),   # uncut original, diffed against intact
     'exploded':    ('exploded', 1, None, ['Cam_Exploded']),
     'break1_t0.3': ('break', 1, 0.3, ['Cam_Wide', 'Cam_Side']),
     'break1_t1.0': ('break', 1, 1.0, ['Cam_Wide', 'Cam_Side']),
@@ -536,6 +537,7 @@ class Build:
         self.half = {'C1F': [], 'C1R': [], 'C2F': [], 'C2R': []}
         self.piece_info = []            # per crosser rows for preflight
         self.pieces = {}                # crosser -> {'F': [objs], 'R': [objs], 'k': k}
+        self.originals = {}             # crosser -> original (uncut, hidden) object
         self.cap_flags = {}             # obj name -> bool array per face (mesh polygon order)
         self.cutters = make_cutters()
         self.assign()
@@ -623,7 +625,8 @@ class Build:
                 self.pieces[name] = {'F': fobjs, 'R': robjs, 'k': k}
                 self.half['C%dF' % k] += fobjs
                 self.half['C%dR' % k] += robjs
-                bpy.data.objects.remove(o, do_unlink=True)
+                o.hide_render = True                                  # kept only for the uncut reference renders
+                self.originals[name] = o
                 del self.by[name]
 
     @staticmethod
@@ -750,6 +753,39 @@ class Build:
                 o.matrix_world = self.R @ Matrix(mats.get(o.name, np.eye(4)).tolist())
         self.tearline.matrix_world = self.R @ Matrix(mats.get(self.half['C1F'][0].name, np.eye(4)).tolist())
         return desc
+
+    # ---- uncut reference: same cameras with the original crossers, pixel diff against the intact renders
+    def render_reference(self, samples, out_dir, scale, log, pf_path):
+        self.apply_pose('intact')
+        pieces = [ob for pc in self.pieces.values() for t in ('F', 'R') for ob in pc[t]]
+        for ob in pieces: ob.hide_render = True
+        for o in self.originals.values(): o.hide_render = False
+        rows = []
+        try:
+            for cname in STATES['seamref'][3]:
+                c, res = self.camera(cname, 1)
+                path = os.path.join(out_dir, 'reference_uncut__%s.png' % cname)
+                r = (max(16, res[0] * scale // 100), max(16, res[1] * scale // 100))
+                t1 = time.time(); S.render(c, path, res=r, samples=samples); dt = time.time() - t1
+                log.append(('reference_uncut', cname, dt, 'original crossers, no cut'))
+                print('[render] reference_uncut %s %.1fs' % (cname, dt), flush=True)
+                other = os.path.join(out_dir, 'intact__%s.png' % cname)
+                if os.path.exists(other):
+                    from PIL import Image
+                    a = np.asarray(Image.open(path).convert('RGB')).astype(int)
+                    b = np.asarray(Image.open(other).convert('RGB')).astype(int)
+                    if a.shape == b.shape:
+                        d = np.abs(a - b).max(axis=2)
+                        rows.append('| %s | %d | %.3f | %d |' % (cname, d.max(), d.mean(), int((d > 12).sum())))
+        finally:
+            for ob in pieces: ob.hide_render = False
+            for o in self.originals.values(): o.hide_render = True
+        if rows and pf_path and os.path.exists(pf_path):
+            with open(pf_path, 'a') as f:
+                f.write('\n## 7. Seam check in pixels: intact (cut pieces) vs the uncut original, same camera, same samples\n\n'
+                        '| camera | max channel diff (0-255) | mean | pixels > 12 |\n|---|---|---|---|\n' + '\n'.join(rows) + '\n'
+                        '\nSame seed and settings; a visible seam would show as a line of large differences. '
+                        'Small values come from the re-triangulated pieces (float noise), not from a gap.\n')
 
     # ---- render
     def render_state(self, state, cams_filter, samples, out_dir, scale, log):
@@ -1035,7 +1071,8 @@ def preflight(B, path):
 
     # 5 intact gaps
     w('## 5. Intact state: the two pieces of each crosser meet with no gap\n')
-    w('Max distance from every cut-face vertex of one piece to the other piece\'s cut faces (both directions).\n')
+    w('Max distance from every cut-face vertex of one piece to the other piece\'s cut faces (both directions; BVH in float32, '
+      'so 0 means below ~1e-5).\n')
     w('| crosser | max gap |')
     w('|---|---|')
     gmax = 0.0
@@ -1128,6 +1165,9 @@ def main():
     sheets_done = set()
     t_all = time.time()
     for st in states:
+        if st == 'seamref':
+            B.render_reference(args.samples, args.out, args.scale, log, pf)
+            continue
         for rendered in B.render_state(st, cams_filter, args.samples, args.out, args.scale, log):
             if args.no_sheets:
                 continue

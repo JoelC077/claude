@@ -7,9 +7,12 @@ and never sends anything back.
 
 Everything runs off one render-step callback and the shared server clock
 (workspace:GetServerTimeNow()), so every player sees the same moment and nothing drifts.
-FX go through ReplicatedStorage.RR_VFX (VFX.burst / VFX.attach) when it exists, else a small
-built-in emitter set from TrainSplitConfig.FallbackFX. Camera shake is off when the player's
-reduce-motion attribute is true.
+FX go through RR_VFX (ReplicatedStorage.RR_VFX or ReplicatedStorage.RRFX.RR_VFX) when it exists:
+VFX.burst for one-shots, VFX.attach + setIntensity + detach for the torn-edge smoke (never setActive:
+it works by preset name and would stop the other break's smoke too). Without RR_VFX, or when a
+preset fails, a small built-in emitter set from TrainSplitConfig.FallbackFX plays instead.
+Sounds are plain Sound instances from TrainSplitConfig.Sounds (empty ids are skipped).
+Camera shake is off when the player's reduce-motion attribute is true.
 ]]
 
 local Players = game:GetService("Players")
@@ -32,7 +35,8 @@ local vfxLib = nil
 local function getVfx()
 	if vfxLib == nil then
 		vfxLib = false
-		local mod = ReplicatedStorage:FindFirstChild("RR_VFX")
+		local folder = ReplicatedStorage:FindFirstChild("RRFX")
+		local mod = ReplicatedStorage:FindFirstChild("RR_VFX") or (folder and folder:FindFirstChild("RR_VFX"))
 		if mod and mod:IsA("ModuleScript") then
 			local ok, lib = pcall(require, mod)
 			if ok and type(lib) == "table" then
@@ -84,17 +88,17 @@ local function later(snap, t, fn)
 	table.insert(snap.cleanup, { at = t, fn = fn })
 end
 
--- Static fx point (Terrain sits at the origin, so its attachments are in world space).
-local function worldAnchor(worldCF)
-	local a = Instance.new("Attachment")
-	a.Name = "RR_SplitFX"
-	a.CFrame = worldCF
-	a.Parent = workspace:FindFirstChildOfClass("Terrain")
-	return a
+local function terrain()
+	return workspace:FindFirstChildOfClass("Terrain")
 end
 
--- Fx point riding on a part (a wreck root or the kept half's root).
-local function partAnchor(part, worldCF)
+-- RR_VFX anchor frame: X forward (toward the front), Y up, Z right; yaw -90 turns Z to the left instead.
+local function anchorCF(B, p, yaw)
+	return B * CFrame.new(p) * CFrame.Angles(0, math.rad(yaw or 90), 0)
+end
+
+-- An Attachment at a world CFrame on a static part (Terrain sits at the origin) or a moving one.
+local function anchorOn(part, worldCF)
 	local a = Instance.new("Attachment")
 	a.Name = "RR_SplitFX"
 	a.CFrame = part.CFrame:ToObjectSpace(worldCF)
@@ -102,7 +106,7 @@ local function partAnchor(part, worldCF)
 	return a
 end
 
-local function anchorWorld(anchor)
+local function worldOf(anchor)
 	if anchor:IsA("Attachment") then
 		return anchor.Parent.CFrame * anchor.CFrame
 	end
@@ -120,7 +124,7 @@ local function bodyRoot(body)
 	return body.root
 end
 
----------------------------------------------------------------- fx, sound, shake
+---------------------------------------------------------------- fx
 
 local function fallbackFx(snap, key, anchor, t, loopFor)
 	local def = Config.FallbackFX[key]
@@ -154,7 +158,6 @@ local function fallbackFx(snap, key, anchor, t, loopFor)
 		end
 		table.insert(emitters, pe)
 	end
-	local pos = anchorWorld(anchor).Position
 	if def.flash then
 		local light = Instance.new("PointLight")
 		light.Brightness = def.flash.Brightness
@@ -172,7 +175,7 @@ local function fallbackFx(snap, key, anchor, t, loopFor)
 		blast.BlastRadius = 4
 		blast.DestroyJointRadiusPercent = 0
 		blast.ExplosionType = Enum.ExplosionType.NoCraters
-		blast.Position = pos
+		blast.Position = worldOf(anchor).Position
 		blast.Parent = workspace
 	end
 	local stopAt = t + (loopFor or 0)
@@ -190,19 +193,6 @@ local function fallbackFx(snap, key, anchor, t, loopFor)
 	end)
 end
 
-local function stopHandle(handle)
-	if type(handle) == "function" then
-		handle()
-	elseif typeof(handle) == "Instance" then
-		handle:Destroy()
-	elseif type(handle) == "table" then
-		local stop = handle.Stop or handle.Destroy or handle.stop or handle.destroy
-		if type(stop) == "function" then
-			stop(handle)
-		end
-	end
-end
-
 local function playFx(snap, e, anchor, t)
 	local preset = Config.FX[e.fx] or e.fx
 	local lib = getVfx()
@@ -211,44 +201,81 @@ local function playFx(snap, e, anchor, t)
 		local ok, handle = pcall(fn, anchor, preset)
 		if ok then
 			if e.loop then
+				-- fade the loop out by intensity (never setActive: that is per preset name, for every handle)
 				later(snap, t + e.loop, function()
-					pcall(stopHandle, handle)
+					if lib.setIntensity then
+						lib.setIntensity(handle, 0)
+					end
+				end)
+				later(snap, t + e.loop + (e.fade or 0), function()
+					if lib.detach then
+						lib.detach(handle)
+					end
 				end)
 			end
 			return
 		end
-		warn(("TrainSplitClient: RR_VFX preset %q failed (%s); using fallback"):format(preset, tostring(handle)))
+		warn(("TrainSplitClient: RR_VFX %q failed (%s); using fallback fx"):format(preset, tostring(handle)))
 	end
 	fallbackFx(snap, e.fx, anchor, t, e.loop)
 end
 
-local function playSound(snap, key, parent, t)
-	local def = Config.Sounds[key]
-	if not def or type(def.SoundId) ~= "string" or def.SoundId == "" then
-		return nil -- no id pasted yet: stay silent
-	end
+---------------------------------------------------------------- sound
+
+local function newSound(key, def, volume, pitch)
 	local sound = Instance.new("Sound")
 	sound.Name = "RR_" .. key
 	sound.SoundId = def.SoundId
-	sound.Volume = def.Volume or 0.5
-	sound.Looped = def.Looped == true
+	sound.Volume = volume
+	sound.PlaybackSpeed = pitch
 	sound.RollOffMode = Enum.RollOffMode.InverseTapered
 	sound.RollOffMinDistance = def.RollOffMinDistance or 10
-	sound.RollOffMaxDistance = def.RollOffMaxDistance or 400
-	local group = SoundService:FindFirstChild(Config.SoundGroupName or "")
+	sound.RollOffMaxDistance = def.RollOffMaxDistance or 240
+	local group = def.Group and SoundService:FindFirstChild(def.Group)
 	if group and group:IsA("SoundGroup") then
 		sound.SoundGroup = group
 	end
-	-- a Sound inside an attachment or part is heard from there; in SoundService it is flat (2D)
+	return sound
+end
+
+local function playSound(snap, e, parent, t)
+	local def = Config.Sounds[e.sound]
+	if not def or type(def.SoundId) ~= "string" or def.SoundId == "" then
+		return nil -- no id pasted yet: stay silent
+	end
+	local pitch = 1
+	if def.Pitch then
+		pitch = def.Pitch[1] + math.random() * (def.Pitch[2] - def.Pitch[1])
+	end
+	if def.BodyPitch and e.body then
+		pitch *= def.BodyPitch[e.body] or 1
+	end
+	if def.Length and def.FitSpeed and e.t_end and e.t_end > e.t and e.t_end < math.huge then
+		-- stretch the authored clip over this snap's slide (it was made for Speed 35)
+		pitch *= math.clamp(def.Length / (e.t_end - e.t), def.FitSpeed[1], def.FitSpeed[2])
+	end
+	-- a Sound in an attachment or part is heard from there; in SoundService it is flat (2D)
+	local sound = newSound(e.sound, def, def.Volume or 0.5, pitch)
 	sound.Parent = (def.Is3D ~= false and parent) or SoundService
 	sound:Play()
-	if not sound.Looped then
-		later(snap, t + (def.MaxLength or 10), function()
-			sound:Destroy()
+	local sounds = { sound }
+	if def.Volume2D then
+		local flat = newSound(e.sound, def, def.Volume2D, pitch)
+		flat.Parent = SoundService
+		flat:Play()
+		table.insert(sounds, flat)
+	end
+	if not e.t_end then
+		later(snap, t + (def.Length or 4) / pitch + 1, function()
+			for _, s in sounds do
+				s:Destroy()
+			end
 		end)
 	end
 	return sound
 end
+
+---------------------------------------------------------------- shake
 
 local function addShake(kind, worldPos, now)
 	if player and player:GetAttribute(Config.ReduceMotionAttribute) == true then
@@ -262,87 +289,6 @@ local function addShake(kind, worldPos, now)
 	local scale = math.clamp(1 - (camera.CFrame.Position - worldPos).Magnitude / spec.falloff, 0, 1)
 	if scale > 0 then
 		table.insert(shakes, { start = now, amp = spec.amplitude * scale, dur = spec.duration, freq = spec.frequency, seed = math.random() * 100 })
-	end
-end
-
----------------------------------------------------------------- the timeline
-
--- Where an event happens: a list of anchors plus one world position (for distance-scaled shake).
-local function anchorsFor(snap, e)
-	local B = snap.breakCF
-	local at = e.at
-	if at == "wreck" then
-		local body = snap.bodies[e.body]
-		local root = body and bodyRoot(body)
-		return root and { root } or {}, root and root.CFrame.Position or B.Position
-	elseif at == "impact" then
-		local body = snap.bodies[e.body]
-		local root = body and bodyRoot(body)
-		if not root then
-			return {}, B.Position
-		end
-		-- ground contact under the falling side at impact time, riding with the wreck
-		local rel = B:ToObjectSpace(body.base)
-		local _, _, sink = Shared.topple(e.t, body.params.topple)
-		local z = rel.Position.Z + Shared.drift(e.t, body.params.V, body.params.brake, body.params.recoil)
-		local hit = B * CFrame.new(snap.side * body.params.pivot.X_abs, body.params.pivot.Y - sink, z)
-		local rootAt = Shared.bodyCFrame(body.base, B, snap.side, e.t, body.params)
-		local a = Instance.new("Attachment")
-		a.Name = "RR_SplitFX"
-		a.CFrame = rootAt:ToObjectSpace(hit)
-		a.Parent = root
-		return { a }, hit.Position
-	elseif at == "torn_edges" then
-		local list = {}
-		local holders = { snap.kept }
-		local first = snap.bodies[1]
-		if first and first.torn then
-			table.insert(holders, bodyRoot(first))
-		end
-		for _, holder in holders do
-			if holder and holder.Parent then
-				for _, p in Config.Anchors.torn_edges do
-					table.insert(list, partAnchor(holder, B * CFrame.new(p)))
-				end
-			end
-		end
-		return list, B.Position
-	end
-	local points = Config.Anchors[at]
-	if typeof(points) == "Vector3" then
-		points = { points }
-	end
-	local list = {}
-	for _, p in points or {} do
-		table.insert(list, worldAnchor(B * CFrame.new(p)))
-	end
-	return list, (list[1] and anchorWorld(list[1]).Position) or B.Position
-end
-
-local function runEvent(snap, e, t, now)
-	local anchors, where = anchorsFor(snap, e)
-	if e.fx then
-		for _, a in anchors do
-			playFx(snap, e, a, t)
-		end
-	end
-	if e.sound and anchors[1] then
-		local sound = playSound(snap, e.sound, anchors[1], t)
-		if sound and e.t_end then
-			snap.loops[e] = sound
-		end
-	end
-	if e.shake then
-		addShake(e.shake, where, now)
-	end
-	-- attachments made for this event go once their fx are done
-	local keep = (e.loop or 0) + (Config.FxAnchorLife or 12)
-	for _, a in anchors do
-		if a:IsA("Attachment") then
-			later(snap, t + keep, function()
-				a:Destroy()
-			end)
-		end
 	end
 end
 
@@ -364,6 +310,81 @@ local function shakeAngles(now)
 	return x, y, z
 end
 
+---------------------------------------------------------------- the timeline
+
+-- Where an event happens: a list of anchors (Attachments, or a wreck root) and one world position.
+local function anchorsFor(snap, e, at)
+	local B = snap.breakCF
+	if at == "wreck" then
+		local body = snap.bodies[e.body or 1]
+		local root = body and bodyRoot(body)
+		return root and { root } or {}, root and root.CFrame.Position or B.Position
+	elseif at == "impact" then
+		-- WreckDust: upright on the ground at the landed body's track-side edge, mid-length, X along the track
+		local body = snap.bodies[e.body or 1]
+		if not body then
+			return {}, B.Position
+		end
+		local z = B:ToObjectSpace(body.base).Position.Z + Shared.drift(e.t, body.params.V, body.params.brake, body.params.recoil)
+		local cf = anchorCF(B, Vector3.new(snap.side * body.params.pivot.X_abs, body.params.pivot.Y, z))
+		return { anchorOn(terrain(), cf) }, cf.Position
+	elseif at == "torn_edge" then
+		local holder = (snap.kept and snap.kept.Parent) and snap.kept or terrain()
+		local cf = anchorCF(B, Config.Anchors.torn_edge)
+		return { anchorOn(holder, cf) }, cf.Position
+	end
+	local spec = Config.Anchors[at]
+	local list = {}
+	if typeof(spec) == "Vector3" then
+		spec = { spec }
+	end
+	for _, s in spec or {} do
+		local p, yaw = s, nil
+		if typeof(s) ~= "Vector3" then
+			p, yaw = s.p, s.yaw
+		end
+		table.insert(list, anchorOn(terrain(), anchorCF(B, p, yaw)))
+	end
+	return list, (list[1] and worldOf(list[1]).Position) or B.Position
+end
+
+local function runEvent(snap, e, t, now)
+	local anchors, where = anchorsFor(snap, e, e.at)
+	if e.fx then
+		for _, a in anchors do
+			playFx(snap, e, a, t)
+		end
+	end
+	if e.sound then
+		local parents = e.soundAt and anchorsFor(snap, e, e.soundAt) or anchors
+		local stagger = Config.Sounds[e.sound] and Config.Sounds[e.sound].Stagger
+		for i, parent in parents do
+			if i == 1 then
+				local sound = playSound(snap, e, parent, t)
+				if sound and e.t_end then
+					snap.loops[e] = sound
+				end
+			elseif stagger then
+				later(snap, t + (i - 1) * stagger, function()
+					playSound(snap, e, parent, t + (i - 1) * stagger)
+				end)
+			end
+		end
+	end
+	if e.shake then
+		addShake(e.shake, where, now)
+	end
+	-- attachments made for this event go once their fx are done (RR_VFX reads them until then)
+	local keep = (e.loop or 0) + (e.fade or 0) + (Config.FxAnchorLife or 12)
+	for _, a in anchors do
+		if a:IsA("Attachment") then
+			later(snap, t + keep, function()
+				a:Destroy()
+			end)
+		end
+	end
+end
+
 local function step()
 	local now = workspace:GetServerTimeNow()
 	for i = #active, 1, -1 do
@@ -372,7 +393,7 @@ local function step()
 		for _, e in snap.timeline do
 			if not snap.fired[e] and t >= e.t then
 				snap.fired[e] = true
-				-- a one-shot heard about too late is skipped; loops still start
+				-- a one-shot heard about too late is skipped; loops and slides still start
 				if t - e.t <= Config.LateTolerance or e.loop or e.t_end then
 					local ok, err = pcall(runEvent, snap, e, t, now)
 					if not ok then
@@ -384,9 +405,19 @@ local function step()
 				snap.ended[e] = true
 				local sound = snap.loops[e]
 				if sound then
-					sound:Stop()
-					sound:Destroy()
+					table.insert(snap.fades, { sound = sound, from = sound.Volume, start = t, dur = 0.15 })
 				end
+			end
+		end
+		for j = #snap.fades, 1, -1 do
+			local f = snap.fades[j]
+			local u = (t - f.start) / f.dur
+			if u >= 1 then
+				table.remove(snap.fades, j)
+				f.sound:Stop()
+				f.sound:Destroy()
+			else
+				f.sound.Volume = f.from * (1 - u)
 			end
 		end
 		-- smooth each wreck root locally; its welded parts follow
@@ -400,10 +431,13 @@ local function step()
 			local job = snap.cleanup[j]
 			if t >= job.at then
 				table.remove(snap.cleanup, j)
-				pcall(job.fn)
+				local ok, err = pcall(job.fn)
+				if not ok then
+					warn("TrainSplitClient: cleanup", err)
+				end
 			end
 		end
-		if t > snap.finishT and #snap.cleanup == 0 then
+		if t > snap.finishT and #snap.cleanup == 0 and #snap.fades == 0 then
 			table.remove(active, i)
 		end
 	end
@@ -444,6 +478,7 @@ local function onSnap(payload)
 		fired = {},
 		ended = {},
 		loops = {},
+		fades = {},
 		cleanup = {},
 	}
 	local topples = {}
@@ -452,7 +487,6 @@ local function onSnap(payload)
 			name = b.name,
 			root = b.root,
 			base = b.base,
-			torn = b.torn,
 			params = { V = params.V, brake = params.brake, recoil = params.recoil, pivot = params.pivot, topple = b.topple },
 		}
 		topples[i] = b.topple
@@ -461,7 +495,7 @@ local function onSnap(payload)
 	snap.timeline = Shared.eventsTimeline(Config.Events, { V = params.V, brake = params.brake, bodies = topples })
 	local finish = params.despawnTime or 30
 	for _, e in snap.timeline do
-		local ends = (e.t_end or e.t) + (e.loop or 0) + 6
+		local ends = (e.t_end or e.t) + (e.loop or 0) + (e.fade or 0) + 1
 		if ends < math.huge then
 			finish = math.max(finish, ends)
 		end

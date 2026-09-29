@@ -363,7 +363,7 @@ function TrainSplit.SplitAt(train, k, opts)
 		bodies = {},
 	}
 	for i, body in run.bodies do
-		payload.bodies[i] = { name = body.model.Name, root = body.root, base = body.base, topple = body.params.topple, torn = i == 1 }
+		payload.bodies[i] = { name = body.model.Name, root = body.root, base = body.base, topple = body.params.topple }
 	end
 	drive(run)
 	remote:FireAllClients(payload)
