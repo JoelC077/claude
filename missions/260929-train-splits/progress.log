@@ -1,0 +1,7 @@
+2026-09-29T21:56Z [1/10] Intake - OBJ parsed: 957 parts, 2 carriages, 1 join, 1 crossing union (Union22) (~90k est)
+2026-09-29T21:56Z [2/10] Readback - sent: 9 asks, 8 defaults, 3 non-blocking questions (~100k est)
+2026-09-29T21:56Z [3/10] Spec - mission.md + facts written; coverage OK 7/7 (~105k est)
+2026-09-29T21:56Z [4/10] Plan - OK: 11 tasks, 9 waves, est 398-690k (~110k est)
+2026-09-29T22:18Z [3/10] Spec - re-spec after owner change: mid-carriage jagged breaks (29 cells), clearance PASS, coverage 24/24 (~190k est)
+2026-09-29T22:18Z [4/10] Plan - re-plan OK: 16 tasks, 4 makers in parallel, est 0.77-1.33M (~195k est)
+2026-09-29T22:18Z [5/10] Build v1 - started: renders, Luau, explosion fx, sounds (4 makers) (~200k est)

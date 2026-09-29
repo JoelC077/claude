@@ -1,0 +1,30 @@
+{
+ "slug": "train-splits",
+ "kind": "mixed",
+ "status": "intake",
+ "step": 5,
+ "steps": 10,
+ "bar": 8,
+ "cap_passes": 5,
+ "budget": null,
+ "tokens": 200000,
+ "env": {
+  "root": "/home/user/claude/missions",
+  "critic": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/multiuse-critic",
+  "critic_mode": "agent",
+  "blender_mcp": "none",
+  "studio_mcp": "none",
+  "render": "bpy-headless-pending",
+  "owner": "present-async",
+  "skill": {
+   "rr-exploit-guard": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/rr-exploit-guard",
+   "rr-bible": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/rr-bible",
+   "rr-asset-foundry": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/rr-asset-foundry"
+  }
+ },
+ "agent": {},
+ "next": "wait for T1-T4 replies; then pre-flight check, owner photos, critics T5-T7, guard gate T13",
+ "created": "2026-09-29T21:35Z",
+ "updated": "2026-09-29T22:18Z",
+ "tokens_est": true
+}

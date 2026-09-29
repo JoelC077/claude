@@ -1,0 +1,2564 @@
+{
+ "version": "1.0.0",
+ "frame": "J: origin gangway-union bbox centre; +X east, +Y up, +Z toward the rear carriage",
+ "union_signature": {
+  "size": [
+   9.7,
+   4.4,
+   7.3
+  ],
+  "centre_world": [
+   -58.114,
+   15.927,
+   117.226
+  ]
+ },
+ "coupling_plane_z": -0.35,
+ "floor_y": -2.0,
+ "plane_note": "world z 116.876 in the export; midway between the end walls (113.68 / 120.08) and between posts 3 and 4",
+ "fx": {
+  "sparks": [
+   0.0,
+   -3.35,
+   -0.35
+  ],
+  "air": "each RR_GladHand",
+  "flash": [
+   0.0,
+   -3.35,
+   -0.35
+  ]
+ },
+ "motion": {
+  "speed": 35,
+  "brake": 10,
+  "recoil": 0.4,
+  "despawn": 400
+ },
+ "tokens": {
+  "iron": "#363A42",
+  "soot": "#15181B",
+  "brass": "#C9953A",
+  "hazard": "#F2C230",
+  "walk": "163,162,165 DiamondPlate (union)"
+ },
+ "parts": [
+  {
+   "name": "RR_WalkPlate",
+   "side": "front",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    9.7,
+    0.2,
+    3.2
+   ],
+   "cf": [
+    0.0,
+    -2.1,
+    -2.05,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    163,
+    162,
+    165
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": true,
+   "note": "rebuilt union plate, cut at the coupling plane"
+  },
+  {
+   "name": "RR_WalkPlate",
+   "side": "rear",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    9.7,
+    0.2,
+    3.3
+   ],
+   "cf": [
+    0.0,
+    -2.1,
+    1.4,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    163,
+    162,
+    165
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": true,
+   "note": "rebuilt union plate, cut at the coupling plane"
+  },
+  {
+   "name": "RR_WalkPost_W1",
+   "side": "front",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.2,
+    4.2,
+    0.2
+   ],
+   "cf": [
+    -4.35,
+    0.1,
+    -2.85,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    163,
+    162,
+    165
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": true
+  },
+  {
+   "name": "RR_WalkPost_E1",
+   "side": "front",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.2,
+    4.2,
+    0.2
+   ],
+   "cf": [
+    4.35,
+    0.1,
+    -2.85,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    163,
+    162,
+    165
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": true
+  },
+  {
+   "name": "RR_WalkPost_W2",
+   "side": "front",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.2,
+    4.2,
+    0.2
+   ],
+   "cf": [
+    -4.35,
+    0.1,
+    -1.85,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    163,
+    162,
+    165
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": true
+  },
+  {
+   "name": "RR_WalkPost_E2",
+   "side": "front",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.2,
+    4.2,
+    0.2
+   ],
+   "cf": [
+    4.35,
+    0.1,
+    -1.85,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    163,
+    162,
+    165
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": true
+  },
+  {
+   "name": "RR_WalkPost_W3",
+   "side": "front",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.2,
+    4.2,
+    0.2
+   ],
+   "cf": [
+    -4.35,
+    0.1,
+    -0.85,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    163,
+    162,
+    165
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": true
+  },
+  {
+   "name": "RR_WalkPost_E3",
+   "side": "front",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.2,
+    4.2,
+    0.2
+   ],
+   "cf": [
+    4.35,
+    0.1,
+    -0.85,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    163,
+    162,
+    165
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": true
+  },
+  {
+   "name": "RR_WalkPost_W1",
+   "side": "rear",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.2,
+    4.2,
+    0.2
+   ],
+   "cf": [
+    -4.35,
+    0.1,
+    0.15,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    163,
+    162,
+    165
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": true
+  },
+  {
+   "name": "RR_WalkPost_E1",
+   "side": "rear",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.2,
+    4.2,
+    0.2
+   ],
+   "cf": [
+    4.35,
+    0.1,
+    0.15,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    163,
+    162,
+    165
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": true
+  },
+  {
+   "name": "RR_WalkPost_W2",
+   "side": "rear",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.2,
+    4.2,
+    0.2
+   ],
+   "cf": [
+    -4.35,
+    0.1,
+    1.15,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    163,
+    162,
+    165
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": true
+  },
+  {
+   "name": "RR_WalkPost_E2",
+   "side": "rear",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.2,
+    4.2,
+    0.2
+   ],
+   "cf": [
+    4.35,
+    0.1,
+    1.15,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    163,
+    162,
+    165
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": true
+  },
+  {
+   "name": "RR_WalkPost_W3",
+   "side": "rear",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.2,
+    4.2,
+    0.2
+   ],
+   "cf": [
+    -4.35,
+    0.1,
+    2.15,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    163,
+    162,
+    165
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": true
+  },
+  {
+   "name": "RR_WalkPost_E3",
+   "side": "rear",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.2,
+    4.2,
+    0.2
+   ],
+   "cf": [
+    4.35,
+    0.1,
+    2.15,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    163,
+    162,
+    165
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": true
+  },
+  {
+   "name": "RR_WalkRail_W",
+   "side": "front",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.2,
+    0.2,
+    2.8
+   ],
+   "cf": [
+    -4.35,
+    2.1,
+    -2.15,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    163,
+    162,
+    165
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": true
+  },
+  {
+   "name": "RR_WalkRail_E",
+   "side": "front",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.2,
+    0.2,
+    2.8
+   ],
+   "cf": [
+    4.35,
+    2.1,
+    -2.15,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    163,
+    162,
+    165
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": true
+  },
+  {
+   "name": "RR_WalkRail_W",
+   "side": "rear",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.2,
+    0.2,
+    2.9
+   ],
+   "cf": [
+    -4.35,
+    2.1,
+    1.5,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    163,
+    162,
+    165
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": true
+  },
+  {
+   "name": "RR_WalkRail_E",
+   "side": "rear",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.2,
+    0.2,
+    2.9
+   ],
+   "cf": [
+    4.35,
+    2.1,
+    1.5,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    163,
+    162,
+    165
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": true
+  },
+  {
+   "name": "RR_EdgeBar",
+   "side": "front",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    9.72,
+    0.26,
+    0.31
+   ],
+   "cf": [
+    0.0,
+    -2.1,
+    -0.585,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    242,
+    194,
+    48
+   ],
+   "material": "SmoothPlastic",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": false,
+   "note": "platform-edge nosing, reads as the split point"
+  },
+  {
+   "name": "RR_EdgeBar",
+   "side": "rear",
+   "folder": "Walkway",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    9.72,
+    0.26,
+    0.31
+   ],
+   "cf": [
+    0.0,
+    -2.1,
+    -0.115,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    242,
+    194,
+    48
+   ],
+   "material": "SmoothPlastic",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": false
+  },
+  {
+   "name": "RR_FallPlate",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    6.0,
+    0.12,
+    0.81
+   ],
+   "cf": [
+    0.0,
+    -1.91,
+    -0.025,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    54,
+    58,
+    66
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": false,
+   "anim": {
+    "kind": "hinge",
+    "pivot": [
+     0.0,
+     -1.92,
+     -0.37
+    ],
+    "axis": "x",
+    "angle": 90.0,
+    "delay": 0.18,
+    "duration": 0.65,
+    "style": "Bounce",
+    "direction": "Out",
+    "splitCF": [
+     0.0,
+     -2.265,
+     -0.36,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     -1.0,
+     0.0,
+     1.0,
+     0.0
+    ]
+   },
+   "note": "bridges the gap, rests on the rear edge bar; drops to hang when the rear car leaves"
+  },
+  {
+   "name": "RR_FallPlateLip",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "WedgePart",
+   "shape": "Wedge",
+   "size": [
+    6.0,
+    0.145,
+    0.22
+   ],
+   "cf": [
+    0.0,
+    -1.9225,
+    0.49,
+    -1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    -0.0,
+    0.0,
+    -1.0
+   ],
+   "color": [
+    54,
+    58,
+    66
+   ],
+   "material": "DiamondPlate",
+   "reflectance": 0.0,
+   "canCollide": true,
+   "canTouch": true,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": false,
+   "copyUnionLook": false,
+   "anim": {
+    "kind": "hinge",
+    "pivot": [
+     0.0,
+     -1.92,
+     -0.37
+    ],
+    "axis": "x",
+    "angle": 90.0,
+    "delay": 0.18,
+    "duration": 0.65,
+    "style": "Bounce",
+    "direction": "Out",
+    "splitCF": [
+     0.0,
+     -2.78,
+     -0.3725,
+     -1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0,
+     0.0,
+     1.0,
+     -0.0
+    ]
+   }
+  },
+  {
+   "name": "RR_HingeKnuckle_1",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Cylinder",
+   "size": [
+    0.6,
+    0.14,
+    0.14
+   ],
+   "cf": [
+    -2.2,
+    -1.92,
+    -0.37,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    54,
+    58,
+    66
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false,
+   "anim": {
+    "kind": "hinge",
+    "pivot": [
+     0.0,
+     -1.92,
+     -0.37
+    ],
+    "axis": "x",
+    "angle": 90.0,
+    "delay": 0.18,
+    "duration": 0.65,
+    "style": "Bounce",
+    "direction": "Out",
+    "splitCF": [
+     -2.2,
+     -1.92,
+     -0.37,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     -1.0,
+     0.0,
+     1.0,
+     0.0
+    ]
+   }
+  },
+  {
+   "name": "RR_HingeKnuckle_2",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Cylinder",
+   "size": [
+    0.6,
+    0.14,
+    0.14
+   ],
+   "cf": [
+    0.0,
+    -1.92,
+    -0.37,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    54,
+    58,
+    66
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false,
+   "anim": {
+    "kind": "hinge",
+    "pivot": [
+     0.0,
+     -1.92,
+     -0.37
+    ],
+    "axis": "x",
+    "angle": 90.0,
+    "delay": 0.18,
+    "duration": 0.65,
+    "style": "Bounce",
+    "direction": "Out",
+    "splitCF": [
+     0.0,
+     -1.92,
+     -0.37,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     -1.0,
+     0.0,
+     1.0,
+     0.0
+    ]
+   }
+  },
+  {
+   "name": "RR_HingeKnuckle_3",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Cylinder",
+   "size": [
+    0.6,
+    0.14,
+    0.14
+   ],
+   "cf": [
+    2.2,
+    -1.92,
+    -0.37,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    54,
+    58,
+    66
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false,
+   "anim": {
+    "kind": "hinge",
+    "pivot": [
+     0.0,
+     -1.92,
+     -0.37
+    ],
+    "axis": "x",
+    "angle": 90.0,
+    "delay": 0.18,
+    "duration": 0.65,
+    "style": "Bounce",
+    "direction": "Out",
+    "splitCF": [
+     2.2,
+     -1.92,
+     -0.37,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     -1.0,
+     0.0,
+     1.0,
+     0.0
+    ]
+   }
+  },
+  {
+   "name": "RR_ChainEye_W",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.08,
+    0.08,
+    0.1
+   ],
+   "cf": [
+    -4.35,
+    1.55,
+    -0.7,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    54,
+    58,
+    66
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false
+  },
+  {
+   "name": "RR_ChainEye_W",
+   "side": "rear",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.08,
+    0.08,
+    0.1
+   ],
+   "cf": [
+    -4.35,
+    1.55,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    54,
+    58,
+    66
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false
+  },
+  {
+   "name": "RR_ChainLink_W1",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.06,
+    0.12,
+    0.26
+   ],
+   "cf": [
+    -4.35,
+    1.48333,
+    -0.57667,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.90482,
+    -0.4258,
+    0.0,
+    0.4258,
+    0.90482
+   ],
+   "color": [
+    54,
+    58,
+    66
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false,
+   "anim": {
+    "kind": "pose",
+    "pivot": [
+     -4.35,
+     1.55,
+     -0.7
+    ],
+    "splitCF": [
+     -4.35,
+     1.3795,
+     -0.69,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0,
+     0.0,
+     -1.0,
+     0.0
+    ],
+    "delay": 0.1,
+    "duration": 0.5,
+    "style": "Back",
+    "direction": "Out"
+   }
+  },
+  {
+   "name": "RR_ChainLink_W2",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.06,
+    0.12,
+    0.26
+   ],
+   "cf": [
+    -4.35,
+    1.43,
+    -0.35,
+    0.0,
+    -1.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    54,
+    58,
+    66
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false,
+   "anim": {
+    "kind": "pose",
+    "pivot": [
+     -4.35,
+     1.55,
+     -0.7
+    ],
+    "splitCF": [
+     -4.35,
+     1.1585,
+     -0.69,
+     0.0,
+     -1.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0,
+     -1.0,
+     -0.0,
+     0.0
+    ],
+    "delay": 0.15000000000000002,
+    "duration": 0.5,
+    "style": "Back",
+    "direction": "Out"
+   }
+  },
+  {
+   "name": "RR_ChainLink_W3",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.06,
+    0.12,
+    0.26
+   ],
+   "cf": [
+    -4.35,
+    1.48333,
+    -0.12333,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.90482,
+    0.4258,
+    0.0,
+    -0.4258,
+    0.90482
+   ],
+   "color": [
+    54,
+    58,
+    66
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false,
+   "anim": {
+    "kind": "pose",
+    "pivot": [
+     -4.35,
+     1.55,
+     -0.7
+    ],
+    "splitCF": [
+     -4.35,
+     0.9375,
+     -0.69,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0,
+     0.0,
+     -1.0,
+     0.0
+    ],
+    "delay": 0.2,
+    "duration": 0.5,
+    "style": "Back",
+    "direction": "Out"
+   }
+  },
+  {
+   "name": "RR_ChainEye_E",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.08,
+    0.08,
+    0.1
+   ],
+   "cf": [
+    4.35,
+    1.55,
+    -0.7,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    54,
+    58,
+    66
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false
+  },
+  {
+   "name": "RR_ChainEye_E",
+   "side": "rear",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.08,
+    0.08,
+    0.1
+   ],
+   "cf": [
+    4.35,
+    1.55,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    54,
+    58,
+    66
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false
+  },
+  {
+   "name": "RR_ChainLink_E1",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.06,
+    0.12,
+    0.26
+   ],
+   "cf": [
+    4.35,
+    1.48333,
+    -0.57667,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.90482,
+    -0.4258,
+    0.0,
+    0.4258,
+    0.90482
+   ],
+   "color": [
+    54,
+    58,
+    66
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false,
+   "anim": {
+    "kind": "pose",
+    "pivot": [
+     4.35,
+     1.55,
+     -0.7
+    ],
+    "splitCF": [
+     4.35,
+     1.3795,
+     -0.69,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0,
+     0.0,
+     -1.0,
+     0.0
+    ],
+    "delay": 0.1,
+    "duration": 0.5,
+    "style": "Back",
+    "direction": "Out"
+   }
+  },
+  {
+   "name": "RR_ChainLink_E2",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.06,
+    0.12,
+    0.26
+   ],
+   "cf": [
+    4.35,
+    1.43,
+    -0.35,
+    0.0,
+    -1.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    54,
+    58,
+    66
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false,
+   "anim": {
+    "kind": "pose",
+    "pivot": [
+     4.35,
+     1.55,
+     -0.7
+    ],
+    "splitCF": [
+     4.35,
+     1.1585,
+     -0.69,
+     0.0,
+     -1.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0,
+     -1.0,
+     -0.0,
+     0.0
+    ],
+    "delay": 0.15000000000000002,
+    "duration": 0.5,
+    "style": "Back",
+    "direction": "Out"
+   }
+  },
+  {
+   "name": "RR_ChainLink_E3",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.06,
+    0.12,
+    0.26
+   ],
+   "cf": [
+    4.35,
+    1.48333,
+    -0.12333,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.90482,
+    0.4258,
+    0.0,
+    -0.4258,
+    0.90482
+   ],
+   "color": [
+    54,
+    58,
+    66
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false,
+   "anim": {
+    "kind": "pose",
+    "pivot": [
+     4.35,
+     1.55,
+     -0.7
+    ],
+    "splitCF": [
+     4.35,
+     0.9375,
+     -0.69,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0,
+     0.0,
+     -1.0,
+     0.0
+    ],
+    "delay": 0.2,
+    "duration": 0.5,
+    "style": "Back",
+    "direction": "Out"
+   }
+  },
+  {
+   "name": "RR_CouplerBox",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    1.6,
+    1.55,
+    0.9
+   ],
+   "cf": [
+    0.0,
+    -2.975,
+    -3.1,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    21,
+    24,
+    27
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false,
+   "note": "draft-gear pocket under the plate end"
+  },
+  {
+   "name": "RR_CouplerShank",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.5,
+    0.5,
+    1.47
+   ],
+   "cf": [
+    0.0,
+    -3.35,
+    -1.925,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    21,
+    24,
+    27
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false
+  },
+  {
+   "name": "RR_CouplerHead",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    1.1,
+    0.9,
+    0.6
+   ],
+   "cf": [
+    0.0,
+    -3.35,
+    -0.9,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    21,
+    24,
+    27
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false
+  },
+  {
+   "name": "RR_CouplerKnuckle",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.54,
+    0.86,
+    0.5
+   ],
+   "cf": [
+    0.28,
+    -3.35,
+    -0.37,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    21,
+    24,
+    27
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false,
+   "anim": {
+    "kind": "hinge",
+    "pivot": [
+     0.28,
+     -3.35,
+     -0.55
+    ],
+    "axis": "y",
+    "angle": 30.0,
+    "delay": 0.08,
+    "duration": 0.35,
+    "style": "Back",
+    "direction": "Out",
+    "splitCF": [
+     0.37,
+     -3.35,
+     -0.39412,
+     0.86603,
+     0.0,
+     0.5,
+     0.0,
+     1.0,
+     0.0,
+     -0.5,
+     0.0,
+     0.86603
+    ]
+   },
+   "note": "knuckles sit side by side across the plane; each opens 30 deg on the snap"
+  },
+  {
+   "name": "RR_CouplerPin",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Cylinder",
+   "size": [
+    0.36,
+    0.2,
+    0.2
+   ],
+   "cf": [
+    0.28,
+    -2.8,
+    -0.55,
+    0.0,
+    -1.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    201,
+    149,
+    58
+   ],
+   "material": "Metal",
+   "reflectance": 0.12,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false,
+   "anim": {
+    "kind": "hinge",
+    "pivot": [
+     0.28,
+     -3.35,
+     -0.55
+    ],
+    "axis": "y",
+    "angle": 30.0,
+    "delay": 0.08,
+    "duration": 0.35,
+    "style": "Back",
+    "direction": "Out",
+    "splitCF": [
+     0.28,
+     -2.8,
+     -0.55,
+     0.0,
+     -0.86603,
+     0.5,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.5,
+     0.86603
+    ]
+   }
+  },
+  {
+   "name": "RR_CouplerBox",
+   "side": "rear",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    1.6,
+    1.55,
+    0.9
+   ],
+   "cf": [
+    0.0,
+    -2.975,
+    2.4,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    21,
+    24,
+    27
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false,
+   "note": "draft-gear pocket under the plate end"
+  },
+  {
+   "name": "RR_CouplerShank",
+   "side": "rear",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.5,
+    0.5,
+    1.47
+   ],
+   "cf": [
+    0.0,
+    -3.35,
+    1.225,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    21,
+    24,
+    27
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false
+  },
+  {
+   "name": "RR_CouplerHead",
+   "side": "rear",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    1.1,
+    0.9,
+    0.6
+   ],
+   "cf": [
+    0.0,
+    -3.35,
+    0.2,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    21,
+    24,
+    27
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false
+  },
+  {
+   "name": "RR_CouplerKnuckle",
+   "side": "rear",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.54,
+    0.86,
+    0.5
+   ],
+   "cf": [
+    -0.28,
+    -3.35,
+    -0.33,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    21,
+    24,
+    27
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false,
+   "anim": {
+    "kind": "hinge",
+    "pivot": [
+     -0.28,
+     -3.35,
+     -0.15
+    ],
+    "axis": "y",
+    "angle": 30.0,
+    "delay": 0.08,
+    "duration": 0.35,
+    "style": "Back",
+    "direction": "Out",
+    "splitCF": [
+     -0.37,
+     -3.35,
+     -0.30588,
+     0.86603,
+     0.0,
+     0.5,
+     0.0,
+     1.0,
+     0.0,
+     -0.5,
+     0.0,
+     0.86603
+    ]
+   },
+   "note": "knuckles sit side by side across the plane; each opens 30 deg on the snap"
+  },
+  {
+   "name": "RR_CouplerPin",
+   "side": "rear",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Cylinder",
+   "size": [
+    0.36,
+    0.2,
+    0.2
+   ],
+   "cf": [
+    -0.28,
+    -2.8,
+    -0.15,
+    0.0,
+    -1.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    201,
+    149,
+    58
+   ],
+   "material": "Metal",
+   "reflectance": 0.12,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false,
+   "anim": {
+    "kind": "hinge",
+    "pivot": [
+     -0.28,
+     -3.35,
+     -0.15
+    ],
+    "axis": "y",
+    "angle": 30.0,
+    "delay": 0.08,
+    "duration": 0.35,
+    "style": "Back",
+    "direction": "Out",
+    "splitCF": [
+     -0.28,
+     -2.8,
+     -0.15,
+     0.0,
+     -0.86603,
+     0.5,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.5,
+     0.86603
+    ]
+   }
+  },
+  {
+   "name": "RR_HoseMount",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.3,
+    0.31,
+    0.3
+   ],
+   "cf": [
+    0.95,
+    -2.345,
+    -2.3,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    21,
+    24,
+    27
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false
+  },
+  {
+   "name": "RR_Hose",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Cylinder",
+   "size": [
+    2.65384,
+    0.22,
+    0.22
+   ],
+   "cf": [
+    0.95,
+    -3.375,
+    -1.37,
+    0.0,
+    1.0,
+    -0.0,
+    -0.68524,
+    0.0,
+    0.72831,
+    0.72831,
+    0.0,
+    0.68524
+   ],
+   "color": [
+    30,
+    30,
+    32
+   ],
+   "material": "Rubber",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false,
+   "anim": {
+    "kind": "hinge",
+    "pivot": [
+     0.95,
+     -2.5,
+     -2.3
+    ],
+    "axis": "x",
+    "angle": 46.74531474977639,
+    "delay": 0.0,
+    "duration": 1.1,
+    "style": "Elastic",
+    "direction": "Out",
+    "splitCF": [
+     0.95,
+     -3.77692,
+     -2.3,
+     0.0,
+     1.0,
+     0.0,
+     -0.99999,
+     0.0,
+     -0.0,
+     -0.0,
+     0.0,
+     0.99999
+    ]
+   }
+  },
+  {
+   "name": "RR_GladHand",
+   "side": "front",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.24,
+    0.16,
+    0.34
+   ],
+   "cf": [
+    0.95,
+    -4.25,
+    -0.54,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    201,
+    149,
+    58
+   ],
+   "material": "Metal",
+   "reflectance": 0.12,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false,
+   "anim": {
+    "kind": "hinge",
+    "pivot": [
+     0.95,
+     -2.5,
+     -2.3
+    ],
+    "axis": "x",
+    "angle": 46.74531474977639,
+    "delay": 0.0,
+    "duration": 1.1,
+    "style": "Elastic",
+    "direction": "Out",
+    "splitCF": [
+     0.95,
+     -4.98101,
+     -2.36852,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.68524,
+     -0.72831,
+     0.0,
+     0.72831,
+     0.68524
+    ]
+   }
+  },
+  {
+   "name": "RR_HoseMount",
+   "side": "rear",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.3,
+    0.31,
+    0.3
+   ],
+   "cf": [
+    0.95,
+    -2.345,
+    1.6,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    21,
+    24,
+    27
+   ],
+   "material": "Metal",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false
+  },
+  {
+   "name": "RR_Hose",
+   "side": "rear",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Cylinder",
+   "size": [
+    2.65384,
+    0.22,
+    0.22
+   ],
+   "cf": [
+    0.95,
+    -3.375,
+    0.67,
+    0.0,
+    1.0,
+    0.0,
+    -0.68524,
+    0.0,
+    -0.72831,
+    -0.72831,
+    0.0,
+    0.68524
+   ],
+   "color": [
+    30,
+    30,
+    32
+   ],
+   "material": "Rubber",
+   "reflectance": 0.0,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false,
+   "anim": {
+    "kind": "hinge",
+    "pivot": [
+     0.95,
+     -2.5,
+     1.6
+    ],
+    "axis": "x",
+    "angle": -46.74531474977639,
+    "delay": 0.0,
+    "duration": 1.1,
+    "style": "Elastic",
+    "direction": "Out",
+    "splitCF": [
+     0.95,
+     -3.77692,
+     1.6,
+     0.0,
+     1.0,
+     0.0,
+     -0.99999,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.99999
+    ]
+   }
+  },
+  {
+   "name": "RR_GladHand",
+   "side": "rear",
+   "folder": "Coupling",
+   "class": "Part",
+   "shape": "Block",
+   "size": [
+    0.24,
+    0.16,
+    0.34
+   ],
+   "cf": [
+    0.95,
+    -4.25,
+    -0.16,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "color": [
+    201,
+    149,
+    58
+   ],
+   "material": "Metal",
+   "reflectance": 0.12,
+   "canCollide": false,
+   "canTouch": false,
+   "canQuery": true,
+   "castShadow": true,
+   "massless": true,
+   "copyUnionLook": false,
+   "anim": {
+    "kind": "hinge",
+    "pivot": [
+     0.95,
+     -2.5,
+     1.6
+    ],
+    "axis": "x",
+    "angle": -46.74531474977639,
+    "delay": 0.0,
+    "duration": 1.1,
+    "style": "Elastic",
+    "direction": "Out",
+    "splitCF": [
+     0.95,
+     -4.98101,
+     1.66852,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.68524,
+     0.72831,
+     0.0,
+     -0.72831,
+     0.68524
+    ]
+   }
+  }
+ ]
+}

@@ -1,0 +1,23 @@
+If i paste my train model from roblox into you, are you able to make splits inbetween the individual carriages? The carriages will be able to split in half sometime later in the game, so you'll have to make each split look really good and accurate
+
+--- clarification C1 ---
+one problem; my builder unioned a lot of shit together so do you need to no seperate everything?
+
+--- clarification C2 ---
+@"/root/.claude/uploads/7feb16c0-5cf3-5a92-a257-eb9720cba30b/8ada0157-Archive.zip" Go. Deploy JARVIS
+
+--- clarification C3 ---
+Give me photos of the progress along the way
+
+--- clarification C4 ---
+dont bother with the coupling stuff. The snap will be driven by windows and walls not being fixed
+
+after the snap; since the train doesnt move, the lost part will have to move with terrain. I want a big explosion aswell, and maybe even an animation where the train sort of topples over.
+
+Sounds: yes. Make some if you can and include them if they fit
+
+questions:
+
+1. each carriage will have its own split point. Say if carriage1 splits, all of carriage 2 and half carriage one is lost. Carriage 2 splitting means only half carriage 2 lost
+2. yes like i said, it stays still
+3. just 2 carriages
