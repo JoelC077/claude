@@ -33,8 +33,8 @@
   "critic-sound": "a3c93cfb8e3ddbb63",
   "guard-review": "abfbce413a2aaee07"
  },
- "next": "wait: T1 renders, T2 Luau, fx critic p1, sound critic p1; then 3D critic, guard gate, fix rounds",
+ "next": "sound delta p2 running; fx round 1 running; T1 re-render v2.1 running; guard review running. At export: resync TrainSplitConfig.Sounds with final/SOUNDS.md (renamed files, topple_crash_2 at 0.84/-3 dB, Split group)",
  "created": "2026-09-29T21:35Z",
- "updated": "2026-09-29T23:27Z",
+ "updated": "2026-09-29T23:29Z",
  "tokens_est": true
 }

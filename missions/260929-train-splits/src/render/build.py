@@ -74,10 +74,10 @@ CAMS = {     # name: (loc B, look-at B, vertical FOV deg or None, ortho scale or
     'Cam_Roof3P':   ((2, 22, -20), (0, 8, 6), 70, None, (1600, 900)),
     'Cam_Wide':     ((70, 45, -40), (0, 0, 35), 70, None, (1600, 900)),
     'Cam_Side':     ((60, 6, 20), (0, 6, 20), None, 90, (1600, 900)),
+    'Cam_Game':     ((45, 30, -40), (0, 5, 5), 70, None, (400, 225)),
 }
 CAM_AT = {   # per-time overrides (coordinator, spec v2.1): at t = 4.0 Cam_Side frames the kept train and the wreck
     ('Cam_Side', 4.0): ((60, 6, 45), (0, 6, 45), None, 140, (1600, 900)),
-    'Cam_Game':     ((45, 30, -40), (0, 5, 5), 70, None, (400, 225)),
 }
 SHEETS = {
     'p2_tear_design.png': [('Seam out (intact)', 'intact__Cam_SeamOut.png'),

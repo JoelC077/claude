@@ -151,8 +151,8 @@
     "split_explosion",
     "torn_edge_smoke",
     "topple_dust",
-    "split_glass",
-    "split_glass",
+    "glass_split",
+    "glass_split",
     "steam_chimney",
     "smoke_chimney",
     "firebox_glow"
@@ -161,11 +161,11 @@
   "carriage_split_inside": {
    "use": "the same split with the preview twin used for the interior tile (identical cost)",
    "presets": [
-    "split_explosion_in",
+    "interior_split",
     "torn_edge_smoke",
     "topple_dust",
-    "split_glass",
-    "split_glass",
+    "glass_split",
+    "glass_split",
     "steam_chimney",
     "smoke_chimney",
     "firebox_glow"

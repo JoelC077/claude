@@ -2366,10 +2366,10 @@
    "oq": "OQ-028",
    "preview": {
     "window": [
-     -92,
-     2,
+     -80,
+     -16,
      -2,
-     60
+     42
     ],
     "t": 0.5
    },
@@ -2415,8 +2415,8 @@
        0.85
       ],
       "Speed": [
-       40,
-       50
+       50,
+       62
       ],
       "SpreadAngle": [
        70,
@@ -2759,7 +2759,7 @@
       "Shape": "Enum.ParticleEmitterShape.Box",
       "ShapeStyle": "Enum.ParticleEmitterShapeStyle.Volume",
       "Texture": "rbxasset://textures/particles/smoke_main.dds",
-      "Rate": 12,
+      "Rate": 14,
       "Lifetime": [
        1.4,
        1.8
@@ -2792,11 +2792,11 @@
       "Transparency": [
        [
         0,
-        0.15
+        0.05
        ],
        [
         0.6,
-        0.15
+        0.1
        ],
        [
         1,
@@ -3036,7 +3036,7 @@
     }
    ]
   },
-  "split_glass": {
+  "glass_split": {
    "kind": "burst",
    "priority": 1,
    "anchor": "WindowPane",
@@ -3165,7 +3165,7 @@
     }
    ]
   },
-  "split_explosion_in": {
+  "interior_split": {
    "kind": "burst",
    "priority": 1,
    "anchor": "SplitCoreInside",
@@ -3174,10 +3174,10 @@
    "oq": "OQ-028",
    "preview": {
     "window": [
-     -47,
-     47,
+     -32,
+     32,
      -2,
-     60
+     42
     ],
     "t": 0.4
    },
@@ -3223,8 +3223,8 @@
        0.85
       ],
       "Speed": [
-       40,
-       50
+       50,
+       62
       ],
       "SpreadAngle": [
        70,

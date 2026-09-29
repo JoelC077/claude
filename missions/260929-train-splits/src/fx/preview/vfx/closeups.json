@@ -1,7 +1,7 @@
 {
  "sheet": [
   786,
-  1317
+  1329
  ],
  "megapixels": 1.04,
  "tiles": [
@@ -31,37 +31,37 @@
   },
   {
    "n": 3,
-   "label": "split_explosion (burst p1): burst time strip, 1.89 px/stud, construction view",
-   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_split_explosion.png",
+   "label": "glass_split (burst p1): burst time strip, 11.64 px/stud, construction view",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_glass_split.png",
    "box": [
     6,
     349,
     774,
-    162
+    214
    ],
    "scale": "1:1 true size"
   },
   {
    "n": 4,
-   "label": "split_explosion_in (burst p1): burst time strip, 1.89 px/stud, construction view",
-   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_split_explosion_in.png",
+   "label": "interior_split (burst p1): burst time strip, 2.78 px/stud, construction view",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_interior_split.png",
    "box": [
     6,
-    535,
+    587,
     774,
-    162
+    168
    ],
    "scale": "1:1 true size"
   },
   {
    "n": 5,
-   "label": "split_glass (burst p1): burst time strip, 11.64 px/stud, construction view",
-   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_split_glass.png",
+   "label": "split_explosion (burst p1): burst time strip, 2.78 px/stud, construction view",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_split_explosion.png",
    "box": [
     6,
-    721,
+    779,
     774,
-    214
+    168
    ],
    "scale": "1:1 true size"
   },
@@ -71,7 +71,7 @@
    "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_topple_dust.png",
    "box": [
     6,
-    959,
+    971,
     774,
     112
    ],
@@ -83,7 +83,7 @@
    "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_boiler_burst.png",
    "box": [
     6,
-    1095,
+    1107,
     384,
     216
    ],
@@ -91,11 +91,11 @@
   },
   {
    "n": 8,
-   "label": "day coach: split",
-   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_split_explosion_in.png",
+   "label": "day coach: interior",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_interior_split.png",
    "box": [
     396,
-    1095,
+    1107,
     384,
     216
    ],

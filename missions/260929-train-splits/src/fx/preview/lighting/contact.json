@@ -43,22 +43,10 @@
   },
   {
    "n": 4,
-   "label": "grassland.day@door1p PHONE: luma 134, train/world 1.69",
-   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/lighting/grassland.day_door1p.phone.png",
-   "box": [
-    93,
-    780,
-    210,
-    96
-   ],
-   "scale": "fit x1.00"
-  },
-  {
-   "n": 5,
    "label": "grassland.day@coach1p: luma 33, train/world None",
    "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/lighting/grassland.day_coach1p.png",
    "box": [
-    396,
+    6,
     720,
     384,
     216
