@@ -217,7 +217,7 @@
    "use": "streak on carriage-split debris: orange head cooling to soot grey, thin and short (mission variant; debris_smoke and debris_spark stay as shipped for derail and boiler)",
    "width": 0.4,
    "props": {
-    "Lifetime": 0.2,
+    "Lifetime": 0.12,
     "MinLength": 0.05,
     "FaceCamera": true,
     "WidthScale": [
@@ -2530,11 +2530,11 @@
        ],
        [
         0.3,
-        12
+        11
        ],
        [
         1,
-        13,
+        12,
         2
        ]
       ],
@@ -2950,7 +2950,7 @@
      "parent": "part",
      "part_size": [
       30,
-      2,
+      3,
       3
      ],
      "offset": [
@@ -2983,7 +2983,7 @@
       ],
       "Acceleration": [
        0,
-       -4,
+       -2,
        0
       ],
       "Drag": 3,
@@ -2991,11 +2991,11 @@
       "Size": [
        [
         0,
-        5.5
+        6
        ],
        [
         0.25,
-        7.5
+        8
        ],
        [
         1,
@@ -3350,11 +3350,11 @@
        ],
        [
         0.3,
-        12
+        11
        ],
        [
         1,
-        13,
+        12,
         2
        ]
       ],

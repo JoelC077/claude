@@ -81,6 +81,44 @@ function Shared.driftSpeed(t, V, a, recoil)
 	return rv + V
 end
 
+-- The wreck's speed over the ground: the terrain streams past the static train at V while the wreck slides
+-- back at driftSpeed, so it has stopped (moves with the terrain) when the two match.
+function Shared.terrainSpeed(t, V, a, recoil)
+	return math.abs(V - Shared.driftSpeed(t, V, a, recoil))
+end
+
+-- Highest honest speed of a body's root (studs/s): 1.5x the terrain speed, the blast's shove, and the fastest
+-- roll or bounce at the body's far edge (farRadius studs from the pivot line), plus a little slack.
+function Shared.velocityCap(V, params, farRadius)
+	local omega, lin = 0, 0
+	local tp = params.topple
+	if tp then
+		local rollTime = math.max(tp.roll_time or 1, 1e-3)
+		-- every ease here peaks at or below twice its average rate
+		omega = 2 * math.rad(math.abs(tp.roll or 0)) / rollTime
+		lin = 2 * (math.abs(tp.sink or 0) + math.abs(tp.lift or 0) + math.abs(tp.extra_back or 0)) / rollTime
+		local b, bt = tp.bounce, tp.bounce_time or 0
+		if b and bt > 0 then
+			omega = math.max(omega, math.rad(math.abs(b[2] - (tp.roll or 0)) + math.pi * math.abs(b[1] - b[2])) / bt)
+		end
+	end
+	local r = params.recoil
+	local shove = (r and (r.time or 0) > 0) and 2 * math.abs(r.dist or 0) / r.time or 0
+	return 1.5 * math.abs(V) + shove + omega * (farRadius or 0) + lin + 5
+end
+
+-- A velocity that is finite and no faster than cap (NaN or inf becomes zero).
+function Shared.clampVelocity(v, cap)
+	local m = v.Magnitude
+	if m ~= m or m == math.huge then
+		return Vector3.zero
+	end
+	if m > cap then
+		return v * (cap / m)
+	end
+	return v
+end
+
 -- Topple of one lost body at time t: roll (deg, onto its side), yaw (deg, twist), sink (studs into the ground).
 -- body = one TrainSplitConfig.Topple entry. It waits `delay`, rolls over in `roll_time`, bounces off the
 -- ground (bounce = {lowest, rest}) in `bounce_time`, then lies still.

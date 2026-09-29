@@ -14,7 +14,9 @@ Timeline (src/kit/break_spec.json events, t 0 = the snap). Each file starts at i
   metal_tear       t -0.25   the snap inside the file sits at SNAP_AT = 0.25 s, so it lands on the boom
   split_explosion  t  0      2D train-wide plus a quieter positional layer at the break (soundmap layer3d)
   split_glass      t  0      glass_smash's shards, +3 semitones, its pane crack taken out (the boom is the hit)
-  wreck_scrape     t  0.3    grinds until the wreck reaches the terrain's speed: V/brake = 35/12 = 2.92 s
+  wreck_scrape     t  0.3    grinds until the wreck reaches the terrain's speed: V/brake = 35/12 = 2.92 s. The client
+                             sets PlaybackSpeed clamp(35/V, 0.7, 1.2) and fades it 0.3 s once the wreck is under
+                             2 studs/s, so it ends ~0.13 s after the slide at any Speed (the file runs 3.1 s)
   debris_rain      t  0.8
   topple_crash     t  1.5    the broken half lands (delay 0.45 + roll 1.05); the bounce (0.35 s) is inside the file
   topple_crash_2   t  2.0    break 1: carriage 2 lands (0.8 + 1.2); the same file at PlaybackSpeed 0.84, 3 dB down
@@ -32,6 +34,7 @@ SNAP_AT = 0.25                           # metal_tear: the snap lands on the exp
 BOUNCE_AT = 0.35                         # topple_crash: break_spec topple bounce_time
 SPEED, BRAKE, SCRAPE_FROM = 35.0, 12.0, 0.3
 SLIDE = SPEED / BRAKE - SCRAPE_FROM      # 2.62 s of grinding at the normal speed (gameplay.speed.normal)
+SCRAPE_LEN = 3.1                         # file length: outlasts the client's stop at 0.7-1.2x PlaybackSpeed
 GLASS_CRACK = 0.015                      # glass_smash's pane crack: a broadband burst in its first 15 ms
 
 
@@ -321,9 +324,10 @@ def r_debris_rain(rng):
 # ---------------------------------------------------------------------------------------------------------------
 
 def r_wreck_scrape(rng):
-    L = round(SLIDE + 0.08, 3)
+    L = SCRAPE_LEN
     t = t_(L)
     v = np.clip(1.0 - t / SLIDE, 0.0, 1.0)         # speed relative to the ground, 1 -> 0 at V/brake
+    settle = np.exp(-np.maximum(t - SLIDE, 0.0) / 0.25)   # after the slide: a short settle, only heard if the stop is late
     lfo = np.sin(2 * np.pi * np.cumsum(3.0 + 2.0 * v) / SR)   # the wreck rocking: wobble 5 -> 3 Hz
     # stick-slip roughness: jittered bumps at 60 -> 16 Hz, the grinding "grrrr"
     pt = _train(L, lambda s: 16.0 + 44.0 * max(0.0, 1.0 - s / SLIDE), rng, jitter=0.35)
@@ -341,7 +345,7 @@ def r_wreck_scrape(rng):
     pops = _unit(filt(_spikes(L, gp, rng.uniform(0.2, 1.0, len(gp)) ** 2), 1500, 6000)) * (0.3 + 0.7 * v)
     rumble = _unit(filt(noise(L, rng, "brown"), 45, 220)) * v
 
-    shape = (0.12 + 0.88 * v ** 0.8) * (1 + 0.15 * lfo) * np.clip(t / 0.03, 0, 1)
+    shape = (0.12 * settle + 0.88 * v ** 0.8) * (1 + 0.15 * lfo) * np.clip(t / 0.03, 0, 1)
     x = (0.8 * grind + 0.12 * whine + 0.25 * pops + 0.35 * rumble) * shape
     # it emerges under the boom: fade in from -12 dB over 0.6 s; nothing above 2.5 kHz (glass and debris own it)
     x *= 10.0 ** ((-12.0 + 12.0 * np.clip(t / 0.6, 0, 1)) / 20.0)

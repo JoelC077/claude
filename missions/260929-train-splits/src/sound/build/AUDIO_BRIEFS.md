@@ -39,7 +39,7 @@ Generated 2026-09-29 from soundmap.json and canon; 36 sounds in phase order; for
 | crisis | debris_rain | 4 | impact | 1 | 1.2-2.2 | 3d @break | unassigned | store / self-made |
 | crisis | shovel_thud | 4 | oneshot | 3 | 0.4-0.8 | 3d @firebox | unassigned | store / self-made |
 | crisis | topple_crash_2 | 4 | impact | 1 | 1.0-1.8 | 3d @wreck | unassigned | store / self-made |
-| crisis | wreck_scrape | 4 | impact | 1 | 2.2-3.0 | 3d @wreck | unassigned | store / self-made |
+| crisis | wreck_scrape | 4 | impact | 1 | 2.6-3.2 | 3d @wreck | unassigned | store / self-made |
 | crisis | wrench_clank | 4 | oneshot | 2 | 0.5-1.0 | 3d @powerbox | unassigned | store / self-made |
 | arrive | brake_hiss | 4 | oneshot | 1 | 1.0-2.0 | 2d | unassigned | store / self-made |
 | arrive | cash_register | 4 | oneshot | 1 | 0.6-1.2 | 2d | unassigned | store / self-made |
@@ -355,7 +355,7 @@ Generated 2026-09-29 from soundmap.json and canon; 36 sounds in phase order; for
 - **Sounds like:** a cartoon KA-BWOOM: a round boom that drops in pitch, a bright crack on top, fizzy firework crackle, then clunky bits clattering down
 - **Layers:** mid crack-body 0.6-2.5 kHz in the first 0.3 s: the KA-BLAM phones hear; pitched body 150 to 62 Hz, its harmonics up to 2.5 kHz; sub thump 90 to 38 Hz with its upper harmonics (psychoacoustic bass); noise burst: crack 1.5-7.5 kHz (35 ms), roar 0.4-2.6 kHz (0.3 s); firework crackle 1.8-7 kHz thinning over 1.4 s; debris tail: wood clunks and tin clinks from 0.3 s; tail high-passed 20 to 500 Hz from 1.0 to 1.4 s: no rolling rumble
 - **Length:** 2.0-2.4 s; sound starts within 10 ms, tail silence under 500 ms
-- **Variations:** 1 (runtime pitch spread 0.96-1.04)
+- **Variations:** 1 (runtime pitch spread 0.97-1.03)
 - **Space:** 2D (global: same level everywhere), plus a positional layer at the break (OQ-035 default); deliver mono.
 - **Level:** impact standard m_max -14 LUFS, at most -1 dBTP; the mix sets -10 LUFS in game (ladder t2).
 - **Phones:** loses at most 6 dB on a phone speaker: keep energy in 0.5-4 kHz.
@@ -384,7 +384,7 @@ Generated 2026-09-29 from soundmap.json and canon; 36 sounds in phase order; for
 - **Sounds like:** glass_smash's shards pitched up 3 semitones with the pane crack taken out (the boom already is the hit): a bright sprinkle
 - **Layers:** shard tinkles about 2.4-9.5 kHz (glass_smash +3 semitones); no pane-crack transient
 - **Length:** 0.6-0.9 s; sound starts within 10 ms, tail silence under 500 ms
-- **Variations:** 1 (runtime pitch spread 0.93-1.07)
+- **Variations:** 1 (runtime pitch spread 0.97-1.03)
 - **Space:** 3D at the break (a carriage's break point (break frame B origin, 5 studs up: the torn seam); TrainSplitClient points it at an Attachment on the kept half's torn end); deliver mono.
 - **Level:** impact standard m_max -14 LUFS, at most -1 dBTP; the mix sets -13 LUFS in game (ladder t3).
 - **Phones:** loses at most 6 dB on a phone speaker: keep energy in 0.5-4 kHz.
@@ -412,7 +412,7 @@ Generated 2026-09-29 from soundmap.json and canon; 36 sounds in phase order; for
 - **Sounds like:** a handful of wood chips, bolts and tin bits pattering onto a metal roof, dense then sparse
 - **Layers:** wood knocks 0.4-1.2 kHz with a faint roof boom; metal tinks 1.7-4.2 kHz; pebble ticks 2-7 kHz; two bigger clunks 200-420 Hz; dust hiss 1-5 kHz
 - **Length:** 1.2-2.2 s; sound starts within 10 ms, tail silence under 500 ms
-- **Variations:** 1 (runtime pitch spread 0.9-1.1)
+- **Variations:** 1 (runtime pitch spread 0.97-1.03)
 - **Space:** 3D at the break (a carriage's break point (break frame B origin, 5 studs up: the torn seam); TrainSplitClient points it at an Attachment on the kept half's torn end); deliver mono.
 - **Level:** impact standard m_max -14 LUFS, at most -1 dBTP; the mix sets -16 LUFS in game (ladder t4).
 - **Phones:** loses at most 6 dB on a phone speaker: keep energy in 0.5-4 kHz.
@@ -449,12 +449,12 @@ Generated 2026-09-29 from soundmap.json and canon; 36 sounds in phase order; for
 
 ## wreck_scrape · crisis · tier 4 · Split · impact · unassigned
 
-- **Moment:** t 0.3 s until the lost part reaches the terrain's speed (V/brake: about 2.9 s at the normal speed 35 and brake 12): the wreck grinds along the ballast as it slows. Events: wreck_scrape (Sound.event).
+- **Moment:** t 0.3 s until the lost part reaches the terrain's speed (V/brake: about 2.9 s at the normal speed 35 and brake 12): the wreck grinds along the ballast as it slows. Speed rule (TrainSplitClient): PlaybackSpeed = clamp(35 / V, 0.7, 1.2), passed as ctx.pitch (the map's own pitch stays 1.0), and a 0.3 s fade-out once the wreck is under 2 studs/s relative to the terrain, so it ends about 0.13 s after the slide at any Speed; the file runs 3.1 s so that stop, not the file's end, always closes it. Events: wreck_scrape (Sound.event).
 - **Must say:** the wreck is sliding away and running out of steam
 - **Sounds like:** a heavy metal box grinding over gravel: a rough grrrr that wobbles as the wreck rocks, slowing and sagging in pitch until it stops
-- **Layers:** grinding noise 0.28-2.5 kHz with 16-60 Hz stick-slip roughness (low-passed at 2.5 kHz); fade-in 0.6 s from -12 dB: it emerges under the boom; wobble: timbre sway 5 to 3 Hz; faint droopy metal whine 520 to 430 Hz; gravel pops 1.5-2.5 kHz; low rumble 45-220 Hz
-- **Length:** 2.2-3.0 s; sound starts within 10 ms, tail silence under 500 ms
-- **Variations:** 1 (runtime pitch spread 0.95-1.05)
+- **Layers:** grinding noise 0.28-2.5 kHz with 16-60 Hz stick-slip roughness (low-passed at 2.5 kHz); fade-in 0.6 s from -12 dB: it emerges under the boom; wobble: timbre sway 5 to 3 Hz; faint droopy metal whine 520 to 430 Hz; gravel pops 1.5-2.5 kHz; low rumble 45-220 Hz; 0.45 s settle after the slide (heard only if the stop comes late)
+- **Length:** 2.6-3.2 s; sound starts within 10 ms, tail silence under 500 ms
+- **Variations:** 1
 - **Space:** 3D at the wreck (the lost body that slides and topples (moves with it); TrainSplitClient points it at an Attachment on that body (break 1: the broken half, then carriage 2 for its own crash)); deliver mono.
 - **Level:** impact standard m_max -14 LUFS, at most -1 dBTP; the mix sets -16 LUFS in game (ladder t4).
 - **Phones:** loses at most 6 dB on a phone speaker: keep energy in 0.5-4 kHz.

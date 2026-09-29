@@ -252,9 +252,11 @@ local function playSound(snap, e, parent, t)
 	if def.BodyPitch and e.body then
 		pitch *= def.BodyPitch[e.body] or 1
 	end
-	if def.Length and def.FitSpeed and e.t_end and e.t_end > e.t and e.t_end < math.huge then
-		-- stretch the authored clip over this snap's slide (it was made for Speed 35)
-		pitch *= math.clamp(def.Length / (e.t_end - e.t), def.FitSpeed[1], def.FitSpeed[2])
+	local scrape = Config.Scrape
+	if e.t_end and scrape then
+		-- the slide clip is authored for Speed 35: a faster train slides longer, so it plays slower
+		local V = snap.params.V
+		pitch = V > 0 and math.clamp(scrape.RefSpeed / V, scrape.PlaybackRange[1], scrape.PlaybackRange[2]) or scrape.PlaybackRange[2]
 	end
 	-- a Sound in an attachment or part is heard from there; in SoundService it is flat (2D)
 	local sound = newSound(e.sound, def, def.Volume or 0.5, pitch)
@@ -403,11 +405,16 @@ local function step()
 					end
 				end
 			end
-			if e.t_end and snap.fired[e] and not snap.ended[e] and t >= e.t_end then
-				snap.ended[e] = true
-				local sound = snap.loops[e]
-				if sound then
-					table.insert(snap.fades, { sound = sound, from = sound.Volume, start = t, dur = 0.15 })
+			if e.t_end and snap.fired[e] and not snap.ended[e] then
+				-- the slide is over once the wreck moves with the terrain: computed, never measured from parts
+				local scrape = Config.Scrape
+				local ground = Shared.terrainSpeed(t, snap.params.V, snap.params.brake, snap.params.recoil)
+				if t >= e.t_end or (scrape and ground < scrape.StopBelow) then
+					snap.ended[e] = true
+					local sound = snap.loops[e]
+					if sound then
+						table.insert(snap.fades, { sound = sound, from = sound.Volume, start = t, dur = scrape and scrape.Fade or 0.3 })
+					end
 				end
 			end
 		end

@@ -65,7 +65,9 @@ def write_preview():
     """preview/split_sequence_at_break.wav: break 1 as heard at the break, a listening aid (never upload it).
     Each final file sits at its break_spec offset with its in-game gain (ladder + trim, files are levelled to
     -14 LUFS momentary max); the boom adds its 3D layer (-4 dB, same samples); topple_crash_2 is topple_crash
-    at 0.84 speed. Roll-off and engine ducking are left out (the Split layers are never ducked by the boom)."""
+    at 0.84 speed; wreck_scrape follows the client's rule at Speed 35 (PlaybackSpeed clamp(35/V, 0.7, 1.2) = 1.0,
+    0.3 s fade once the wreck is under 2 studs/s: at (35 - 2) / 12 = 2.75 s, braking from the snap as in
+    break_spec). Roll-off and engine ducking are left out (the Split layers are never ducked by the boom)."""
     import json
     import numpy as np
     m = json.loads((HERE / "soundmap.json").read_text(encoding="utf-8"))
@@ -79,16 +81,24 @@ def write_preview():
         x = np.frombuffer(read_pcm(HERE / "final" / f"{fname}.wav")[3], "<i2").astype(float) / 32768
         return np.interp(np.arange(0, len(x) - 1, speed), np.arange(len(x)), x) if speed != 1.0 else x
 
+    V = 35.0
+    scrape_speed, scrape_stop = min(max(35.0 / V, 0.7), 1.2), (V - 2.0) / 12.0
+
     mix = np.zeros(int(length * rate))
     for sid, fname, at, g, speed in [
             ("metal_tear", "metal_tear", -0.25, gain("metal_tear"), 1.0),
             ("split_explosion", "split_explosion", 0.0, gain("split_explosion") + gain("split_explosion", -4.0), 1.0),
             ("split_glass", "split_glass", 0.0, gain("split_glass"), 1.0),
-            ("wreck_scrape", "wreck_scrape", 0.3, gain("wreck_scrape"), 1.0),
+            ("wreck_scrape", "wreck_scrape", 0.3, gain("wreck_scrape"), scrape_speed),
             ("debris_rain", "debris_rain", 0.8, gain("debris_rain"), 1.0),
             ("topple_crash", "topple_crash", 1.5, gain("topple_crash"), 1.0),
             ("topple_crash_2", "topple_crash", 2.0, gain("topple_crash_2"), 0.84)]:
         x = load(fname, speed)
+        if sid == "wreck_scrape":                    # the client's stop: 0.3 s fade, then silence
+            a, n = int((scrape_stop - at) * rate), int(0.3 * rate)
+            x = x.copy()
+            x[a:a + n] *= np.linspace(1.0, 0.0, n)[:max(0, len(x) - a)]
+            x[a + n:] = 0.0
         i = int(round((at - t0) * rate))
         n = min(len(x), len(mix) - i)
         mix[i:i + n] += g * x[:n]

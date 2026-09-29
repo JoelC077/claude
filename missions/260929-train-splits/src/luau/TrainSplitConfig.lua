@@ -18,12 +18,15 @@ Config.WreckFolderName = "RR_Wrecks" -- workspace folder the lost bodies move in
 
 -- Motion. The train never moves: the world scrolls past it at the train's speed.
 Config.SpeedAttribute = "Speed" -- attribute on the train Model, studs/s (your game keeps it current)
-Config.SpeedDefault = 35 -- canon gameplay.speed.normal; used when the attribute is missing
+Config.SpeedDefault = 35 -- canon gameplay.speed.normal; used when the attribute is missing or not a number
+Config.MaxSpeed = 60 -- the Speed attribute is clamped to 0..MaxSpeed (canon fast is 50); NaN/inf use the default
 Config.Brake = 12 -- break_spec motion.brake: studs/s^2 the lost part slows by until it moves with the terrain
 Config.Recoil = { dist = 0.8, time = 0.2 } -- break_spec motion.recoil: the blast shoves the wreck back
 Config.LeadTime = 0.25 -- the snap happens this long after SplitAt, so metal_tear (t = -0.25) lands on the boom
 Config.LateTolerance = 0.5 -- a client that learns of the snap later than this skips the one-shot fx
 Config.Despawn = { distance = 700, time = 30 } -- break_spec: studs behind where it broke off / seconds
+Config.RiderConfirmDelay = 1.0 -- TrainSplit.ConfirmRiders re-checks the rider candidates this long after the snap
+Config.MisuseAttribute = "RR_RemoteMisuse" -- set on a Player who fires the server -> client remote (flagged once)
 
 -- Topple (break_spec topple). One entry per lost body, front-most first; a snap uses one side for all.
 -- roll in degrees onto its side, bounce = {lowest, rest}, yaw = twist in degrees, sink = studs into the ground.
@@ -126,10 +129,15 @@ Config.Sounds = {
 	debris_rain = { SoundId = "", Volume = 0.397, Is3D = true, RollOffMinDistance = 10, RollOffMaxDistance = 140, Group = "Actions", Pitch = { 0.9, 1.1 } },
 	-- rr_split_topple_crash.wav, each landing (break 1: carriage 2 lands 0.5 s later, a bigger body pitched 0.94)
 	topple_crash = { SoundId = "", Volume = 0.561, Is3D = true, RollOffMinDistance = 16, RollOffMaxDistance = 240, Group = "Actions", Pitch = { 0.92, 1.06 }, BodyPitch = { 1, 0.94 } },
-	-- rr_split_wreck_scrape.wav, t 0.3 .. V/brake on the front-most wreck. Authored 2.7 s for Speed 35: the
-	-- client fits PlaybackSpeed to the slide (within FitSpeed) and fades it out when the wreck reaches terrain speed.
+	-- rr_split_wreck_scrape.wav, from t 0.3 on the front-most wreck. Authored 2.7 s for Speed 35: its playback
+	-- speed and fade-out now follow Config.Scrape (S2-4); Length and FitSpeed are no longer read.
 	wreck_scrape = { SoundId = "", Volume = 0.398, Is3D = true, RollOffMinDistance = 10, RollOffMaxDistance = 140, Group = "Actions", Pitch = { 0.95, 1.05 }, Length = 2.7, FitSpeed = { 0.8, 1.25 } },
 }
+
+-- wreck_scrape playback (sound critic S2-4): authored for Speed 35, so it plays at RefSpeed / V (clamped to
+-- PlaybackRange) and fades out over Fade seconds once the wreck's speed over the ground (TrainSplitShared,
+-- not measured) drops under StopBelow studs/s.
+Config.Scrape = { RefSpeed = 35, PlaybackRange = { 0.7, 1.2 }, StopBelow = 2, Fade = 0.3 }
 
 -- Camera shake (client). amplitude in degrees, fading to 0 at `falloff` studs from the camera.
 Config.ReduceMotionAttribute = "ReduceMotion" -- Player attribute; true = no camera shake (your settings menu sets it)

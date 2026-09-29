@@ -41,4 +41,4 @@ Owner, to hear them in Studio: import in Asset Manager (name them `PLACEHOLDER <
 | debris_rain | PLACEHOLDER_debris_rain.wav | 1.80 | -14.0 m_max | -3.72 | 1.08 dB | PASS | a3224a8ee5ce |
 | topple_crash | PLACEHOLDER_topple_crash.wav | 1.45 | -14.0 m_max | -2.3 | 0.54 dB | PASS | bff5d729765b |
 | topple_crash_2 | PLACEHOLDER_topple_crash_2.wav | 1.45 | -14.0 m_max | -2.3 | 0.54 dB | PASS | fe2374c597ae |
-| wreck_scrape | PLACEHOLDER_wreck_scrape.wav | 2.70 | -14.0 m_max | -2.93 | 1.12 dB | PASS | 2939c0df70c0 |
+| wreck_scrape | PLACEHOLDER_wreck_scrape.wav | 3.10 | -14.0 m_max | -2.63 | 1.16 dB | PASS | d9e7543bfeaf |

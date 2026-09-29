@@ -47,7 +47,23 @@ RAIL_Y = 5.33
 V_SPEED = float(SPEC['motion']['speed_default']); BRAKE = float(SPEC['motion']['brake'])
 REC_D = float(SPEC['motion']['recoil']['dist']); REC_T = float(SPEC['motion']['recoil']['time'])
 PIVOT_X = float(SPEC['topple']['pivot']['X_abs']); PIVOT_Y = float(SPEC['topple']['pivot']['Y'])
-BODY1, BODY2 = SPEC['topple']['bodies']            # all motion / topple numbers come from the spec (v2.1: roll 95, sink 0.4 / 0.35)
+BODY1, BODY2 = SPEC['topple']['bodies']            # all motion / topple numbers come from the spec (v2.2: rest per side)
+
+
+def profile(b, side):
+    """Normalised topple profile of one body for a falling side (+1 = +X, -1 = -X). Spec v2.2: topple.rest per side gives the
+    rest roll and a lift that eases in with the roll; bounce = rest roll - bounce_back then back; extra_back eases in over the
+    roll. Older specs (roll / bounce list per body, no lift) still work."""
+    rest = SPEC['topple'].get('rest')
+    if rest:
+        r = rest['+X' if side > 0 else '-X']
+        roll, lift = float(r['roll']), float(r.get('lift', 0.0))
+        lo = roll - float(b['bounce_back'])
+    else:
+        roll, lift = float(b['roll']), 0.0
+        lo = float(b['bounce'][0])
+    return dict(delay=b['delay'], roll_time=b['roll_time'], roll=roll, lo=lo, hi=roll, bounce_time=b['bounce_time'],
+                yaw=b['yaw'], sink=b['sink'], lift=lift, extra_back=float(b.get('extra_back', 0.0)))
 HALF_OF = {'Carriage1.FrontHalf': 'C1F', 'Carriage1.RearHalf': 'C1R', 'Carriage2.FrontHalf': 'C2F', 'Carriage2.RearHalf': 'C2R'}
 GANGWAY_HALF = HALF_OF[SPEC.get('structure', {}).get('gangway', 'Carriage1.RearHalf')]
 SIDE = {1: +1, 2: -1}            # renders: break 1 falls toward +X, break 2 toward -X
@@ -487,21 +503,22 @@ def drift(t):
 
 
 def topple(t, b):
+    """b = profile(). Returns roll, yaw, sink, roll progress (u^2 during the roll, 1 after)."""
     d, R_, T_ = b['delay'], b['roll'], b['roll_time']
-    lo, hi = b['bounce']; Tb = b['bounce_time']
+    lo, hi = b['lo'], b['hi']; Tb = b['bounce_time']
     if t <= d:
-        return 0.0, 0.0, 0.0
+        return 0.0, 0.0, 0.0, 0.0
     if t <= d + T_:
         u = (t - d) / T_
-        return R_ * u * u, b['yaw'] * u * u, b['sink'] * max(0.0, (t - (d + T_ - 0.1)) / 0.1)
+        return R_ * u * u, b['yaw'] * u * u, b['sink'] * max(0.0, (t - (d + T_ - 0.1)) / 0.1), u * u
     tau = t - d - T_
     if tau < Tb / 2:
-        v = tau / (Tb / 2); roll = R_ + (lo - R_) * (1 - (1 - v) ** 2)          # QuadOut 88 -> 82
+        v = tau / (Tb / 2); roll = R_ + (lo - R_) * (1 - (1 - v) ** 2)          # QuadOut rest -> rest - bounce_back
     elif tau < Tb:
-        v = (tau - Tb / 2) / (Tb / 2); roll = lo + (hi - lo) * v * v             # QuadIn 82 -> 88
+        v = (tau - Tb / 2) / (Tb / 2); roll = lo + (hi - lo) * v * v             # QuadIn back to rest
     else:
         roll = hi
-    return roll, b['yaw'], b['sink']
+    return roll, b['yaw'], b['sink'], 1.0
 
 
 def Tm(v):
@@ -519,12 +536,14 @@ def Ry(deg):
 
 
 def body_matrix(t, frame_k, side, prof, centre):
-    roll, yaw, sink = topple(t, prof)
+    roll, yaw, sink, prog = topple(t, prof)
+    lift = prof['lift'] * min(1.0, roll / prof['roll']) if prof['roll'] else 0.0     # lift eases in with the roll
+    back = prof['extra_back'] * prog                                                  # extra +Z eased in over the roll
     P = ORIGIN[frame_k] + np.array([side * PIVOT_X, PIVOT_Y, 0.0])
     Mr = Tm(P) @ Rz(-side * roll) @ Tm(-P)                  # top of the body goes toward the falling side
     c2 = (Mr @ np.append(centre, 1.0))[:3]
     My = Tm(c2) @ Ry(side * yaw) @ Tm(-c2)                  # yaw about the vertical line through the body centre
-    return Tm([0.0, -sink, drift(t)]) @ My @ Mr, (roll, side * yaw, sink)
+    return Tm([0.0, lift - sink, drift(t) + back]) @ My @ Mr, (roll, side * yaw, sink, lift, back)
 
 
 # ---------------------------------------------------------------- the build
@@ -724,8 +743,8 @@ class Build:
     def bodies(self, k):
         """Lost bodies of break k: list of (objects, frame carriage, profile)."""
         if k == 1:
-            return [(self.half['C1R'], 1, BODY1), (self.half['C2F'] + self.half['C2R'], 2, BODY2)]
-        return [(self.half['C2R'], 2, BODY1)]
+            return [(self.half['C1R'], 1, profile(BODY1, SIDE[1])), (self.half['C2F'] + self.half['C2R'], 2, profile(BODY2, SIDE[1]))]
+        return [(self.half['C2R'], 2, profile(BODY1, SIDE[2]))]
 
     def kept(self, k):
         return self.half['C1F'] if k == 1 else self.half['C1F'] + self.half['C1R'] + self.half['C2F']
@@ -753,10 +772,10 @@ class Build:
         elif kind == 'break':
             side = SIDE[k]
             for objs, fk, prof in self.bodies(k):
-                Mb, (roll, yaw, sink) = body_matrix(t, fk, side, prof, self.centre(objs))
+                Mb, (roll, yaw, sink, lift, back) = body_matrix(t, fk, side, prof, self.centre(objs))
                 for o in objs:
                     mats[o.name] = Mb
-                desc.append('roll %.1f yaw %.1f sink %.2f' % (roll, yaw, sink))
+                desc.append('roll %.2f yaw %.1f sink %.2f lift %.2f back %.2f' % (roll, yaw, sink, lift, back))
             desc.insert(0, 'drift %.2f' % drift(t))
         return mats, desc
 
@@ -898,9 +917,12 @@ def penetration(A, B):
     return best
 
 
-def seam_section(out_dir):
+PF = {}          # key pre-flight numbers, written to out/preflight.json (facts for the critic pack)
+
+
+def seam_numbers(out_dir):
     from PIL import Image
-    rows = []
+    res = []
     for cname in STATES['seamref'][3]:
         a_p = os.path.join(out_dir, 'reference_uncut__%s.png' % cname); b_p = os.path.join(out_dir, 'intact__%s.png' % cname)
         if not (os.path.exists(a_p) and os.path.exists(b_p)):
@@ -908,7 +930,12 @@ def seam_section(out_dir):
         a = np.asarray(Image.open(a_p).convert('RGB')).astype(int); b = np.asarray(Image.open(b_p).convert('RGB')).astype(int)
         if a.shape == b.shape:
             d = np.abs(a - b).max(axis=2)
-            rows.append('| %s | %d | %.3f | %d |' % (cname, d.max(), d.mean(), int((d > 12).sum())))
+            res.append((cname, int(d.max()), float(d.mean()), int((d > 12).sum())))
+    return res
+
+
+def seam_section(out_dir):
+    rows = ['| %s | %d | %.3f | %d |' % x for x in seam_numbers(out_dir)]
     if not rows:
         return ''
     return ('\n## 7. Seam check in pixels: intact (cut pieces) vs the uncut original, same camera, same samples\n\n'
@@ -933,13 +960,19 @@ def preflight(B, path):
     L = []
     w = L.append
     t0 = time.time()
+    PF.clear()
+    PF['spec'] = SPEC['version']; PF['counts'] = {h: len(v) for h, v in B.half.items()}
+    PF['groups_imported'] = len(B.objs)
     w('# T1 pre-flight (mission 260929-train-splits)\n')
     w('Generated by src/render/build.py on %s from break_spec.json v%s. Units: studs; world = Roblox coords; B = break frame of the carriage.\n' % (
         time.strftime('%Y-%m-%d %H:%M'), SPEC['version']))
-    w('Topple used: body 1 roll %s bounce %s sink %s yaw %s delay %s; body 2 roll %s bounce %s sink %s yaw %s delay %s; pivot X +-%s Y %s; '
-      'gangway %s -> %s. Break 1 falls toward +X, break 2 toward -X (yaw mirrored).\n' % (
-          BODY1['roll'], BODY1['bounce'], BODY1['sink'], BODY1['yaw'], BODY1['delay'], BODY2['roll'], BODY2['bounce'], BODY2['sink'],
-          BODY2['yaw'], BODY2['delay'], PIVOT_X, PIVOT_Y, GANGWAY, GANGWAY_HALF))
+    for k, lab in ((1, 'break 1 (+X)'), (2, 'break 2 (-X)')):
+        for bi, (objs, fk, pr) in enumerate(B.bodies(k)):
+            w('Topple used, %s body %d: rest roll %.2f lift %.2f, bounce to %.2f and back over %.2f s, roll time %.2f after delay %.2f, '
+              'yaw %+.0f (mirrored with side), sink %.2f, extra back %.2f.' % (lab, bi + 1, pr['roll'], pr['lift'], pr['lo'], pr['bounce_time'],
+                                                                                pr['roll_time'], pr['delay'], pr['yaw'], pr['sink'], pr['extra_back']))
+    w('\nPivot X +-%s Y %s (B); gangway %s -> %s. Object counts after the cut: %s.\n' % (
+        PIVOT_X, PIVOT_Y, GANGWAY, GANGWAY_HALF, ', '.join('%s %d' % (h, len(v)) for h, v in B.half.items())))
     # 1 volumes + paths
     w('## 1. Cut crossers: boolean path and volume(front)+volume(rear) vs original (limit 0.5 %)\n')
     w('| carriage | crosser | weld: degenerate / non-manifold edges / fin pairs | path | caps F/R (tris) | V orig | V front | V rear | off % | ok |')
@@ -954,12 +987,16 @@ def preflight(B, path):
         w('| C%d | %s | %d / %d / %d | %s | %s | %.3f | %.3f | %.3f | %+.4f | %s |' % (
             r['k'], r['name'], rep['degenerate'], rep['nonmanifold'], rep['fins'], r['path'], caps_s, r['v_orig'],
             r['v_front'], r['v_rear'], off, 'PASS' if abs(off) <= 0.5 else 'FAIL'))
+        PF.setdefault('crossers', []).append(dict(k=r['k'], name=r['name'], path=r['path'], caps=caps_s, v_orig=r['v_orig'],
+                                                  off_pct=off, nonmanifold=rep['nonmanifold'], fins=rep['fins'],
+                                                  degenerate=rep['degenerate'], m3_import=r.get('m3_import', '')))
     fb = [r for r in B.piece_info if 'fallback_reason' in r]
     w('\nFallback (not watertight after weld -> per-cell clipping): %s.' % (', '.join('%s (%s; %s)' % (r['name'], r['fallback_reason'], r.get('m3_import', '')) for r in fb) or 'none'))
     if fb and B.args.fallback_caps == 'on':
         w('Fallback pieces were capped with exact cross-sections of the original mesh (open cross-section chains: %s); '
           'with --fallback-caps off they stay open (the order\'s literal fallback).' % ', '.join('%s %d' % (r['name'], r.get('open_chains', 0)) for r in fb))
     w('Worst volume deviation: %.4f %%.\n' % worst)
+    PF['vol_worst_pct'] = worst
 
     # per piece meshes (Roblox coords), cap flags
     piece_mesh = {}
@@ -1024,6 +1061,9 @@ def preflight(B, path):
     n_sl = sum(v[3] for v in planes['sliver'].values())
     w('\nTrue slivers under 0.05: %d samples on %d cutter planes; thinnest true sliver %.3f (%s). Feathering under 0.05: %d samples on %d planes; thinnest %.3f (%s).\n' % (
         n_sl, len(planes['sliver']), worst_sl[0], worst_sl[1], sum(v[3] for v in planes['feather'].values()), len(planes['feather']), worst_fe[0], worst_fe[1]))
+    PF['slivers'] = dict(true_count=n_sl, true_min=worst_sl, feather_count=sum(v[3] for v in planes['feather'].values()), feather_min=worst_fe,
+                         feather_planes=[(kk, v[0], v[3], sorted(v[1])) for kk, v in sorted(planes['feather'].items(), key=lambda x: x[1][0])],
+                         true_planes=[(kk, v[0], v[3], sorted(v[1])) for kk, v in sorted(planes['sliver'].items(), key=lambda x: x[1][0])])
     for kind, title in (('sliver', 'True slivers < 0.05'), ('feather', 'Feathering < 0.05 (acceptable per coordinator, listed for the record)')):
         if planes[kind]:
             w('%s:\n' % title)
@@ -1058,14 +1098,16 @@ def preflight(B, path):
                 bad.append(u.name)
             else:
                 pre.append(u.name)
+        PF.setdefault('floaters', {})[k] = dict(kept=len(kept), checked=len(zone), created=bad, preexisting=pre)
         w('- Break %d: kept set %d objects -> %d units near the tear checked; floaters created by the cut: %s; isolated already in the intact model: %s.' % (
             k, len(kept), len(zone), (', '.join(bad) if bad else 'none'), (', '.join(pre) if pre else 'none')))
     w('')
 
     # 4 wreck at rest
     w('## 4. Wreck at rest (t = 4.0)\n')
-    w('Lowest points after the pose, split by where the vertex sits on the carriage at rest (B frame): bogie/underframe side = Y < -1.0, '
-      'roof side = Y > 9.0. Resting on bogie edge + roof eave = both lowest points within [ground - sink - 0.05, ground + 0.05] (ground y %.2f).\n' % RAIL_Y)
+    w('Lowest points after the pose, split by where the vertex sits on the carriage at rest (B frame): bogie side = lower half (Y < 4, '
+      'bogies, underframe, floor), roof side = upper half (Y >= 4, upper walls, roof eave). Resting on bogie edge + roof eave = both '
+      'lowest points within [ground - sink - 0.05, ground + 0.05] (ground y %.2f).\n' % RAIL_Y)
     names = {(1, 0): 'C1.Rear', (1, 1): 'C2 incl. gangway' if GANGWAY_HALF.startswith('C2') else 'C2', (2, 0): 'C2.Rear'}
     for k in (1, 2):
         mats, desc = B.pose_matrices('break%d_t4.0' % k)
@@ -1079,16 +1121,19 @@ def preflight(B, path):
                 y = co[:, 1]
                 i = int(np.argmin(y))
                 if y[i] < low_all[0]: low_all = (float(y[i]), o.name)
-                m = yb < -1.0
+                m = yb < 4.0
                 if m.any():
                     j = int(np.argmin(np.where(m, y, 9e9)))
                     if y[j] < low_bog[0]: low_bog = (float(y[j]), o.name)
-                m = yb > 9.0
+                m = yb >= 4.0
                 if m.any():
                     j = int(np.argmin(np.where(m, y, 9e9)))
                     if y[j] < low_roof[0]: low_roof = (float(y[j]), o.name)
             lo_lim = RAIL_Y - prof['sink'] - 0.05; hi_lim = RAIL_Y + 0.05
             ok = lambda v: 'PASS' if lo_lim <= v <= hi_lim else ('FAIL (sunk %.2f)' % (RAIL_Y - v) if v < lo_lim else 'FAIL (hangs %.2f)' % (v - RAIL_Y))
+            PF.setdefault('rest', []).append(dict(k=k, body=bi + 1, name=names[(k, bi)], pose=desc[bi + 1], lowest=low_all[0], lowest_part=low_all[1],
+                                                  limit=lo_lim, bogie=low_bog[0], bogie_part=low_bog[1], roof=low_roof[0], roof_part=low_roof[1],
+                                                  sink=prof['sink'], ok=bool(low_all[0] >= lo_lim and lo_lim <= low_bog[0] <= hi_lim and lo_lim <= low_roof[0] <= hi_lim)))
             w('- Break %d body %d (%s; %s): lowest point y %.3f (%s) vs limit %.3f -> %s. Bogie side y %.3f (%s) -> %s; roof side y %.3f (%s) -> %s.' % (
                 k, bi + 1, names[(k, bi)], desc[bi + 1], low_all[0], low_all[1], lo_lim, 'PASS' if low_all[0] >= lo_lim else 'FAIL',
                 low_bog[0], low_bog[1], ok(low_bog[0]), low_roof[0], low_roof[1], ok(low_roof[0])))
@@ -1120,6 +1165,8 @@ def preflight(B, path):
         res.sort(key=lambda x: -x[0])
         worst[label] = res
     r4 = worst['t=4.0']; r0 = worst['intact']
+    PF['penetration'] = dict(t4=r4[0][0] if r4 else 0.0, pair=(r4[0][1], r4[0][2]) if r4 else None, pairs=len(r4),
+                             intact=r0[0][0] if r0 else 0.0, intact_pair=(r0[0][1], r0[0][2]) if r0 else None)
     w('- Break 1 bodies (C1.Rear vs C2%s) at t = 4.0: %d intersecting part pairs; max depth %.3f%s -> %s.' % (
         ' incl. gangway' if GANGWAY_HALF.startswith('C2') else '',
         len(r4), r4[0][0] if r4 else 0.0, (' (%s in %s)' % (r4[0][1], r4[0][2])) if r4 else '', 'PASS' if (not r4 or r4[0][0] <= 0.3) else 'FAIL'))
@@ -1163,6 +1210,7 @@ def preflight(B, path):
         gmax = max(gmax, m)
         w('| %s | %.2e |' % (name, m))
     w('\nLargest gap: %.2e studs.\n' % gmax)
+    PF['gap_max'] = gmax
 
     # 6 tear clearance for everything else
     w('## 6. Non-crosser groups cut by the tear surface (should be none)\n')
@@ -1186,10 +1234,13 @@ def preflight(B, path):
                 if fr.any() and rr.any():
                     hits.append('%s (%s)' % (o.name, h))
     w('- %s\n' % (', '.join(hits) if hits else 'none'))
+    PF['tear_hits'] = hits
     w('_pre-flight computed in %.0f s_\n' % (time.time() - t0))
     with open(path, 'w') as f:
         f.write('\n'.join(L) + '\n')
     put_seam_section(path, os.path.dirname(path))
+    with open(os.path.splitext(path)[0] + '.json', 'w') as f:
+        json.dump(PF, f, indent=1, default=str)
     print('[preflight] written %s (%.0fs)' % (path, time.time() - t0), flush=True)
     return L
 

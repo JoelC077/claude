@@ -177,7 +177,6 @@ guarded("static", function()
 		{ "getfenv", "getfenv" },
 		{ "setfenv", "setfenv" },
 		{ "require%s*%(%s*%d", "asset require" },
-		{ "OnServerEvent", "OnServerEvent" },
 		{ "FireServer", "FireServer" },
 		{ "InvokeServer", "InvokeServer" },
 		{ ":connect%(", "lower-case connect" },
@@ -193,7 +192,15 @@ guarded("static", function()
 			end
 		end
 	end
-	check("no deprecated/unsafe APIs (wait/spawn/delay/tick/loadstring/asset require/OnServerEvent/FireServer)", #bad == 0, #bad > 0 and table.concat(bad, "; ") or nil)
+	check("no deprecated/unsafe APIs (wait/spawn/delay/tick/loadstring/asset require/FireServer/InvokeServer)", #bad == 0, #bad > 0 and table.concat(bad, "; ") or nil)
+	local listeners = {}
+	for _, f in FILES do
+		if H.source(f):find("OnServerEvent") then
+			table.insert(listeners, f)
+		end
+	end
+	check("OnServerEvent only in TrainSplit.lua, as the drop-and-flag handler", #listeners == 1 and listeners[1] == "TrainSplit.lua"
+		and H.source("TrainSplit.lua"):find("remote.OnServerEvent:Connect") ~= nil, table.concat(listeners, ", "))
 end)
 
 ---------------------------------------------------------------- pure runtime functions
@@ -216,6 +223,25 @@ guarded("shared", function()
 	check("drift is continuous at V/brake", near(Shared.drift(T - 1e-6, V, a, rc), Shared.drift(T + 1e-6, V, a, rc), 1e-4))
 	check("drift speed: a*t while braking, V after", near(Shared.driftSpeed(1, V, a, rc), 12) and near(Shared.driftSpeed(4, V, a, rc), 35))
 	check("reaches the 700-stud despawn at t = 21.46 s", Shared.drift(21.4, V, a, rc) < 700 and Shared.drift(21.5, V, a, rc) > 700)
+	check("terrainSpeed: 35 before the snap, 23 at t=1, 2 at t=2.75, 0 once it moves with the terrain", near(Shared.terrainSpeed(0, V, a, rc), 35)
+		and near(Shared.terrainSpeed(1, V, a, rc), 23) and near(Shared.terrainSpeed(2.75, V, a, rc), 2, 1e-9) and near(Shared.terrainSpeed(3.5, V, a, rc), 0))
+	do
+		local Bc = CFrame.new(10, 5, 20) * CFrame.Angles(0, 0.3, 0)
+		local baseC = Bc * CFrame.new(0.5, 6, 15)
+		local worst = 0
+		for bi = 1, #Config.Topple do
+			local pr = { V = V, brake = a, recoil = rc, pivot = Config.Pivot, topple = Config.Topple[bi] }
+			local cap = Shared.velocityCap(V, pr, 31)
+			for i = 0, 600 do
+				worst = math.max(worst, Shared.bodyVelocity(baseC, Bc, 1, i / 100, pr).Magnitude / cap)
+			end
+		end
+		check("velocityCap sits above every honest root speed (0..6 s, both bodies)", worst < 1, ("peak %.0f%% of the cap"):format(worst * 100))
+		local capped = Shared.clampVelocity(Vector3.new(1e6, 0, 0), 150)
+		check("clampVelocity: too fast is scaled to the cap, NaN and inf become zero, normal passes", near(capped.Magnitude, 150, 1e-3)
+			and Shared.clampVelocity(Vector3.new(0 / 0, 1, 2), 150) == Vector3.zero and Shared.clampVelocity(Vector3.new(math.huge, 0, 0), 150) == Vector3.zero
+			and Shared.clampVelocity(Vector3.new(3, 4, 0), 150) == Vector3.new(3, 4, 0))
+	end
 
 	local b1, b2 = Config.Topple[1], Config.Topple[2]
 	local function topple(tt, bi, er, ey, es)
@@ -792,12 +818,13 @@ end
 
 local clientPayload, clientWorld
 
-section("TrainSplit (server): break 2, then break 1")
+section("TrainSplit (server): break 2, then break 1 (with an exploiter at the snap)")
 guarded("server 2 then 1", function()
 	local w = splitWorld()
 	local TS, train, game = w.TS, w.train, w.game
-	local Shared = w.rt.Shared
+	local Shared, Config = w.rt.Shared, w.rt.Config
 	local B2 = train.RR_Breaks.Break2:GetAttribute("BreakCFrame")
+	local players = game:GetService("Players")
 	local function fakePlayer(name, pos)
 		local p = Instance.new("Player")
 		p.Name = name
@@ -807,13 +834,34 @@ guarded("server 2 then 1", function()
 		hrp.Name = "HumanoidRootPart"
 		hrp.CFrame = CFrame.new(pos)
 		hrp.Parent = char
+		local hum = Instance.new("Humanoid")
+		hum.Parent = char
 		char.Parent = game.Workspace
 		p.Character = char
-		return p
+		p.Parent = players
+		return p, hrp, hum
 	end
-	local rider = fakePlayer("Rider", (B2 * CFrame.new(0, 3, 10)).Position)
-	local stayer = fakePlayer("Stayer", (B2 * CFrame.new(0, 3, -10)).Position)
-	state.players = { rider, stayer }
+	local lostHalf = train.RR_Breaks.Break2.LostHalf.Value
+	local seat = Instance.new("Seat")
+	seat.Anchored = true
+	seat.Size = Vector3.new(2, 1, 2)
+	seat.CFrame = B2 * CFrame.new(3, 1, 12)
+	seat.Parent = lostHalf
+	-- an exploiter holds an unanchored (client-owned) door of the lost half 5000 studs above it at the snap
+	local door = Instance.new("Part")
+	door.Name = "Door"
+	door.Anchored = false
+	door.Size = Vector3.new(4, 7, 0.3)
+	door.CFrame = B2 * CFrame.new(0, 5000, 20)
+	door.Parent = lostHalf
+	-- A stays on the wreck, B jumps back to the kept half, C sits in the wreck, D is on the kept half, E is by the door
+	local A, hrpA = fakePlayer("RiderA", (B2 * CFrame.new(0, 3, 10)).Position)
+	local Bp, hrpB = fakePlayer("RiderB", (B2 * CFrame.new(-2, 3, 14)).Position)
+	local Cp, hrpC, humC = fakePlayer("Seated", (B2 * CFrame.new(3, 3, 12)).Position)
+	humC.SeatPart = seat
+	local D, hrpD = fakePlayer("Stayer", (B2 * CFrame.new(0, 3, -10)).Position)
+	local E = fakePlayer("ByTheDoor", (B2 * CFrame.new(0, 5003, 20)).Position)
+	state.players = { A, Bp, Cp, D, E }
 	local snapped, despawned = {}, {}
 	TS.Snapped.Event:Connect(function(t, k, result)
 		table.insert(snapped, { t = t, k = k, result = result })
@@ -824,14 +872,13 @@ guarded("server 2 then 1", function()
 	check("remote RR_TrainSplitFX exists (server -> clients)", game.ReplicatedStorage:FindFirstChild("RR_TrainSplitFX") and game.ReplicatedStorage.RR_TrainSplitFX:IsA("RemoteEvent"))
 	check("GetBreaks / IsIntact before any snap", #TS.GetBreaks(train) == 2 and TS.IsIntact(train, 1) and TS.IsIntact(train, 2))
 
-	local lostHalf = train.RR_Breaks.Break2.LostHalf.Value
 	local lostParts = partsIn(lostHalf)
 	local result = TS.SplitAt(train, 2, { seed = 7 })
 	local body = result.bodies[1]
 	check("SplitAt(2): one body holding Carriage2.RearHalf, in workspace.RR_Wrecks", #result.bodies == 1 and lostHalf.Parent == body
 		and body.Parent == game.Workspace:FindFirstChild("RR_Wrecks"))
 	local root = body.PrimaryPart
-	local welds, anchoredLeft = 0, 0
+	local welded, anchoredLeft = {}, 0
 	for _, p in lostParts do
 		if p.Anchored then
 			anchoredLeft += 1
@@ -839,21 +886,32 @@ guarded("server 2 then 1", function()
 	end
 	for _, d in root:GetChildren() do
 		if d:IsA("WeldConstraint") and d.Part0 == root then
-			welds += 1
+			welded[d.Part1] = true
 		end
 	end
-	check("body parts welded to the anchored root and unanchored", root.Anchored and anchoredLeft == 0 and welds == #lostParts, ("%d welds, %d parts"):format(welds, #lostParts))
-	check("riders: the player on the lost half, not the one on the kept half", #result.riders == 1 and result.riders[1] == rider)
+	local allWelded = true
+	for _, p in lostParts do
+		allWelded = allWelded and welded[p] == true
+	end
+	check("every lost part welded to the anchored root, the unanchored door too, then unanchored", root.Anchored and anchoredLeft == 0 and allWelded and welded[door],
+		("%d parts"):format(#lostParts))
+	check("SetNetworkOwner(nil) tried on lost parts: no client owns wreck physics", state.networkOwner[door] == "server")
+	local rp = B2:PointToObjectSpace(root.CFrame.Position)
+	check("BodyRoot placed from anchored parts only: the held door does not drag it", math.abs(rp.X) < 10 and rp.Y > -10 and rp.Y < 15 and rp.Z > -6 and rp.Z < 36,
+		("root at %.1f, %.1f, %.1f in the break frame"):format(rp.X, rp.Y, rp.Z))
+	local cand = setOf(result.riders)
+	check("rider candidates: the three on the lost half, not the kept-half player nor the one by the held door",
+		#result.riders == 3 and cand[A] and cand[Bp] and cand[Cp] and not cand[D] and not cand[E])
 	check("break 2 recorded as snapped; break 1 still intact", not TS.IsIntact(train, 2) and TS.IsIntact(train, 1) and train.RR_Breaks.Break2:GetAttribute("SnapTime") ~= nil)
 	local payload = state.fired[1]
 	check("FireAllClients once: k, t0 = server time + lead, breakCF, bodies, params, seed", #state.fired == 1 and payload.k == 2 and near(payload.t0, 1000.25)
-		and payload.breakCF == B2 and payload.bodies[1].root == root and payload.params.V == 35 and payload.seed == 7
+		and payload.breakCF == B2 and payload.bodies[1].root == root and payload.params.V == 35 and payload.params.brake == 12 and payload.seed == 7
 		and payload.side == Shared.side("random", 7) and payload.kept == train.Carriage2.FrontHalf.PrimaryPart)
 	check("Snapped fired with the result", #snapped == 1 and snapped[1].k == 2 and snapped[1].result == result)
 
 	local hb = H.signal(game:GetService("RunService"), "Heartbeat")
 	local base = payload.bodies[1].base
-	local params = { V = 35, brake = 12, recoil = w.rt.Config.Recoil, pivot = w.rt.Config.Pivot, topple = w.rt.Config.Topple[1] }
+	local params = { V = 35, brake = 12, recoil = Config.Recoil, pivot = Config.Pivot, topple = Config.Topple[1] }
 	state.clock = payload.t0 - 0.1
 	hb:Fire(1 / 60)
 	check("before the snap moment the wreck holds still", root.CFrame == base)
@@ -862,13 +920,37 @@ guarded("server 2 then 1", function()
 	local want = Shared.bodyCFrame(base, B2, payload.side, 1, params)
 	check("Heartbeat drives root.CFrame from TrainSplitShared", nearV(root.CFrame.Position, want.Position, 1e-4) and nearV(root.CFrame.YVector, want.YVector, 1e-4))
 	check("root.AssemblyLinearVelocity carries riders (12 studs/s back at t=1)", near(root.AssemblyLinearVelocity:Dot(B2.ZVector), 12, 0.01))
-	state.clock = payload.t0 + 20
+	local maxV, finiteV = 0, true
+	for i = 0, 60 do
+		state.clock = payload.t0 + i * 0.1
+		hb:Fire(1 / 60)
+		local m = root.AssemblyLinearVelocity.Magnitude
+		finiteV = finiteV and m == m and m < math.huge
+		maxV = math.max(maxV, m)
+	end
+	local bound = 1.5 * 35 + 8 + 2 * math.rad(100) / 1.05 * 45 + 10
+	check("conveyor velocity finite and capped every frame (0..6 s)", finiteV and maxV < bound, ("max %.1f studs/s"):format(maxV))
+
+	-- 1.2 s after the snap: A moved with the wreck, B jumped back, C is seated (its reported position is junk),
+	-- D jumped on after the snap (never a candidate)
+	state.clock = payload.t0 + 1.2
 	hb:Fire(1 / 60)
-	check("still there at t=20 s (under 700 studs)", body.Parent ~= nil and #despawned == 0)
-	state.clock = payload.t0 + 22
+	hrpA.CFrame = root.CFrame * base:ToObjectSpace(B2 * CFrame.new(0, 3, 10))
+	hrpB.CFrame = B2 * CFrame.new(0, 3, -10)
+	hrpC.CFrame = CFrame.new(0, 9000, 0)
+	hrpD.CFrame = root.CFrame
+	local confirmed = setOf(TS.ConfirmRiders(result, 1.0))
+	check("ConfirmRiders re-checks on the server: still over the wreck or seated in it; B (jumped back) and D (late) are out",
+		confirmed[A] and confirmed[Cp] and not confirmed[Bp] and not confirmed[D])
+
+	state.clock = payload.t0 + 21.3
+	hb:Fire(1 / 60)
+	check("still there at t=21.3 s (computed slide 695 studs)", body.Parent ~= nil and #despawned == 0)
+	state.clock = payload.t0 + 21.6
 	hb:Fire(1 / 60)
 	task.wait()
-	check("despawned past 700 studs: Despawned fired, wreck destroyed", #despawned == 1 and despawned[1] == body and body.Parent == nil)
+	check("despawned once the computed slide passes 700 studs: Despawned fired, wreck destroyed", #despawned == 1 and despawned[1] == body and body.Parent == nil)
+	check("ConfirmRiders after the despawn: nobody", #TS.ConfirmRiders(result, 0) == 0)
 
 	local again = TS.SplitAt(train, 2)
 	check("SplitAt(2) again is a no-op", #again.bodies == 0 and #state.fired == 1)
@@ -888,7 +970,81 @@ guarded("server 2 then 1", function()
 	check("break 1 then takes the gangway away with Carriage2's front half", gangwayIn(r1.bodies[2]) and not gangwayIn(r1.bodies[1]))
 	local p2 = state.fired[2]
 	check("payload for break 1 carries both topple bodies", p2 and #p2.bodies == 2 and p2.bodies[1].topple.delay == 0.45 and p2.bodies[2].topple.delay == 0.8)
-	check("server never listens to clients (no OnServerEvent)", state.onServerEventUsed == nil)
+end)
+
+section("TrainSplit (server): hardening (speed, brake, handoff, client spam)")
+guarded("hardening", function()
+	local w = splitWorld()
+	local Config = w.rt.Config
+	w.train:SetAttribute("Speed", -35)
+	local r = w.TS.SplitAt(w.train, 2, { seed = 1 })
+	local p = state.fired[1]
+	check("negative Speed is clamped to 0", p.params.V == 0)
+	local hb = H.signal(w.game:GetService("RunService"), "Heartbeat")
+	state.clock = p.t0 + 3
+	hb:Fire(1 / 60)
+	local root = r.bodies[1].PrimaryPart
+	local dz = p.breakCF:ToObjectSpace(root.CFrame).Position.Z - p.breakCF:ToObjectSpace(p.bodies[1].base).Position.Z
+	check("with V = 0 the wreck only recoils back, never jumps forward into the kept train", dz >= 0 and dz <= 0.8 + 1e-3, ("dz %.3f"):format(dz))
+	w.train:SetAttribute("Speed", 0 / 0)
+	w.TS.SplitAt(w.train, 1, { seed = 2 })
+	check("NaN Speed falls back to the default", state.fired[2].params.V == Config.SpeedDefault)
+
+	w = splitWorld()
+	w.train:SetAttribute("Speed", 1e6)
+	w.TS.SplitAt(w.train, 2)
+	check("huge Speed is clamped to MaxSpeed", state.fired[1].params.V == w.rt.Config.MaxSpeed)
+	w.train:SetAttribute("Speed", "fast")
+	w.TS.SplitAt(w.train, 1)
+	check("non-number Speed falls back to the default", state.fired[2].params.V == w.rt.Config.SpeedDefault)
+
+	w = splitWorld()
+	Config = w.rt.Config
+	local terrain = Instance.new("Folder")
+	terrain.Name = "MovingTerrain"
+	terrain.Parent = w.game.Workspace
+	w.TS.SplitAt(w.train, 2, { speed = -5 })
+	check("negative opts.speed is clamped to 0", state.fired[1].params.V == 0)
+	local oldBrake = Config.Brake
+	Config.Brake = 0
+	w.train:SetAttribute("Speed", math.huge)
+	local rc = w.TS.SplitAt(w.train, 1, { terrain = terrain, seed = 5 })
+	Config.Brake = oldBrake
+	local pc = state.fired[2]
+	check("inf Speed falls back to the default, Brake <= 0 to 12", pc.params.V == 35 and pc.params.brake == 12)
+	local hbC = H.signal(w.game:GetService("RunService"), "Heartbeat")
+	local despawned = 0
+	w.TS.Despawned.Event:Connect(function()
+		despawned += 1
+	end)
+	state.clock = pc.t0 + 3
+	hbC:Fire(1 / 60)
+	local b1 = rc.bodies[1]
+	check("once it moves with the terrain the wreck is handed to opts.terrain", b1.Parent == terrain and rc.bodies[2].Parent == terrain)
+	b1.PrimaryPart.CFrame = b1.PrimaryPart.CFrame * CFrame.new(0, 0, 5000) -- the terrain mover (or anything) moves it far
+	state.clock = pc.t0 + 5
+	hbC:Fire(1 / 60)
+	check("despawn follows the computed slide, not where the wreck is (still there at t=5 s)", despawned == 0 and b1.Parent == terrain)
+	state.clock = pc.t0 + 21.6
+	hbC:Fire(1 / 60)
+	task.wait()
+	check("despawned once the computed slide passes 700 studs", despawned == 2 and b1.Parent == nil)
+
+	local remote = w.game.ReplicatedStorage.RR_TrainSplitFX
+	local players = w.game:GetService("Players")
+	local spammer, other = Instance.new("Player"), Instance.new("Player")
+	spammer.Name, other.Name = "Spammer", "Other"
+	spammer.Parent, other.Parent = players, players
+	local onServer = H.signal(remote, "OnServerEvent")
+	check("the remote has one server handler that drains client calls", onServer:count() == 1)
+	local warnsBefore, firedBefore = #state.warnings, #state.fired
+	for _ = 1, 50 do
+		onServer:Fire(spammer, { k = 1 }, "SplitAt")
+	end
+	onServer:Fire(other)
+	check("client FireServer is dropped: no snap, no broadcast", #state.fired == firedBefore)
+	check("each sender flagged once (attribute + one warning each)", spammer:GetAttribute(Config.MisuseAttribute) == true
+		and other:GetAttribute(Config.MisuseAttribute) == true and #state.warnings - warnsBefore == 2, #state.warnings - warnsBefore)
 end)
 
 section("TrainSplit (server): break 1 first")
@@ -1065,9 +1221,11 @@ guarded("client", function()
 	check("split_explosion has a flat train-wide layer in SoundService", flat == 1)
 	check("split_glass plays once per side, 0.1 s apart", n("RR_split_glass") == 2 and near(played.RR_split_glass[2].at - played.RR_split_glass[1].at, 0.1, 1 / 30))
 	local scrape = played.RR_wreck_scrape and played.RR_wreck_scrape[1]
-	local stopT = 20 / 12
-	check("wreck_scrape fitted to the slide at Speed 20 and faded out at V/brake", scrape and scrape.speed >= 1.25 * 0.95 - 1e-6 and scrape.speed <= 1.25 * 1.05 + 1e-6
-		and state.stopped[scrape.sound] and state.stopped[scrape.sound] - payload.t0 <= stopT + 0.25, scrape and scrape.speed)
+	check("wreck_scrape PlaybackSpeed = clamp(35 / V, 0.7, 1.2) = 1.2 at Speed 20", scrape and near(scrape.speed, 1.2, 1e-6), scrape and scrape.speed)
+	local groundStop = (20 - Config.Scrape.StopBelow) / 12 -- ground speed under 2 studs/s from t = 1.5 s
+	local stoppedAt = scrape and state.stopped[scrape.sound] and state.stopped[scrape.sound] - payload.t0
+	check("wreck_scrape fades out over 0.3 s once the computed ground speed is under 2 studs/s", stoppedAt ~= nil
+		and stoppedAt >= groundStop + Config.Scrape.Fade - 1e-6 and stoppedAt <= groundStop + Config.Scrape.Fade + 3 / 30, stoppedAt)
 	local crash = played.RR_topple_crash
 	check("second topple_crash (carriage 2) pitched down x0.94", crash and #crash == 2 and crash[2].speed <= 1.06 * 0.94 + 1e-6 and crash[2].speed >= 0.92 * 0.94 - 1e-6)
 	check("camera shakes on the explosion (camera 32 studs away)", game.Workspace.CurrentCamera == cam and shook)

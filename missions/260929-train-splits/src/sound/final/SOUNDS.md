@@ -9,16 +9,16 @@ Format: 48 kHz, 16-bit mono WAV, levelled to the rr-soundsmith impact standard (
 -1 dBTP or lower). Every file fades to true silence 20 ms before its end. The mix lives in data (`soundmap.json`),
 so a level change is a rebuild, never a re-upload.
 
-Status after critic pass 1 fixes: validate --strict PASS, analyze 7/7 PASS, build PASS. Nobody has heard them yet,
+Status after the pass-2 polish: validate --strict PASS, analyze 7/7 PASS, build PASS. Nobody has heard them yet,
 so the Studio listening test is pending (owner). For a first listen, `../preview/split_sequence_at_break.wav` plays
-break 1 as heard at the break. It is a listening aid only: do not upload it.
+break 1 as heard at the break, at Speed 35 with the client's scrape stop. It is a listening aid only: do not upload it.
 
 ## Files
 Times are from `src/kit/break_spec.json` (t 0 = the snap).
 - **Volume:** the Roblox `Sound.Volume` that puts the file at its in-game level (0.5 = file level, assumed until the
   Studio check).
 - **Roll-off:** InverseTapered for every 3D sound.
-- **Groups:** the boom is in Alarms. Every other layer is in Split, a SoundGroup of its own with a voice cap of 4.
+- **Groups:** the boom is in Alarms. Every other layer is in Split, a SoundGroup of its own with a voice cap of 6.
   Split is never ducked by the boom and is ducked by the fail like Actions.
 
 | id | file | length | LUFS M max (integrated) | true peak | in game (phone) | Volume | group | 2D/3D | RollOffMin / Max | event (t) |
@@ -29,14 +29,14 @@ Times are from `src/kit/break_spec.json` (t 0 = the snap).
 | debris_rain | debris_rain.wav | 1.80 s | -14.0 (-19.3) | -3.7 dBTP | -16 (-17.1) | 0.397 | Split t4 | 3D at `break` | 10 / 140 | `debris_rain`, t 0.8 |
 | topple_crash | topple_crash.wav | 1.45 s | -14.0 (-19.1) | -2.3 dBTP | -13 (-13.5) | 0.561 | Split t3 | 3D at `wreck` | 16 / 240 | `topple_crash`, t 1.5 (the broken half); its bounce clunk is 0.35 s in |
 | topple_crash_2 | topple_crash.wav (same file, no upload) | 1.73 s at 0.84 | as topple_crash | -2.3 dBTP | -16 (-16.5) | 0.397, PlaybackSpeed 0.806-0.874 | Split t4 | 3D at `wreck` | 16 / 240 | `topple_crash_2`, t 2.0 on break 1 (carriage 2) |
-| wreck_scrape | wreck_scrape.wav | 2.70 s | -14.0 (-17.2) | -2.9 dBTP | -16 (-17.1) | 0.397 | Split t4 | 3D at `wreck`, follows it | 10 / 140 | `wreck_scrape`, t 0.3 until V/brake (2.9 s at Speed 35) |
+| wreck_scrape | wreck_scrape.wav | 3.10 s | -14.0 (-17.5) | -2.6 dBTP | -16 (-17.2) | 0.397, PlaybackSpeed from the client | Split t4 | 3D at `wreck`, follows it | 10 / 140 | `wreck_scrape`, t 0.3; the client fades it out once the wreck is under 2 studs/s, so it ends ~0.13 s after the slide (V/12 s) at any Speed |
 
 The order holds on full-range speakers (-10 > -12.5 > -13 > -16 LUFS) and on a phone speaker (-11.2 boom > -13.0 tear >
--13.5 crash > -16.5 to -17.1 for debris, scrape and the second topple). On a phone, split_explosion sits just under the
+-13.5 crash > -16.5 to -17.2 for debris, scrape and the second topple). On a phone, split_explosion sits just under the
 boiler fail (-10.7) and above every other crisis sound.
 
-- **Pitch spread per play:** tear 0.97-1.03, explosion 0.96-1.04, glass 0.93-1.07, debris 0.90-1.10,
-  topple_crash 0.96-1.04, topple_crash_2 0.806-0.874, scrape 0.95-1.05.
+- **Pitch spread per play:** tear, explosion, glass and debris 0.97-1.03; topple_crash 0.96-1.04; topple_crash_2
+  0.806-0.874. wreck_scrape stays at 1.0 in the map, because the client sets its speed (see the wiring).
 - **Ducking (RR_Sound):** the `split` rule ducks Ambient -12, Music -14, UI -8 and Actions -4 dB. It stays on while
   the boom plays (2.2 s) plus 0.3 s, then releases over 0.9 s. Concurrent rules do not add: per group the deepest
   active duck wins, so Ambient dips 12 dB in a split, not 12 + 8.
@@ -51,7 +51,9 @@ Sound.setEmitter("wreck", wreckAttachment)    -- the front-most lost body
 Sound.event("metal_tear")                      -- t -0.25
 Sound.event("split_explosion")                 -- t 0 (its 3D layer plays at the "break" emitter)
 Sound.event("split_glass")                     -- t 0
-Sound.event("wreck_scrape")                    -- t 0.3; parented to wreckAttachment, so it follows the wreck
+local scrape = Sound.event("wreck_scrape", {pitch = math.clamp(35 / V, 0.7, 1.2)})  -- t 0.3; follows the wreck
+-- once the wreck is under 2 studs/s relative to the terrain: tween scrape.inst.Volume to 0 over 0.3 s, then
+-- scrape.inst:Stop() (the runtime resets Volume on the next play)
 Sound.event("debris_rain")                     -- t 0.8
 Sound.event("topple_crash")                    -- t 1.5, the broken half
 Sound.event("topple_crash_2", {at = carriage2Attachment})  -- break 1 only, t 2.0: carriage 2
@@ -65,6 +67,8 @@ and group values above.
 - A 3D sound is parented to its Attachment.
 - The explosion is two instances: a 2D one at 0.796 and a positional one at 0.502 on the break.
 - topple_crash_2 is the topple_crash asset at PlaybackSpeed 0.84 (+-4%) and Volume 0.397.
+- wreck_scrape plays at PlaybackSpeed clamp(35 / V, 0.7, 1.2) and fades out over 0.3 s once the wreck is under
+  2 studs/s.
 - Route B has no scripted ducking.
 
 ## Upload and register (the owner's steps)
@@ -105,8 +109,8 @@ python3 $RR_SOUND_PRESETS/make_final.py    # rewrites these files and the previe
 ```
 
 ## Known limits
-- **Scrape length:** wreck_scrape is sized for the normal speed (35). At Speed 20 it runs about 1 s past the slide;
-  at Speed 50 it stops 1.3 s early.
-- **No .ogg:** ffmpeg and imageio-ffmpeg are not installed here. Roblox accepts WAV, and these files are 87-259 KB.
+- **Scrape length:** handled by the client rule (PlaybackSpeed plus the stop fade). `../sheet/split_timeline.png`
+  draws it at Speed 20, 35 and 50: it ends 0.13, 0.12 and 0.11 s after the slide ends at 1.67, 2.92 and 4.17 s.
+- **No .ogg:** ffmpeg and imageio-ffmpeg are not installed here. Roblox accepts WAV, and these files are 87-298 KB.
 - **Placement is modelled:** in-game level, roll-off and phone loss come from the rr-soundsmith model, not from
   listening. The Volume curve (0.5 = file level) is assumed until the Studio check.

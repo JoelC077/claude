@@ -1,9 +1,9 @@
 {
  "sheet": [
   856,
-  900
+  1140
  ],
- "megapixels": 0.77,
+ "megapixels": 0.98,
  "tiles": [
   {
    "n": 1,
@@ -43,11 +43,47 @@
   },
   {
    "n": 4,
-   "label": "day door: topple | hid torn",
-   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_topple_dust.png",
+   "label": "day roof: torn, split",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_split_explosion.png",
    "box": [
     6,
     678,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 5,
+   "label": "day door: topple | hid torn",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_topple_dust.png",
+   "box": [
+    396,
+    678,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 6,
+   "label": "day door: glass | hid torn",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_glass_split.png",
+   "box": [
+    6,
+    918,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 7,
+   "label": "day roof: torn, boiler",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_boiler_burst.png",
+   "box": [
+    396,
+    918,
     384,
     216
    ],

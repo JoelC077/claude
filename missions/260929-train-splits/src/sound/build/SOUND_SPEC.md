@@ -64,7 +64,7 @@ fail t1 -9 > crisis t2 -11 > commit t3 -13 > reward t4 -15 > UI t5 -19 > ambient
 
 ## Voices and priority
 
-At most 16 one-shots at once; per group {"Alarms": 6, "Actions": 8, "UI": 4, "Split": 4}. When full, a new sound takes the least important voice (highest tier number), oldest first. New tier 1-2 sounds always get a voice, but a crisis alarm that is playing (class alarm) is cut only by the fail or by another alarm: crisis impacts (glass, coupling) yield to it and are dropped instead. A stolen voice stops its positional layer too. Loops are keyed and never stolen. Per-sound cooldowns and voice counts are in RR_SoundMap.
+At most 16 one-shots at once; per group {"Alarms": 6, "Actions": 8, "UI": 4, "Split": 6}. When full, a new sound takes the least important voice (highest tier number), oldest first. New tier 1-2 sounds always get a voice, but a crisis alarm that is playing (class alarm) is cut only by the fail or by another alarm: crisis impacts (glass, coupling) yield to it and are dropped instead. A stolen voice stops its positional layer too. Loops are keyed and never stolen. Per-sound cooldowns and voice counts are in RR_SoundMap.
 
 ## Speed link
 

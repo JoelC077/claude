@@ -7,6 +7,7 @@ Engine stand-ins (only for tests; the production files never see this module):
   BasePart:SubtractAsync  returns a UnionOperation whose box is the part box minus the cutter boxes
                           (exact grid decomposition in the part's frame; can be told to fail by export name)
   BasePart:GetJoints      joints registered by the test
+  BasePart:SetNetworkOwner records the owner (throws for anchored parts, like the engine)
   Selection:Get, ChangeHistoryService recording/waypoints, Workspace:GetServerTimeNow (a fake clock),
   RunService (IsServer/IsStudio/Heartbeat/BindToRenderStep), RemoteEvent/BindableEvent signals,
   DataModel:IsLoaded, Players:GetPlayers, Instance:WaitForChild / GetAttributeChangedSignal /
@@ -66,6 +67,7 @@ function H.resetState()
 	state.failNames = {}
 	state.csgCalls = 0
 	state.joints = {}
+	state.networkOwner = {}
 	state.fired = {}
 	state.players = {}
 	state.renderSteps = {}
@@ -230,6 +232,12 @@ roblox.implementMethod("BasePart", "GetJoints", function(self)
 		end
 	end
 	return list
+end)
+roblox.implementMethod("BasePart", "SetNetworkOwner", function(self, owner)
+	if self.Anchored then
+		error("Network Ownership API cannot be called on Anchored parts or parts welded to Anchored parts.")
+	end
+	state.networkOwner[self] = owner == nil and "server" or owner
 end)
 roblox.implementMethod("Selection", "Get", function()
 	return table.clone(state.selection)
