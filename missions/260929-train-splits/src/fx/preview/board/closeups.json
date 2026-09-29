@@ -1,33 +1,105 @@
 {
  "sheet": [
-  206,
-  216
+  786,
+  1421
  ],
- "megapixels": 0.04,
+ "megapixels": 1.12,
  "tiles": [
   {
    "n": 1,
-   "label": "split_explosion (burst p1): burst time strip, 1.03 px/stud, construction view",
-   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_split_explosion.png",
+   "label": "boiler_burst (burst p1): burst time strip, 5.56 px/stud, construction view",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_boiler_burst.png",
    "box": [
     6,
     24,
-    194,
-    96
+    774,
+    147
    ],
    "scale": "1:1 true size"
   },
   {
    "n": 2,
-   "label": "topple_dust (burst p1): burst time strip, 1.27 px/stud, construction view",
-   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_topple_dust.png",
+   "label": "derail_explosion (burst p1): burst time strip, 5.73 px/stud, construction view",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_derail_explosion.png",
    "box": [
     6,
-    144,
-    194,
-    66
+    195,
+    774,
+    130
    ],
    "scale": "1:1 true size"
+  },
+  {
+   "n": 3,
+   "label": "split_explosion (burst p1): burst time strip, 1.89 px/stud, construction view",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_split_explosion.png",
+   "box": [
+    6,
+    349,
+    774,
+    162
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 4,
+   "label": "split_explosion_in (burst p1): burst time strip, 1.89 px/stud, construction view",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_split_explosion_in.png",
+   "box": [
+    6,
+    535,
+    774,
+    162
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 5,
+   "label": "split_glass (burst p1): burst time strip, 11.64 px/stud, construction view",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_split_glass.png",
+   "box": [
+    6,
+    721,
+    774,
+    214
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 6,
+   "label": "day door: split | hid torn",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_split_glass.png",
+   "box": [
+    6,
+    959,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 7,
+   "label": "day coach: split",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_split_explosion_in.png",
+   "box": [
+    396,
+    959,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 8,
+   "label": "grassland.day@door1p PHONE: look only, luma 134",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/lighting/grassland.day_door1p.phone.png",
+   "box": [
+    93,
+    1259,
+    210,
+    96
+   ],
+   "scale": "fit x1.00"
   }
  ]
 }

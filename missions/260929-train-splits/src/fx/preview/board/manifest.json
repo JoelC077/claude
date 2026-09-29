@@ -1,14 +1,22 @@
 {
  "names": [
   "split_explosion",
+  "torn_edge_smoke",
   "topple_dust",
-  "grassland.day",
-  "grassland.day@door1p"
+  "split_glass",
+  "derail_explosion",
+  "boiler_burst",
+  "split_explosion_in"
  ],
  "pack": true,
  "presets": [
   "split_explosion",
-  "topple_dust"
+  "torn_edge_smoke",
+  "topple_dust",
+  "split_glass",
+  "derail_explosion",
+  "boiler_burst",
+  "split_explosion_in"
  ],
  "looks": [
   "grassland.day"
@@ -18,9 +26,18 @@
   "OQ-029"
  ],
  "povs": [
+  "pov_grassland.day_roof3p",
+  "pov_grassland.day_roof3p.phone",
+  "pov_grassland.day_door1p",
   "pov_split_explosion",
-  "pov_topple_dust"
+  "pov_topple_dust",
+  "pov_split_glass",
+  "pov_derail_explosion",
+  "pov_boiler_burst",
+  "pov_split_explosion_in"
  ],
  "presets_dir": "/home/user/claude/missions/260929-train-splits/src/fx",
- "warnings": []
+ "warnings": [
+  "- WARN derail_explosion: under 0.1% of the screen in every POV (best pov_derail_explosion: 0 of 67 visible, 0.00%): players may never see it (references/presets.md, Visible from the players' views)"
+ ]
 }

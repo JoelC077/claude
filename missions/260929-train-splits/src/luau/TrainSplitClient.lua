@@ -1,5 +1,5 @@
 --[[
-TrainSplitClient  (LocalScript in StarterPlayerScripts)  v2.0.0
+TrainSplitClient  (LocalScript in StarterPlayerScripts)
 
 Plays a carriage snap for this player: the break_spec timeline of fx, sounds and camera shake,
 plus smooth wreck motion. Listens to ReplicatedStorage.RR_TrainSplitFX (server -> client only)
@@ -30,23 +30,25 @@ local active = {} -- snaps being played
 local shakes = {} -- running camera shakes
 local bound = false
 
--- RR_VFX is looked up on first use, so it may load after this script.
+-- RR_VFX loads in its own thread: its require can wait (for RR_FXPresets), and the render step must never yield.
 local vfxLib = nil
-local function getVfx()
-	if vfxLib == nil then
-		vfxLib = false
-		local folder = ReplicatedStorage:FindFirstChild("RRFX")
-		local mod = ReplicatedStorage:FindFirstChild("RR_VFX") or (folder and folder:FindFirstChild("RR_VFX"))
-		if mod and mod:IsA("ModuleScript") then
-			local ok, lib = pcall(require, mod)
-			if ok and type(lib) == "table" then
-				vfxLib = lib
-			else
-				warn("TrainSplitClient: RR_VFX failed to load, using fallback fx:", lib)
-			end
+task.spawn(function()
+	if not game:IsLoaded() then
+		game.Loaded:Wait()
+	end
+	local folder = ReplicatedStorage:FindFirstChild("RRFX")
+	local mod = ReplicatedStorage:FindFirstChild("RR_VFX") or (folder and folder:FindFirstChild("RR_VFX"))
+	if mod and mod:IsA("ModuleScript") then
+		local ok, lib = pcall(require, mod)
+		if ok and type(lib) == "table" then
+			vfxLib = lib
+		else
+			warn("TrainSplitClient: RR_VFX failed to load, using fallback fx:", lib)
 		end
 	end
-	return vfxLib or nil
+end)
+local function getVfx()
+	return vfxLib
 end
 
 ---------------------------------------------------------------- small builders

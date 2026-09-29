@@ -9,7 +9,7 @@ Engine stand-ins (only for tests; the production files never see this module):
   BasePart:GetJoints      joints registered by the test
   Selection:Get, ChangeHistoryService recording/waypoints, Workspace:GetServerTimeNow (a fake clock),
   RunService (IsServer/IsStudio/Heartbeat/BindToRenderStep), RemoteEvent/BindableEvent signals,
-  Players:GetPlayers, Instance:WaitForChild / GetAttributeChangedSignal /
+  DataModel:IsLoaded, Players:GetPlayers, Instance:WaitForChild / GetAttributeChangedSignal /
   DescendantAdded, Sound:Play/Stop, ParticleEmitter:Emit.
 ]]
 
@@ -281,6 +281,9 @@ end)
 roblox.implementProperty("BindableEvent", "Event", function(self)
 	return H.signal(self, "Event")
 end)
+roblox.implementMethod("DataModel", "IsLoaded", function()
+	return true
+end)
 roblox.implementMethod("Players", "GetPlayers", function()
 	return state.players
 end)
@@ -469,12 +472,14 @@ function H.dAt(X, Y)
 	return nil
 end
 
--- Carriage and half of an uncut part from its export box: gangway (spans the join) -> C1 rear; else by centre.
+-- Carriage and half of an uncut part from its export box: the gangway (spans the join) goes where break_spec
+-- "structure" says (v2.1: Carriage2.FrontHalf); everything else by its centre against its carriage's tear.
 function H.expectedHalf(g)
 	local S = H.spec()
 	local zmid = (S.roof_centres_export["1"][3] + S.roof_centres_export["2"][3]) / 2
 	if g.min[3] < zmid and g.max[3] > zmid then
-		return 1, "Rear"
+		local k, half = S.structure.gangway:match("^Carriage(%d)%.(%a+)Half$")
+		return tonumber(k), half
 	end
 	local zc = (g.min[3] + g.max[3]) / 2
 	local k = zc < zmid and 1 or 2

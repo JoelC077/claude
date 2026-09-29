@@ -1,6 +1,6 @@
 # Risky Rails audio briefs (rr-soundsmith)
 
-Generated 2026-09-29 from soundmap.json and canon; 35 sounds in phase order; format in references/brief-format.md. Edit the soundmap, not this file.
+Generated 2026-09-29 from soundmap.json and canon; 36 sounds in phase order; format in references/brief-format.md. Edit the soundmap, not this file.
 
 - **Licence** (av.audio.licence): only owner-uploaded audio (self-made, commissioned, CC0 or bought with a game licence, proof recorded) or Roblox-licensed Creator Store audio (by Roblox or its partners). Record proof with `sound.py register`. Uploaded audio stays private to the game: never distribute it on the Creator Store.
 - **Tone** (identity.tone): an incompetent train company: under-resourced but still operating; slapstick safety failures, not grim horror; not a western, not zombies, not horror, not a train simulator.
@@ -31,13 +31,14 @@ Generated 2026-09-29 from soundmap.json and canon; 35 sounds in phase order; for
 | crisis | breakdown_bang | 2 | alarm | 2 | 1.0-1.8 | 2d +3d | unassigned | commission / self-made (distinct) |
 | crisis | coupling_snap | 2 | impact | 1 | 0.9-1.5 | 2d +3d | unassigned | store / self-made |
 | crisis | glass_smash | 2 | impact | 3 | 0.8-1.4 | 3d @coach | unassigned | store / self-made |
-| crisis | metal_tear | 2 | impact | 1 | 0.8-1.3 | 3d @break | unassigned | store / self-made |
 | crisis | passengers_scream | 2 | alarm | 2 | 1.0-1.8 | 2d +3d | unassigned | commission / self-made (distinct) |
-| crisis | split_explosion | 2 | impact | 1 | 2.2-3.2 | 2d +3d | unassigned | store / self-made |
-| crisis | split_glass | 2 | impact | 1 | 0.8-1.4 | 3d @break | unassigned | store / self-made |
+| crisis | split_explosion | 2 | impact | 1 | 2.0-2.4 | 2d +3d | unassigned | store / self-made |
+| crisis | metal_tear | 3 | impact | 1 | 0.8-1.3 | 3d @break | unassigned | store / self-made |
+| crisis | split_glass | 3 | impact | 1 | 0.6-0.9 | 3d @break | unassigned | store / self-made |
 | crisis | topple_crash | 3 | impact | 1 | 1.0-1.8 | 3d @wreck | unassigned | store / self-made |
 | crisis | debris_rain | 4 | impact | 1 | 1.2-2.2 | 3d @break | unassigned | store / self-made |
 | crisis | shovel_thud | 4 | oneshot | 3 | 0.4-0.8 | 3d @firebox | unassigned | store / self-made |
+| crisis | topple_crash_2 | 4 | impact | 1 | 1.0-1.8 | 3d @wreck | unassigned | store / self-made |
 | crisis | wreck_scrape | 4 | impact | 1 | 2.2-3.0 | 3d @wreck | unassigned | store / self-made |
 | crisis | wrench_clank | 4 | oneshot | 2 | 0.5-1.0 | 3d @powerbox | unassigned | store / self-made |
 | arrive | brake_hiss | 4 | oneshot | 1 | 1.0-2.0 | 2d | unassigned | store / self-made |
@@ -332,20 +333,6 @@ Generated 2026-09-29 from soundmap.json and canon; 35 sounds in phase order; for
 - **Avoid:** long tails, bottle-break cliches.
 - **Canon:** `gameplay.crisis.windows`: windows smash; passengers scream and get distressed · `av.vfx.glass`: glass from the windows
 
-## metal_tear · crisis · tier 2 · Alarms · impact · unassigned
-
-- **Moment:** t -0.25 s: the carriage's seam gives way at the break point; the snap inside the file sits at 0.25 s so it lands on the explosion (t 0). Events: metal_tear (Sound.event).
-- **Must say:** the metal can't hold any more: a strained groan ripping open, then SNAP
-- **Sounds like:** a cartoon zip-rip through sheet metal: a creaky groan, a rising rrrrip, a sharp snap, then the torn sheet wobbling wub-wub-wub and drooping
-- **Layers:** stick-slip creak through plate modes 0.3-3.1 kHz, rate rising 60 to 150 Hz under strain; rip: crackle and hiss sweeping 0.7 to 3.5 kHz, accelerating; snap at 0.25 s: crack 1.2-8 kHz, metal ping 1.3-3.5 kHz, small low thunk; wobble-sheet droop 420 to 180 Hz, wobble 7 to 4 Hz, gone by 1 s
-- **Length:** 0.8-1.3 s; sound starts within 10 ms, tail silence under 500 ms
-- **Variations:** 1 (runtime pitch spread 0.97-1.03)
-- **Space:** 3D at the break (a carriage's break point (break frame B origin, 5 studs up: the torn seam); TrainSplitClient points it at an Attachment on the kept half's torn end); deliver mono.
-- **Level:** impact standard m_max -14 LUFS, at most -1 dBTP; the mix sets -12.5 LUFS in game (ladder t2).
-- **Phones:** loses at most 6 dB on a phone speaker: keep energy in 0.5-4 kHz.
-- **Avoid:** horror metal screeches, whale-like groans, anything that outlasts the boom; never move the snap off 0.25 s.
-- **Canon:** `gameplay.crisis.coupling`: coupling snaps: lose the carriage and its passengers · `av.audio.slapstick`: slapstick lands through sound · `identity.pillars.physical_loud`: interactions are physical and visible (lever, shovel, wrench), never a quiet menu or vote
-
 ## passengers_scream · crisis · tier 2 · Alarms · alarm · unassigned
 
 - **Moment:** PASSENGERS UPSET! ticket lands. Events: alert_passengers_upset.
@@ -366,8 +353,8 @@ Generated 2026-09-29 from soundmap.json and canon; 35 sounds in phase order; for
 - **Moment:** t 0: a carriage tears in half at its break point; the fireball, glass burst and big camera shake land with it (train-wide 2D plus a positional layer at the break). Events: split_explosion (Sound.event).
 - **Must say:** the train just ripped apart: the biggest bang of the run after the boiler fail, huge but funny
 - **Sounds like:** a cartoon KA-BWOOM: a round boom that drops in pitch, a bright crack on top, fizzy firework crackle, then clunky bits clattering down
-- **Layers:** sub thump 90 to 38 Hz; pitched body 150 to 62 Hz with harmonics up to 1.8 kHz (the boom phones hear); noise burst: crack 1.5-7.5 kHz (35 ms), roar 0.35-2.4 kHz (0.24 s), low roar 60-500 Hz (0.5 s); firework crackle 1.8-7 kHz thinning over 1.4 s; debris tail: wood clunks and tin clinks from 0.3 s, fading by 2.3 s
-- **Length:** 2.2-3.2 s; sound starts within 10 ms, tail silence under 500 ms
+- **Layers:** mid crack-body 0.6-2.5 kHz in the first 0.3 s: the KA-BLAM phones hear; pitched body 150 to 62 Hz, its harmonics up to 2.5 kHz; sub thump 90 to 38 Hz with its upper harmonics (psychoacoustic bass); noise burst: crack 1.5-7.5 kHz (35 ms), roar 0.4-2.6 kHz (0.3 s); firework crackle 1.8-7 kHz thinning over 1.4 s; debris tail: wood clunks and tin clinks from 0.3 s; tail high-passed 20 to 500 Hz from 1.0 to 1.4 s: no rolling rumble
+- **Length:** 2.0-2.4 s; sound starts within 10 ms, tail silence under 500 ms
 - **Variations:** 1 (runtime pitch spread 0.96-1.04)
 - **Space:** 2D (global: same level everywhere), plus a positional layer at the break (OQ-035 default); deliver mono.
 - **Level:** impact standard m_max -14 LUFS, at most -1 dBTP; the mix sets -10 LUFS in game (ladder t2).
@@ -376,35 +363,49 @@ Generated 2026-09-29 from soundmap.json and canon; 35 sounds in phase order; for
 - **Canon:** `gameplay.crisis.coupling`: coupling snaps: lose the carriage and its passengers · `av.audio.priority`: crisis alarms first: in a group they tell someone in the other carriage what is wrong · `av.audio.slapstick`: slapstick lands through sound · `identity.pillars.funny_failure`: failure is funny and chaotic, never punishing or arbitrary
 - **Open:** OQ-035 (Crisis alarms: heard train-wide or at the source?) default A: 2D train-wide at full level plus a quieter positional layer at the source (boiler, powe
 
-## split_glass · crisis · tier 2 · Alarms · impact · unassigned
+## metal_tear · crisis · tier 3 · Split · impact · unassigned
+
+- **Moment:** t -0.25 s: the carriage's seam gives way at the break point; the snap inside the file sits at 0.25 s so it lands on the explosion (t 0). Events: metal_tear (Sound.event).
+- **Must say:** the metal can't hold any more: a strained groan ripping open, then SNAP
+- **Sounds like:** a cartoon zip-rip through sheet metal: a creaky groan, a rising rrrrip, a sharp snap, then the torn sheet wobbling wub-wub-wub and drooping
+- **Layers:** stick-slip creak through plate modes 0.3-3.1 kHz, rate rising 60 to 150 Hz under strain; rip: crackle and hiss sweeping 0.7 to 3.5 kHz, accelerating; snap at 0.25 s: crack 1.2-8 kHz, metal ping 1.3-3.5 kHz, small low thunk; wobble-sheet droop 420 to 180 Hz, wobble 7 to 4 Hz; last 150 ms faded to silence
+- **Length:** 0.8-1.3 s; sound starts within 10 ms, tail silence under 500 ms
+- **Variations:** 1 (runtime pitch spread 0.97-1.03)
+- **Space:** 3D at the break (a carriage's break point (break frame B origin, 5 studs up: the torn seam); TrainSplitClient points it at an Attachment on the kept half's torn end); deliver mono.
+- **Level:** impact standard m_max -14 LUFS, at most -1 dBTP; the mix sets -12.5 LUFS in game (ladder t3).
+- **Phones:** loses at most 6 dB on a phone speaker: keep energy in 0.5-4 kHz.
+- **Avoid:** horror metal screeches, whale-like groans, anything that outlasts the boom; never move the snap off 0.25 s.
+- **Canon:** `gameplay.crisis.coupling`: coupling snaps: lose the carriage and its passengers · `av.audio.slapstick`: slapstick lands through sound · `identity.pillars.physical_loud`: interactions are physical and visible (lever, shovel, wrench), never a quiet menu or vote
+
+## split_glass · crisis · tier 3 · Split · impact · unassigned
 
 - **Moment:** t 0: the window panes nearest the break burst with the explosion (glass_burst fx); fire once, or once per side about 0.1 s apart. Events: split_glass (Sound.event).
 - **Must say:** the windows went too: bright shards riding over the boom
-- **Sounds like:** glass_smash reused (same recipe, same file): a pane shattering with bright shards tinkling down
-- **Layers:** impact crack; shard tinkles 2-8 kHz
-- **Length:** 0.8-1.4 s; sound starts within 10 ms, tail silence under 500 ms
+- **Sounds like:** glass_smash's shards pitched up 3 semitones with the pane crack taken out (the boom already is the hit): a bright sprinkle
+- **Layers:** shard tinkles about 2.4-9.5 kHz (glass_smash +3 semitones); no pane-crack transient
+- **Length:** 0.6-0.9 s; sound starts within 10 ms, tail silence under 500 ms
 - **Variations:** 1 (runtime pitch spread 0.93-1.07)
 - **Space:** 3D at the break (a carriage's break point (break frame B origin, 5 studs up: the torn seam); TrainSplitClient points it at an Attachment on the kept half's torn end); deliver mono.
-- **Level:** impact standard m_max -14 LUFS, at most -1 dBTP; the mix sets -13 LUFS in game (ladder t2).
+- **Level:** impact standard m_max -14 LUFS, at most -1 dBTP; the mix sets -13 LUFS in game (ladder t3).
 - **Phones:** loses at most 6 dB on a phone speaker: keep energy in 0.5-4 kHz.
-- **Avoid:** long tails, bottle-break cliches, a second boom.
+- **Avoid:** a second crack or boom, long tails, bottle-break cliches.
 - **Canon:** `gameplay.crisis.windows`: windows smash; passengers scream and get distressed · `av.vfx.glass`: glass from the windows
 
-## topple_crash · crisis · tier 3 · Actions · impact · unassigned
+## topple_crash · crisis · tier 3 · Split · impact · unassigned
 
-- **Moment:** each lost body lands on its side at delay + roll time: about 1.5 s (the broken half) and 2.0 s (carriage 2 on break 1); topple_dust and the medium shake land with it; its bounce thud sits at 0.35 s. Events: topple_crash (Sound.event).
+- **Moment:** the broken half lands on its side at delay + roll time, about 1.5 s (on break 1 carriage 2 follows at 2.0 s on topple_crash_2); topple_dust and the medium shake land with it; its bounce thud sits at 0.35 s. Events: topple_crash (Sound.event).
 - **Must say:** the wreck hit the ground hard: heavy, clunky, final
 - **Sounds like:** a cartoon KER-RUNCH: a dull thud, wood splintering, a bin-lid clang drooping in pitch, gravel spraying, and a small bounce thud
-- **Layers:** low impact 70 to 45 Hz with a thud 60-400 Hz; wood crunch: about 30 splinter cracks 0.4-3.5 kHz inside 0.22 s; metal clang: inharmonic modes 0.29-2.9 kHz, pitch drooping 4%; gravel tail: grains 1.5-6 kHz thinning over 1.2 s; bounce thud and clunk at 0.35 s (topple bounce_time)
+- **Layers:** splinter burst 0.8-2.5 kHz in the first 80 ms; bin-lid clang 0.8-2.5 kHz struck in the first 80 ms, pitch drooping 4%; low impact 70 to 45 Hz with its upper harmonics; gravel tail: grains 1.5-6 kHz thinning over 1.2 s; bounce clunk at 0.35 s (topple bounce_time); last 150 ms faded to silence
 - **Length:** 1.0-1.8 s; sound starts within 10 ms, tail silence under 500 ms
-- **Variations:** 1 (runtime pitch spread 0.92-1.06)
+- **Variations:** 1 (runtime pitch spread 0.96-1.04)
 - **Space:** 3D at the wreck (the lost body that slides and topples (moves with it); TrainSplitClient points it at an Attachment on that body (break 1: the broken half, then carriage 2 for its own crash)); deliver mono.
 - **Level:** impact standard m_max -14 LUFS, at most -1 dBTP; the mix sets -13 LUFS in game (ladder t3).
 - **Phones:** loses at most 6 dB on a phone speaker: keep energy in 0.5-4 kHz.
 - **Avoid:** car-crash glass, a second explosion, bone-crunch or body-fall sounds.
 - **Canon:** `av.audio.slapstick`: slapstick lands through sound · `identity.pillars.funny_failure`: failure is funny and chaotic, never punishing or arbitrary · `identity.pillars.physical_loud`: interactions are physical and visible (lever, shovel, wrench), never a quiet menu or vote
 
-## debris_rain · crisis · tier 4 · Actions · impact · unassigned
+## debris_rain · crisis · tier 4 · Split · impact · unassigned
 
 - **Moment:** t 0.8 s: bits of the carriage rain down on the kept half's roof and the track around the break. Events: debris_rain (Sound.event).
 - **Must say:** it is still falling apart: small, clunky, a bit silly
@@ -432,12 +433,26 @@ Generated 2026-09-29 from soundmap.json and canon; 35 sounds in phase order; for
 - **Avoid:** digging in dirt, gravel footsteps.
 - **Canon:** `gameplay.crisis.firebox`: shovel coal from the bins into the firebox; fire drives pressure · `gameplay.fuel.shovel_pct`: 4
 
-## wreck_scrape · crisis · tier 4 · Actions · impact · unassigned
+## topple_crash_2 · crisis · tier 4 · Split · impact · unassigned
+
+- **Moment:** break 1 only, about 2.0 s: carriage 2 (the whole carriage dragged behind) lands on its side, 0.5 s after the broken half. Events: topple_crash_2 (Sound.event).
+- **Must say:** the second, bigger body lands a beat later: lower and a little further away
+- **Sounds like:** topple_crash's own file at PlaybackSpeed 0.84 (+-4%) and 3 dB under it (-16 vs -13 LUFS); register the same asset id
+- **Layers:** topple_crash's layers, about 3 semitones lower and 19% longer
+- **Length:** 1.0-1.8 s; sound starts within 10 ms, tail silence under 500 ms
+- **Variations:** 1 (runtime pitch spread 0.806-0.874)
+- **Space:** 3D at the wreck (the lost body that slides and topples (moves with it); TrainSplitClient points it at an Attachment on that body (break 1: the broken half, then carriage 2 for its own crash)); deliver mono.
+- **Level:** impact standard m_max -14 LUFS, at most -1 dBTP; the mix sets -16 LUFS in game (ladder t4).
+- **Phones:** loses at most 6 dB on a phone speaker: keep energy in 0.5-4 kHz.
+- **Avoid:** a second upload (it is the same file), a hit identical to the first.
+- **Canon:** `av.audio.slapstick`: slapstick lands through sound · `identity.pillars.funny_failure`: failure is funny and chaotic, never punishing or arbitrary · `identity.pillars.physical_loud`: interactions are physical and visible (lever, shovel, wrench), never a quiet menu or vote
+
+## wreck_scrape · crisis · tier 4 · Split · impact · unassigned
 
 - **Moment:** t 0.3 s until the lost part reaches the terrain's speed (V/brake: about 2.9 s at the normal speed 35 and brake 12): the wreck grinds along the ballast as it slows. Events: wreck_scrape (Sound.event).
 - **Must say:** the wreck is sliding away and running out of steam
 - **Sounds like:** a heavy metal box grinding over gravel: a rough grrrr that wobbles as the wreck rocks, slowing and sagging in pitch until it stops
-- **Layers:** grinding noise 0.28-2.8 kHz with 16-60 Hz stick-slip roughness; wobble: timbre sway 5 to 3 Hz; faint droopy metal whine 520 to 430 Hz; gravel pops 1.5-6 kHz; low rumble 45-220 Hz
+- **Layers:** grinding noise 0.28-2.5 kHz with 16-60 Hz stick-slip roughness (low-passed at 2.5 kHz); fade-in 0.6 s from -12 dB: it emerges under the boom; wobble: timbre sway 5 to 3 Hz; faint droopy metal whine 520 to 430 Hz; gravel pops 1.5-2.5 kHz; low rumble 45-220 Hz
 - **Length:** 2.2-3.0 s; sound starts within 10 ms, tail silence under 500 ms
 - **Variations:** 1 (runtime pitch spread 0.95-1.05)
 - **Space:** 3D at the wreck (the lost body that slides and topples (moves with it); TrainSplitClient points it at an Attachment on that body (break 1: the broken half, then carriage 2 for its own crash)); deliver mono.

@@ -18,6 +18,9 @@ do local g = made["SFX"]:FindFirstChild("Alarms")
 do local g = made["SFX"]:FindFirstChild("Actions")
 	if not g then g = Instance.new("SoundGroup"); g.Name = "Actions"; g.Volume = 1; g.Parent = made["SFX"] end
 	made["Actions"] = g end
+do local g = made["SFX"]:FindFirstChild("Split")
+	if not g then g = Instance.new("SoundGroup"); g.Name = "Split"; g.Volume = 1; g.Parent = made["SFX"] end
+	made["Split"] = g end
 do local g = made["SFX"]:FindFirstChild("UI")
 	if not g then g = Instance.new("SoundGroup"); g.Name = "UI"; g.Volume = 1; g.Parent = made["SFX"] end
 	made["UI"] = g end

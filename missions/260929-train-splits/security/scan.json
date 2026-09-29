@@ -1,0 +1,254 @@
+{
+ "tool": "rr-exploit-guard",
+ "version": 1,
+ "scanned_at": "2026-09-29T23:26:20+00:00",
+ "paths": [
+  "/home/user/claude/missions/260929-train-splits/src/luau",
+  "/home/user/claude/missions/260929-train-splits/src/fx/build",
+  "/home/user/claude/missions/260929-train-splits/src/sound/build"
+ ],
+ "inputs": [
+  {
+   "rel": "luau/RR_BreakChecker.lua",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/luau/RR_BreakChecker.lua",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/luau/RR_BreakChecker.lua",
+   "sha256": "1aed89a704321808bf7fe4559f32ace6538e55173ffae858c70b64f13f066729",
+   "ctx": "unknown",
+   "vendor": false,
+   "lines": 577,
+   "notes": [],
+   "compile_errors": []
+  },
+  {
+   "rel": "luau/RR_TrainSplit_Setup.lua",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/luau/RR_TrainSplit_Setup.lua",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/luau/RR_TrainSplit_Setup.lua",
+   "sha256": "1c3005369a6d292a95d33648d6c272204a8a328def5ffbabffaadef4bd08b29a",
+   "ctx": "unknown",
+   "vendor": false,
+   "lines": 1340,
+   "notes": [],
+   "compile_errors": []
+  },
+  {
+   "rel": "luau/TrainSplit.lua",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/luau/TrainSplit.lua",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/luau/TrainSplit.lua",
+   "sha256": "de62e955df0d3501066316532d2f3c04db248e6b9d0a6a7ecbad990c88ace08c",
+   "ctx": "server",
+   "vendor": false,
+   "lines": 375,
+   "notes": [],
+   "compile_errors": []
+  },
+  {
+   "rel": "luau/TrainSplitClient.lua",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/luau/TrainSplitClient.lua",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/luau/TrainSplitClient.lua",
+   "sha256": "3113887fc77eee86608a7bd4db5f59c16ee2fe0639cfe408bca56caed77f2710",
+   "ctx": "client",
+   "vendor": false,
+   "lines": 515,
+   "notes": [],
+   "compile_errors": []
+  },
+  {
+   "rel": "luau/TrainSplitConfig.lua",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/luau/TrainSplitConfig.lua",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/luau/TrainSplitConfig.lua",
+   "sha256": "195fdd82d0433fa88e51c4e62b374fb39d3e8a7a0fa8e5104bd7d6c63a5bc237",
+   "ctx": "unknown",
+   "vendor": false,
+   "lines": 180,
+   "notes": [],
+   "compile_errors": []
+  },
+  {
+   "rel": "luau/TrainSplitDemo.server.lua",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/luau/TrainSplitDemo.server.lua",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/luau/TrainSplitDemo.server.lua",
+   "sha256": "1532b27facc5ec3fde59dd4ea20aa6c6895addef8125511aa7d2f1635adce1a9",
+   "ctx": "server",
+   "vendor": false,
+   "lines": 52,
+   "notes": [],
+   "compile_errors": []
+  },
+  {
+   "rel": "luau/TrainSplitShared.lua",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/luau/TrainSplitShared.lua",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/luau/TrainSplitShared.lua",
+   "sha256": "28b09b9b7e985c93a900c82070f0d21c734e2310291d66f1a4fae31c7e8dd37b",
+   "ctx": "unknown",
+   "vendor": false,
+   "lines": 287,
+   "notes": [],
+   "compile_errors": []
+  },
+  {
+   "rel": "luau/tests/harness.luau",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/luau/tests/harness.luau",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/luau/tests/harness.luau",
+   "sha256": "4771cc6e3e826c343fe169e0f59cef1fb5b49ddb824bf50249da1d2fbff79a08",
+   "ctx": "server",
+   "vendor": false,
+   "lines": 544,
+   "notes": [],
+   "compile_errors": []
+  },
+  {
+   "rel": "luau/tests/run_tests.luau",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/luau/tests/run_tests.luau",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/luau/tests/run_tests.luau",
+   "sha256": "15a8d53c9350a3ee6f32f17b054a58dab6cd0693b89382b897b98c542f30cb7f",
+   "ctx": "server",
+   "vendor": false,
+   "lines": 1133,
+   "notes": [],
+   "compile_errors": []
+  },
+  {
+   "rel": "luau/tests/sync_spec.luau",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/luau/tests/sync_spec.luau",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/luau/tests/sync_spec.luau",
+   "sha256": "61f572d9c4c51e98c1a9c71aa481cfffcea39fe574bb3b6e886260f96f013bd5",
+   "ctx": "unknown",
+   "vendor": false,
+   "lines": 107,
+   "notes": [],
+   "compile_errors": []
+  },
+  {
+   "rel": "fx/build/RR_FXDemo.client.lua",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/fx/build/RR_FXDemo.client.lua",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/fx/build/RR_FXDemo.client.lua",
+   "sha256": "de1f5173b9013e245bc6b031844764425d9b38c3b7eaefead2c184d9b857a58d",
+   "ctx": "client",
+   "vendor": false,
+   "lines": 107,
+   "notes": [],
+   "compile_errors": []
+  },
+  {
+   "rel": "fx/build/RR_FXPresets.lua",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/fx/build/RR_FXPresets.lua",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/fx/build/RR_FXPresets.lua",
+   "sha256": "cba4a8c800d7ffbd291bcc0b3d1ffe58d68da7f212ecc26784be58f2e5819595",
+   "ctx": "unknown",
+   "vendor": false,
+   "lines": 239,
+   "notes": [],
+   "compile_errors": []
+  },
+  {
+   "rel": "fx/build/RR_Lighting.lua",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/fx/build/RR_Lighting.lua",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/fx/build/RR_Lighting.lua",
+   "sha256": "0a4048f2358be82082157cb7211f05a8b1250e72f88dbc7fe53d7cb0822de25f",
+   "ctx": "client",
+   "vendor": false,
+   "lines": 232,
+   "notes": [],
+   "compile_errors": []
+  },
+  {
+   "rel": "fx/build/RR_LightingPresets.lua",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/fx/build/RR_LightingPresets.lua",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/fx/build/RR_LightingPresets.lua",
+   "sha256": "c96565ecd0f2ab70b843cbab784f24c9a6e6fe93c6b5391e65c45855ed89c4e2",
+   "ctx": "unknown",
+   "vendor": false,
+   "lines": 187,
+   "notes": [],
+   "compile_errors": []
+  },
+  {
+   "rel": "fx/build/RR_VFX.lua",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/fx/build/RR_VFX.lua",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/fx/build/RR_VFX.lua",
+   "sha256": "179e6d2c58e910ee77c2a8f18b05113b06618330dea82233291c6627b06ac217",
+   "ctx": "client",
+   "vendor": false,
+   "lines": 495,
+   "notes": [],
+   "compile_errors": []
+  },
+  {
+   "rel": "fx/build/studio_lighting_setup.lua",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/fx/build/studio_lighting_setup.lua",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/fx/build/studio_lighting_setup.lua",
+   "sha256": "535a755256185e13b5c2237e3a42a4172b6246e4523145047378254b0d25be84",
+   "ctx": "unknown",
+   "vendor": false,
+   "lines": 69,
+   "notes": [],
+   "compile_errors": []
+  },
+  {
+   "rel": "sound/build/RR_Sound.lua",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/sound/build/RR_Sound.lua",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/sound/build/RR_Sound.lua",
+   "sha256": "2554dff4402aa48279e5f428d504cc1c2ab82d8a77b08a554ae5a223b2cbcaea",
+   "ctx": "unknown",
+   "vendor": false,
+   "lines": 593,
+   "notes": [],
+   "compile_errors": []
+  },
+  {
+   "rel": "sound/build/RR_SoundDemo.client.lua",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/sound/build/RR_SoundDemo.client.lua",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/sound/build/RR_SoundDemo.client.lua",
+   "sha256": "67378cab89b090d42bd3f0a617ead56c3d5c8493bec57d8f96e7531ee3b96b9e",
+   "ctx": "client",
+   "vendor": false,
+   "lines": 117,
+   "notes": [],
+   "compile_errors": []
+  },
+  {
+   "rel": "sound/build/RR_SoundMap.lua",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/sound/build/RR_SoundMap.lua",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/sound/build/RR_SoundMap.lua",
+   "sha256": "4dfd60e05f55245836121fa80ac12353a8a07fc2eab2647ed2c3d7b9ab260588",
+   "ctx": "unknown",
+   "vendor": false,
+   "lines": 1069,
+   "notes": [],
+   "compile_errors": []
+  },
+  {
+   "rel": "sound/build/studio_sound_setup.lua",
+   "origin": "/home/user/claude/missions/260929-train-splits/src/sound/build/studio_sound_setup.lua",
+   "src_path": "/home/user/claude/missions/260929-train-splits/src/sound/build/studio_sound_setup.lua",
+   "sha256": "cf0908eaea02436d4c8201aae1ef68cfe3b478424d2be3532a19124d3363f355",
+   "ctx": "unknown",
+   "vendor": false,
+   "lines": 36,
+   "notes": [],
+   "compile_errors": []
+  }
+ ],
+ "places": {},
+ "place_props": {},
+ "inputs_sha256": "120a53b73e5c320c66bcae432300217e436d8788f9094361dc2340ed56146040",
+ "remotes": {
+  "server": [],
+  "client_fired": {},
+  "place": []
+ },
+ "entries": [],
+ "findings": [],
+ "notes": [],
+ "counts": {
+  "critical": 0,
+  "high": 0,
+  "medium": 0,
+  "low": 0,
+  "info": 0,
+  "suppressed": 0
+ },
+ "toolchain": {
+  "luau-compile": null
+ }
+}

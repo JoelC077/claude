@@ -1,39 +1,39 @@
-== RR_TrainSplit_Setup 2.0.0 DRY RUN (nothing changes): Workspace.Train ==
+== RR_TrainSplit_Setup 2.1.0 DRY RUN (nothing changes): Workspace.Train ==
 Mode: roof unions -> jagged tear. Front = the min end of world Z (FRONT_AT = "min").
 Break 1 frame: origin (-58.05, 13.93, 86.20)  right (1.00, 0.00, 0.00)  up (0.00, 1.00, 0.00)  rear (0.00, 0.00, 1.00)
 Break 2 frame: origin (-58.05, 13.93, 153.60)  right (1.00, 0.00, 0.00)  up (0.00, 1.00, 0.00)  rear (0.00, 0.00, 1.00)
 Parts per half (whole parts + cut pieces, plus 1 Root each):
-  Carriage1.FrontHalf  243    Carriage1.RearHalf  189
-  Carriage2.FrontHalf  232    Carriage2.RearHalf  333
+  Carriage1.FrontHalf  243    Carriage1.RearHalf  188
+  Carriage2.FrontHalf  233    Carriage2.RearHalf  333
 Crossers (20) and how each is cut:
-  Break 1  Part Workspace.Train.Part  size 19.20 x 0.20 x 54.62  ->  slice into 12 exact boxes (6 front, 6 rear)
+  Break 1  Part Workspace.Train.Part  size 19.20 x 0.20 x 54.62  at (-58.06, 13.83, 86.17)  ->  slice into 12 exact boxes (6 front, 6 rear)
       child Texture "TestTexture": copied onto every piece (check how it tiles)
-  Break 2  Part Workspace.Train.Part  size 19.20 x 0.20 x 54.62  ->  slice into 12 exact boxes (6 front, 6 rear)
-  Break 2  UnionOperation Workspace.Train.Body.Union  size 0.12 x 1.00 x 57.40  ->  SubtractAsync over 1 cells: front = minus 1 rear boxes, rear = minus 1 front boxes (with edge bridges)
-  Break 2  UnionOperation Workspace.Train.Body.Union  size 19.48 x 3.59 x 62.34  ->  SubtractAsync over 7 cells: front = minus 13 rear boxes, rear = minus 13 front boxes (with edge bridges)
-  Break 2  UnionOperation Workspace.Train.Body.Union  size 8.64 x 1.06 x 62.32  ->  SubtractAsync over 4 cells: front = minus 7 rear boxes, rear = minus 7 front boxes (with edge bridges)
-  Break 2  UnionOperation Workspace.Train.Body.Union  size 18.90 x 13.67 x 60.10  ->  SubtractAsync over 29 cells: front = minus 83 rear boxes, rear = minus 83 front boxes (with edge bridges)
-  Break 2  UnionOperation Workspace.Train.Body.Union  size 19.40 x 13.70 x 61.80  ->  SubtractAsync over 29 cells: front = minus 83 rear boxes, rear = minus 83 front boxes (with edge bridges)
-  Break 2  UnionOperation Workspace.Train.Body.Union  size 8.64 x 1.06 x 62.32  ->  SubtractAsync over 4 cells: front = minus 7 rear boxes, rear = minus 7 front boxes (with edge bridges)
-  Break 2  UnionOperation Workspace.Train.Body.Union  size 19.20 x 2.96 x 62.31  ->  SubtractAsync over 7 cells: front = minus 13 rear boxes, rear = minus 13 front boxes (with edge bridges)
-  Break 1  UnionOperation Workspace.Train.Body.Union  size 19.40 x 13.70 x 61.80  ->  SubtractAsync over 29 cells: front = minus 83 rear boxes, rear = minus 83 front boxes (with edge bridges)
-  Break 1  UnionOperation Workspace.Train.Body.Union  size 8.64 x 1.06 x 62.32  ->  SubtractAsync over 4 cells: front = minus 7 rear boxes, rear = minus 7 front boxes (with edge bridges)
-  Break 1  UnionOperation Workspace.Train.Body.Union  size 8.64 x 1.06 x 62.32  ->  SubtractAsync over 4 cells: front = minus 7 rear boxes, rear = minus 7 front boxes (with edge bridges)
-  Break 1  UnionOperation Workspace.Train.Body.Union  size 19.48 x 3.59 x 62.34  ->  SubtractAsync over 7 cells: front = minus 13 rear boxes, rear = minus 13 front boxes (with edge bridges)
-  Break 1  UnionOperation Workspace.Train.Body.Union  size 18.90 x 13.67 x 60.10  ->  SubtractAsync over 29 cells: front = minus 83 rear boxes, rear = minus 83 front boxes (with edge bridges)
+  Break 1  MeshPart Workspace.Train.Interior.Carpet  size 18.90 x 0.54 x 60.48  at (-58.01, 14.00, 83.04)  ->  SubtractAsync over 6 cell(s): front = minus 11 rear boxes, rear = minus 11 front boxes (cells + edge bridges)
+      note: MeshPart: if this Studio refuses CSG on meshes it is reported and left whole
+  Break 1  UnionOperation Workspace.Train.Body.Union  size 18.90 x 13.67 x 60.10  at (-58.11, 20.76, 83.53)  ->  SubtractAsync over 29 cell(s): front = minus 82 rear boxes, rear = minus 82 front boxes (cells + edge bridges)
       child Attachment "TestAtt": by its world position
-  Break 1  UnionOperation Workspace.Train.Body.Union  size 0.12 x 1.00 x 57.40  ->  SubtractAsync over 1 cells: front = minus 1 rear boxes, rear = minus 1 front boxes (with edge bridges)
-  Break 1  UnionOperation Workspace.Train.Body.Union  size 19.20 x 2.96 x 62.31  ->  SubtractAsync over 7 cells: front = minus 13 rear boxes, rear = minus 13 front boxes (with edge bridges)
-  Break 2  MeshPart Workspace.Train.Interior.CurtainCorroded  size 16.08 x 1.20 x 52.80  ->  SubtractAsync over 8 cells: front = minus 19 rear boxes, rear = minus 19 front boxes (with edge bridges)
-      note: MeshPart: if this Studio refuses CSG on meshes it is reported and left whole
-  Break 2  MeshPart Workspace.Train.Interior.Carpet  size 18.90 x 0.54 x 60.38  ->  SubtractAsync over 6 cells: front = minus 11 rear boxes, rear = minus 11 front boxes (with edge bridges)
-      note: MeshPart: if this Studio refuses CSG on meshes it is reported and left whole
-  Break 1  MeshPart Workspace.Train.Interior.Carpet  size 18.90 x 0.54 x 60.48  ->  SubtractAsync over 6 cells: front = minus 11 rear boxes, rear = minus 11 front boxes (with edge bridges)
-      note: MeshPart: if this Studio refuses CSG on meshes it is reported and left whole
-  Break 1  MeshPart Workspace.Train.Interior.CurtainCorroded  size 16.08 x 1.20 x 52.80  ->  SubtractAsync over 8 cells: front = minus 19 rear boxes, rear = minus 19 front boxes (with edge bridges)
+  Break 1  UnionOperation Workspace.Train.Body.Union  size 19.40 x 13.70 x 61.80  at (-57.96, 20.78, 82.68)  ->  SubtractAsync over 29 cell(s): front = minus 82 rear boxes, rear = minus 82 front boxes (cells + edge bridges)
+  Break 1  MeshPart Workspace.Train.Interior.CurtainCorroded  size 16.08 x 1.20 x 52.80  at (-58.02, 23.64, 86.23)  ->  SubtractAsync over 5 cell(s): front = minus 9 rear boxes, rear = minus 9 front boxes (cells + edge bridges)
       note: MeshPart: if this Studio refuses CSG on meshes it is reported and left whole
       child PointLight "TestLight": to the piece holding the part centre
-Gangway between the carriages -> Carriage1.RearHalf: UnionOperation Workspace.Train.Body.Union  size 9.70 x 4.40 x 7.30
+  Break 1  UnionOperation Workspace.Train.Body.Union  size 0.12 x 1.00 x 57.40  at (-62.24, 25.74, 83.08)  ->  SubtractAsync over 1 cell(s): front = minus 1 rear boxes, rear = minus 1 front boxes (cells + edge bridges)
+  Break 1  UnionOperation Workspace.Train.Body.Union  size 19.20 x 2.96 x 62.31  at (-57.91, 25.92, 82.88)  ->  SubtractAsync over 12 cell(s): front = minus 31 rear boxes, rear = minus 31 front boxes (cells + edge bridges)
+  Break 1  UnionOperation Workspace.Train.Body.Union  size 19.48 x 3.59 x 62.34  at (-58.05, 26.19, 82.89)  ->  SubtractAsync over 12 cell(s): front = minus 31 rear boxes, rear = minus 31 front boxes (cells + edge bridges)
+  Break 1  UnionOperation Workspace.Train.Body.Union  size 8.64 x 1.06 x 62.32  at (-58.03, 27.37, 82.88)  ->  SubtractAsync over 4 cell(s): front = minus 7 rear boxes, rear = minus 7 front boxes (cells + edge bridges)
+  Break 1  UnionOperation Workspace.Train.Body.Union  size 8.64 x 1.06 x 62.32  at (-58.03, 27.38, 82.88)  ->  SubtractAsync over 4 cell(s): front = minus 7 rear boxes, rear = minus 7 front boxes (cells + edge bridges)
+  Break 2  Part Workspace.Train.Part  size 19.20 x 0.20 x 54.62  at (-58.07, 13.83, 153.57)  ->  slice into 12 exact boxes (6 front, 6 rear)
+  Break 2  MeshPart Workspace.Train.Interior.Carpet  size 18.90 x 0.54 x 60.38  at (-58.02, 14.00, 150.38)  ->  SubtractAsync over 6 cell(s): front = minus 11 rear boxes, rear = minus 11 front boxes (cells + edge bridges)
+      note: MeshPart: if this Studio refuses CSG on meshes it is reported and left whole
+  Break 2  UnionOperation Workspace.Train.Body.Union  size 18.90 x 13.67 x 60.10  at (-58.12, 20.76, 150.93)  ->  SubtractAsync over 29 cell(s): front = minus 82 rear boxes, rear = minus 82 front boxes (cells + edge bridges)
+  Break 2  UnionOperation Workspace.Train.Body.Union  size 19.40 x 13.70 x 61.80  at (-57.97, 20.78, 150.08)  ->  SubtractAsync over 29 cell(s): front = minus 82 rear boxes, rear = minus 82 front boxes (cells + edge bridges)
+  Break 2  MeshPart Workspace.Train.Interior.CurtainCorroded  size 16.08 x 1.20 x 52.80  at (-58.02, 23.64, 153.63)  ->  SubtractAsync over 5 cell(s): front = minus 9 rear boxes, rear = minus 9 front boxes (cells + edge bridges)
+      note: MeshPart: if this Studio refuses CSG on meshes it is reported and left whole
+  Break 2  UnionOperation Workspace.Train.Body.Union  size 0.12 x 1.00 x 57.40  at (-62.24, 25.74, 150.48)  ->  SubtractAsync over 1 cell(s): front = minus 1 rear boxes, rear = minus 1 front boxes (cells + edge bridges)
+  Break 2  UnionOperation Workspace.Train.Body.Union  size 19.20 x 2.96 x 62.31  at (-57.91, 25.92, 150.28)  ->  SubtractAsync over 12 cell(s): front = minus 31 rear boxes, rear = minus 31 front boxes (cells + edge bridges)
+  Break 2  UnionOperation Workspace.Train.Body.Union  size 19.48 x 3.59 x 62.34  at (-58.05, 26.19, 150.29)  ->  SubtractAsync over 12 cell(s): front = minus 31 rear boxes, rear = minus 31 front boxes (cells + edge bridges)
+  Break 2  UnionOperation Workspace.Train.Body.Union  size 8.64 x 1.06 x 62.32  at (-58.03, 27.37, 150.28)  ->  SubtractAsync over 4 cell(s): front = minus 7 rear boxes, rear = minus 7 front boxes (cells + edge bridges)
+  Break 2  UnionOperation Workspace.Train.Body.Union  size 8.64 x 1.06 x 62.32  at (-58.03, 27.38, 150.28)  ->  SubtractAsync over 4 cell(s): front = minus 7 rear boxes, rear = minus 7 front boxes (cells + edge bridges)
+Gangway between the carriages -> Carriage2.FrontHalf: UnionOperation Workspace.Train.Body.Union  size 9.70 x 4.40 x 7.30  at (-58.11, 15.93, 117.23)
 Points at a part that will be cut: WeldConstraint Workspace.Train.Body.TestWeld (Part0)
 Worth a look:
   - 1 script(s) in the train stay where they are; check any that find parts by path

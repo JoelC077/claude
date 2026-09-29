@@ -24,5 +24,5 @@ Runtime choice: legacy Sound + SoundGroup (still supported; Roblox now recommend
 tech.audio.soundgroup_status). Chosen for SoundGroup nesting and scripted ducking that is tested in a Lua VM; a port to
 AudioPlayer/AudioEmitter/AudioFader keeps RR_SoundMap unchanged.
 
-State: 0 placeholder and 35 unassigned sounds. Placeholders never ship (`sound.py validate --release`).
+State: 0 placeholder and 36 unassigned sounds. Placeholders never ship (`sound.py validate --release`).
 Studio listening test pending (owner): see rr-soundsmith references/fidelity.md.

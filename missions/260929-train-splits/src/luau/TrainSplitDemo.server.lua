@@ -1,5 +1,5 @@
 --[[
-TrainSplitDemo  (Script in ServerScriptService)  v2.0.0 - Studio test only.
+TrainSplitDemo  (Script in ServerScriptService) - Studio test only.
 
 Play in Studio, switch to the Server view, select the train Model and add the number attribute
 RR_TestBreak = 1 or 2: that break snaps through TrainSplit.SplitAt. It does nothing in a live

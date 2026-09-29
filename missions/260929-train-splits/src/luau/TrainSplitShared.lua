@@ -1,5 +1,5 @@
 --[[
-TrainSplitShared  (ModuleScript in ReplicatedStorage)  v2.0.0
+TrainSplitShared  (ModuleScript in ReplicatedStorage)
 
 Pure, deterministic maths for the carriage split. The server (TrainSplit) moves each wreck with it
 and every client (TrainSplitClient) smooths the same wreck with it, so both agree on where a wreck is
@@ -11,7 +11,7 @@ Break frame B: origin on the carriage centre line at floor-top height on the bre
 ]]
 
 local Shared = {}
-Shared.Version = "2.0.0"
+Shared.Version = "2.1.0"
 
 local EASE = {
 	Linear = function(u)

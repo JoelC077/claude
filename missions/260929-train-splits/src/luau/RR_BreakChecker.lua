@@ -1,5 +1,5 @@
 --[[
-RR_BreakChecker  (Studio command bar, read-only)  v2.0.0
+RR_BreakChecker  (Studio command bar, read-only)
 
 Select the train Model in the Explorer, paste this whole script into the command bar, press Enter.
 It changes nothing. It prints:
@@ -10,7 +10,8 @@ It changes nothing. It prints:
 Studio names are generic ("Part", "Union"), so everything is found by geometry: each carriage's roof
 union (about 19.48 x 3.59 x 62.34) fixes its break frame. With no such roof (another train) it clusters
 the long parts along the train and checks one flat plane per carriage, PLANE_OFFSET studs from its centre.
-After the setup has run it checks the halves instead (every part on the right side of its tear).
+After the setup has run it checks the halves instead: every part on its half's side of the tear, and nothing
+left outside the halves (a crosser whose CSG failed stays outside until it is Separated and the setup re-run).
 ]]
 
 local FRONT_AT = "min" -- the train's front is the "min" (lower) or "max" end of its long world axis
@@ -19,7 +20,7 @@ local PLANE_OFFSET = 0 -- plane fallback only: studs from the carriage centre to
 local SHOW_BAND = true -- list the parts inside the jagged band that do not cross it
 
 -- CORE BEGIN: break geometry, identical in RR_BreakChecker and RR_TrainSplit_Setup (the Lune suite checks it)
-local SPEC_VERSION = "2.0.0"
+local SPEC_VERSION = "2.1.0"
 local ROOF_SIG = { 3.59, 19.48, 62.34 } -- roof union size, smallest first (break_spec roof_signature)
 local ROOF_TOL = 0.1 -- studs of slack per axis when matching a roof
 local BREAK_DZ = 3.31 -- break plane = roof centre + 3.31 studs toward the rear
@@ -28,38 +29,38 @@ local ZEXT = 40 -- cutter reach along the carriage (a carriage spans -34.5 .. +2
 local LONG_PART = 0.6 -- plane fallback: parts this fraction of the longest one outline a carriage
 local EXPECTED_CROSSERS = 10 -- per carriage in Joel's train (break_spec clearance check)
 
--- CELLS BEGIN (break_spec.json v2.0.0) {X0, X1, Y0, Y1, d, region}: inside a cell the tear is at Z = d.
+-- CELLS BEGIN (break_spec.json v2.1.0) {X0, X1, Y0, Y1, d, region}: inside a cell the tear is at Z = d.
 -- Frame B: +X across (right when facing the front), +Y up from the floor top, +Z toward the rear.
 local CELLS = {
-	{ -14.0, -6.2, -12.0, 0.4, 0.6, "floor" },
-	{ -6.2, -2.8, -12.0, 0.4, 2.4, "floor" },
-	{ -2.8, 0.6, -12.0, 0.4, 0.9, "floor" },
-	{ 0.6, 4.1, -12.0, 0.4, 3.6, "floor" },
-	{ 4.1, 7.5, -12.0, 0.4, 1.5, "floor" },
-	{ 7.5, 14.0, -12.0, 0.4, -0.3, "floor" },
-	{ -14.0, -7.5, 0.4, 1.5, 0.7, "wall_W" },
-	{ 7.5, 14.0, 0.4, 1.5, -0.6, "wall_E" },
-	{ -14.0, -7.5, 1.5, 3.3, -0.4, "wall_W" },
-	{ 7.5, 14.0, 1.5, 3.3, 0.5, "wall_E" },
-	{ -14.0, -7.5, 3.3, 5.7, 0.9, "wall_W" },
-	{ 7.5, 14.0, 3.3, 5.7, -0.2, "wall_E" },
-	{ -14.0, -7.5, 5.7, 7.4, 0.1, "wall_W" },
-	{ 7.5, 14.0, 5.7, 7.4, 0.8, "wall_E" },
-	{ -14.0, -7.5, 7.4, 9.1, -0.8, "wall_W" },
-	{ 7.5, 14.0, 7.4, 9.1, -0.5, "wall_E" },
-	{ -14.0, -7.5, 9.1, 10.4, 0.4, "wall_W" },
-	{ 7.5, 14.0, 9.1, 10.4, 0.2, "wall_E" },
-	{ -7.5, 7.5, 0.4, 9.1, 0.2, "mid" },
-	{ -7.5, -2.5, 9.1, 10.4, 0.3, "mid_pelmet" },
-	{ -2.5, 2.5, 9.1, 10.4, -0.5, "mid_pelmet" },
-	{ 2.5, 7.5, 9.1, 10.4, 0.6, "mid_pelmet" },
-	{ -14.0, -7.5, 10.4, 18.0, 0.3, "roof" },
-	{ -7.5, -4.6, 10.4, 18.0, -1.6, "roof" },
-	{ -4.6, -1.9, 10.4, 18.0, -3.9, "roof" },
-	{ -1.9, 0.9, 10.4, 18.0, -2.2, "roof" },
-	{ 0.9, 3.8, 10.4, 18.0, -4.8, "roof" },
-	{ 3.8, 7.5, 10.4, 18.0, -1.1, "roof" },
-	{ 7.5, 14.0, 10.4, 18.0, 0.1, "roof" },
+	{ -14.0, -7.1, -12.0, 0.6, 0.6, "floor" },
+	{ -7.1, -2.8, -12.0, 0.6, 2.4, "floor" },
+	{ -2.8, 0.6, -12.0, 0.6, 0.9, "floor" },
+	{ 0.6, 4.1, -12.0, 0.6, 3.6, "floor" },
+	{ 4.1, 7.1, -12.0, 0.6, 1.5, "floor" },
+	{ 7.1, 14.0, -12.0, 0.6, -0.3, "floor" },
+	{ -14.0, -7.1, 0.6, 1.5, 0.7, "wall_W" },
+	{ 7.1, 14.0, 0.6, 1.5, -0.6, "wall_E" },
+	{ -14.0, -7.1, 1.5, 3.3, -0.4, "wall_W" },
+	{ 7.1, 14.0, 1.5, 3.3, 0.5, "wall_E" },
+	{ -14.0, -7.1, 3.3, 5.7, 0.9, "wall_W" },
+	{ 7.1, 14.0, 3.3, 5.7, -0.2, "wall_E" },
+	{ -14.0, -7.1, 5.7, 7.4, 0.1, "wall_W" },
+	{ 7.1, 14.0, 5.7, 7.4, 0.8, "wall_E" },
+	{ -14.0, -7.1, 7.4, 8.95, -0.8, "wall_W" },
+	{ 7.1, 14.0, 7.4, 8.95, -0.5, "wall_E" },
+	{ -14.0, -7.1, 8.95, 11.18, 0.4, "wall_W" },
+	{ 7.1, 14.0, 8.95, 11.18, 0.2, "wall_E" },
+	{ -7.1, 7.1, 0.6, 8.95, 0.2, "mid" },
+	{ -7.1, -2.5, 8.95, 11.18, 0.3, "mid_pelmet" },
+	{ -2.5, 2.5, 8.95, 11.18, -0.5, "mid_pelmet" },
+	{ 2.5, 7.1, 8.95, 11.18, 0.25, "mid_pelmet" },
+	{ -14.0, -7.1, 11.18, 18.0, 0.3, "roof" },
+	{ -7.1, -4.6, 11.18, 18.0, -1.6, "roof" },
+	{ -4.6, -1.9, 11.18, 18.0, -3.9, "roof" },
+	{ -1.9, 0.9, 11.18, 18.0, -2.4, "roof" },
+	{ 0.9, 3.7, 11.18, 18.0, -4.8, "roof" },
+	{ 3.7, 7.1, 11.18, 18.0, -1.1, "roof" },
+	{ 7.1, 14.0, 11.18, 18.0, 0.1, "roof" },
 }
 -- CELLS END
 
@@ -254,7 +255,7 @@ local function frameFor(origin, rear, up)
 end
 
 -- Each carriage's span along the train and the joins between neighbours (frame of carriage 1, Z = rear).
-local function addSpans(found)
+function Core.addSpans(found)
 	local F = found.carriages[1].frame
 	for _, car in found.carriages do
 		local z = F:PointToObjectSpace(car.centre).Z
@@ -327,7 +328,7 @@ local function planeCarriages(parts, frontAt, planeOffset)
 		})
 	end
 	if #found.carriages > 0 then
-		addSpans(found)
+		Core.addSpans(found)
 	end
 	return found
 end
@@ -374,18 +375,18 @@ function Core.findCarriages(parts, frontAt, planeOffset)
 			zext = ZEXT,
 		})
 	end
-	addSpans(found)
+	Core.addSpans(found)
 	return found
 end
 
 -- Which carriage and half a whole (uncut) part belongs to. Anything spanning or inside the gap between two
--- carriages (the gangway) joins the rear half of the carriage in front; the rest goes by its bbox centre
--- against its carriage's tear.
+-- carriages (the gangway, built into the next carriage's front wall) joins the FRONT half of the carriage
+-- behind (break_spec structure); the rest goes by its bbox centre against its carriage's tear.
 function Core.assign(found, part)
 	local b = Core.boxIn(found.carriages[1].frame, part)
 	for j, jn in found.joins do
 		if (b.z0 < jn.mid and b.z1 > jn.mid) or (b.z0 >= jn.lo - 0.05 and b.z1 <= jn.hi + 0.05) then
-			return j, "Rear", true
+			return j + 1, "Front", true
 		end
 	end
 	local zc, c = (b.z0 + b.z1) / 2, #found.carriages
@@ -412,10 +413,11 @@ local function describe(part)
 	return ("%-15s %s  size %s  at %s"):format(part.ClassName, part:GetFullName(), Core.size(part.Size), Core.v(part.CFrame.Position))
 end
 
--- After the setup: every part in a half must sit on that half's side of its tear.
+-- After the setup: every part in a half must sit on that half's side of its tear, and nothing may be left
+-- outside the halves (a crosser the setup could not cut stays where it was until it is dealt with).
 local function checkSplitTrain(train, report)
 	say("Already split (RR_Breaks found): checking the halves against their tears.")
-	local bad = 0
+	local bad, halves = 0, {}
 	for _, rec in train.RR_Breaks:GetChildren() do
 		local B = rec:GetAttribute("BreakCFrame")
 		local kept, lost = rec:FindFirstChild("KeptHalf"), rec:FindFirstChild("LostHalf")
@@ -425,12 +427,13 @@ local function checkSplitTrain(train, report)
 				local half = holder.Value
 				counts[side] = 0
 				if half then
+					table.insert(halves, half)
 					for _, part in Core.baseParts(half) do
 						if part.Name ~= "Root" then
 							counts[side] += 1
 							local p = B:PointToObjectSpace(part.CFrame.Position)
 							local isFront = p.Z < (Core.dAt(CELLS, p.X, p.Y) or 0)
-							-- the gangway sits far behind break 1 on purpose
+							-- the gangway sits far from the break on purpose
 							if (side == "Front") ~= isFront and math.abs(p.Z) < 28 then
 								bad += 1
 								say("  wrong side? %s half of %s: %s", side, rec.Name, describe(part))
@@ -446,9 +449,24 @@ local function checkSplitTrain(train, report)
 			say("  %s is incomplete (needs BreakCFrame, KeptHalf, LostHalf)", rec:GetFullName())
 		end
 	end
-	report.misplaced = bad
-	report.ok = bad == 0
-	say("Summary: %s", bad == 0 and "every part sits on its half's side of the tear." or ("%d problem(s) above."):format(bad))
+	local outside = {}
+	for _, part in Core.baseParts(train) do
+		local placed = part:IsDescendantOf(train.RR_Breaks) or Core.insidePart(part, train)
+		for _, h in halves do
+			placed = placed or part:IsDescendantOf(h)
+		end
+		if not placed then
+			table.insert(outside, part)
+			say("  outside the halves: %s", describe(part))
+		end
+	end
+	if #outside > 0 then
+		say("  %d part(s) sit outside the halves: stuck with the train when it snaps. If the setup could not cut one:", #outside)
+		say("  select it, Model > Separate, then run RR_TrainSplit_Setup again (it only handles parts outside the halves).")
+	end
+	report.misplaced, report.outside = bad, #outside
+	report.ok = bad == 0 and #outside == 0
+	say("Summary: %s", report.ok and "every part sits in a half, on its side of the tear." or ("%d misplaced, %d outside the halves."):format(bad, #outside))
 	return report
 end
 

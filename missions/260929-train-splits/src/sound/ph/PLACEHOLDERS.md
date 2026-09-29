@@ -35,9 +35,10 @@ Owner, to hear them in Studio: import in Asset Manager (name them `PLACEHOLDER <
 | queue_punch | PLACEHOLDER_queue_punch.wav | 0.30 | -16.57 m_max | -1.1 | 0.78 dB | WARN | f451020a8ff9 |
 | queue_bell | PLACEHOLDER_queue_bell.wav | 0.45 | -20.0 m_max | -7.15 | 0.05 dB | PASS | 0afbb0ede348 |
 | guard_whistle | PLACEHOLDER_guard_whistle.wav | 0.95 | -14.0 m_max | -13.41 | 0.04 dB | PASS | badd0b5ca32e |
-| metal_tear | PLACEHOLDER_metal_tear.wav | 1.05 | -14.0 m_max | -1.81 | 1.31 dB | PASS | 595098340246 |
-| split_explosion | PLACEHOLDER_split_explosion.wav | 2.75 | -14.0 m_max | -3.8 | 3.07 dB | PASS | 7c7b81d3a359 |
-| split_glass | PLACEHOLDER_split_glass.wav | 1.10 | -14.01 m_max | -2.63 | 0.46 dB | PASS | b2efcd488cff |
-| debris_rain | PLACEHOLDER_debris_rain.wav | 1.80 | -14.0 m_max | -3.6 | 1.08 dB | PASS | e3840a27e6d2 |
-| topple_crash | PLACEHOLDER_topple_crash.wav | 1.45 | -14.0 m_max | -1.7 | 2.85 dB | PASS | 5a508f5a1b23 |
-| wreck_scrape | PLACEHOLDER_wreck_scrape.wav | 2.70 | -14.02 m_max | -2.68 | 1.06 dB | PASS | 40ee59b503da |
+| metal_tear | PLACEHOLDER_metal_tear.wav | 1.05 | -14.0 m_max | -2.94 | 0.51 dB | PASS | 3dac9f1a5440 |
+| split_explosion | PLACEHOLDER_split_explosion.wav | 2.20 | -14.04 m_max | -2.93 | 1.19 dB | PASS | bfd62e849f68 |
+| split_glass | PLACEHOLDER_split_glass.wav | 0.90 | -14.0 m_max | -4.64 | 0.4 dB | PASS | 1634e6aa0178 |
+| debris_rain | PLACEHOLDER_debris_rain.wav | 1.80 | -14.0 m_max | -3.72 | 1.08 dB | PASS | a3224a8ee5ce |
+| topple_crash | PLACEHOLDER_topple_crash.wav | 1.45 | -14.0 m_max | -2.3 | 0.54 dB | PASS | bff5d729765b |
+| topple_crash_2 | PLACEHOLDER_topple_crash_2.wav | 1.45 | -14.0 m_max | -2.3 | 0.54 dB | PASS | fe2374c597ae |
+| wreck_scrape | PLACEHOLDER_wreck_scrape.wav | 2.70 | -14.0 m_max | -2.93 | 1.12 dB | PASS | 2939c0df70c0 |

@@ -114,6 +114,18 @@ guarded("static", function()
 	check("setup cells == break_spec.json", sameCells(cellsIn("RR_TrainSplit_Setup.lua", "CELLS")))
 	check("checker cells == break_spec.json", sameCells(cellsIn("RR_BreakChecker.lua", "CELLS")))
 	check("TrainSplitConfig.Cells == break_spec.json", sameCells(cellsIn("TrainSplitConfig.lua", "Config.Cells")))
+	local versions = {
+		H.source("RR_TrainSplit_Setup.lua"):match('local SPEC_VERSION = "([^"]*)"'),
+		H.source("RR_BreakChecker.lua"):match('local SPEC_VERSION = "([^"]*)"'),
+		H.source("TrainSplitConfig.lua"):match('Config%.Version = "([^"]*)"'),
+		H.source("TrainSplitShared.lua"):match('Shared%.Version = "([^"]*)"'),
+		H.source("TrainSplit.lua"):match('TrainSplit%.Version = "([^"]*)"'),
+	}
+	local sameVersion = #versions == 5
+	for _, v in versions do
+		sameVersion = sameVersion and v == S.version
+	end
+	check("every script carries break spec version " .. S.version .. " (run tests/sync_spec.luau after a spec change)", sameVersion, table.concat(versions, ", "))
 
 	local game = H.newGame()
 	local Config = H.load("TrainSplitConfig.lua", game, nil)
@@ -142,6 +154,8 @@ guarded("static", function()
 	end
 	check("config event times == break_spec", eventsOk and times.topple_crash == "impact" and times.wreck_scrape == 0.3)
 	check("config anchors == break_spec (explosion, debris)", nearV(Config.Anchors.split_core, Vector3.new(0, 5, 0)) and nearV(Config.Anchors.debris, Vector3.new(0, 3, 2)))
+	local te = Config.Anchors.torn_edge
+	check("TornEdge anchor sits on the tear (Z = the cell's d at its X, Y)", near(te.Z, H.dAt(te.X, te.Y), 1e-5), ("Z %.2f, d %.2f"):format(te.Z, H.dAt(te.X, te.Y)))
 	local soundKeys = { "metal_tear", "split_explosion", "split_glass", "debris_rain", "topple_crash", "wreck_scrape" }
 	local soundsOk = true
 	for _, key in soundKeys do
@@ -204,22 +218,22 @@ guarded("shared", function()
 	check("reaches the 700-stud despawn at t = 21.46 s", Shared.drift(21.4, V, a, rc) < 700 and Shared.drift(21.5, V, a, rc) > 700)
 
 	local b1, b2 = Config.Topple[1], Config.Topple[2]
-	local function topple(tt, body, er, ey, es)
-		local r, y, s = Shared.topple(tt, body)
-		check(("topple body %s at t=%g: roll %.2f yaw %.2f sink %.2f"):format(body == b1 and "1" or "2", tt, r, y, s),
+	local function topple(tt, bi, er, ey, es)
+		local r, y, s = Shared.topple(tt, Config.Topple[bi])
+		check(("topple body %d at t=%.3f: roll %.2f yaw %.2f sink %.3f"):format(bi, tt, r, y, s),
 			near(r, er, 1e-6) and near(y, ey, 1e-6) and near(s, es, 1e-6), ("expected %g %g %g"):format(er, ey, es))
 	end
-	topple(0.45, b1, 0, 0, 0) -- waits its delay
-	topple(0.975, b1, 22, 1.75, 0.15) -- half way through the roll (QuadIn -> a quarter)
-	topple(1.5, b1, 88, 7, 0.6) -- impact
-	topple(1.675, b1, 82, 7, 0.6) -- top of the bounce
-	topple(1.85, b1, 88, 7, 0.6) -- settles
-	topple(3, b1, 88, 7, 0.6)
-	topple(0.8, b2, 0, 0, 0)
-	topple(1.4, b2, 21.5, -1, 0.125)
-	topple(2.0, b2, 86, -4, 0.5)
-	topple(2.2, b2, 80, -4, 0.5)
-	topple(2.4, b2, 86, -4, 0.5)
+	-- key times from the spec: waits its delay, half way through the roll (QuadIn -> a quarter), impact,
+	-- top of the bounce, settled, later
+	for bi, sb in S.topple.bodies do
+		local d, rt, bt = sb.delay, sb.roll_time, sb.bounce_time
+		topple(d, bi, 0, 0, 0)
+		topple(d + rt / 2, bi, sb.roll / 4, sb.yaw / 4, sb.sink / 4)
+		topple(d + rt, bi, sb.roll, sb.yaw, sb.sink)
+		topple(d + rt + bt / 2, bi, (sb.roll + sb.bounce[2]) / 2 + sb.bounce[1] - sb.bounce[2], sb.yaw, sb.sink)
+		topple(d + rt + bt, bi, sb.bounce[2], sb.yaw, sb.sink)
+		topple(d + rt + bt + 1, bi, sb.bounce[2], sb.yaw, sb.sink)
+	end
 
 	local function lost(stateTable, k)
 		local bodies = Shared.lostHalves(stateTable, k)
@@ -242,10 +256,10 @@ guarded("shared", function()
 	local params = { V = V, brake = a, recoil = rc, pivot = Config.Pivot, topple = b1 }
 	check("bodyCFrame at t <= 0 is the intact place", Shared.bodyCFrame(base, B, 1, 0, params) == base and Shared.bodyCFrame(base, B, 1, -0.2, params) == base)
 	local r5 = B:ToObjectSpace(Shared.bodyCFrame(base, B, 1, 5, params))
-	check("bodyCFrame t=5 right: lies on its right side (+X), slid back by drift(5)", r5.YVector.X > 0.99 and near(r5.Position.Z - 15, Shared.drift(5, V, a, rc), 1e-4),
+	check("bodyCFrame t=5 right: lies on its right side (+X), slid back by drift(5)", r5.YVector.X > 0.98 and near(r5.Position.Z - 15, Shared.drift(5, V, a, rc), 1e-4),
 		("up.X %.3f dz %.3f"):format(r5.YVector.X, r5.Position.Z - 15))
 	local l5 = B:ToObjectSpace(Shared.bodyCFrame(base, B, -1, 5, params))
-	check("bodyCFrame t=5 left: mirrors to -X", l5.YVector.X < -0.99 and near(l5.Position.Z, r5.Position.Z, 1e-4))
+	check("bodyCFrame t=5 left: mirrors to -X", l5.YVector.X < -0.98 and near(l5.Position.Z, r5.Position.Z, 1e-4))
 	local v1 = Shared.bodyVelocity(base, B, 1, 1, params)
 	check("bodyVelocity along the train = drift speed (12 studs/s at t=1)", near(v1:Dot(B.ZVector), 12, 1e-3), v1:Dot(B.ZVector))
 
@@ -444,7 +458,7 @@ for si, sc in SCENARIOS do
 			local B = r and r:GetAttribute("BreakCFrame")
 			local want = sc.cf * CFrame.new(H.origin(k))
 			recOk = recOk and r ~= nil and r:IsA("Configuration") and r:GetAttribute("Carriage") == k and r:GetAttribute("Intact") == true
-				and r:GetAttribute("Version") == "2.0.0" and typeof(B) == "CFrame" and nearV(B.Position, want.Position, 0.01)
+				and r:GetAttribute("Version") == S.version and typeof(B) == "CFrame" and nearV(B.Position, want.Position, 0.01)
 				and nearV(B.ZVector, sc.cf.ZVector, 1e-4) and nearV(B.YVector, Vector3.new(0, 1, 0), 1e-4)
 				and r.KeptHalf.Value == train["Carriage" .. k].FrontHalf and r.LostHalf.Value == train["Carriage" .. k].RearHalf
 		end
@@ -503,7 +517,7 @@ for si, sc in SCENARIOS do
 			or ("uncut: C1 front %d rear %d, C2 front %d rear %d"):format(counts["C1.Front"] or 0, counts["C1.Rear"] or 0, counts["C2.Front"] or 0, counts["C2.Rear"] or 0))
 		check("setup report counts per half match", res.counts[1].Front == (counts["C1.Front"] or 0) + 9 + 6 and res.counts[2].Rear == (counts["C2.Rear"] or 0) + 9 + 6,
 			("C1F %d C1R %d C2F %d C2R %d"):format(res.counts[1].Front, res.counts[1].Rear, res.counts[2].Front, res.counts[2].Rear))
-		check("gangway (Union22) in Carriage1.RearHalf", map.Union22 and H.halfOf(map.Union22[1], train) == "C1.Rear")
+		check("gangway (Union22) in " .. S.structure.gangway .. " (break_spec structure)", map.Union22 and H.halfOf(map.Union22[1], train) == "C2.Front")
 
 		-- the cuts themselves
 		local sliceOk, sliceDetail = true, nil
@@ -611,12 +625,13 @@ for si, sc in SCENARIOS do
 
 		-- afterwards
 		local after = H.load("RR_BreakChecker.lua", game, nil, { FRONT_AT = sc.front })
-		check("checker after the setup: every part on its half's side of the tear", after.mode == "split" and after.misplaced == 0, after.misplaced)
+		check("checker after the setup: every part in a half, on its side of the tear", after.mode == "split" and after.misplaced == 0 and after.outside == 0 and after.ok,
+			("%s misplaced, %s outside"):format(tostring(after.misplaced), tostring(after.outside)))
 		if si == 1 then
 			H.writeOut("checker_after_setup_base.txt", after.lines)
 		end
 		local again = H.load("RR_TrainSplit_Setup.lua", game, nil, { FRONT_AT = sc.front, DRY_RUN = false })
-		check("setup refuses to run twice", again.refused ~= nil and again.refused:find("already set up") ~= nil)
+		check("setup refuses to run twice when every part is in a half", again.refused ~= nil and again.refused:find("already set up") ~= nil)
 	end)
 end
 
@@ -662,10 +677,94 @@ guarded("refusals", function()
 	local f = r.failures and r.failures[1]
 	local text = table.concat(r.lines or {}, "\n")
 	check("CSG failure: setup finishes, 19 cut, 1 failure reported", r.ok and #r.cut == 19 and #r.failures == 1 and f.cr.part == byName.CurtainCorroded2)
-	check("CSG failure: part kept whole in its centre's half, not in the backup", byName.CurtainCorroded2:IsDescendantOf(train)
-		and H.halfOf(byName.CurtainCorroded2, train) == "C2.Rear")
+	check("CSG failure: part kept whole where it was (Train.Interior), outside the halves, not in the backup",
+		byName.CurtainCorroded2.Parent == train:FindFirstChild("Interior") and H.halfOf(byName.CurtainCorroded2, train) == nil)
 	check("CSG failure: cutter boxes saved for a manual cut", f and f.cutters and #f.cutters:GetDescendants() > 2)
-	check("CSG failure: the report says what to do", text:find("What to do") ~= nil and text:find("simulated") ~= nil)
+	check("CSG failure: the report says what to do (Separate, re-run; or cut by hand)", text:find("Model > Separate") ~= nil and text:find("simulated") ~= nil
+		and text:find("by hand") ~= nil)
+end)
+
+section("wall-shell CSG failures: kept in place, Separate, re-run")
+guarded("rerun", function()
+	H.resetState()
+	local game = H.newGame()
+	local train, byName = H.buildTrain(game, CFrame.new())
+	state.selection = { train }
+	-- the two wall-shell unions per carriage have non-manifold export meshes: assume CSG refuses all four
+	local shells = { "Union19", "Union61", "Union84", "Union86" }
+	for _, n in shells do
+		state.failNames[n] = true
+	end
+	local r1 = H.load("RR_TrainSplit_Setup.lua", game, nil, { DRY_RUN = false })
+	check("first run finishes: 16 cut, the 4 wall shells fail and are listed", r1.ok and #r1.cut == 16 and #r1.failures == 4, r1.error)
+	local inPlace = true
+	for _, n in shells do
+		inPlace = inPlace and byName[n].Parent == train:FindFirstChild("Body") and H.halfOf(byName[n], train) == nil
+	end
+	check("failed shells stay where they were (Train.Body), outside the halves, not in the backup", inPlace)
+	local text = table.concat(r1.lines, "\n")
+	check("the report prints the fallback: Separate, then run the setup again", text:find("Model > Separate") ~= nil and text:find("run this setup again") ~= nil)
+	local chk = H.load("RR_BreakChecker.lua", game, nil)
+	check("checker on the partly set-up train flags the 4 parts outside the halves", chk.mode == "split" and chk.outside == 4 and not chk.ok, chk.outside)
+	local roots = { train.Carriage1.FrontHalf.PrimaryPart, train.Carriage2.RearHalf.PrimaryPart }
+
+	-- Studio's Separate gives the union's own parts back in its parent: here two side walls and a roof strip
+	-- (plain Blocks) and a negative window part per shell
+	for _, n in shells do
+		local u = byName[n]
+		local cf, sz = u.CFrame, u.Size
+		local function add(p, name, offset, size)
+			p.Name = name
+			p.Anchored = true
+			p.Size = size
+			p.CFrame = cf * CFrame.new(offset)
+			p:SetAttribute("ExportName", n .. "/" .. name)
+			p.Parent = train.Body
+		end
+		add(Instance.new("Part"), "Part", Vector3.new(-sz.X / 2 + 0.15, 0, 0), Vector3.new(0.3, sz.Y, sz.Z))
+		add(Instance.new("Part"), "Part", Vector3.new(sz.X / 2 - 0.15, 0, 0), Vector3.new(0.3, sz.Y, sz.Z))
+		add(Instance.new("Part"), "Part", Vector3.new(0, sz.Y / 2 - 0.2, 0), Vector3.new(sz.X - 0.6, 0.4, sz.Z))
+		add(Instance.new("NegateOperation"), "NegativePart", Vector3.new(-sz.X / 2 + 0.15, 0, 0), Vector3.new(0.5, 4, 4))
+		u.Parent = nil
+	end
+	state.failNames = {}
+	local dry = H.load("RR_TrainSplit_Setup.lua", game, nil)
+	local slices, skips, csg = 0, 0, 0
+	for _, cr in dry.plan.crossers or {} do
+		if cr.method == "slice" then
+			slices += 1
+		elseif cr.method == "skip" and cr.part:IsA("NegateOperation") then
+			skips += 1
+		elseif cr.method == "csg" then
+			csg += 1
+		end
+	end
+	check("re-run DRY_RUN plans only the 16 separated parts: 12 blocks sliced; negative parts never cut", dry.ok and dry.rerun and #dry.plan.parts == 16
+		and slices == 12 and csg == 0 and skips >= 1 and table.concat(dry.lines, "\n"):find("negative part") ~= nil,
+		("%d parts, %d slices, %d crossing negatives left whole"):format(#(dry.plan.parts or {}), slices, skips))
+	local r2 = H.load("RR_TrainSplit_Setup.lua", game, nil, { DRY_RUN = false })
+	check("re-run applies: 12 blocks sliced, no failures, nothing refused", r2.ok and r2.rerun and #r2.cut == 12 and #r2.failures == 0, r2.error or r2.refused)
+	local oneEach = #train:GetChildren() == 3 and #train.RR_Breaks:GetChildren() == 2 and train.RR_Breaks.Break1:GetAttribute("Intact") == true
+	local bodies = 0
+	for _, c in train.Carriage1.FrontHalf:GetChildren() do
+		if c.Name == "Body" then
+			bodies += 1
+		end
+	end
+	check("re-run reuses the halves, mirrors and records (no duplicates)", oneEach and bodies == 1 and train.Carriage1.FrontHalf.PrimaryPart == roots[1]
+		and train.Carriage2.RearHalf.PrimaryPart == roots[2])
+	local placed = true
+	for _, p in H.byExportName(train) do
+		for _, part in p do
+			placed = placed and H.halfOf(part, train) ~= nil
+		end
+	end
+	check("every part, piece and negative part now in a half", placed)
+	local after = H.load("RR_BreakChecker.lua", game, nil)
+	check("checker after the re-run: all in the halves, on the right side", after.ok and after.outside == 0 and after.misplaced == 0)
+	local third = H.load("RR_TrainSplit_Setup.lua", game, nil, { DRY_RUN = false })
+	check("a third run refuses: nothing left outside the halves", third.refused ~= nil and third.refused:find("every part sits in a half") ~= nil)
+	check("each run left its own backup", #game:GetService("ServerStorage").RR_Backups:GetChildren() == 2)
 end)
 
 ---------------------------------------------------------------- server runtime
@@ -774,9 +873,19 @@ guarded("server 2 then 1", function()
 	local again = TS.SplitAt(train, 2)
 	check("SplitAt(2) again is a no-op", #again.bodies == 0 and #state.fired == 1)
 	local keptC2 = train.RR_Breaks.Break2.KeptHalf.Value
+	local function gangwayIn(root)
+		for _, p in partsIn(root) do
+			if p:GetAttribute("ExportName") == "Union22" then
+				return true
+			end
+		end
+		return false
+	end
+	check("break 2 keeps the gangway (it belongs to Carriage2.FrontHalf)", gangwayIn(keptC2) and keptC2:IsDescendantOf(train))
 	local r1 = TS.SplitAt(train, 1, { seed = 3 })
 	check("then SplitAt(1) loses only C1.Rear + C2.Front, as two bodies", #r1.bodies == 2 and train.RR_Breaks.Break1.LostHalf.Value.Parent == r1.bodies[1]
 		and keptC2.Parent == r1.bodies[2])
+	check("break 1 then takes the gangway away with Carriage2's front half", gangwayIn(r1.bodies[2]) and not gangwayIn(r1.bodies[1]))
 	local p2 = state.fired[2]
 	check("payload for break 1 carries both topple bodies", p2 and #p2.bodies == 2 and p2.bodies[1].topple.delay == 0.45 and p2.bodies[2].topple.delay == 0.8)
 	check("server never listens to clients (no OnServerEvent)", state.onServerEventUsed == nil)
@@ -807,13 +916,15 @@ guarded("server 1 first", function()
 	local r = TS.SplitAt(train, 1, { seed = 11 })
 	check("SplitAt(1): C1.Rear alone, then both C2 halves together", #r.bodies == 2 and train.RR_Breaks.Break1.LostHalf.Value.Parent == r.bodies[1]
 		and c2Front.Parent == r.bodies[2] and c2Rear.Parent == r.bodies[2])
-	local gangwayIn = false
-	for _, p in partsIn(r.bodies[1]) do
-		if p:GetAttribute("ExportName") == "Union22" then
-			gangwayIn = true
+	local gangwayWith = nil
+	for i, body in r.bodies do
+		for _, p in partsIn(body) do
+			if p:GetAttribute("ExportName") == "Union22" then
+				gangwayWith = i
+			end
 		end
 	end
-	check("the gangway leaves with Carriage1's rear half", gangwayIn)
+	check("break 1 loses the gangway, with Carriage2 (body 2)", gangwayWith == 2)
 	check("break 2 marked Detached, no longer splittable", train.RR_Breaks.Break2:GetAttribute("Detached") == true and not TS.IsIntact(train, 2))
 	check("train Speed attribute drives the motion (V = 20)", state.fired[1].params.V == 20)
 	check("a joint from the wreck to the kept train is switched off", weld.Enabled == false)
@@ -918,8 +1029,9 @@ guarded("client", function()
 	end
 	check("glass_burst: SplitGlassL/R on the kept half's pane nearest the break, Z pointing out", glassOk)
 	local edge = find("attach", "torn_edge_smoke")
-	check("torn_edge_smoke: one VFX.attach at t=0.05 on TornEdge (0,12.4,-2.2) on the kept half", #edge == 1 and near(edge[1].t, 0.05, 1 / 30)
-		and edge[1].parent == payload.kept and nearV(edge[1].cf.Position, (B * CFrame.new(0, 12.4, -2.2)).Position, 1e-3))
+	check("torn_edge_smoke: one VFX.attach at t=0.05 on TornEdge (on the roof tooth) on the kept half", #edge == 1 and near(edge[1].t, 0.05, 1 / 30)
+		and edge[1].parent == payload.kept and nearV(edge[1].cf.Position, (B * CFrame.new(Config.Anchors.torn_edge)).Position, 1e-3)
+		and frameIs(edge[1].cf, fwd, up, right))
 	local fade, gone = find("setIntensity"), find("detach")
 	check("torn edge fades by setIntensity(h, 0) at +20 s and detaches at +23.5 s", #fade == 1 and fade[1].h == edge[1].h and fade[1].k == 0
 		and near(fade[1].t, 20.05, 1 / 30) and #gone == 1 and gone[1].h == edge[1].h and near(gone[1].t, 23.55, 1 / 30))

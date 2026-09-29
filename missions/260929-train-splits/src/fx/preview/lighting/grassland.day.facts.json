@@ -12,18 +12,18 @@
   ],
   "moon": false
  },
- "mean_luma": 149.5,
+ "mean_luma": 149.4,
  "clipped_pct": 0.0,
  "crushed_pct": 0.0,
  "frame_mean": "#8B9B7A",
  "sky_mean": "#ACBEAE",
  "ground_mean": "#93A660",
  "ground_sat_hsl": 0.28,
- "train_mean": "#434739",
- "train_vs_world_contrast": 3.23,
+ "train_mean": "#424738",
+ "train_vs_world_contrast": 3.25,
  "crushed_train_pct": 0.0,
- "hazard_vs_world": 1.23,
- "hazard_mean": "#C6A416",
+ "hazard_vs_world": 1.26,
+ "hazard_mean": "#CAA60E",
  "spawn_edge_fog": 0.956,
  "spawn_edge_studs": 2048.0,
  "fx_on": [],
@@ -31,7 +31,7 @@
  "phone": false,
  "png": "grassland.day.png",
  "res": [
-  192,
-  108
+  768,
+  432
  ]
 }

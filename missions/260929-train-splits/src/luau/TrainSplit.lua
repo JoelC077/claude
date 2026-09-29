@@ -1,5 +1,5 @@
 --[[
-TrainSplit  (ModuleScript in ServerScriptService)  v2.0.0
+TrainSplit  (ModuleScript in ServerScriptService)
 
 Tears a carriage in half at runtime. Needs RR_TrainSplit_Setup to have run on the train:
 Train/Carriage1..2/{FrontHalf, RearHalf} and Train/RR_Breaks/Break1..2.
@@ -22,7 +22,7 @@ local Config = require(ReplicatedStorage:WaitForChild("TrainSplitConfig"))
 local Shared = require(ReplicatedStorage:WaitForChild("TrainSplitShared"))
 
 local TrainSplit = {}
-TrainSplit.Version = "2.0.0"
+TrainSplit.Version = "2.1.0"
 
 local function findOrMake(parent, className, name)
 	local inst = parent:FindFirstChild(name)
