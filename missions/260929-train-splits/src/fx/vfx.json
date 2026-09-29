@@ -2415,8 +2415,8 @@
        0.85
       ],
       "Speed": [
-       62,
-       76
+       66,
+       80
       ],
       "SpreadAngle": [
        80,
@@ -2774,10 +2774,10 @@
       ],
       "Acceleration": [
        0,
-       7,
+       11,
        0
       ],
-      "Drag": 0.35,
+      "Drag": 0.2,
       "WindAffectsDrag": true,
       "Size": [
        [
@@ -2792,7 +2792,7 @@
       "Transparency": [
        [
         0,
-        0.05
+        0
        ],
        [
         0.6,
@@ -2871,11 +2871,11 @@
       "Size": [
        [
         0,
-        0.6
+        0.9
        ],
        [
         1,
-        0.3
+        0.4
        ]
       ],
       "Transparency": [
@@ -2963,7 +2963,7 @@
       1,
       0
      ],
-     "emit": 14,
+     "emit": 16,
      "props": {
       "Shape": "Enum.ParticleEmitterShape.Box",
       "ShapeStyle": "Enum.ParticleEmitterShapeStyle.Volume",
@@ -2974,8 +2974,8 @@
        1.7
       ],
       "Speed": [
-       8,
-       12
+       12,
+       16
       ],
       "SpreadAngle": [
        85,
@@ -2991,15 +2991,15 @@
       "Size": [
        [
         0,
-        6
+        5.5
        ],
        [
         0.25,
-        8
+        7.5
        ],
        [
         1,
-        9
+        8.5
        ]
       ],
       "Transparency": [
@@ -3235,8 +3235,8 @@
        0.85
       ],
       "Speed": [
-       62,
-       76
+       66,
+       80
       ],
       "SpreadAngle": [
        80,

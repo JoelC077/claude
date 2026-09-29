@@ -1,93 +1,21 @@
 {
  "sheet": [
   786,
-  1334
+  198
  ],
- "megapixels": 1.05,
+ "megapixels": 0.16,
  "tiles": [
   {
    "n": 1,
-   "label": "boiler_burst (burst p1): burst time strip, 5.56 px/stud, construction view",
-   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_boiler_burst.png",
-   "box": [
-    6,
-    24,
-    774,
-    147
-   ],
-   "scale": "1:1 true size"
-  },
-  {
-   "n": 2,
-   "label": "glass_split (burst p1): burst time strip, 6.35 px/stud, construction view",
-   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_glass_split.png",
-   "box": [
-    6,
-    195,
-    774,
-    125
-   ],
-   "scale": "1:1 true size"
-  },
-  {
-   "n": 3,
-   "label": "interior_split (burst p1): burst time strip, 2.78 px/stud, construction view",
-   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_interior_split.png",
-   "box": [
-    6,
-    344,
-    774,
-    168
-   ],
-   "scale": "1:1 true size"
-  },
-  {
-   "n": 4,
    "label": "split_explosion (burst p1): burst time strip, 2.78 px/stud, construction view",
    "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_split_explosion.png",
    "box": [
     6,
-    536,
+    24,
     774,
     168
    ],
    "scale": "1:1 true size"
-  },
-  {
-   "n": 5,
-   "label": "topple_dust (burst p1): burst time strip, 2.54 px/stud, construction view",
-   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_topple_dust.png",
-   "box": [
-    6,
-    728,
-    774,
-    112
-   ],
-   "scale": "1:1 true size"
-  },
-  {
-   "n": 6,
-   "label": "torn_edge_smoke (loop p2): side strip, Speed 35, 11.39 px/stud, construction view",
-   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_torn_edge_smoke.png",
-   "box": [
-    6,
-    864,
-    772,
-    224
-   ],
-   "scale": "1:1 true size"
-  },
-  {
-   "n": 7,
-   "label": "day coach: interior",
-   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_interior_split.png",
-   "box": [
-    6,
-    1112,
-    384,
-    216
-   ],
-   "scale": "fit x0.50"
   }
  ]
 }

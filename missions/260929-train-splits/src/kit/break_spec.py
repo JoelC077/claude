@@ -57,12 +57,14 @@ motion = {
 topple = {
     "side": "random per snap (seeded), config 'left'|'right' forces it",
     "pivot": {"X_abs": 11.7, "Y": -8.6, "note": "rail level (world y 5.33) at the outer edge of the bogies on the falling side"},
-    "rest_note": "roll 95.9 deg puts the roof eave (X 9.74, Y 10.46) on the ground with the bogie edge (v2.1: was 88, the body hung 1.2-1.8 above the ground)",
+    "rest_note": "v2.2: the wreck rests on the bogie frame's upper outer corner and the roof eave (render pre-flight): falling +X needs roll 97.65 raised 0.75, falling -X roll 96.1 raised 0.2 (bogies are asymmetric); then a small dig-in",
+    "rest": {"+X": {"roll": 97.65, "lift": 0.75}, "-X": {"roll": 96.1, "lift": 0.2}},
     "bodies": [
-        {"who": "the broken half (front-most lost body)", "delay": 0.45, "roll": 95, "roll_time": 1.05, "ease": "QuadIn",
-         "bounce": [90, 95], "bounce_time": 0.35, "yaw": 7, "sink": 0.4},
-        {"who": "a whole carriage dragged behind it (break 1 only: carriage 2)", "delay": 0.8, "roll": 95, "roll_time": 1.2,
-         "ease": "QuadIn", "bounce": [91, 95], "bounce_time": 0.4, "yaw": -4, "sink": 0.35},
+        {"who": "the broken half (front-most lost body)", "delay": 0.45, "roll_time": 1.05, "ease": "QuadIn",
+         "bounce_back": 5, "bounce_time": 0.35, "yaw": 7, "sink": 0.15, "extra_back": 0.0},
+        {"who": "a whole carriage dragged behind it (break 1 only: carriage 2)", "delay": 0.8, "roll_time": 1.2,
+         "ease": "QuadIn", "bounce_back": 4, "bounce_time": 0.4, "yaw": -4, "sink": 0.15, "extra_back": 0.6,
+         "extra_back_note": "eased in over the roll so the gangway (with C2) clears C1.Rear's end door at rest (0.405 -> < 0.1)"},
     ],
 }
 events = [  # t = seconds after the snap; anchors in B coords of the breaking carriage
@@ -81,7 +83,7 @@ lost_rule = {
     "bodies": "each carriage's lost pieces animate as one body; break 1 gives two bodies (C1 rear half, C2)",
 }
 
-spec = {"version": "2.1.0", "frame": __doc__.split("\n")[2].strip(), "roof_signature": ROOF_SIG,
+spec = {"version": "2.2.0", "frame": __doc__.split("\n")[2].strip(), "roof_signature": ROOF_SIG,
         "roof_centres_export": ROOF_CENTRES, "break_dz": BREAK_DZ, "floor_dy": FLOOR_DY, "zext": ZEXT,
         "cells": cells, "structure": structure, "motion": motion, "topple": topple, "events": events, "lost": lost_rule,
         "expected_crossers_export": {
