@@ -1245,6 +1245,169 @@ def preflight(B, path):
     return L
 
 
+# ---------------------------------------------------------------- critic evidence pack
+PACK_BAND = [('break1 t4.0 POV inside (player view)', 'break1_t4.0__Cam_POV_In.png', (640, 360)),
+             ('break1 t4.0 roof 3rd person (player view)', 'break1_t4.0__Cam_Roof3P.png', (640, 360)),
+             ('break1 t4.0 game distance 400x225', 'break1_t4.0__Cam_Game.png', None)]
+PACK_GRID = [('intact seam outside', 'intact__Cam_SeamOut.png'), ('intact roof top', 'intact__Cam_SeamRoof.png'),
+             ('exploded 6 studs', 'exploded__Cam_Exploded.png'), ('break1 t1.0 wide', 'break1_t1.0__Cam_Wide.png'),
+             ('break1 t4.0 hero (torn end)', 'break1_t4.0__Cam_Hero.png'), ('break1 t4.0 wide', 'break1_t4.0__Cam_Wide.png'),
+             ('break1 t4.0 side (ortho 140)', 'break1_t4.0__Cam_Side.png'), ('break2 t4.0 hero (torn end)', 'break2_t4.0__Cam_Hero.png')]
+
+
+def cam_project(cname, k, t, pts):
+    """Pixel coords of B-frame points in a camera of CAMS/CAM_AT (same maths as the Blender camera: vertical FOV, Y up)."""
+    loc, look, fov, ortho, (W, H) = CAM_AT.get((cname, t), CAMS[cname])
+    L = ORIGIN[k] + np.array(loc, float); A = ORIGIN[k] + np.array(look, float)
+    f = (A - L) / np.linalg.norm(A - L)
+    rg = np.cross(f, [0.0, 1.0, 0.0]); rg /= np.linalg.norm(rg); up = np.cross(rg, f)
+    P = ORIGIN[k] + np.asarray(pts, float) - L
+    zf, xr, yu = P @ f, P @ rg, P @ up
+    if ortho:
+        sc = W / ortho
+        return np.stack([W / 2 + xr * sc, H / 2 - yu * sc], 1), (W, H)
+    fp = (H / 2) / math.tan(math.radians(fov) / 2)
+    return np.stack([W / 2 + fp * xr / zf, H / 2 - fp * yu / zf], 1), (W, H)
+
+
+def crop_box(pix, size, WH):
+    cx, cy = (pix[:, 0].min() + pix[:, 0].max()) / 2, (pix[:, 1].min() + pix[:, 1].max()) / 2
+    w, h = size
+    x0 = int(round(min(max(cx - w / 2, 0), WH[0] - w))); y0 = int(round(min(max(cy - h / 2, 0), WH[1] - h)))
+    return (x0, y0, x0 + w, y0 + h)
+
+
+def run_sheet(out, items, tile):
+    cmd = [sys.executable, SHEET_TOOL, out] + items + ['--tile', '%dx%d' % tile]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    return r.returncode, (r.stdout + r.stderr).strip()
+
+
+def critic_pack(out_dir, pack):
+    import shutil
+    from PIL import Image
+    os.makedirs(pack, exist_ok=True)
+    if not PF and os.path.exists(os.path.join(out_dir, 'preflight.json')):
+        PF.update(json.load(open(os.path.join(out_dir, 'preflight.json'))))
+    srcs = sorted({p for _, p, _ in PACK_BAND} | {p for _, p in PACK_GRID} | {'intact__Cam_SeamIn.png', 'reference_uncut__Cam_SeamIn.png',
+                                                                         'reference_uncut__Cam_SeamOut.png', 'intact__Cam_SeamRoof_debug.png'})
+    for p in srcs:
+        shutil.copy2(os.path.join(out_dir, p), os.path.join(pack, p))
+    band = []
+    for lab, p, size in PACK_BAND:
+        if size:
+            q = 'band_%s_%dx%d.png' % (os.path.splitext(p)[0], size[0], size[1])
+            Image.open(os.path.join(pack, p)).convert('RGB').resize(size, Image.LANCZOS).save(os.path.join(pack, q))
+        else:
+            q = p
+        band.append('%s=%s@1' % (lab, os.path.join(pack, q)))
+    grid = ['%s=%s' % (lab, os.path.join(pack, p)) for lab, p in PACK_GRID]
+    used_tile = None
+    for tw in (400, 384, 368, 352, 336, 320, 304, 288, 272, 256, 240, 224, 208, 192, 176):
+        tile = (tw, int(round(tw * 9 / 16)))
+        rc, msg = run_sheet(os.path.join(pack, 'contact.png'), band + grid, tile)
+        if rc == 0:
+            used_tile = tile; print('[pack] contact.png tile %dx%d: %s' % (tile[0], tile[1], msg.splitlines()[0]), flush=True); break
+    # 1:1 crops of the seam (intact, inside) and the torn end (break 1, t = 4.0, hero)
+    crops = []
+    seam = [(-8.8, y, c[4]) for c in CELLS if c[1] <= -7.1 for y in (c[2], c[3])]
+    pix, WH = cam_project('Cam_SeamIn', 1, None, seam)
+    torn = [(x, y, z) for x in (-9.74, 9.74) for y in (-8.6, 0.0, 14.05) for z in (D_LO, D_HI)]
+    pix2, WH2 = cam_project('Cam_Hero', 1, 4.0, torn)
+    for lab, src, px, wh in (('intact inside, seam at the tear line (1:1 crop)', 'intact__Cam_SeamIn.png', pix, WH),
+                             ('break1 t4.0 hero, torn end of the kept half (1:1 crop)', 'break1_t4.0__Cam_Hero.png', pix2, WH2)):
+        box = crop_box(px, (620, 700), wh)
+        q = 'crop_%s_%d_%d_%d_%d.png' % (os.path.splitext(src)[0], *box)
+        Image.open(os.path.join(pack, src)).convert('RGB').crop(box).save(os.path.join(pack, q))
+        crops.append((lab, src, box, q))
+    rc, msg = run_sheet(os.path.join(pack, 'closeups.png'), ['%s=%s@1' % (lab, os.path.join(pack, q)) for lab, _, _, q in crops], (400, 225))
+    print('[pack] closeups.png rc=%d %s' % (rc, msg.splitlines()[0] if msg else ''), flush=True)
+    write_facts(out_dir, pack, used_tile, crops)
+
+
+def write_facts(out_dir, pack, tile, crops):
+    poses = {}
+    lp = os.path.join(out_dir, 'render_log.md')
+    if os.path.exists(lp):
+        for l in open(lp).read().split('\n'):
+            c = [x.strip() for x in l.split('|')]
+            if len(c) == 6 and c[1] not in ('state', '---'):
+                poses[c[1]] = c[4]
+    sl = PF.get('slivers', {}); pen = PF.get('penetration', {}); counts = PF.get('counts', {})
+    sm = seam_numbers(out_dir)
+    L = []
+    w = L.append
+    w('# Critic pass 1: 3D look of the torn carriages (T1, mission 260929-train-splits)\n')
+    w('Question for the critic: does each split look really good and accurate (R3; acceptance A1-A7, bar 8)? '
+      'Geometry, cut and topple come from break_spec.json v%s via src/render/build.py; numbers below are from '
+      'src/render/out/preflight.md (%s).\n' % (PF.get('spec', '?'), time.strftime('%Y-%m-%d %H:%M')))
+    w('## Images in this folder\n')
+    w('- contact.png: top band at true size = the player views: break 1 t=4.0 Cam_POV_In and Cam_Roof3P (1600x900 renders scaled to 640x360) '
+      'and Cam_Game (rendered at 400x225). Grid below (fitted %s tiles): %s. contact.json maps every tile to its file.' % (
+          '%dx%d' % tile if tile else '?', ', '.join(lab for lab, _ in PACK_GRID)))
+    w('- closeups.png: 1:1 crops, no scaling: ' + '; '.join('%s = %s box %s' % (lab, src, list(box)) for lab, src, box, _ in crops) + '.')
+    w('- Full-resolution sources (1600x900, Cam_Game 400x225) are copied here as <state>__<camera>.png; also intact__Cam_SeamRoof_debug.png '
+      '(tear line drawn in red on the roof) and reference_uncut__Cam_SeamIn/SeamOut.png (the same cameras on the uncut original).\n')
+    w('## States and poses\n')
+    w('| state | what it shows | pose (drift along +Z; per lost body roll / yaw / sink / lift / extra back) |')
+    w('|---|---|---|')
+    what = {'intact': 'all halves in place, seam must be invisible', 'exploded': 'C1 front half -3, everything behind +3 along Z (design view)',
+            'break1_t0.3': 'break 1 just after the snap', 'break1_t1.0': 'C1 rear half rolling, C2 starting',
+            'break1_t1.6': 'C1 rear half bouncing on its side, C2 rolling', 'break1_t4.0': 'break 1 at rest, wreck ~90 studs behind',
+            'break2_t1.2': 'break 2, C2 rear half rolling toward -X', 'break2_t4.0': 'break 2 at rest'}
+    for st in ('intact', 'exploded', 'break1_t0.3', 'break1_t1.0', 'break1_t1.6', 'break1_t4.0', 'break2_t1.2', 'break2_t4.0'):
+        w('| %s | %s | %s |' % (st, what[st], poses.get(st, '') or '-'))
+    w('\nBreak 1 falls toward +X, break 2 toward -X (the game picks the side at random). Lost sets: break 1 = C1.Rear (body 1) + all of C2 '
+      '(body 2, incl. the gangway); break 2 = C2.Rear. Motion: recoil 0.8 in 0.2 s, brake 12 studs/s^2 from 35 studs/s, then static on the terrain.\n')
+    w('## Pre-flight numbers\n')
+    w('- Cut accuracy: front+rear volume vs original, worst %.4f %% over 20 crossers (limit 0.5 %%); intact cut faces meet with gap %.1e '
+      '(0 = below float32 resolution); seam pixels vs the uncut original: %s.' % (
+          PF.get('vol_worst_pct', float('nan')), PF.get('gap_max', float('nan')),
+          '; '.join('%s max %d/255, %d px > 12' % (c, mx, n) for c, mx, _, n in sm) or 'n/a'))
+    w('- Slivers: true slivers (faces within 15 deg of parallel to a cut) under 0.05: %s; thinnest true sliver %.3f (%s). '
+      'Feathering (slanted faces running into a cut) under 0.05: %s samples, thinnest %.3f, on %s.' % (
+          sl.get('true_count'), sl.get('true_min', [0, ''])[0], sl.get('true_min', [0, ''])[1], sl.get('feather_count'),
+          sl.get('feather_min', [0, ''])[0], ', '.join('%s (%.3f, %s)' % (kk, th, '/'.join(n)) for kk, th, _, n in sl.get('feather_planes', [])) or 'none'))
+    fl = PF.get('floaters', {})
+    w('- Floaters after the cut: ' + '; '.join('break %s: %s of %s pieces near the tear float' % (k, len(v['created']), v['checked']) for k, v in fl.items()) + '.')
+    for r in PF.get('rest', []):
+        w('- Wreck at rest, break %d body %d (%s): lowest y %.3f vs limit %.3f; bogie side %.3f, roof side %.3f (ground 5.33, sink %.2f) -> %s.' % (
+            r['k'], r['body'], r['name'], r['lowest'], r['limit'], r['bogie'], r['roof'], r['sink'], 'PASS' if r['ok'] else 'FAIL'))
+    w('- Wreck bodies at rest (break 1, C1.Rear vs C2): max interpenetration %.3f (%s), limit 0.3, target < 0.1; intact model %.3f.' % (
+        pen.get('t4', float('nan')), '/'.join(pen['pair']) if pen.get('pair') else 'no intersecting parts', pen.get('intact', float('nan'))))
+    w('- Other groups crossing the tear surface: %s.\n' % (', '.join(PF.get('tear_hits', [])) or 'none'))
+    w('## Parts\n')
+    w('- %s OBJ groups imported (Studio export temp2.obj); 20 crossers cut (10 per carriage); every other group goes whole to one half by '
+      'its bbox centre; the gangway Union22 belongs to C2.FrontHalf.' % PF.get('groups_imported', '?'))
+    w('- Objects per half after the cut (whole parts + cut pieces): ' + ', '.join('%s %d' % kv for kv in counts.items()) + '.\n')
+    w('## Cut method per crosser\n')
+    w('| carriage | crosser | method | cut faces F / R | volume off % | note |')
+    w('|---|---|---|---|---|---|')
+    for c in PF.get('crossers', []):
+        note = ''
+        if c['nonmanifold'] or c['fins']:
+            note = 'not watertight after weld (%d non-manifold edges, %d fin pairs); %s' % (c['nonmanifold'], c['fins'], c['m3_import'])
+        elif c['degenerate']:
+            note = '%d zero-area triangles dropped at weld' % c['degenerate']
+        w('| C%d | %s | %s | %s | %+.4f | %s |' % (c['k'], c['name'], c['path'], c['caps'], c['off_pct'], note))
+    w('\nmanifold3d = mesh minus the per-cell cutter boxes (cap faces from the cutter, crosser material). block sliced per cell = the plain '
+      'Block intersected with each cell box (separate sub-blocks, as Studio will slice it). clip+caps = fallback for non-watertight unions: '
+      'triangles clipped per cell, caps built from the exact cross-section of the original mesh (the order\'s literal fallback has no caps).\n')
+    w('## Render limits (by design, do not score them as defects of the split)\n')
+    w('- No fx, smoke, sparks, debris, glass shards or sound in these renders: the explosion, torn-edge smoke and topple dust are T3, sounds T4.')
+    w('- Cycles preview materials approximate Roblox: texture x part colour, roughness 0.7, normal maps dropped, glass alpha 0.35, AgX view '
+      'transform, sun and sky from scene.py. Roblox lighting, materials and LOD will differ.')
+    w('- Ground (flat plane at rail level y 5.33), rails, sleepers and ballast are render props, not part of the model; rail heads stand 0.25 '
+      'proud, so the wheels sit 0.25 into them.')
+    w('- Cycles CPU, 22 samples + OpenImageDenoise, 1600x900 (Cam_Game 400x225). Cameras are in the B frame of the breaking carriage '
+      '(intact and exploded use carriage 1); Cam_Side at t=4.0 is widened to centre Z 45, ortho 140.')
+    w('- Motion details not fixed by the spec: yaw eases like the roll and turns about the vertical line through the rolled body\'s centre, '
+      'mirrored with the side; lift eases in with the roll; extra back eases in over the roll.\n')
+    with open(os.path.join(pack, 'facts.md'), 'w') as f:
+        f.write('\n'.join(L) + '\n')
+    print('[pack] facts.md written', flush=True)
+
+
 def write_sheet(out_dir, sheet, items, prog_dir):
     paths = [os.path.join(out_dir, p) for _, p in items]
     if not all(os.path.exists(p) for p in paths):
@@ -1268,6 +1431,7 @@ def main():
     ap.add_argument('--no-preflight', action='store_true')
     ap.add_argument('--no-sheets', action='store_true')
     ap.add_argument('--sheets-only', action='store_true', help='rebuild the progress sheets from the PNGs in --out and exit')
+    ap.add_argument('--critic-pack', default='', help='after rendering: copy the critic evidence into DIR (contact.png, closeups.png, facts.md)')
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     if args.sheets_only:
@@ -1280,6 +1444,8 @@ def main():
     if not args.no_preflight:
         preflight(B, pf)
     if args.no_render:
+        if args.critic_pack:
+            critic_pack(args.out, args.critic_pack)
         return
     states = [s for s in args.states.split(',') if s]
     cams_filter = set(c for c in args.cams.split(',') if c)
@@ -1323,6 +1489,8 @@ def main():
     with open(lp, 'w') as f:
         f.write('\n'.join(lines) + '\n')
     print('[done] %d renders in %.1f min; sheets %s' % (len(log), total / 60, sorted(sheets_done)), flush=True)
+    if args.critic_pack:
+        critic_pack(args.out, args.critic_pack)
 
 
 if __name__ == '__main__':
