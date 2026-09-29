@@ -29,7 +29,7 @@ local Config = require(ReplicatedStorage:WaitForChild("TrainSplitConfig"))
 local Shared = require(ReplicatedStorage:WaitForChild("TrainSplitShared"))
 
 local TrainSplit = {}
-TrainSplit.Version = "2.2.0"
+TrainSplit.Version = "2.3.0"
 
 local BRAKE_FALLBACK = 12 -- break_spec motion.brake, used if Config.Brake is not a positive number
 local CONFIRM_MARGIN = 6 -- studs around a wreck that still count as "on it" when riders are re-checked

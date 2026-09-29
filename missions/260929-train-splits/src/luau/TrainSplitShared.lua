@@ -11,7 +11,7 @@ Break frame B: origin on the carriage centre line at floor-top height on the bre
 ]]
 
 local Shared = {}
-Shared.Version = "2.2.0"
+Shared.Version = "2.3.0"
 
 local EASE = {
 	Linear = function(u)

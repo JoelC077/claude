@@ -30,7 +30,7 @@ local ALLOW_PLANE_FALLBACK = false -- no roof union found (another train): allow
 local PLANE_OFFSET = 0 -- plane fallback only: studs from the carriage centre toward the rear
 
 -- CORE BEGIN: break geometry, identical in RR_BreakChecker and RR_TrainSplit_Setup (the Lune suite checks it)
-local SPEC_VERSION = "2.2.0"
+local SPEC_VERSION = "2.3.0"
 local ROOF_SIG = { 3.59, 19.48, 62.34 } -- roof union size, smallest first (break_spec roof_signature)
 local ROOF_TOL = 0.1 -- studs of slack per axis when matching a roof
 local BREAK_DZ = 3.31 -- break plane = roof centre + 3.31 studs toward the rear
@@ -39,7 +39,7 @@ local ZEXT = 40 -- cutter reach along the carriage (a carriage spans -34.5 .. +2
 local LONG_PART = 0.6 -- plane fallback: parts this fraction of the longest one outline a carriage
 local EXPECTED_CROSSERS = 10 -- per carriage in Joel's train (break_spec clearance check)
 
--- CELLS BEGIN (break_spec.json v2.2.0) {X0, X1, Y0, Y1, d, region}: inside a cell the tear is at Z = d.
+-- CELLS BEGIN (break_spec.json v2.3.0) {X0, X1, Y0, Y1, d, region}: inside a cell the tear is at Z = d.
 -- Frame B: +X across (right when facing the front), +Y up from the floor top, +Z toward the rear.
 local CELLS = {
 	{ -14.0, -7.1, -12.0, 0.6, 0.6, "floor" },
