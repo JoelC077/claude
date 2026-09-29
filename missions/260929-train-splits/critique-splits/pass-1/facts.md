@@ -1,6 +1,6 @@
 # Critic pass 1: 3D look of the torn carriages (T1, mission 260929-train-splits)
 
-Question for the critic: does each split look really good and accurate (R3; acceptance A1-A7, bar 8)? Geometry, cut and topple come from break_spec.json v2.2.0 via src/render/build.py; numbers below are from src/render/out/preflight.md (2026-09-29 23:52).
+Question for the critic: does each split look really good and accurate (R3; acceptance A1-A7, bar 8)? Geometry, cut and topple come from break_spec.json v2.3.0 via src/render/build.py; numbers below are from src/render/out/preflight.md (2026-09-29 23:55).
 
 ## Images in this folder
 
@@ -18,8 +18,8 @@ Question for the critic: does each split look really good and accurate (R3; acce
 | break1_t1.0 | C1 rear half rolling, C2 starting | drift 6.80 / roll 26.79 yaw 1.9 sink 0.00 lift 0.21 back 0.00 / roll 2.71 yaw -0.1 sink 0.00 lift 0.02 back 0.02 |
 | break1_t1.6 | C1 rear half bouncing on its side, C2 rolling | drift 16.16 / roll 93.57 yaw 7.0 sink 0.15 lift 0.72 back 0.00 / roll 43.40 yaw -1.8 sink 0.00 lift 0.33 back 0.27 |
 | break1_t4.0 | break 1 at rest, wreck ~90 studs behind | drift 89.76 / roll 97.65 yaw 7.0 sink 0.15 lift 0.75 back 0.00 / roll 97.65 yaw -4.0 sink 0.15 lift 0.75 back 0.60 |
-| break2_t1.2 | break 2, C2 rear half rolling toward -X | drift 9.44 / roll 49.03 yaw -3.6 sink 0.00 lift 0.10 back 0.00 |
-| break2_t4.0 | break 2 at rest | drift 89.76 / roll 96.10 yaw -7.0 sink 0.15 lift 0.20 back 0.00 |
+| break2_t1.2 | break 2, C2 rear half rolling toward -X | drift 9.44 / roll 49.38 yaw -3.6 sink 0.00 lift 0.22 back 0.00 |
+| break2_t4.0 | break 2 at rest | drift 89.76 / roll 96.78 yaw -7.0 sink 0.15 lift 0.43 back 0.00 |
 
 Break 1 falls toward +X, break 2 toward -X (the game picks the side at random). Lost sets: break 1 = C1.Rear (body 1) + all of C2 (body 2, incl. the gangway); break 2 = C2.Rear. Motion: recoil 0.8 in 0.2 s, brake 12 studs/s^2 from 35 studs/s, then static on the terrain.
 
@@ -28,9 +28,9 @@ Break 1 falls toward +X, break 2 toward -X (the game picks the side at random). 
 - Cut accuracy: front+rear volume vs original, worst 0.0000 % over 20 crossers (limit 0.5 %); intact cut faces meet with gap 0.0e+00 (0 = below float32 resolution); seam pixels vs the uncut original: Cam_SeamOut max 7/255, 0 px > 12; Cam_SeamIn max 5/255, 0 px > 12.
 - Slivers: true slivers (faces within 15 deg of parallel to a cut) under 0.05: 0; thinnest true sliver 0.183 (Union19.F). Feathering (slanted faces running into a cut) under 0.05: 35 samples, thinnest 0.002, on X = +3.70 (0.002, Union109/Union28/Union38/Union56/Union80), X = -4.60 (0.003, Union134/Union28).
 - Floaters after the cut: break 1: 0 of 61 pieces near the tear float; break 2: 0 of 61 pieces near the tear float.
-- Wreck at rest, break 1 body 1 (C1.Rear): lowest y 5.177 vs limit 5.130; bogie side 5.179, roof side 5.177 (ground 5.33, sink 0.15) -> PASS.
-- Wreck at rest, break 1 body 2 (C2 incl. gangway): lowest y 5.174 vs limit 5.130; bogie side 5.176, roof side 5.174 (ground 5.33, sink 0.15) -> PASS.
-- Wreck at rest, break 2 body 1 (C2.Rear): lowest y 5.037 vs limit 5.130; bogie side 5.037, roof side 5.182 (ground 5.33, sink 0.15) -> FAIL.
+- Wreck at rest, break 1 body 1 (C1.Rear): lowest y 5.177 vs limit 5.130; bogie side 5.177, roof side 5.177 (ground 5.33, sink 0.15) -> PASS.
+- Wreck at rest, break 1 body 2 (C2 incl. gangway): lowest y 5.174 vs limit 5.130; bogie side 5.174, roof side 5.175 (ground 5.33, sink 0.15) -> PASS.
+- Wreck at rest, break 2 body 1 (C2.Rear): lowest y 5.177 vs limit 5.130; bogie side 5.177, roof side 5.177 (ground 5.33, sink 0.15) -> PASS.
 - Wreck bodies at rest (break 1, C1.Rear vs C2): max interpenetration 0.000 (no intersecting parts), limit 0.3, target < 0.1; intact model 0.003.
 - Other groups crossing the tear surface: none.
 
@@ -68,7 +68,6 @@ manifold3d = mesh minus the per-cell cutter boxes (cap faces from the cutter, cr
 
 ## Open items the numbers show
 
-- Break 2 body 1 rest pose (spec roll 96.1, lift 0.2): lowest point y 5.037 is 0.29 below ground, allowed 0.20. The geometry two-point rest for that side is roll 96.78, lift 0.435. In the render this shows as the bogie frame corner dug 0.14 deeper than the designed 0.15 sink.
 - Feathering: the roof steps at X = +3.70 and X = -4.60 run into slanted roof-panel edges, leaving thin wedges down to 0.002 (acceptable per coordinator).
 - 4 unions (Union19/61 in C1, Union84/86 in C2) are not watertight in the export; here they are capped from exact cross-sections, Studio CSG on them is unverified.
 

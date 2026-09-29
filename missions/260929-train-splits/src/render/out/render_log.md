@@ -1,4 +1,4 @@
-## Render log (23 images, 10.2 min render time, Cycles CPU 22 samples + denoise)
+## Render log (23 images, 9.7 min render time, Cycles CPU 22 samples + denoise)
 
 | state | camera | seconds | pose |
 |---|---|---|---|
@@ -21,7 +21,7 @@
 | break1_t4.0 | Cam_Roof3P | 21 | drift 89.76 / roll 97.65 yaw 7.0 sink 0.15 lift 0.75 back 0.00 / roll 97.65 yaw -4.0 sink 0.15 lift 0.75 back 0.60 |
 | break1_t4.0 | Cam_Side | 10 | drift 89.76 / roll 97.65 yaw 7.0 sink 0.15 lift 0.75 back 0.00 / roll 97.65 yaw -4.0 sink 0.15 lift 0.75 back 0.60 |
 | break1_t4.0 | Cam_Game | 2 | drift 89.76 / roll 97.65 yaw 7.0 sink 0.15 lift 0.75 back 0.00 / roll 97.65 yaw -4.0 sink 0.15 lift 0.75 back 0.60 |
-| break2_t1.2 | Cam_Wide | 33 | drift 9.44 / roll 49.03 yaw -3.6 sink 0.00 lift 0.10 back 0.00 |
-| break2_t4.0 | Cam_Hero | 38 | drift 89.76 / roll 96.10 yaw -7.0 sink 0.15 lift 0.20 back 0.00 |
-| break2_t4.0 | Cam_POV_In | 30 | drift 89.76 / roll 96.10 yaw -7.0 sink 0.15 lift 0.20 back 0.00 |
-| break2_t4.0 | Cam_Wide | 22 | drift 89.76 / roll 96.10 yaw -7.0 sink 0.15 lift 0.20 back 0.00 |
+| break2_t1.2 | Cam_Wide | 20 | drift 9.44 / roll 49.38 yaw -3.6 sink 0.00 lift 0.22 back 0.00 |
+| break2_t4.0 | Cam_Hero | 24 | drift 89.76 / roll 96.78 yaw -7.0 sink 0.15 lift 0.43 back 0.00 |
+| break2_t4.0 | Cam_POV_In | 30 | drift 89.76 / roll 96.78 yaw -7.0 sink 0.15 lift 0.43 back 0.00 |
+| break2_t4.0 | Cam_Wide | 19 | drift 89.76 / roll 96.78 yaw -7.0 sink 0.15 lift 0.43 back 0.00 |
