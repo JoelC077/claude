@@ -1,5 +1,5 @@
 {
- "spec": "2.2.0",
+ "spec": "2.3.0",
  "counts": {
   "C1F": 243,
   "C1R": 188,
@@ -305,21 +305,21 @@
    "k": 1,
    "body": 1,
    "name": "C1.Rear",
-   "pose": "roll 97.65 yaw 7.0 sink 0.15 lift 0.75 back 0.00",
-   "lowest": 5.176823363440221,
-   "lowest_part": "Union12.R",
+   "pose": "roll 97.64 yaw 7.0 sink 0.15 lift 0.75 back 0.00",
+   "lowest": 5.177131646528203,
+   "lowest_part": "Union4",
    "two_point": [
     97.64,
     0.747
    ],
    "spec_rest": [
-    97.65,
-    0.75
+    97.64,
+    0.747
    ],
    "limit": 5.13,
-   "bogie": 5.178997228160675,
+   "bogie": 5.177131646528203,
    "bogie_part": "Union4",
-   "roof": 5.176823363440221,
+   "roof": 5.177370110953909,
    "roof_part": "Union12.R",
    "sink": 0.15,
    "ok": true
@@ -328,21 +328,21 @@
    "k": 1,
    "body": 2,
    "name": "C2 incl. gangway",
-   "pose": "roll 97.65 yaw -4.0 sink 0.15 lift 0.75 back 0.60",
-   "lowest": 5.174062812021276,
-   "lowest_part": "Union134.R",
+   "pose": "roll 97.64 yaw -4.0 sink 0.15 lift 0.75 back 0.60",
+   "lowest": 5.173939197838024,
+   "lowest_part": "Union100",
    "two_point": [
     97.64,
     0.75
    ],
    "spec_rest": [
-    97.65,
-    0.75
+    97.64,
+    0.747
    ],
    "limit": 5.13,
-   "bogie": 5.17580469572593,
+   "bogie": 5.173939197838024,
    "bogie_part": "Union100",
-   "roof": 5.174062812021276,
+   "roof": 5.174609477060336,
    "roof_part": "Union134.R",
    "sink": 0.15,
    "ok": true
@@ -351,24 +351,24 @@
    "k": 2,
    "body": 1,
    "name": "C2.Rear",
-   "pose": "roll 96.10 yaw -7.0 sink 0.15 lift 0.20 back 0.00",
-   "lowest": 5.0365099914073,
-   "lowest_part": "Union103",
+   "pose": "roll 96.78 yaw -7.0 sink 0.15 lift 0.43 back 0.00",
+   "lowest": 5.17652379407788,
+   "lowest_part": "Union134.R",
    "two_point": [
     96.78,
     0.435
    ],
    "spec_rest": [
-    96.1,
-    0.2
+    96.78,
+    0.435
    ],
    "limit": 5.13,
-   "bogie": 5.0365099914073,
+   "bogie": 5.176562663104605,
    "bogie_part": "Union103",
-   "roof": 5.182088634630986,
+   "roof": 5.17652379407788,
    "roof_part": "Union134.R",
    "sink": 0.15,
-   "ok": false
+   "ok": true
   }
  ],
  "penetration": {
