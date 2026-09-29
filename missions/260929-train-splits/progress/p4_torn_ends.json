@@ -1,0 +1,57 @@
+{
+ "sheet": [
+  1298,
+  774
+ ],
+ "megapixels": 1.0,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "Break 1 hero t 4.0",
+   "src": "/home/user/claude/missions/260929-train-splits/src/render/out/break1_t4.0__Cam_Hero.png",
+   "box": [
+    6,
+    24,
+    640,
+    360
+   ],
+   "scale": "fit x0.40"
+  },
+  {
+   "n": 2,
+   "label": "Break 1 POV inside",
+   "src": "/home/user/claude/missions/260929-train-splits/src/render/out/break1_t4.0__Cam_POV_In.png",
+   "box": [
+    652,
+    24,
+    640,
+    360
+   ],
+   "scale": "fit x0.40"
+  },
+  {
+   "n": 3,
+   "label": "Break 1 roof 3rd person",
+   "src": "/home/user/claude/missions/260929-train-splits/src/render/out/break1_t4.0__Cam_Roof3P.png",
+   "box": [
+    6,
+    408,
+    640,
+    360
+   ],
+   "scale": "fit x0.40"
+  },
+  {
+   "n": 4,
+   "label": "Break 2 hero t 4.0",
+   "src": "/home/user/claude/missions/260929-train-splits/src/render/out/break2_t4.0__Cam_Hero.png",
+   "box": [
+    652,
+    408,
+    640,
+    360
+   ],
+   "scale": "fit x0.40"
+  }
+ ]
+}

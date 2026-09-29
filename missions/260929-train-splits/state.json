@@ -7,7 +7,7 @@
  "bar": 8,
  "cap_passes": 5,
  "budget": null,
- "tokens": 135460,
+ "tokens": 151408,
  "env": {
   "root": "/home/user/claude/missions",
   "critic": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/multiuse-critic",
@@ -34,6 +34,6 @@
  },
  "next": "wait: T1 renders, T2 Luau, fx critic p1, sound critic p1; then 3D critic, guard gate, fix rounds",
  "created": "2026-09-29T21:35Z",
- "updated": "2026-09-29T23:04Z",
+ "updated": "2026-09-29T23:05Z",
  "tokens_est": false
 }
