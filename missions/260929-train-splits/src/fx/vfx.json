@@ -110,7 +110,7 @@
     "width/2+3"
    ],
    "SplitCoreInside": [
-    0,
+    3,
     "roof-9",
     0
    ]
@@ -2371,7 +2371,7 @@
      -2,
      42
     ],
-    "t": 0.5
+    "t": 0.35
    },
    "layers": [
     {
@@ -2415,23 +2415,23 @@
        0.85
       ],
       "Speed": [
-       50,
-       62
+       62,
+       76
       ],
       "SpreadAngle": [
-       70,
-       70
+       80,
+       80
       ],
-      "Drag": 3,
+      "Drag": 4,
       "WindAffectsDrag": true,
       "Size": [
        [
         0,
-        10
+        13
        ],
        [
         1,
-        22
+        19
        ]
       ],
       "Transparency": [
@@ -2499,7 +2499,7 @@
       1,
       0
      ],
-     "emit": 6,
+     "emit": 5,
      "delay": 0.1,
      "props": {
       "Texture": "rbxasset://textures/particles/smoke_main.dds",
@@ -2518,23 +2518,23 @@
       ],
       "Acceleration": [
        0,
-       36,
+       48,
        0
       ],
-      "Drag": 3,
+      "Drag": 4,
       "WindAffectsDrag": true,
       "Size": [
        [
         0,
-        7
+        6
        ],
        [
         0.3,
-        14
+        12
        ],
        [
         1,
-        15,
+        13,
         2
        ]
       ],
@@ -2591,7 +2591,7 @@
       0,
       0
      ],
-     "emit": 6,
+     "emit": 7,
      "props": {
       "Texture": "rbxasset://textures/particles/smoke_main.dds",
       "Rate": 0,
@@ -2600,19 +2600,19 @@
        0.85
       ],
       "Speed": [
-       26,
-       32
+       34,
+       42
       ],
       "SpreadAngle": [
-       180,
-       10
+       10,
+       180
       ],
       "Acceleration": [
        0,
        -3,
        0
       ],
-      "Drag": 1.0,
+      "Drag": 0.8,
       "WindAffectsDrag": true,
       "Size": [
        [
@@ -2644,8 +2644,8 @@
         "@style.ground.ballast"
        ],
        [
-        0.15,
-        "$dust_cream"
+        0.6,
+        "@style.ground.ballast"
        ],
        [
         1,
@@ -2741,8 +2741,8 @@
      "class": "ParticleEmitter",
      "parent": "part",
      "part_size": [
-      4,
-      4,
+      2.5,
+      3,
       19
      ],
      "offset": [
@@ -2774,19 +2774,19 @@
       ],
       "Acceleration": [
        0,
-       10,
+       7,
        0
       ],
-      "Drag": 0.4,
+      "Drag": 0.35,
       "WindAffectsDrag": true,
       "Size": [
        [
         0,
-        1
+        1.5
        ],
        [
         1,
-        4
+        5
        ]
       ],
       "Transparency": [
@@ -2830,8 +2830,8 @@
      "class": "ParticleEmitter",
      "parent": "part",
      "part_size": [
-      4,
-      4,
+      2.5,
+      3,
       19
      ],
      "offset": [
@@ -2871,11 +2871,11 @@
       "Size": [
        [
         0,
-        0.45
+        0.6
        ],
        [
         1,
-        0.2
+        0.3
        ]
       ],
       "Transparency": [
@@ -2991,21 +2991,25 @@
       "Size": [
        [
         0,
-        3
+        6
+       ],
+       [
+        0.25,
+        8
        ],
        [
         1,
-        10
+        9
        ]
       ],
       "Transparency": [
        [
         0,
-        0.05
+        0
        ],
        [
         0.6,
-        0.3
+        0.2
        ],
        [
         1,
@@ -3040,6 +3044,14 @@
    "kind": "burst",
    "priority": 1,
    "anchor": "WindowPane",
+   "preview": {
+    "window": [
+     -26,
+     2,
+     -1,
+     12
+    ]
+   },
    "use": "carriage split: the pane nearest the break on each wall smashes (mission variant of glass_burst: 23 bigger, longer-lived glinting shards on one emitter)",
    "canon": "none: mission variant of glass_burst (av.vfx.glass) for the carriage split; proposed",
    "layers": [
@@ -3174,12 +3186,12 @@
    "oq": "OQ-028",
    "preview": {
     "window": [
-     -32,
-     32,
+     -29,
+     35,
      -2,
      42
     ],
-    "t": 0.4
+    "t": 0.25
    },
    "layers": [
     {
@@ -3223,23 +3235,23 @@
        0.85
       ],
       "Speed": [
-       50,
-       62
+       62,
+       76
       ],
       "SpreadAngle": [
-       70,
-       70
+       80,
+       80
       ],
-      "Drag": 3,
+      "Drag": 4,
       "WindAffectsDrag": true,
       "Size": [
        [
         0,
-        10
+        13
        ],
        [
         1,
-        22
+        19
        ]
       ],
       "Transparency": [
@@ -3307,7 +3319,7 @@
       1,
       0
      ],
-     "emit": 6,
+     "emit": 5,
      "delay": 0.1,
      "props": {
       "Texture": "rbxasset://textures/particles/smoke_main.dds",
@@ -3326,23 +3338,23 @@
       ],
       "Acceleration": [
        0,
-       36,
+       48,
        0
       ],
-      "Drag": 3,
+      "Drag": 4,
       "WindAffectsDrag": true,
       "Size": [
        [
         0,
-        7
+        6
        ],
        [
         0.3,
-        14
+        12
        ],
        [
         1,
-        15,
+        13,
         2
        ]
       ],
@@ -3399,7 +3411,7 @@
       0,
       0
      ],
-     "emit": 6,
+     "emit": 7,
      "props": {
       "Texture": "rbxasset://textures/particles/smoke_main.dds",
       "Rate": 0,
@@ -3408,19 +3420,19 @@
        0.85
       ],
       "Speed": [
-       26,
-       32
+       34,
+       42
       ],
       "SpreadAngle": [
-       180,
-       10
+       10,
+       180
       ],
       "Acceleration": [
        0,
        -3,
        0
       ],
-      "Drag": 1.0,
+      "Drag": 0.8,
       "WindAffectsDrag": true,
       "Size": [
        [
@@ -3452,8 +3464,8 @@
         "@style.ground.ballast"
        ],
        [
-        0.15,
-        "$dust_cream"
+        0.6,
+        "@style.ground.ballast"
        ],
        [
         1,

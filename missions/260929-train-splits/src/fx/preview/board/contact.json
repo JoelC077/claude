@@ -1,9 +1,9 @@
 {
  "sheet": [
   856,
-  1140
+  1380
  ],
- "megapixels": 0.98,
+ "megapixels": 1.18,
  "tiles": [
   {
    "n": 1,
@@ -43,8 +43,8 @@
   },
   {
    "n": 4,
-   "label": "day roof: torn | hid derail",
-   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_derail_explosion.png",
+   "label": "day roof: torn, boiler",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_boiler_burst.png",
    "box": [
     6,
     678,
@@ -55,8 +55,8 @@
   },
   {
    "n": 5,
-   "label": "day roof: torn, boiler",
-   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_boiler_burst.png",
+   "label": "day door: no effect | hid torn",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_grassland.day_door1p.png",
    "box": [
     396,
     678,
@@ -67,8 +67,8 @@
   },
   {
    "n": 6,
-   "label": "day door: no effect | hid torn",
-   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_grassland.day_door1p.png",
+   "label": "day door: topple | hid torn",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_topple_dust.png",
    "box": [
     6,
     918,
@@ -79,11 +79,23 @@
   },
   {
    "n": 7,
-   "label": "day door: topple | hid torn",
-   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_topple_dust.png",
+   "label": "day door: glass | hid torn",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_glass_split.png",
    "box": [
     396,
     918,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 8,
+   "label": "day coach: interior",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_interior_split.png",
+   "box": [
+    6,
+    1158,
     384,
     216
    ],

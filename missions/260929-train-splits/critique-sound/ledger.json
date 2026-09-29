@@ -22,5 +22,28 @@
   "budget": 120000,
   "est": false,
   "mode": "continued"
+ },
+ {
+  "pass": 2,
+  "kind": "delta",
+  "agent": "critic-sound-1",
+  "model": "claude-opus-5-5",
+  "scores": {
+   "S1": 8,
+   "S2": 8,
+   "S3": 8,
+   "S4": 8,
+   "S6": 9
+  },
+  "tokens": 213067,
+  "new": 61659,
+  "carried": 151408,
+  "tools": 4,
+  "minutes": 8.1,
+  "fixes": "",
+  "note": "",
+  "budget": 120000,
+  "est": false,
+  "mode": "continued"
  }
 ]

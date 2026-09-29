@@ -79,8 +79,8 @@
   },
   {
    "n": 7,
-   "label": "day roof: torn | hid derail",
-   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_derail_explosion.png",
+   "label": "day roof: torn, boiler",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_boiler_burst.png",
    "box": [
     396,
     918,
