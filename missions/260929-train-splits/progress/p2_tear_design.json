@@ -1,0 +1,45 @@
+{
+ "sheet": [
+  652,
+  1158
+ ],
+ "megapixels": 0.76,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "Seam out (intact)",
+   "src": "/home/user/claude/missions/260929-train-splits/src/render/out/intact__Cam_SeamOut.png",
+   "box": [
+    6,
+    24,
+    640,
+    360
+   ],
+   "scale": "fit x0.40"
+  },
+  {
+   "n": 2,
+   "label": "Roof top, tear line red",
+   "src": "/home/user/claude/missions/260929-train-splits/src/render/out/intact__Cam_SeamRoof_debug.png",
+   "box": [
+    6,
+    408,
+    640,
+    360
+   ],
+   "scale": "fit x0.40"
+  },
+  {
+   "n": 3,
+   "label": "Exploded 6 studs",
+   "src": "/home/user/claude/missions/260929-train-splits/src/render/out/exploded__Cam_Exploded.png",
+   "box": [
+    6,
+    792,
+    640,
+    360
+   ],
+   "scale": "fit x0.40"
+  }
+ ]
+}
