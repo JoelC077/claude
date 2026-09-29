@@ -1,5 +1,5 @@
 {
- "version": "2.2.0",
+ "version": "2.3.0",
  "frame": "Break frame B (per carriage): origin on the carriage centre line, at floor-top height, at the break plane.",
  "roof_signature": [
   19.48,
@@ -395,15 +395,15 @@
    "Y": -8.6,
    "note": "rail level (world y 5.33) at the outer edge of the bogies on the falling side"
   },
-  "rest_note": "v2.2: the wreck rests on the bogie frame's upper outer corner and the roof eave (render pre-flight): falling +X needs roll 97.65 raised 0.75, falling -X roll 96.1 raised 0.2 (bogies are asymmetric); then a small dig-in",
+  "rest_note": "v2.2: the wreck rests on the bogie frame's upper outer corner and the roof eave (render pre-flight): falling +X needs roll 97.64 raised 0.747, falling -X roll 96.78 raised 0.435 (bogies are asymmetric; v2.3 checks the whole carriage); then a small dig-in",
   "rest": {
    "+X": {
-    "roll": 97.65,
-    "lift": 0.75
+    "roll": 97.64,
+    "lift": 0.747
    },
    "-X": {
-    "roll": 96.1,
-    "lift": 0.2
+    "roll": 96.78,
+    "lift": 0.435
    }
   },
   "bodies": [

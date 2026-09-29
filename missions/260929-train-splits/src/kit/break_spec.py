@@ -57,8 +57,8 @@ motion = {
 topple = {
     "side": "random per snap (seeded), config 'left'|'right' forces it",
     "pivot": {"X_abs": 11.7, "Y": -8.6, "note": "rail level (world y 5.33) at the outer edge of the bogies on the falling side"},
-    "rest_note": "v2.2: the wreck rests on the bogie frame's upper outer corner and the roof eave (render pre-flight): falling +X needs roll 97.65 raised 0.75, falling -X roll 96.1 raised 0.2 (bogies are asymmetric); then a small dig-in",
-    "rest": {"+X": {"roll": 97.65, "lift": 0.75}, "-X": {"roll": 96.1, "lift": 0.2}},
+    "rest_note": "v2.2: the wreck rests on the bogie frame's upper outer corner and the roof eave (render pre-flight): falling +X needs roll 97.64 raised 0.747, falling -X roll 96.78 raised 0.435 (bogies are asymmetric; v2.3 checks the whole carriage); then a small dig-in",
+    "rest": {"+X": {"roll": 97.64, "lift": 0.747}, "-X": {"roll": 96.78, "lift": 0.435}},  # v2.3: whole-carriage contact check (render pre-flight)
     "bodies": [
         {"who": "the broken half (front-most lost body)", "delay": 0.45, "roll_time": 1.05, "ease": "QuadIn",
          "bounce_back": 5, "bounce_time": 0.35, "yaw": 7, "sink": 0.15, "extra_back": 0.0},
@@ -83,7 +83,7 @@ lost_rule = {
     "bodies": "each carriage's lost pieces animate as one body; break 1 gives two bodies (C1 rear half, C2)",
 }
 
-spec = {"version": "2.2.0", "frame": __doc__.split("\n")[2].strip(), "roof_signature": ROOF_SIG,
+spec = {"version": "2.3.0", "frame": __doc__.split("\n")[2].strip(), "roof_signature": ROOF_SIG,
         "roof_centres_export": ROOF_CENTRES, "break_dz": BREAK_DZ, "floor_dy": FLOOR_DY, "zext": ZEXT,
         "cells": cells, "structure": structure, "motion": motion, "topple": topple, "events": events, "lost": lost_rule,
         "expected_crossers_export": {
