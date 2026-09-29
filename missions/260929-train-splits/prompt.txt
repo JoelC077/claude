@@ -21,3 +21,6 @@ questions:
 1. each carriage will have its own split point. Say if carriage1 splits, all of carriage 2 and half carriage one is lost. Carriage 2 splitting means only half carriage 2 lost
 2. yes like i said, it stays still
 3. just 2 carriages
+
+--- clarification C5 ---
+gifs of the full animation afterwards aswell

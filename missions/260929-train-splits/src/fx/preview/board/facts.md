@@ -1,4 +1,4 @@
-# Look-dev board: split_explosion (2026-09-29)
+# Look-dev board: torn_edge_smoke, topple_dust (2026-09-29)
 
 Presets from /home/user/claude/missions/260929-train-splits/src/fx. Tiles show the player's views (POV composites: particles over the lit plate); strips on closeups.png are construction views for shape and timing only.
 
@@ -22,19 +22,20 @@ Side strips: steady state at Speed 35.0 (gameplay.speed.normal) on sky, pasture 
 
 | preset | kind | priority | anchor | start | live phone / pc (budget formula, full rate) | sim live (strip) | px/stud | canon / OQ |
 |---|---|---|---|---|---|---|---|---|
-| split_explosion | burst | 1 | SplitCore | event | 7 / 7 | 7/7/0/7 | 2.78 | none: owner decision 2026-09-29 (C10 'I want a big explosion aswell') overrides the OQ-028 default for the carriage split only; proposed · OQ-028 |
+| torn_edge_smoke | loop | 2 | TornEdge | on | 19 / 28 | 22/22/22 | 8.24 | none: mission 260929-train-splits R3 (torn ends read as torn); proposed |
+| topple_dust | burst | 1 | WreckDust | event | 16 / 16 | 16/16/16/16 | 2.54 | none: owner C11 topple (mission 260929-train-splits R12); proposed |
 
 POV composites: particles over the lookdev plate from the same camera (PC 768x432, phone 844x390 at phone rates); loops at steady state at Speed gameplay.speed.fast, bursts shown t s after they fire. Per preset: visible/live, h = hidden by the train or ground, o = off-screen, share of the screen, then drawn alone over the plate: mean luma change / 90th-percentile luma change.
 
 | POV | look | cam | tier | overdraw max/p95 | screen | per preset |
 |---|---|---|---|---|---|---|
-| split_explosion | grassland.day | roof3p | pc | 0/0 | 0.0% | split 0/7 h2 o5 0.00% |
+| grassland.day_roof3p | grassland.day | roof3p | pc | 2/2 | 9.8% | torn 20/22 h1 o1 9.77% -9/33 |
+| grassland.day_roof3p.phone | grassland.day | roof3p | phone | 2/2 | 6.8% | torn 15/16 h0 o1 6.81% -14/40 |
+| grassland.day_door1p | grassland.day | door1p | pc | 0/0 | 0.0% | torn 0/22 h0 o22 0.00% |
+| topple_dust | grassland.day | door1p | pc | 9/5 | 11.9% | torn 0/25 h0 o25 0.00%; topple 11/16 h2 o3 11.87% +67/116 |
 
-Visibility (warnings are for the maker to fix before the critic; hidden counts are facts):
-- WARN split_explosion: under 0.1% of the screen in every POV (best pov_split_explosion: 0 of 7 visible, 0.00%): players may never see it (references/presets.md, Visible from the players' views)
-
-Budgets (assumed (OQ-029 default A): not canon until the owner decides; re-measure at the alpha live check (tech.streaming.live_check)); 1 sets holding a pack preset:
-- phone: 1 of 1 sets within; tightest carriage_split: steady 74 of 400, peak 142 of 800, emitters 9 of 12, lights 4 of 8
-- pc: 1 of 1 sets within; tightest carriage_split: steady 111 of 1500, peak 180 of 2500, emitters 9 of 24, lights 4 of 16
+Budgets (assumed (OQ-029 default A): not canon until the owner decides; re-measure at the alpha live check (tech.streaming.live_check)); 2 sets holding a pack preset:
+- phone: 2 of 2 sets within; tightest carriage_split_inside: steady 74 of 400, peak 154 of 800, emitters 11 of 12, lights 5 of 8
+- pc: 2 of 2 sets within; tightest carriage_split_inside: steady 111 of 1500, peak 191 of 2500, emitters 11 of 24, lights 5 of 16
 
 Limits: Effects are simulated from the preset data with Roblox ParticleEmitter rules; textures are procedural stand-ins for the built-ins; particles are not lit by the scene beyond a LightInfluence factor; lights show as glow dots only; drift = Workspace.GlobalWind at train speed. Studio test pending (owner).

@@ -29,6 +29,7 @@ Superseded: the coupling kit (src/kit/superseded/) after C6.
 | R*17 | (implied) | Frame-relative: breaks found from each carriage's roof union; works when the train is moved/rotated | derived | L1 | planned | Lune moved + rotated cases pass |
 | R*18 | (implied) | Server-authoritative; RemoteEvent server->client only; non-destructive setup (backup + undo) | derived | L2 | planned | guard scan 0 high |
 | R*19 | (implied) | Phone budget for fx; sound files to the class standard | derived | C10 | planned | vfx budget + sound analyze PASS |
+| R20 | "gifs of the full animation afterwards aswell" | After the final look: animated GIFs of the whole split (intact -> tear -> explosion -> topple -> wreck falling behind) for break 1 and break 2 from wide, roof and inside views; effects shown as timed stand-ins (labelled) | comms | C23 | planned | >= 4 GIFs sent after the 3D final pass |
 
 ## Decisions and assumptions
 A1 Break points 3.3 studs behind each carriage centre, in the solid pillar between windows 4 and 5 (world z 86.2 / 153.6). Only 10 long pieces per carriage cross it; no seat, window or lamp is cut (clearance check PASS).

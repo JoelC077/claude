@@ -23,3 +23,4 @@ C19 [clarify] 2.
 C20 [clarify] yes like i said, it stays still
 C21 [clarify] 3.
 C22 [clarify] just 2 carriages
+C23 [clarify] gifs of the full animation afterwards aswell
