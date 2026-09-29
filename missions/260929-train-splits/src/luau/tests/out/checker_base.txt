@@ -1,4 +1,4 @@
-== RR_BreakChecker 2.2.0: Workspace.Train (957 BaseParts) ==
+== RR_BreakChecker 2.3.0: Workspace.Train (957 BaseParts) ==
 Mode: roof unions -> jagged tear (29 cells, margin 0.10 studs).
 Front = the min end of world Z (FRONT_AT = "min"). If the train's front is the other end, set FRONT_AT = "max".
 Carriage 1: roof Workspace.Train.Body.Union at (-58.05, 26.19, 82.89), size 19.48 x 3.59 x 62.34

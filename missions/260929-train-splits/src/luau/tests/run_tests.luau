@@ -308,10 +308,18 @@ guarded("shared", function()
 	local base = B * CFrame.new(0.5, 6, 15)
 	local params = { V = V, brake = a, recoil = rc, pivot = Config.Pivot, topple = b1, rest = Config.ToppleRest }
 	check("bodyCFrame at t <= 0 is the intact place", Shared.bodyCFrame(base, B, 1, 0, params) == base and Shared.bodyCFrame(base, B, 1, -0.2, params) == base)
+	-- break_spec v2.3 rest pose (render pre-flight, whole-carriage check), pinned here as well as read from the spec
+	local REST = { ["+X"] = { roll = 97.64, lift = 0.747 }, ["-X"] = { roll = 96.78, lift = 0.435 } }
+	local pinned = true
+	for name, r in REST do
+		pinned = pinned and near(Config.ToppleRest[name].roll, r.roll, 1e-9) and near(Config.ToppleRest[name].lift, r.lift, 1e-9)
+			and near(S.topple.rest[name].roll, r.roll, 1e-9) and near(S.topple.rest[name].lift, r.lift, 1e-9)
+	end
+	check("rest pose v2.3: +X roll 97.64 lift 0.747, -X roll 96.78 lift 0.435 (config and spec)", pinned)
 	for bi, sb in S.topple.bodies do
 		for _, side in { 1, -1 } do
 			local name = side > 0 and "+X" or "-X"
-			local rp = S.topple.rest[name]
+			local rp = REST[name]
 			local pr = { V = V, brake = a, recoil = rc, pivot = Config.Pivot, topple = Config.Topple[bi], rest = Config.ToppleRest }
 			local flat = table.clone(Config.Topple[bi])
 			flat.extra_back = 0

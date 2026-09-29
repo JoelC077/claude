@@ -1,4 +1,4 @@
-== RR_TrainSplit_Setup 2.2.0 DRY RUN (nothing changes): Workspace.Train ==
+== RR_TrainSplit_Setup 2.3.0 DRY RUN (nothing changes): Workspace.Train ==
 Mode: roof unions -> jagged tear. Front = the min end of world Z (FRONT_AT = "min").
 Break 1 frame: origin (-58.05, 13.93, 86.20)  right (1.00, 0.00, 0.00)  up (0.00, 1.00, 0.00)  rear (0.00, 0.00, 1.00)
 Break 2 frame: origin (-58.05, 13.93, 153.60)  right (1.00, 0.00, 0.00)  up (0.00, 1.00, 0.00)  rear (0.00, 0.00, 1.00)
