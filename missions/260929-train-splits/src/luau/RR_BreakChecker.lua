@@ -409,7 +409,7 @@ local function say(fmt, ...)
 end
 
 local function describe(part)
-	return ("%-15s %s  size %s"):format(part.ClassName, part:GetFullName(), Core.size(part.Size))
+	return ("%-15s %s  size %s  at %s"):format(part.ClassName, part:GetFullName(), Core.size(part.Size), Core.v(part.CFrame.Position))
 end
 
 -- After the setup: every part in a half must sit on that half's side of its tear.
@@ -509,7 +509,7 @@ local function run()
 		say("  Crossers (%d), cut by RR_TrainSplit_Setup:", #crossers)
 		for _, c in crossers do
 			local how = Core.isPlainBlock(c.part, F) and "slice per cell" or "CSG"
-			say("    %s  [%d cells, %s]", describe(c.part), #Core.touched(car.cells, c.box), how)
+			say("    %s  [%d cell(s), %s]", describe(c.part), #Core.touched(car.cells, c.box), how)
 		end
 		table.sort(band, function(a, b)
 			return a.clearance < b.clearance

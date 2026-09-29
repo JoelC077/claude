@@ -419,7 +419,7 @@ local function say(fmt, ...)
 end
 
 local function describe(inst)
-	local size = inst:IsA("BasePart") and ("  size " .. Core.size(inst.Size)) or ""
+	local size = inst:IsA("BasePart") and ("  size %s  at %s"):format(Core.size(inst.Size), Core.v(inst.CFrame.Position)) or ""
 	return ("%s %s%s"):format(inst.ClassName, inst:GetFullName(), size)
 end
 
@@ -641,6 +641,15 @@ local function plan(train)
 			end
 		end
 	end
+	local order = { slice = 1, csg = 2, skip = 3 }
+	table.sort(P.crossers, function(a, b)
+		if a.k ~= b.k then
+			return a.k < b.k
+		elseif a.method ~= b.method then
+			return order[a.method] < order[b.method]
+		end
+		return a.part.CFrame.Position.Y < b.part.CFrame.Position.Y
+	end)
 	P.cutSet = cutSet
 	P.joints = referencesTo(cutSet)
 
@@ -709,7 +718,7 @@ local function printPlan(P)
 		if cr.method == "slice" then
 			how = ("slice into %d exact boxes (%d front, %d rear)"):format(#cr.pieces, cr.front, cr.rear)
 		elseif cr.method == "csg" then
-			how = ("SubtractAsync over %d cells: front = minus %d rear boxes, rear = minus %d front boxes (with edge bridges)"):format(#cr.touched, cr.boxes.Rear, cr.boxes.Front)
+			how = ("SubtractAsync over %d cell(s): front = minus %d rear boxes, rear = minus %d front boxes (cells + edge bridges)"):format(#cr.touched, cr.boxes.Rear, cr.boxes.Front)
 		else
 			how = "NOT CUT: " .. cr.why
 		end
@@ -893,7 +902,10 @@ local function rehome(ctx, cr, car, made)
 			child.Parent = target
 		elseif rule == "copy" then
 			for _, m in made do
-				child:Clone().Parent = m.part
+				local copy = child:Clone() -- nil when Archivable is off: then it stays on the original
+				if copy then
+					copy.Parent = m.part
+				end
 			end
 		else
 			child.Parent = pieceFor(made, centreSide, centreP)
@@ -960,9 +972,8 @@ local function makeRoot(model, frame)
 	for _, d in model:GetDescendants() do
 		if d:IsA("BasePart") then
 			local b = Core.boxIn(frame, d)
-			local a, c = Vector3.new(b.x0, b.y0, b.z0), Vector3.new(b.x1, b.y1, b.z1)
-			lo = lo and lo:Min(a) or a
-			hi = hi and hi:Max(c) or c
+			lo = lo and Vector3.new(math.min(lo.X, b.x0), math.min(lo.Y, b.y0), math.min(lo.Z, b.z0)) or Vector3.new(b.x0, b.y0, b.z0)
+			hi = hi and Vector3.new(math.max(hi.X, b.x1), math.max(hi.Y, b.y1), math.max(hi.Z, b.z1)) or Vector3.new(b.x1, b.y1, b.z1)
 		end
 	end
 	local root = Instance.new("Part")
@@ -1140,6 +1151,7 @@ local function printResult(P, R)
 		say("      Model > Separate, then Union again (repairs a broken union), undo the setup and run it again; or cut it")
 		say("      by hand with the saved cutter boxes in %s: Negate the boxes and Union them with a copy", f.cutters:GetFullName())
 		say("      of the part (RearCutter makes the front piece, FrontCutter the rear); a MeshPart may need splitting in Blender.")
+		say("      If CSG struggles with the many boxes, undo and try CUTTER_BRIDGE = 0 (fewer boxes, small sliver risk).")
 	end
 	for _, r in R.rehomed do
 		say("  Re-homed %s %q from %s: %s", r.child.ClassName, r.child.Name, r.from.Name, RULE_TEXT[r.rule])
