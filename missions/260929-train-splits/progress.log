@@ -13,3 +13,4 @@
 2026-09-29T23:38Z [8/10] Fix + re-check - Sound pass 2 (delta): S1 8 S2 8 S3 8 S4 8 S6 9 (S5 8) -> at bar; polish then final pass. Guard: HOLD on owner checklist only; 5 medium review findings being fixed (62k)
 2026-09-29T23:40Z [6/10] Pre-flight - 3D v2.1: slivers 0 (thinnest 0.183), seam 7/255; rest pose + gap -> spec v2.2, re-rendering topple + building critic pass 1 (~60k est)
 2026-09-29T23:50Z [8/10] Fix + re-check - Luau security round: 5/5 review findings fixed, lune 305/305, scan 0 findings; reviewer re-checking (93k)
+2026-09-29T23:52Z [8/10] Fix + re-check - FX round 1: roof split 61% screen, burst 36 studs, glass/topple/torn fixed; F4-1 phone burst tiles = tool limit; delta pass running (~300k est)

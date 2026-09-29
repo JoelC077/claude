@@ -956,6 +956,23 @@ def put_seam_section(pf_path, out_dir):
         f.write(txt.rstrip('\n') + '\n' + sec)
 
 
+def two_point_rest(objs, fk, side):
+    """Roll about the spec pivot (and the lift) at which the lowest points of the lower half (rest Y < 4) and of the upper half
+    (Y >= 4) of a body are level: the body then lies on the bogie frame edge and the roof eave."""
+    P = np.concatenate([obj_world_tris(o)[0] for o in objs]) - ORIGIN[fk]
+    X = P[:, 0] * side; Y = P[:, 1]
+    dx = X - PIVOT_X; dy = Y - PIVOT_Y
+    low = Y < 4.0
+    best = None
+    for phi in np.arange(90.0, 105.0, 0.01):
+        s_, c_ = math.sin(math.radians(phi)), math.cos(math.radians(phi))
+        yp = -dx * s_ + dy * c_
+        a = yp[low].min(); b = yp[~low].min()
+        if best is None or abs(a - b) < best[0]:
+            best = (abs(a - b), float(phi), float(-min(a, b)))
+    return round(best[1], 2), round(best[2], 3)
+
+
 def preflight(B, path):
     L = []
     w = L.append
@@ -1130,13 +1147,17 @@ def preflight(B, path):
                     j = int(np.argmin(np.where(m, y, 9e9)))
                     if y[j] < low_roof[0]: low_roof = (float(y[j]), o.name)
             lo_lim = RAIL_Y - prof['sink'] - 0.05; hi_lim = RAIL_Y + 0.05
+            tp = two_point_rest(objs, fk, SIDE[k])
             ok = lambda v: 'PASS' if lo_lim <= v <= hi_lim else ('FAIL (sunk %.2f)' % (RAIL_Y - v) if v < lo_lim else 'FAIL (hangs %.2f)' % (v - RAIL_Y))
             PF.setdefault('rest', []).append(dict(k=k, body=bi + 1, name=names[(k, bi)], pose=desc[bi + 1], lowest=low_all[0], lowest_part=low_all[1],
+                                                  two_point=tp, spec_rest=(prof['roll'], prof['lift']),
                                                   limit=lo_lim, bogie=low_bog[0], bogie_part=low_bog[1], roof=low_roof[0], roof_part=low_roof[1],
                                                   sink=prof['sink'], ok=bool(low_all[0] >= lo_lim and lo_lim <= low_bog[0] <= hi_lim and lo_lim <= low_roof[0] <= hi_lim)))
             w('- Break %d body %d (%s; %s): lowest point y %.3f (%s) vs limit %.3f -> %s. Bogie side y %.3f (%s) -> %s; roof side y %.3f (%s) -> %s.' % (
                 k, bi + 1, names[(k, bi)], desc[bi + 1], low_all[0], low_all[1], lo_lim, 'PASS' if low_all[0] >= lo_lim else 'FAIL',
                 low_bog[0], low_bog[1], ok(low_bog[0]), low_roof[0], low_roof[1], ok(low_roof[0])))
+            w('  Geometry two-point rest for this side (lower-half and upper-half lowest points level, before sink): roll %.2f, lift %.3f '
+              '(spec: roll %.2f, lift %.2f).' % (tp[0], tp[1], prof['roll'], prof['lift']))
     # interpenetration break 1 bodies
     mats, _ = B.pose_matrices('break1_t4.0')
     b1 = B.bodies(1)[0][0]; b2 = B.bodies(1)[1][0]
@@ -1393,6 +1414,25 @@ def write_facts(out_dir, pack, tile, crops):
     w('\nmanifold3d = mesh minus the per-cell cutter boxes (cap faces from the cutter, crosser material). block sliced per cell = the plain '
       'Block intersected with each cell box (separate sub-blocks, as Studio will slice it). clip+caps = fallback for non-watertight unions: '
       'triangles clipped per cell, caps built from the exact cross-section of the original mesh (the order\'s literal fallback has no caps).\n')
+    w('## Open items the numbers show\n')
+    items = []
+    for r in PF.get('rest', []):
+        if not r['ok']:
+            tp = r.get('two_point'); sr = r.get('spec_rest')
+            items.append('Break %d body %d rest pose (spec roll %s, lift %s): lowest point y %.3f is %.2f below ground, allowed %.2f. The geometry '
+                         'two-point rest for that side is roll %s, lift %s. In the render this shows as the bogie frame corner dug %.2f deeper than the '
+                         'designed %.2f sink.' % (r['k'], r['body'], sr[0] if sr else '?', sr[1] if sr else '?', r['lowest'], 5.33 - r['lowest'], r['sink'] + 0.05,
+                                                  tp[0] if tp else '?', tp[1] if tp else '?', max(0.0, 5.33 - r['lowest'] - r['sink']), r['sink']))
+    if pen.get('t4', 0) > 0.1:
+        items.append('Break 1 wreck bodies interpenetrate %.3f at rest (target < 0.1).' % pen['t4'])
+    if sl.get('feather_count'):
+        items.append('Feathering: the roof steps at %s run into slanted roof-panel edges, leaving thin wedges down to %.3f (acceptable per coordinator).' % (
+            ' and '.join(kk for kk, _, _, _ in sl.get('feather_planes', [])), sl.get('feather_min', [0])[0]))
+    items.append('4 unions (Union19/61 in C1, Union84/86 in C2) are not watertight in the export; here they are capped from exact cross-sections, '
+                 'Studio CSG on them is unverified.')
+    for it in items:
+        w('- ' + it)
+    w('')
     w('## Render limits (by design, do not score them as defects of the split)\n')
     w('- No fx, smoke, sparks, debris, glass shards or sound in these renders: the explosion, torn-edge smoke and topple dust are T3, sounds T4.')
     w('- Cycles preview materials approximate Roblox: texture x part colour, roughness 0.7, normal maps dropped, glass alpha 0.35, AgX view '

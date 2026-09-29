@@ -308,6 +308,14 @@
    "pose": "roll 97.65 yaw 7.0 sink 0.15 lift 0.75 back 0.00",
    "lowest": 5.176823363440221,
    "lowest_part": "Union12.R",
+   "two_point": [
+    97.64,
+    0.747
+   ],
+   "spec_rest": [
+    97.65,
+    0.75
+   ],
    "limit": 5.13,
    "bogie": 5.178997228160675,
    "bogie_part": "Union4",
@@ -323,6 +331,14 @@
    "pose": "roll 97.65 yaw -4.0 sink 0.15 lift 0.75 back 0.60",
    "lowest": 5.174062812021276,
    "lowest_part": "Union134.R",
+   "two_point": [
+    97.64,
+    0.75
+   ],
+   "spec_rest": [
+    97.65,
+    0.75
+   ],
    "limit": 5.13,
    "bogie": 5.17580469572593,
    "bogie_part": "Union100",
@@ -338,6 +354,14 @@
    "pose": "roll 96.10 yaw -7.0 sink 0.15 lift 0.20 back 0.00",
    "lowest": 5.0365099914073,
    "lowest_part": "Union103",
+   "two_point": [
+    96.78,
+    0.435
+   ],
+   "spec_rest": [
+    96.1,
+    0.2
+   ],
    "limit": 5.13,
    "bogie": 5.0365099914073,
    "bogie_part": "Union103",

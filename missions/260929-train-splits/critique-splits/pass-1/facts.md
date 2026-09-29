@@ -1,6 +1,6 @@
 # Critic pass 1: 3D look of the torn carriages (T1, mission 260929-train-splits)
 
-Question for the critic: does each split look really good and accurate (R3; acceptance A1-A7, bar 8)? Geometry, cut and topple come from break_spec.json v2.2.0 via src/render/build.py; numbers below are from src/render/out/preflight.md (2026-09-29 23:50).
+Question for the critic: does each split look really good and accurate (R3; acceptance A1-A7, bar 8)? Geometry, cut and topple come from break_spec.json v2.2.0 via src/render/build.py; numbers below are from src/render/out/preflight.md (2026-09-29 23:52).
 
 ## Images in this folder
 
@@ -65,6 +65,12 @@ Break 1 falls toward +X, break 2 toward -X (the game picks the side at random). 
 | C2 | Union86 | clip+caps | 242 / 242 | +0.0000 | not watertight after weld (3 non-manifold edges, 1 fin pairs); manifold3d would import it as 687.017 (-3.80 %) |
 
 manifold3d = mesh minus the per-cell cutter boxes (cap faces from the cutter, crosser material). block sliced per cell = the plain Block intersected with each cell box (separate sub-blocks, as Studio will slice it). clip+caps = fallback for non-watertight unions: triangles clipped per cell, caps built from the exact cross-section of the original mesh (the order's literal fallback has no caps).
+
+## Open items the numbers show
+
+- Break 2 body 1 rest pose (spec roll 96.1, lift 0.2): lowest point y 5.037 is 0.29 below ground, allowed 0.20. The geometry two-point rest for that side is roll 96.78, lift 0.435. In the render this shows as the bogie frame corner dug 0.14 deeper than the designed 0.15 sink.
+- Feathering: the roof steps at X = +3.70 and X = -4.60 run into slanted roof-panel edges, leaving thin wedges down to 0.002 (acceptable per coordinator).
+- 4 unions (Union19/61 in C1, Union84/86 in C2) are not watertight in the export; here they are capped from exact cross-sections, Studio CSG on them is unverified.
 
 ## Render limits (by design, do not score them as defects of the split)
 
