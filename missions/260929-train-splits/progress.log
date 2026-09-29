@@ -5,3 +5,4 @@
 2026-09-29T22:18Z [3/10] Spec - re-spec after owner change: mid-carriage jagged breaks (29 cells), clearance PASS, coverage 24/24 (~190k est)
 2026-09-29T22:18Z [4/10] Plan - re-plan OK: 16 tasks, 4 makers in parallel, est 0.77-1.33M (~195k est)
 2026-09-29T22:18Z [5/10] Build v1 - started: renders, Luau, explosion fx, sounds (4 makers) (~200k est)
+2026-09-29T22:51Z [5/10] Build v1 - fx + sound v1 done: validate/budget/build PASS; sound 6 files, luatest 59/59, fx luatest 19/19 (~820k est)

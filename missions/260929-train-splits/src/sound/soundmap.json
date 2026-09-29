@@ -52,7 +52,8 @@
   "ducking": [
     {"name": "fail", "when": {"sounds": ["boiler_boom"]}, "duck": {"Actions": -10, "UI": -12, "Ambient": -14, "Music": -18}, "attack": 0.02, "hold": 0.5, "release": 1.6},
     {"name": "crisis", "when": {"groups": ["Alarms"]}, "duck": {"Ambient": -8, "Music": -10, "UI": -3}, "attack": 0.05, "hold": 0.25, "release": 0.8},
-    {"name": "fork", "when": {"sounds": ["countdown_tick", "lever_clunk", "junction_beep"]}, "duck": {"Ambient": -5, "Music": -6}, "attack": 0.03, "hold": 0.3, "release": 0.6}
+    {"name": "fork", "when": {"sounds": ["countdown_tick", "lever_clunk", "junction_beep"]}, "duck": {"Ambient": -5, "Music": -6}, "attack": 0.03, "hold": 0.3, "release": 0.6},
+    {"name": "split", "when": {"sounds": ["split_explosion"]}, "duck": {"Actions": -4, "UI": -8, "Ambient": -12, "Music": -14}, "attack": 0.02, "hold": 0.3, "release": 0.9, "note": "the boom clears the air; Actions (scrape from 0.3 s, debris at 0.8 s) swell back and are fully released by 1.22 s, before the first topple crash at 1.5 s"}
   ],
   "spatial": {
     "near": {"mode": "InverseTapered", "min": 6, "max": 90},
@@ -68,7 +69,9 @@
     "roof": "coach roof where crates land",
     "loco": "locomotive chimney and whistle",
     "cab": "cab dashboard (horn button, radio)",
-    "wheels": "the bogie under the player's coach"
+    "wheels": "the bogie under the player's coach",
+    "break": "a carriage's break point (break frame B origin, 5 studs up: the torn seam); TrainSplitClient points it at an Attachment on the kept half's torn end",
+    "wreck": "the lost body that slides and topples (moves with it); TrainSplitClient points it at an Attachment on that body (break 1: the broken half, then carriage 2 for its own crash)"
   },
   "speed_link": [
     {"sound": "wheels_loop", "ref": {"v": 35, "canon": "gameplay.speed.normal"}, "speeds": {"v": [20, 35, 50], "canon": ["gameplay.speed.slow", "gameplay.speed.normal", "gameplay.speed.fast"]}, "rate": [0.6, 1.45], "gain_slope": 0.6, "silent_below": 1.5, "canon": ["av.audio.speed_link", "gameplay.speed.drives"]}
@@ -160,7 +163,25 @@
       "brief": {"moment": "each of the last 5 s of the queue-pad countdown (the runtime raises pitch 4% per step)", "must_say": "this train leaves soon: get on the pad", "sounds_like": "a station platform hand-bell, one ding per second", "layers": ["hand-bell strike 1.2-2.5 kHz", "ring damped under 0.5 s"], "avoid": "the fork countdown tick (the loudest countdown belongs to the lever), school bells, alarm clocks", "len": [0.2, 0.55], "variations": 1}},
     "guard_whistle": {"tier": 4, "group": "Actions", "class": "oneshot", "space": "2d", "stage": "alpha", "voices": 1, "cooldown": 2.0, "pitch": [1.0, 1.0],
       "canon": ["tech.data.launching_lock", "world.lobby.queue_platform"],
-      "brief": {"moment": "the queue pad launches (Launching lock on, teleport starts)", "must_say": "all aboard: we're going", "sounds_like": "a guard's pea whistle, one long trilled blast, friendlier than a referee", "layers": ["pea whistle 2.5-3.2 kHz with a 25-35 Hz trill", "breath onset"], "avoid": "the steam whistle chord (departure owns it), referee triple blasts, police whistles", "len": [0.6, 1.2], "variations": 1}}
+      "brief": {"moment": "the queue pad launches (Launching lock on, teleport starts)", "must_say": "all aboard: we're going", "sounds_like": "a guard's pea whistle, one long trilled blast, friendlier than a referee", "layers": ["pea whistle 2.5-3.2 kHz with a 25-35 Hz trill", "breath onset"], "avoid": "the steam whistle chord (departure owns it), referee triple blasts, police whistles", "len": [0.6, 1.2], "variations": 1}},
+    "metal_tear": {"tier": 2, "group": "Alarms", "class": "impact", "space": "3d", "emitter": "break", "spatial": "train", "stage": "alpha", "voices": 2, "cooldown": 0.3, "pitch": [0.97, 1.03], "trim_db": -1.5,
+      "canon": ["gameplay.crisis.coupling", "av.audio.slapstick", "identity.pillars.physical_loud"],
+      "brief": {"moment": "t -0.25 s: the carriage's seam gives way at the break point; the snap inside the file sits at 0.25 s so it lands on the explosion (t 0)", "must_say": "the metal can't hold any more: a strained groan ripping open, then SNAP", "sounds_like": "a cartoon zip-rip through sheet metal: a creaky groan, a rising rrrrip, a sharp snap, then the torn sheet wobbling wub-wub-wub and drooping", "layers": ["stick-slip creak through plate modes 0.3-3.1 kHz, rate rising 60 to 150 Hz under strain", "rip: crackle and hiss sweeping 0.7 to 3.5 kHz, accelerating", "snap at 0.25 s: crack 1.2-8 kHz, metal ping 1.3-3.5 kHz, small low thunk", "wobble-sheet droop 420 to 180 Hz, wobble 7 to 4 Hz, gone by 1 s"], "avoid": "horror metal screeches, whale-like groans, anything that outlasts the boom; never move the snap off 0.25 s", "len": [0.8, 1.3], "variations": 1}},
+    "split_explosion": {"tier": 2, "group": "Alarms", "class": "impact", "space": "2d", "layer3d": {"emitter": "break", "gain_db": -4, "spatial": "train"}, "stage": "alpha", "voices": 2, "cooldown": 0.3, "pitch": [0.96, 1.04], "trim_db": 1,
+      "canon": ["gameplay.crisis.coupling", "av.audio.priority", "av.audio.slapstick", "identity.pillars.funny_failure", "identity.pillars.physical_loud"], "oq": ["OQ-035"],
+      "brief": {"moment": "t 0: a carriage tears in half at its break point; the fireball, glass burst and big camera shake land with it (train-wide 2D plus a positional layer at the break)", "must_say": "the train just ripped apart: the biggest bang of the run after the boiler fail, huge but funny", "sounds_like": "a cartoon KA-BWOOM: a round boom that drops in pitch, a bright crack on top, fizzy firework crackle, then clunky bits clattering down", "layers": ["sub thump 90 to 38 Hz", "pitched body 150 to 62 Hz with harmonics up to 1.8 kHz (the boom phones hear)", "noise burst: crack 1.5-7.5 kHz (35 ms), roar 0.35-2.4 kHz (0.24 s), low roar 60-500 Hz (0.5 s)", "firework crackle 1.8-7 kHz thinning over 1.4 s", "debris tail: wood clunks and tin clinks from 0.3 s, fading by 2.3 s"], "avoid": "war or artillery blasts, long rolling rumble, shrapnel whizzes, screams, ringing tinnitus; never louder than the boiler fail", "len": [2.2, 3.2], "variations": 1}},
+    "split_glass": {"tier": 2, "group": "Alarms", "class": "impact", "space": "3d", "emitter": "break", "spatial": "train", "stage": "alpha", "voices": 2, "cooldown": 0.08, "pitch": [0.93, 1.07], "trim_db": -2, "synth": "glass_smash",
+      "canon": ["gameplay.crisis.windows", "av.vfx.glass"],
+      "brief": {"moment": "t 0: the window panes nearest the break burst with the explosion (glass_burst fx); fire once, or once per side about 0.1 s apart", "must_say": "the windows went too: bright shards riding over the boom", "sounds_like": "glass_smash reused (same recipe, same file): a pane shattering with bright shards tinkling down", "layers": ["impact crack", "shard tinkles 2-8 kHz"], "avoid": "long tails, bottle-break cliches, a second boom", "len": [0.8, 1.4], "variations": 1}},
+    "debris_rain": {"tier": 4, "group": "Actions", "class": "impact", "space": "3d", "emitter": "break", "spatial": "coach", "stage": "alpha", "voices": 2, "cooldown": 0.3, "pitch": [0.9, 1.1], "trim_db": -1,
+      "canon": ["av.audio.slapstick", "identity.pillars.funny_failure"],
+      "brief": {"moment": "t 0.8 s: bits of the carriage rain down on the kept half's roof and the track around the break", "must_say": "it is still falling apart: small, clunky, a bit silly", "sounds_like": "a handful of wood chips, bolts and tin bits pattering onto a metal roof, dense then sparse", "layers": ["wood knocks 0.4-1.2 kHz with a faint roof boom", "metal tinks 1.7-4.2 kHz", "pebble ticks 2-7 kHz", "two bigger clunks 200-420 Hz", "dust hiss 1-5 kHz"], "avoid": "gunfire rhythm (keep the spacing random), shrapnel whizzes, rain-on-window ambience", "len": [1.2, 2.2], "variations": 1}},
+    "topple_crash": {"tier": 3, "group": "Actions", "class": "impact", "space": "3d", "emitter": "wreck", "spatial": "train", "stage": "alpha", "voices": 2, "cooldown": 0.2, "pitch": [0.92, 1.06],
+      "canon": ["av.audio.slapstick", "identity.pillars.funny_failure", "identity.pillars.physical_loud"],
+      "brief": {"moment": "each lost body lands on its side at delay + roll time: about 1.5 s (the broken half) and 2.0 s (carriage 2 on break 1); topple_dust and the medium shake land with it; its bounce thud sits at 0.35 s", "must_say": "the wreck hit the ground hard: heavy, clunky, final", "sounds_like": "a cartoon KER-RUNCH: a dull thud, wood splintering, a bin-lid clang drooping in pitch, gravel spraying, and a small bounce thud", "layers": ["low impact 70 to 45 Hz with a thud 60-400 Hz", "wood crunch: about 30 splinter cracks 0.4-3.5 kHz inside 0.22 s", "metal clang: inharmonic modes 0.29-2.9 kHz, pitch drooping 4%", "gravel tail: grains 1.5-6 kHz thinning over 1.2 s", "bounce thud and clunk at 0.35 s (topple bounce_time)"], "avoid": "car-crash glass, a second explosion, bone-crunch or body-fall sounds", "len": [1.0, 1.8], "variations": 1}},
+    "wreck_scrape": {"tier": 4, "group": "Actions", "class": "impact", "space": "3d", "emitter": "wreck", "spatial": "coach", "stage": "alpha", "voices": 2, "cooldown": 0.3, "pitch": [0.95, 1.05], "trim_db": -1,
+      "canon": ["gameplay.speed.normal", "av.audio.slapstick"],
+      "brief": {"moment": "t 0.3 s until the lost part reaches the terrain's speed (V/brake: about 2.9 s at the normal speed 35 and brake 12): the wreck grinds along the ballast as it slows", "must_say": "the wreck is sliding away and running out of steam", "sounds_like": "a heavy metal box grinding over gravel: a rough grrrr that wobbles as the wreck rocks, slowing and sagging in pitch until it stops", "layers": ["grinding noise 0.28-2.8 kHz with 16-60 Hz stick-slip roughness", "wobble: timbre sway 5 to 3 Hz", "faint droopy metal whine 520 to 430 Hz", "gravel pops 1.5-6 kHz", "low rumble 45-220 Hz"], "avoid": "brake squeal or rail screech (horror-adjacent), engine noise, anything that keeps going after the wreck stops", "len": [2.2, 3.0], "variations": 1}}
   },
   "events": {
     "lobby_enter": {"phase": "lobby", "via": "direct", "start": ["lobby_bed"]},
@@ -194,6 +215,12 @@
     "trip_start": {"phase": "depart", "via": "direct", "start": ["wheels_loop", "firebox_loop", "wind_bed"]},
     "trip_end": {"phase": "arrive", "via": "direct", "stop": ["wheels_loop", "firebox_loop", "wind_bed", "radio_loop"]},
     "horn_button": {"phase": "any", "via": "direct", "play": "horn"},
-    "radio_button": {"phase": "any", "via": "direct", "toggle": "radio_loop"}
+    "radio_button": {"phase": "any", "via": "direct", "toggle": "radio_loop"},
+    "metal_tear": {"phase": "crisis", "via": "direct", "play": "metal_tear"},
+    "split_explosion": {"phase": "crisis", "via": "direct", "play": "split_explosion"},
+    "split_glass": {"phase": "crisis", "via": "direct", "play": "split_glass"},
+    "debris_rain": {"phase": "crisis", "via": "direct", "play": "debris_rain"},
+    "topple_crash": {"phase": "crisis", "via": "direct", "play": "topple_crash"},
+    "wreck_scrape": {"phase": "crisis", "via": "direct", "play": "wreck_scrape"}
   }
 }

@@ -1,0 +1,57 @@
+{
+ "sheet": [
+  786,
+  739
+ ],
+ "megapixels": 0.58,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "glass_burst (burst p1): burst time strip, 17.78 px/stud, construction view",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_glass_burst.png",
+   "box": [
+    6,
+    24,
+    774,
+    199
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "split_explosion (burst p1): burst time strip, 2.07 px/stud, construction view",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_split_explosion.png",
+   "box": [
+    6,
+    247,
+    774,
+    156
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 3,
+   "label": "topple_dust (burst p1): burst time strip, 2.54 px/stud, construction view",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_topple_dust.png",
+   "box": [
+    6,
+    427,
+    774,
+    112
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 4,
+   "label": "torn_edge_smoke (loop p2): side strip, Speed 35, 5.03 px/stud, construction view",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/strip_torn_edge_smoke.png",
+   "box": [
+    6,
+    563,
+    772,
+    170
+   ],
+   "scale": "1:1 true size"
+  }
+ ]
+}

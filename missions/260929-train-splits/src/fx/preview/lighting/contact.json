@@ -1,0 +1,45 @@
+{
+ "sheet": [
+  786,
+  702
+ ],
+ "megapixels": 0.55,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "grassland.day: luma 149, train/world 3.25",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/lighting/grassland.day.png",
+   "box": [
+    6,
+    24,
+    768,
+    432
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "grassland.day PHONE: luma 153, train/world 3.18",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/lighting/grassland.day.phone.png",
+   "box": [
+    6,
+    499,
+    384,
+    177
+   ],
+   "scale": "fit x0.45"
+  },
+  {
+   "n": 3,
+   "label": "grassland.day@door1p: luma 114, train/world 2.04",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/lighting/grassland.day_door1p.png",
+   "box": [
+    396,
+    480,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  }
+ ]
+}

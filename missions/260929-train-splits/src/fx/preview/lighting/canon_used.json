@@ -1,0 +1,51 @@
+{
+ "keys": [
+  "tech.camera.eye_3p",
+  "tech.camera.eye_1p",
+  "tech.camera.fov_v",
+  "tech.camera.cab_view",
+  "tech.units.segment_len",
+  "tech.units.pole_spacing",
+  "tech.units.ballast_w",
+  "tech.units.train_len",
+  "tech.units.gauge",
+  "tech.units.stock_width",
+  "tech.units.stock_roof",
+  "tech.units.stock_floor",
+  "tech.streaming.window",
+  "tech.ui_platform.phone",
+  "world.prefabs.10"
+ ],
+ "eye_3p": 9.5,
+ "eye_1p": 4.5,
+ "cab_eye": 12.0,
+ "fov": 70.0,
+ "phone_res": [
+  844,
+  390
+ ],
+ "stand": {
+  "gauge": 8.0,
+  "width": 17.4,
+  "roof": 14.0,
+  "floor": 5.0
+ },
+ "cameras": [
+  "roof3p",
+  "door1p",
+  "cab1p",
+  "coach1p"
+ ],
+ "calibration": {
+  "SUN_K": 1.0,
+  "MOON_K": 0.16,
+  "OA_K": 2.2,
+  "ENV_K": 0.6,
+  "AMB_K": 2.5,
+  "CST_K": 1.5,
+  "EXPO_K": 1.0,
+  "FOG_K": 0.0049,
+  "HAZE_K": 0.00012,
+  "LIGHT_K": 0.9
+ }
+}

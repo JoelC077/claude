@@ -1,0 +1,261 @@
+{
+ "sheet": [
+  792,
+  1342
+ ],
+ "megapixels": 1.06,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "Timeline",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/timeline.png",
+   "box": [
+    6,
+    24,
+    780,
+    444
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "brake_hiss",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/brake_hiss.png",
+   "box": [
+    6,
+    492,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 3,
+   "label": "cash_register",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/cash_register.png",
+   "box": [
+    262,
+    492,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 4,
+   "label": "crate_thump",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/crate_thump.png",
+   "box": [
+    518,
+    492,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 5,
+   "label": "debris_rain",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/debris_rain.png",
+   "box": [
+    6,
+    616,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 6,
+   "label": "guard_whistle",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/guard_whistle.png",
+   "box": [
+    262,
+    616,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 7,
+   "label": "horn",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/horn.png",
+   "box": [
+    518,
+    616,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 8,
+   "label": "points_throw",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/points_throw.png",
+   "box": [
+    6,
+    740,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 9,
+   "label": "queue_punch",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/queue_punch.png",
+   "box": [
+    262,
+    740,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 10,
+   "label": "shovel_thud",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/shovel_thud.png",
+   "box": [
+    518,
+    740,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 11,
+   "label": "whistle",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/whistle.png",
+   "box": [
+    6,
+    864,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 12,
+   "label": "wreck_scrape",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/wreck_scrape.png",
+   "box": [
+    262,
+    864,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 13,
+   "label": "wrench_clank",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/wrench_clank.png",
+   "box": [
+    518,
+    864,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 14,
+   "label": "queue_bell",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/queue_bell.png",
+   "box": [
+    6,
+    988,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 15,
+   "label": "ticket_chime",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/ticket_chime.png",
+   "box": [
+    262,
+    988,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 16,
+   "label": "ui_click",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/ui_click.png",
+   "box": [
+    518,
+    988,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 17,
+   "label": "firebox_loop",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/firebox_loop.png",
+   "box": [
+    6,
+    1112,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 18,
+   "label": "lobby_bed",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/lobby_bed.png",
+   "box": [
+    262,
+    1112,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 19,
+   "label": "wheels_loop",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/wheels_loop.png",
+   "box": [
+    518,
+    1112,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 20,
+   "label": "wind_bed",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/wind_bed.png",
+   "box": [
+    6,
+    1236,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 21,
+   "label": "radio_loop",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/radio_loop.png",
+   "box": [
+    262,
+    1236,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  }
+ ]
+}

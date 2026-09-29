@@ -144,6 +144,19 @@
     "sparks_brake",
     "coal_dust"
    ]
+  },
+  "carriage_split": {
+   "use": "carriage split (mission 260929-train-splits): split burst, torn-edge smoke, one wreck landing, the two nearest windows, over cruise",
+   "presets": [
+    "split_explosion",
+    "torn_edge_smoke",
+    "topple_dust",
+    "glass_burst",
+    "glass_burst",
+    "steam_chimney",
+    "smoke_chimney",
+    "firebox_glow"
+   ]
   }
  }
 }
