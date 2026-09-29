@@ -146,26 +146,13 @@
    ]
   },
   "carriage_split": {
-   "use": "carriage split (mission 260929-train-splits): split burst, torn-edge smoke, one wreck landing, the two nearest panes, over cruise (the real peak is t 1.5-1.6 s)",
+   "use": "carriage split (mission 260929-train-splits): split burst, torn-edge smoke, one wreck landing, the two nearest windows, over cruise",
    "presets": [
     "split_explosion",
     "torn_edge_smoke",
     "topple_dust",
-    "split_glass",
-    "split_glass",
-    "steam_chimney",
-    "smoke_chimney",
-    "firebox_glow"
-   ]
-  },
-  "carriage_split_inside": {
-   "use": "the same split with the preview twin used for the interior tile (identical cost)",
-   "presets": [
-    "split_explosion_in",
-    "torn_edge_smoke",
-    "topple_dust",
-    "split_glass",
-    "split_glass",
+    "glass_burst",
+    "glass_burst",
     "steam_chimney",
     "smoke_chimney",
     "firebox_glow"

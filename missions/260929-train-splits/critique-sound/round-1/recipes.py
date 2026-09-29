@@ -2,37 +2,36 @@
 
 These recipes are the delivery, not throwaway placeholders: the owner said "Sounds: yes. Make some if you can and
 include them if they fit". Nothing here is sampled or recorded: every value comes from numpy maths driven by the
-seeded `rng` (split_glass reshapes the skill's own synthesised glass_smash), so the output is deterministic and
-licence-clean (self-made).
+seeded `rng`, so the output is deterministic and licence-clean (self-made).
 
 Contract (rr-soundsmith references/schema.md): r_<sound id>(rng) returns mono float samples at 48 kHz.
 `sound.py synth` levels each file to its class standard (impact: momentary max -14 LUFS, true peak at or under
--1 dBTP); the soundmap sets the in-game level (ladder + trim) and the group (Alarms for the boom, Split for the
-other layers). So these recipes shape only the sound and its timing.
+-1 dBTP), and the soundmap sets the in-game level from the ladder plus trim. So these recipes shape only the
+sound and its timing; the loudness hierarchy lives in soundmap.json: boom -10 > tear -12.5 > crash -13 (glass -13
+under the boom) > debris and scrape -16 LUFS. On a phone speaker each drops by its phone loss, so the low-heavy boom
+and crash also carry their thump as harmonics (_phone_bass) and the order holds there too (about -13.1 > -13.8 >
+-15.9 > -17.1), without putting a split layer more than 1 LU under a lower-tier sound (the sheet's inversion check).
 
 Timeline (src/kit/break_spec.json events, t 0 = the snap). Each file starts at its event:
   metal_tear       t -0.25   the snap inside the file sits at SNAP_AT = 0.25 s, so it lands on the boom
   split_explosion  t  0      2D train-wide plus a quieter positional layer at the break (soundmap layer3d)
-  split_glass      t  0      glass_smash's shards, +3 semitones, its pane crack taken out (the boom is the hit)
+  split_glass      t  0      glass_smash's built-in recipe ("synth": "glass_smash" in the soundmap)
   wreck_scrape     t  0.3    grinds until the wreck reaches the terrain's speed: V/brake = 35/12 = 2.92 s
   debris_rain      t  0.8
-  topple_crash     t  1.5    the broken half lands (delay 0.45 + roll 1.05); the bounce (0.35 s) is inside the file
-  topple_crash_2   t  2.0    break 1: carriage 2 lands (0.8 + 1.2); the same file at PlaybackSpeed 0.84, 3 dB down
+  topple_crash     t  1.5 (broken half: delay 0.45 + roll 1.05) and 2.0 (carriage 2: 0.8 + 1.2); the topple
+                   bounce (bounce_time 0.35 s) is the second, smaller thud inside the file
 
-Tone: heavy but slapstick (droopy, clunky, cartoon; never war or horror). Phones first: whatever must be heard sits
-in 0.5-4 kHz, and the boom and the crash also carry their low thump as upper harmonics (_phone_bass), so the order
-boom > tear > crash > debris and scrape holds on a phone speaker as well as on headphones. Every file fades to true
-silence 20 ms before its end.
+Tone: heavy but slapstick (droopy, clunky, cartoon; never war or horror). Every layer that has to be heard keeps
+its energy in 0.5-4 kHz so phone speakers carry it; the sub layers only add weight on headphones and TVs.
 """
 import numpy as np
 
-from synth import SR, buf, decay, filt, modal, n_, noise, osc, place, r_glass_smash, sweep, t_
+from synth import SR, buf, decay, filt, modal, n_, noise, osc, place, sweep, t_
 
 SNAP_AT = 0.25                           # metal_tear: the snap lands on the explosion (event at t -0.25)
 BOUNCE_AT = 0.35                         # topple_crash: break_spec topple bounce_time
 SPEED, BRAKE, SCRAPE_FROM = 35.0, 12.0, 0.3
 SLIDE = SPEED / BRAKE - SCRAPE_FROM      # 2.62 s of grinding at the normal speed (gameplay.speed.normal)
-GLASS_CRACK = 0.015                      # glass_smash's pane crack: a broadband burst in its first 15 ms
 
 
 # ---------------------------------------------------------------------------------------------------------------
@@ -51,12 +50,10 @@ def _glide(f0, f1, dur, total):
     return np.concatenate([g, np.full(n_(total) - len(g), float(f1))])
 
 
-def _fade_out(x, dur, pad=0.02):
-    """Equal-power fade over `dur` seconds that reaches silence `pad` seconds before the end (a true-zero tail)."""
-    n, p = n_(dur), n_(pad)
-    end = len(x) - p
-    x[end - n:end] *= np.cos(np.linspace(0.0, np.pi / 2, n)) ** 2
-    x[end:] = 0.0
+def _fade_out(x, dur):
+    """Equal-power fade over the last `dur` seconds, so no file ends on a click."""
+    n = n_(dur)
+    x[-n:] *= np.cos(np.linspace(0.0, np.pi / 2, n)) ** 2
     return x
 
 
@@ -91,18 +88,6 @@ def _band_sweep(x, fc, centres, width=0.4):
         w = np.exp(-0.5 * (np.log2(fc / c) / width) ** 2)
         y += filt(x, c * 2.0 ** -width, c * 2.0 ** width) * w
     return y
-
-
-def _hp_sweep(x, t0, t1, f0, f1, steps=5):
-    """High-pass whose corner glides f0 -> f1 (log) between t0 and t1 s, then holds f1: cross-fades zero-phase
-    high-passes at log-spaced corners, so nothing smears in time."""
-    t = np.arange(len(x)) / SR
-    pos = np.clip((t - t0) / (t1 - t0), 0.0, 1.0) * (steps - 1)
-    bank = np.stack([filt(x, f0 * (f1 / f0) ** (k / (steps - 1)), None, order=4) for k in range(steps)])
-    i = np.minimum(pos.astype(int), steps - 2)
-    fr = pos - i
-    cols = np.arange(len(x))
-    return bank[i, cols] * (1.0 - fr) + bank[i + 1, cols] * fr
 
 
 def _phone_bass(x, drive=6.0, lo=400, hi=2000):
@@ -170,7 +155,7 @@ def r_metal_tear(rng):
     rip_env = np.where(t <= SNAP_AT, 0.2 + 0.8 * np.clip(t / SNAP_AT, 0, 1) ** 1.3,
                        np.exp(-np.maximum(t - SNAP_AT, 0) / 0.015))
     rip = (0.8 * crackle + 0.35 * hiss) * rip_env
-    # 3 snap at SNAP_AT: a sharp crack (the file's peak), a cartoon metal ping and a small low thunk
+    # 3 snap at SNAP_AT: a sharp crack, a cartoon metal ping and a small low thunk
     d = L - SNAP_AT
     crack = _unit(filt(noise(d, rng), 1200, 8000)) * decay(d, 0.012, attack=0.0005)
     ping = _unit(modal(d, [(1320, 0.18, 1.0), (1870, 0.12, 0.7), (2640, 0.09, 0.5), (3480, 0.06, 0.35)], rng))
@@ -188,110 +173,80 @@ def r_metal_tear(rng):
     x = 0.55 * groan + rip
     place(x, snap, SNAP_AT, 1.0)
     place(x, wobble, w0, 0.4)
-    return _fade_out(x, 0.15)
+    return _fade_out(x, 0.06)
 
 
 # ---------------------------------------------------------------------------------------------------------------
-# split_explosion: mid crack-body + sub thump + noise burst with decay + crackle + debris tail
+# split_explosion: sub thump + noise burst with decay + crackle + debris tail (plus the pitched cartoon body)
 # ---------------------------------------------------------------------------------------------------------------
 
 def r_split_explosion(rng):
-    L = 2.2
-    # 1 mid crack-body, 0.6-2.5 kHz, gone within 0.3 s: the KA-BLAM a phone speaker plays. It is the boom's
-    #   loudest moment, so the file peaks within a few ms of 0 and most of its loudness survives a phone.
-    mid_osc = osc(_glide(150, 62, 0.55, L), L, partials=[(k, 1.0 / k ** 0.7) for k in range(1, 41)])
-    mid_body = _unit(filt(mid_osc, 600, 2500, order=4)) * decay(L, 0.09, attack=0.002)
-    mid_crack = _unit(filt(noise(L, rng, "pink"), 600, 2500, order=4)) * decay(L, 0.07, attack=0.001)
-    # 2 pitched body: the cartoon BWOOM, 150 -> 62 Hz, saw-like partials (harmonics to 2.2 kHz), bright then darker
+    L = 2.75
+    # 1 sub thump: 90 -> 38 Hz in 0.4 s (weight on headphones; phones get the body and the burst)
+    sub = osc(_glide(90, 38, 0.4, L), L) * decay(L, 0.32, attack=0.003)
+    # 2 pitched body: the cartoon BWOOM, 150 -> 62 Hz, saw-like partials so its harmonics reach 0.3-1.8 kHz;
+    #   a bright attack fading into a darker, longer tail
     raw = osc(_glide(150, 62, 0.55, L), L, partials=[(k, 1.0 / k ** 0.85) for k in range(1, 17)])
     body = (_unit(filt(raw, 120, 2200)) * decay(L, 0.22, attack=0.004)
-            + 0.25 * _unit(filt(raw, 50, 650)) * decay(L, 0.45, attack=0.01))
-    # 3 sub thump 90 -> 38 Hz (weight on headphones) and its upper harmonics (the same thump on a phone)
-    sub = osc(_glide(90, 38, 0.4, L), L) * decay(L, 0.32, attack=0.003)
-    # 4 noise burst with decay: crack (bright, 35 ms), roar (mid, 0.3 s), fireball whoosh (mid, 0.45 s), low roar
-    #   and a soft settle
+            + 0.45 * _unit(filt(raw, 50, 650)) * decay(L, 0.45, attack=0.01))
+    # 3 noise burst with decay: crack (bright, 35 ms), roar (mid, 0.3 s), fireball whoosh (mid, swells then
+    #   0.45 s: keeps the boom alive on phones), low roar (0.5 s), settle (soft tail)
     crack = _unit(filt(noise(L, rng), 1500, 7500)) * decay(L, 0.035, attack=0.0008)
     roar = _unit(filt(noise(L, rng, "pink"), 400, 2600)) * decay(L, 0.3, attack=0.006)
     whoosh = _unit(filt(noise(L, rng, "pink"), 500, 2200)) * decay(L, 0.45, attack=0.03)
     low = _unit(filt(noise(L, rng, "brown"), 60, 500)) * decay(L, 0.5, attack=0.012)
     settle = _unit(filt(noise(L, rng, "pink"), 250, 1400)) * decay(L, 0.9, attack=0.05)
-    # 5 firework crackle: sparse fizzy clicks 1.8-7 kHz, about 70/s at first, thinning over 1.5 s
+    # 4 firework crackle: sparse fizzy clicks 1.8-7 kHz, about 70/s at first, thinning over 1.5 s
     ct = _train(1.5, lambda s: 4.0 + 70.0 * np.exp(-s / 0.45), rng, jitter=0.9, t0=0.02)
     crackle = _unit(filt(_spikes(L, ct, rng.uniform(0.1, 1.0, len(ct)) ** 2), 1800, 7000)) * decay(L, 0.6)
-    # 6 debris tail: clunky wood and tin bits falling from 0.3 s, done before the fade
+    # 5 debris tail: clunky wood and tin bits falling from 0.3 s, fading out by about 2.3 s
     times = np.sort(0.3 + rng.exponential(0.5, 16))
-    times = times[times < 1.8]
+    times = times[times < 2.3]
     kinds = rng.choice(["wood", "wood", "chunk", "metal", "metal", "pebble"], len(times))
     amps = rng.uniform(0.5, 1.0, len(times)) * np.exp(-(times - 0.3) / 0.8)
     debris = _unit(_clatter(L, times, kinds, amps, rng))
 
-    x = (1.0 * mid_crack + 0.8 * mid_body + 0.6 * body + 0.15 * sub + 0.5 * _phone_bass(sub) + 0.55 * crack
-         + 1.0 * roar + 0.7 * whoosh + 0.08 * low + 0.08 * settle + 0.6 * crackle + 0.4 * debris)
-    # 7 the tail sheds its lows: high-pass sweeping 20 -> 500 Hz from 1.0 to 1.4 s (no rolling rumble), then a
-    #   300 ms fade to silence at 2.18 s
-    x = _hp_sweep(x, 1.0, 1.4, 20.0, 500.0)
-    return _fade_out(x, 0.3)
+    x = (0.22 * sub + 0.5 * _phone_bass(sub) + 0.75 * body + 0.55 * crack + 1.0 * roar + 0.7 * whoosh
+         + 0.14 * low + 0.12 * settle + 0.6 * crackle + 0.4 * debris)
+    return _fade_out(x, 0.12)
 
 
 # ---------------------------------------------------------------------------------------------------------------
-# split_glass: glass_smash's shards only, +3 semitones, so the split's windows sparkle over the boom
-# ---------------------------------------------------------------------------------------------------------------
-
-def r_split_glass(rng):
-    g = r_glass_smash(rng)                           # the stock window glass (rr-soundsmith synth.py), reused
-    g = g[n_(GLASS_CRACK):]                          # drop the pane crack; the shards rise from about 18 ms
-    g = filt(g, 1800, 19000, order=4)                # shards only: no pane body under 1.8 kHz
-    ratio = 2.0 ** (3.0 / 12.0)                      # +3 semitones (and 16% shorter)
-    y = np.interp(np.arange(int(len(g) / ratio)) * ratio, np.arange(len(g)), g)[:n_(0.9)]
-    y[:n_(0.002)] *= np.linspace(0.0, 1.0, n_(0.002))   # 2 ms onset ramp: no click where the crack was cut
-    return _fade_out(y, 0.15)
-
-
-# ---------------------------------------------------------------------------------------------------------------
-# topple_crash: splinter + bin-lid clang up front, low impact, gravel tail, and the topple's bounce
+# topple_crash: low impact + wood crunch + metal clang + gravel tail, and the topple's bounce
 # ---------------------------------------------------------------------------------------------------------------
 
 def r_topple_crash(rng):
     L = 1.45
     t = t_(L)
-    # 1 splinter burst: about 40 cracks inside the first 80 ms (densest at the hit), 0.8-2.5 kHz, ringing high
-    #   wood-knock modes
-    st = np.sort(np.concatenate([[0.0], 0.08 * rng.random(39) ** 1.5]))
+    # 1 low impact: 70 -> 45 Hz thump plus a short low thud
+    thump = osc(_glide(70, 45, 0.25, L), L) * decay(L, 0.18, attack=0.002)
+    thud = _unit(filt(noise(L, rng, "brown"), 60, 400)) * decay(L, 0.08, attack=0.002)
+    # 2 wood crunch: about 30 splinter cracks inside 0.22 s (densest at the hit) through wood-knock resonances
+    st = np.sort(np.concatenate([[0.0], 0.22 * rng.random(29) ** 1.6]))
     sa = rng.uniform(0.3, 1.0, len(st))
     sa[0] = 1.0
     grains = _spikes(L, st, sa)
-    wood = modal(0.05, [(900, 0.018, 1.0), (1340, 0.014, 0.8), (1880, 0.01, 0.6), (2450, 0.008, 0.45)])
-    splinter = 0.6 * _unit(_conv(grains, wood)) + 0.6 * _unit(filt(grains, 800, 2500, order=4))
-    # 2 bin-lid clang, struck with the hit: inharmonic modes 0.8-2.5 kHz (one quieter body mode under them),
-    #   pitch drooping 4% as it rings (the cartoon sag)
+    wood = modal(0.06, [(230, 0.03, 1.0), (480, 0.025, 0.8), (830, 0.02, 0.7), (1450, 0.012, 0.5), (2600, 0.006, 0.3)])
+    crunch = 0.7 * _unit(_conv(grains, wood)) + 0.5 * _unit(filt(grains, 400, 3500))
+    # 3 metal clang: a bin-lid set of inharmonic modes, pitch drooping 4% as it rings (the cartoon sag)
     droop = 1.0 - 0.04 * (1.0 - np.exp(-t / 0.3))
-    modes = [(547, 0.2, 0.35), (812, 0.26, 1.0), (1187, 0.22, 0.85), (1543, 0.18, 0.7), (1978, 0.14, 0.55),
-             (2441, 0.1, 0.4)]
+    modes = [(290, 0.24, 0.7), (523, 0.21, 1.0), (861, 0.18, 0.8), (1247, 0.15, 0.6), (1662, 0.12, 0.45),
+             (2211, 0.09, 0.3), (2893, 0.06, 0.2)]
     clang = _unit(sum(a * osc(f * droop, L) * decay(L, tau, attack=0.001) for f, tau, a in modes))
-    # 3 low impact: a small 70 -> 45 Hz thump, its upper harmonics for phones, and a short low thud
-    thump = osc(_glide(70, 45, 0.25, L), L) * decay(L, 0.18, attack=0.002)
-    thud = _unit(filt(noise(L, rng, "brown"), 60, 400)) * decay(L, 0.08, attack=0.002)
     # 4 gravel tail: pebble grains 1.5-6 kHz, about 280/s at the hit, thinning over 1.2 s, over a dust hiss
     gt = _train(1.3, lambda s: 20.0 + 260.0 * np.exp(-s / 0.3), rng, jitter=0.9, t0=0.03)
     gravel = _unit(filt(_spikes(L, gt, rng.uniform(0.05, 1.0, len(gt)) ** 2), 1500, 6000)) * decay(L, 0.5)
     dust = _unit(filt(noise(L, rng, "pink"), 1000, 4000)) * decay(L, 0.35, attack=0.02)
-    # 5 bounce at BOUNCE_AT: the body rocks back and lands again, a smaller mid clunk over a little thud
+    # 5 bounce at BOUNCE_AT: the body rocks back and lands again, smaller
     d = L - BOUNCE_AT
-    clunk = _unit(modal(0.2, [(620, 0.04, 1.0), (1010, 0.03, 0.6), (1530, 0.02, 0.4)], rng))
-    bounce = (0.25 * osc(_glide(62, 45, 0.15, d), d) * decay(d, 0.1, attack=0.002)
-              + 0.2 * _unit(filt(noise(d, rng, "brown"), 80, 600)) * decay(d, 0.05, attack=0.002))
-    place(bounce, clunk, 0.0, 0.8)
+    bounce = (0.6 * osc(_glide(62, 45, 0.15, d), d) * decay(d, 0.1, attack=0.002)
+              + 0.5 * _unit(filt(noise(d, rng, "brown"), 80, 600)) * decay(d, 0.05, attack=0.002))
+    place(bounce, _hit("chunk", rng), 0.0, 0.35)
 
-    x = (0.9 * splinter + 0.8 * clang + 0.1 * thump + 0.35 * _phone_bass(thump) + 0.08 * thud + 0.45 * gravel
-         + 0.1 * dust)
+    x = (0.22 * thump + 0.45 * _phone_bass(thump) + 0.18 * thud + 0.9 * crunch + 0.75 * clang + 0.5 * gravel
+         + 0.12 * dust)
     place(x, bounce, BOUNCE_AT, 0.35)
-    return _fade_out(x, 0.15)
-
-
-def r_topple_crash_2(rng):
-    """Break 1's second body (carriage 2) reuses topple_crash's file: same seed, same samples. The soundmap plays it
-    at PlaybackSpeed 0.84 (+-4%) and 3 dB down, so the owner uploads one file and registers its id twice."""
-    return r_topple_crash(rng)
+    return _fade_out(x, 0.1)
 
 
 # ---------------------------------------------------------------------------------------------------------------
@@ -339,7 +294,4 @@ def r_wreck_scrape(rng):
 
     shape = (0.12 + 0.88 * v ** 0.8) * (1 + 0.15 * lfo) * np.clip(t / 0.03, 0, 1)
     x = (0.8 * grind + 0.12 * whine + 0.25 * pops + 0.35 * rumble) * shape
-    # it emerges under the boom: fade in from -12 dB over 0.6 s; nothing above 2.5 kHz (glass and debris own it)
-    x *= 10.0 ** ((-12.0 + 12.0 * np.clip(t / 0.6, 0, 1)) / 20.0)
-    x = filt(x, None, 2500, order=4)
     return _fade_out(x, 0.25)

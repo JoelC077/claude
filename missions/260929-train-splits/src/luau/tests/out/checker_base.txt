@@ -1,0 +1,144 @@
+== RR_BreakChecker 2.0.0: Workspace.Train (957 BaseParts) ==
+Mode: roof unions -> jagged tear (29 cells, margin 0.10 studs).
+Front = the min end of world Z (FRONT_AT = "min"). If the train's front is the other end, set FRONT_AT = "max".
+Carriage 1: roof Workspace.Train.Body.Union at (-58.05, 26.19, 82.89), size 19.48 x 3.59 x 62.34
+  Break 1 frame: origin (-58.05, 13.93, 86.20)  right (1.00, 0.00, 0.00)  up (0.00, 1.00, 0.00)  rear (0.00, 0.00, 1.00)
+  Crossers (10), cut by RR_TrainSplit_Setup:
+    Part            Workspace.Train.Part  size 19.20 x 0.20 x 54.62  [6 cells, slice per cell]
+    UnionOperation  Workspace.Train.Body.Union  size 19.40 x 13.70 x 61.80  [29 cells, CSG]
+    UnionOperation  Workspace.Train.Body.Union  size 8.64 x 1.06 x 62.32  [4 cells, CSG]
+    UnionOperation  Workspace.Train.Body.Union  size 8.64 x 1.06 x 62.32  [4 cells, CSG]
+    UnionOperation  Workspace.Train.Body.Union  size 19.48 x 3.59 x 62.34  [7 cells, CSG]
+    UnionOperation  Workspace.Train.Body.Union  size 18.90 x 13.67 x 60.10  [29 cells, CSG]
+    UnionOperation  Workspace.Train.Body.Union  size 0.12 x 1.00 x 57.40  [1 cells, CSG]
+    UnionOperation  Workspace.Train.Body.Union  size 19.20 x 2.96 x 62.31  [7 cells, CSG]
+    MeshPart        Workspace.Train.Interior.Carpet  size 18.90 x 0.54 x 60.48  [6 cells, CSG]
+    MeshPart        Workspace.Train.Interior.CurtainCorroded  size 16.08 x 1.20 x 52.80  [5 cells, CSG]
+  In the jagged band (Z -4.8 .. 3.6) without crossing (55): half, clearance to the tear
+    Front  0.24  Part            Workspace.Train.Part  size 4.92 x 0.60 x 2.15
+    Front  0.36  Part            Workspace.Train.Part  size 4.83 x 4.42 x 0.26
+    Rear   0.37  Part            Workspace.Train.Part  size 1.10 x 4.80 x 0.51
+    Front  0.38  Part            Workspace.Train.Part  size 1.10 x 4.80 x 0.51
+    Rear   0.52  Part            Workspace.Train.Part  size 1.10 x 4.80 x 0.51
+    Front  0.60  Part            Workspace.Train.Part  size 4.83 x 0.96 x 1.66
+    Front  0.65  Part            Workspace.Train.Part  size 4.83 x 4.42 x 0.06
+    Front  0.66  Part            Workspace.Train.Part  size 4.83 x 4.42 x 0.26
+    Front  0.90  MeshPart        Workspace.Train.Interior.Seats.Cushion  size 4.83 x 0.84 x 2.15
+    Front  0.90  Part            Workspace.Train.Part  size 4.83 x 0.96 x 1.66
+    Front  0.92  Part            Workspace.Train.Part  size 1.10 x 4.80 x 0.51
+    Front  0.95  Part            Workspace.Train.Part  size 4.83 x 4.42 x 0.06
+    Rear   0.98  Part            Workspace.Train.Part  size 1.10 x 4.80 x 0.30
+    Front  0.98  Part            Workspace.Train.Part  size 1.10 x 4.80 x 0.30
+    Front  0.98  Part            Workspace.Train.Part  size 1.10 x 0.30 x 5.10
+    Front  1.02  MeshPart        Workspace.Train.Interior.Seats.Cushion  size 4.83 x 2.63 x 0.30
+    Front  1.04  Part            Workspace.Train.Part  size 0.48 x 0.60 x 2.15
+    Rear   1.12  Part            Workspace.Train.Part  size 1.10 x 4.80 x 0.30
+    Rear   1.12  Part            Workspace.Train.Part  size 1.10 x 0.30 x 5.10
+    Front  1.12  MeshPart        Workspace.Train.Interior.Seats.Cushion  size 4.83 x 2.63 x 0.30
+    Front  1.13  UnionOperation  Workspace.Train.Body.Union  size 0.36 x 2.15 x 1.97
+    Front  1.13  Part            Workspace.Train.Part  size 0.36 x 0.33 x 2.06
+    Front  1.14  Part            Workspace.Train.Part  size 4.92 x 0.60 x 2.15
+    Front  1.14  Part            Workspace.Train.Part  size 0.48 x 0.60 x 2.15
+    Front  1.14  Part            Workspace.Train.Part  size 0.36 x 0.33 x 2.06
+    Front  1.23  UnionOperation  Workspace.Train.Body.Union  size 0.36 x 2.15 x 1.97
+    Front  1.32  MeshPart        Workspace.Train.Interior.Seats.Cushion  size 4.83 x 2.63 x 0.43
+    Front  1.40  MeshPart        Workspace.Train.Interior.Seats.Cushion  size 4.83 x 0.84 x 2.15
+    Front  1.42  MeshPart        Workspace.Train.Interior.Seats.Cushion  size 4.83 x 2.63 x 0.43
+    Front  1.52  Part            Workspace.Train.Part  size 1.10 x 4.80 x 0.30
+    Front  1.52  Part            Workspace.Train.Part  size 1.10 x 0.30 x 5.10
+    Rear   1.58  Part            Workspace.Train.Part  size 1.06 x 2.62 x 0.10
+    Rear   1.58  Part            Workspace.Train.Part  size 0.30 x 0.30 x 5.10
+    Rear   1.58  Part            Workspace.Train.Part  size 1.10 x 0.30 x 5.10
+    Rear   1.62  Part            Workspace.Train.Part  size 0.30 x 0.30 x 5.10
+    Rear   1.62  Part            Workspace.Train.Part  size 1.10 x 0.30 x 5.10
+    Front  1.82  Part            Workspace.Train.Part  size 1.10 x 0.30 x 5.10
+    Rear   1.98  Part            Workspace.Train.Part  size 1.10 x 0.30 x 5.10
+    Rear   2.08  Part            Workspace.Train.Part  size 1.05 x 2.32 x 0.10
+    Front  2.18  Part            Workspace.Train.Part  size 0.30 x 0.30 x 5.10
+    Front  2.22  Part            Workspace.Train.Part  size 0.30 x 0.30 x 5.10
+    Front  2.33  Part            Workspace.Train.Part  size 4.86 x 0.12 x 0.76
+    Front  2.68  Part            Workspace.Train.Part  size 1.10 x 0.30 x 5.10
+    Front  2.83  Part            Workspace.Train.Part  size 4.86 x 0.12 x 0.76
+    Rear   4.79  Part            Workspace.Train.Part  size 1.94 x 0.10 x 1.94
+    Rear   4.87  Part            Workspace.Train.Part  size 1.78 x 0.09 x 1.77
+    Rear   4.89  UnionOperation  Workspace.Train.Body.Union  size 0.08 x 0.67 x 1.72
+    Rear   4.96  UnionOperation  Workspace.Train.Body.Union  size 1.58 x 0.57 x 1.58
+    Rear   5.01  UnionOperation  Workspace.Train.Body.Union  size 0.86 x 0.67 x 1.49
+    Rear   5.01  UnionOperation  Workspace.Train.Body.Union  size 0.86 x 0.67 x 1.49
+    Rear   5.04  UnionOperation  Workspace.Train.Body.Union  size 1.42 x 0.57 x 1.42
+    Rear   5.32  UnionOperation  Workspace.Train.Body.Union  size 1.49 x 0.67 x 0.86
+    Rear   5.32  UnionOperation  Workspace.Train.Body.Union  size 1.49 x 0.67 x 0.86
+    Rear   5.63  Part            Workspace.Train.Part  size 0.24 x 0.52 x 0.24
+    Rear   5.71  UnionOperation  Workspace.Train.Body.Union  size 1.72 x 0.67 x 0.08
+Carriage 2: roof Workspace.Train.Body.Union at (-58.05, 26.19, 150.29), size 19.48 x 3.59 x 62.34
+  Break 2 frame: origin (-58.05, 13.93, 153.60)  right (1.00, 0.00, 0.00)  up (0.00, 1.00, 0.00)  rear (0.00, 0.00, 1.00)
+  Crossers (10), cut by RR_TrainSplit_Setup:
+    Part            Workspace.Train.Part  size 19.20 x 0.20 x 54.62  [6 cells, slice per cell]
+    UnionOperation  Workspace.Train.Body.Union  size 0.12 x 1.00 x 57.40  [1 cells, CSG]
+    UnionOperation  Workspace.Train.Body.Union  size 19.48 x 3.59 x 62.34  [7 cells, CSG]
+    UnionOperation  Workspace.Train.Body.Union  size 8.64 x 1.06 x 62.32  [4 cells, CSG]
+    UnionOperation  Workspace.Train.Body.Union  size 18.90 x 13.67 x 60.10  [29 cells, CSG]
+    UnionOperation  Workspace.Train.Body.Union  size 19.40 x 13.70 x 61.80  [29 cells, CSG]
+    UnionOperation  Workspace.Train.Body.Union  size 8.64 x 1.06 x 62.32  [4 cells, CSG]
+    UnionOperation  Workspace.Train.Body.Union  size 19.20 x 2.96 x 62.31  [7 cells, CSG]
+    MeshPart        Workspace.Train.Interior.CurtainCorroded  size 16.08 x 1.20 x 52.80  [5 cells, CSG]
+    MeshPart        Workspace.Train.Interior.Carpet  size 18.90 x 0.54 x 60.38  [6 cells, CSG]
+  In the jagged band (Z -4.8 .. 3.6) without crossing (55): half, clearance to the tear
+    Front  0.24  Part            Workspace.Train.Part  size 4.92 x 0.60 x 2.15
+    Front  0.36  Part            Workspace.Train.Part  size 4.83 x 4.42 x 0.26
+    Rear   0.37  Part            Workspace.Train.Part  size 1.10 x 4.80 x 0.51
+    Front  0.38  Part            Workspace.Train.Part  size 1.10 x 4.80 x 0.51
+    Rear   0.52  Part            Workspace.Train.Part  size 1.10 x 4.80 x 0.51
+    Front  0.60  Part            Workspace.Train.Part  size 4.83 x 0.96 x 1.66
+    Front  0.65  Part            Workspace.Train.Part  size 4.83 x 4.42 x 0.07
+    Front  0.66  Part            Workspace.Train.Part  size 4.83 x 4.42 x 0.26
+    Front  0.90  MeshPart        Workspace.Train.Interior.Seats.Cushion  size 4.83 x 0.84 x 2.15
+    Front  0.90  Part            Workspace.Train.Part  size 4.83 x 0.96 x 1.66
+    Front  0.92  Part            Workspace.Train.Part  size 1.10 x 4.80 x 0.51
+    Front  0.95  Part            Workspace.Train.Part  size 4.83 x 4.42 x 0.07
+    Rear   0.98  Part            Workspace.Train.Part  size 1.10 x 4.80 x 0.30
+    Front  0.98  Part            Workspace.Train.Part  size 1.10 x 0.30 x 5.10
+    Front  0.98  Part            Workspace.Train.Part  size 1.10 x 4.80 x 0.30
+    Front  1.02  MeshPart        Workspace.Train.Interior.Seats.Cushion  size 4.83 x 2.63 x 0.30
+    Front  1.04  Part            Workspace.Train.Part  size 0.48 x 0.60 x 2.15
+    Rear   1.12  Part            Workspace.Train.Part  size 1.10 x 0.30 x 5.10
+    Rear   1.12  Part            Workspace.Train.Part  size 1.10 x 4.80 x 0.30
+    Front  1.12  MeshPart        Workspace.Train.Interior.Seats.Cushion  size 4.83 x 2.63 x 0.30
+    Front  1.13  Part            Workspace.Train.Part  size 0.36 x 0.33 x 2.06
+    Front  1.13  UnionOperation  Workspace.Train.Body.Union  size 0.36 x 2.15 x 1.97
+    Front  1.14  Part            Workspace.Train.Part  size 0.36 x 0.33 x 2.06
+    Front  1.14  Part            Workspace.Train.Part  size 4.92 x 0.60 x 2.15
+    Front  1.14  Part            Workspace.Train.Part  size 0.48 x 0.60 x 2.15
+    Front  1.23  UnionOperation  Workspace.Train.Body.Union  size 0.36 x 2.15 x 1.97
+    Front  1.32  MeshPart        Workspace.Train.Interior.Seats.Cushion  size 4.83 x 2.63 x 0.43
+    Front  1.40  MeshPart        Workspace.Train.Interior.Seats.Cushion  size 4.83 x 0.84 x 2.15
+    Front  1.42  MeshPart        Workspace.Train.Interior.Seats.Cushion  size 4.83 x 2.63 x 0.43
+    Front  1.52  Part            Workspace.Train.Part  size 1.10 x 4.80 x 0.30
+    Front  1.52  Part            Workspace.Train.Part  size 1.10 x 0.30 x 5.10
+    Rear   1.58  Part            Workspace.Train.Part  size 1.06 x 2.62 x 0.10
+    Rear   1.58  Part            Workspace.Train.Part  size 1.10 x 0.30 x 5.10
+    Rear   1.58  Part            Workspace.Train.Part  size 0.30 x 0.30 x 5.10
+    Rear   1.62  Part            Workspace.Train.Part  size 0.30 x 0.30 x 5.10
+    Rear   1.62  Part            Workspace.Train.Part  size 1.10 x 0.30 x 5.10
+    Front  1.82  Part            Workspace.Train.Part  size 1.10 x 0.30 x 5.10
+    Rear   1.98  Part            Workspace.Train.Part  size 1.10 x 0.30 x 5.10
+    Rear   2.08  Part            Workspace.Train.Part  size 1.05 x 2.32 x 0.10
+    Front  2.18  Part            Workspace.Train.Part  size 0.30 x 0.30 x 5.10
+    Front  2.22  Part            Workspace.Train.Part  size 0.30 x 0.30 x 5.10
+    Front  2.33  Part            Workspace.Train.Part  size 4.86 x 0.12 x 0.76
+    Front  2.68  Part            Workspace.Train.Part  size 1.10 x 0.30 x 5.10
+    Front  2.83  Part            Workspace.Train.Part  size 4.86 x 0.12 x 0.76
+    Rear   4.79  Part            Workspace.Train.Part  size 1.94 x 0.10 x 1.94
+    Rear   4.87  Part            Workspace.Train.Part  size 1.78 x 0.09 x 1.77
+    Rear   4.89  UnionOperation  Workspace.Train.Body.Union  size 0.08 x 0.67 x 1.72
+    Rear   4.97  UnionOperation  Workspace.Train.Body.Union  size 1.58 x 0.57 x 1.58
+    Rear   5.01  UnionOperation  Workspace.Train.Body.Union  size 0.86 x 0.67 x 1.49
+    Rear   5.01  UnionOperation  Workspace.Train.Body.Union  size 0.86 x 0.67 x 1.49
+    Rear   5.04  UnionOperation  Workspace.Train.Body.Union  size 1.42 x 0.57 x 1.42
+    Rear   5.32  UnionOperation  Workspace.Train.Body.Union  size 1.49 x 0.67 x 0.86
+    Rear   5.32  UnionOperation  Workspace.Train.Body.Union  size 1.49 x 0.67 x 0.86
+    Rear   5.63  Part            Workspace.Train.Part  size 0.24 x 0.52 x 0.24
+    Rear   5.71  UnionOperation  Workspace.Train.Body.Union  size 1.72 x 0.67 x 0.08
+Gangway between carriages -> Carriage1.RearHalf: UnionOperation  Workspace.Train.Body.Union  size 9.70 x 4.40 x 7.30
+Summary: 2 carriage(s); crossers 10 + 10; band 55 + 55; parts inside a tooth 0.
+Crossers match the design (10 per carriage). Next: RR_TrainSplit_Setup with DRY_RUN = true.

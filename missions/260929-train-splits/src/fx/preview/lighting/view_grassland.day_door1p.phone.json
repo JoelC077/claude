@@ -33,19 +33,19 @@
  ],
  "eye_height": 4.5,
  "res": [
-  192,
-  108
+  210,
+  96
  ],
  "look": "grassland.day@door1p",
- "plate": "grassland.day_door1p.png",
- "depth": "grassland.day_door1p.depth.png",
+ "plate": "grassland.day_door1p.phone.png",
+ "depth": "grassland.day_door1p.phone.depth.png",
  "depth_scale": 16,
  "particle_light": [
   1.0,
   1.0,
   1.0
  ],
- "phone": false,
+ "phone": true,
  "fog": {
   "k": 0.00147,
   "colour": [

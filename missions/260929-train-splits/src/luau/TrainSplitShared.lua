@@ -246,9 +246,22 @@ function Shared.dAt(cells, X, Y)
 	return nil
 end
 
--- Tiny xorshift32 so the server and every client roll the same numbers from one seed.
+-- (a * b) mod 2^32 in 16-bit halves, exact in doubles.
+local function mul32(a, b)
+	local ah, al = bit32.rshift(a, 16), bit32.band(a, 0xFFFF)
+	local bh, bl = bit32.rshift(b, 16), bit32.band(b, 0xFFFF)
+	return (al * bl + bit32.lshift((ah * bl + al * bh) % 65536, 16)) % 4294967296
+end
+
+-- Tiny xorshift32 so the server and every client roll the same numbers from one seed. The seed is hashed
+-- first (murmur3 finaliser): raw xorshift gives nearly the same first number for every small seed.
 function Shared.rng(seed)
 	local s = math.floor(math.abs(seed or 1)) % 4294967296
+	s = bit32.bxor(s, bit32.rshift(s, 16))
+	s = mul32(s, 0x85EBCA6B)
+	s = bit32.bxor(s, bit32.rshift(s, 13))
+	s = mul32(s, 0xC2B2AE35)
+	s = bit32.bxor(s, bit32.rshift(s, 16))
 	if s == 0 then
 		s = 2463534242
 	end

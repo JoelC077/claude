@@ -1,16 +1,14 @@
 {
  "names": [
   "split_explosion",
-  "torn_edge_smoke",
   "topple_dust",
-  "glass_burst"
+  "grassland.day",
+  "grassland.day@door1p"
  ],
  "pack": true,
  "presets": [
   "split_explosion",
-  "torn_edge_smoke",
-  "topple_dust",
-  "glass_burst"
+  "topple_dust"
  ],
  "looks": [
   "grassland.day"
@@ -20,12 +18,8 @@
   "OQ-029"
  ],
  "povs": [
-  "pov_grassland.day_roof3p",
-  "pov_grassland.day_roof3p.phone",
-  "pov_grassland.day_door1p",
   "pov_split_explosion",
-  "pov_topple_dust",
-  "pov_glass_burst"
+  "pov_topple_dust"
  ],
  "presets_dir": "/home/user/claude/missions/260929-train-splits/src/fx",
  "warnings": []

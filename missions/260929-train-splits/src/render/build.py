@@ -13,7 +13,8 @@ Cap faces use the crosser's own material. Then ground at rail level + track, pos
   python3 build.py --states intact,break1_t4.0      subset of states   (--cams Cam_Wide,... subset of cameras)
   python3 build.py --no-render                      cut + preflight only
   python3 build.py --samples 22 --scale 100 --out DIR --fallback-caps on|off --no-preflight --no-sheets
-States: intact exploded break1_t0.3 break1_t1.0 break1_t1.6 break1_t4.0 break2_t1.2 break2_t4.0
+States: intact seamref exploded break1_t0.3 break1_t1.0 break1_t1.6 break1_t4.0 break2_t1.2 break2_t4.0
+(seamref = the uncut original on the two seam cameras, pixel-diffed against intact into preflight.md section 7)
 """
 import argparse, itertools, json, math, os, subprocess, sys, time
 from collections import defaultdict
@@ -606,6 +607,14 @@ class Build:
                         why = 'not watertight (%d non-manifold edges, %d fin pairs)' % (rep['nonmanifold'], rep['fins'])
                     if front is None:
                         row['fallback_reason'] = why
+                        try:                                  # what manifold3d itself would make of it (for the record)
+                            mi = m3.Manifold(m3.Mesh64(vert_properties=np.ascontiguousarray(V), tri_verts=F[nd].astype(np.uint32)))
+                            if mi.status() == m3.Error.NoError:
+                                row['m3_import'] = 'manifold3d would import it as %.3f (%+.2f %%)' % (mi.volume(), 100 * (mi.volume() - v_orig) / abs(v_orig))
+                            else:
+                                row['m3_import'] = 'manifold3d rejects it (%s)' % mi.status()
+                        except Exception as ex:
+                            row['m3_import'] = 'manifold3d error %s' % ex
                         front, rear, path, info = cut_clip(V, F, nd, UV, N, caps=caps)
                         row['path'] = path; row['open_chains'] = info['open_chains']
                     else:
@@ -760,7 +769,6 @@ class Build:
         pieces = [ob for pc in self.pieces.values() for t in ('F', 'R') for ob in pc[t]]
         for ob in pieces: ob.hide_render = True
         for o in self.originals.values(): o.hide_render = False
-        rows = []
         try:
             for cname in STATES['seamref'][3]:
                 c, res = self.camera(cname, 1)
@@ -769,23 +777,11 @@ class Build:
                 t1 = time.time(); S.render(c, path, res=r, samples=samples); dt = time.time() - t1
                 log.append(('reference_uncut', cname, dt, 'original crossers, no cut'))
                 print('[render] reference_uncut %s %.1fs' % (cname, dt), flush=True)
-                other = os.path.join(out_dir, 'intact__%s.png' % cname)
-                if os.path.exists(other):
-                    from PIL import Image
-                    a = np.asarray(Image.open(path).convert('RGB')).astype(int)
-                    b = np.asarray(Image.open(other).convert('RGB')).astype(int)
-                    if a.shape == b.shape:
-                        d = np.abs(a - b).max(axis=2)
-                        rows.append('| %s | %d | %.3f | %d |' % (cname, d.max(), d.mean(), int((d > 12).sum())))
         finally:
             for ob in pieces: ob.hide_render = False
             for o in self.originals.values(): o.hide_render = True
-        if rows and pf_path and os.path.exists(pf_path):
-            with open(pf_path, 'a') as f:
-                f.write('\n## 7. Seam check in pixels: intact (cut pieces) vs the uncut original, same camera, same samples\n\n'
-                        '| camera | max channel diff (0-255) | mean | pixels > 12 |\n|---|---|---|---|\n' + '\n'.join(rows) + '\n'
-                        '\nSame seed and settings; a visible seam would show as a line of large differences. '
-                        'Small values come from the re-triangulated pieces (float noise), not from a gap.\n')
+        if pf_path:
+            put_seam_section(pf_path, out_dir)
 
     # ---- render
     def render_state(self, state, cams_filter, samples, out_dir, scale, log):
@@ -897,6 +893,37 @@ def penetration(A, B):
     return best
 
 
+def seam_section(out_dir):
+    from PIL import Image
+    rows = []
+    for cname in STATES['seamref'][3]:
+        a_p = os.path.join(out_dir, 'reference_uncut__%s.png' % cname); b_p = os.path.join(out_dir, 'intact__%s.png' % cname)
+        if not (os.path.exists(a_p) and os.path.exists(b_p)):
+            continue
+        a = np.asarray(Image.open(a_p).convert('RGB')).astype(int); b = np.asarray(Image.open(b_p).convert('RGB')).astype(int)
+        if a.shape == b.shape:
+            d = np.abs(a - b).max(axis=2)
+            rows.append('| %s | %d | %.3f | %d |' % (cname, d.max(), d.mean(), int((d > 12).sum())))
+    if not rows:
+        return ''
+    return ('\n## 7. Seam check in pixels: intact (cut pieces) vs the uncut original, same camera, same samples\n\n'
+            '| camera | max channel diff (0-255) | mean | pixels > 12 |\n|---|---|---|---|\n' + '\n'.join(rows) + '\n'
+            '\nFiles: out/intact__<Cam>.png vs out/reference_uncut__<Cam>.png. Same seed and settings; a visible seam would show as '
+            'a line of large differences. Small values come from the re-triangulated pieces (float noise), not from a gap.\n')
+
+
+def put_seam_section(pf_path, out_dir):
+    if not os.path.exists(pf_path):
+        return
+    txt = open(pf_path).read()
+    i = txt.find('\n## 7. Seam check')
+    if i >= 0:
+        txt = txt[:i] + '\n'
+    sec = seam_section(out_dir)
+    with open(pf_path, 'w') as f:
+        f.write(txt.rstrip('\n') + '\n' + sec)
+
+
 def preflight(B, path):
     L = []
     w = L.append
@@ -918,7 +945,7 @@ def preflight(B, path):
             r['k'], r['name'], rep['degenerate'], rep['nonmanifold'], rep['fins'], r['path'], caps_s, r['v_orig'],
             r['v_front'], r['v_rear'], off, 'PASS' if abs(off) <= 0.5 else 'FAIL'))
     fb = [r for r in B.piece_info if 'fallback_reason' in r]
-    w('\nFallback (not watertight after weld -> per-cell clipping): %s.' % (', '.join('%s (%s)' % (r['name'], r['fallback_reason']) for r in fb) or 'none'))
+    w('\nFallback (not watertight after weld -> per-cell clipping): %s.' % (', '.join('%s (%s; %s)' % (r['name'], r['fallback_reason'], r.get('m3_import', '')) for r in fb) or 'none'))
     if fb and B.args.fallback_caps == 'on':
         w('Fallback pieces were capped with exact cross-sections of the original mesh (open cross-section chains: %s); '
           'with --fallback-caps off they stay open (the order\'s literal fallback).' % ', '.join('%s %d' % (r['name'], r.get('open_chains', 0)) for r in fb))
@@ -1124,6 +1151,7 @@ def preflight(B, path):
     w('_pre-flight computed in %.0f s_\n' % (time.time() - t0))
     with open(path, 'w') as f:
         f.write('\n'.join(L) + '\n')
+    put_seam_section(path, os.path.dirname(path))
     print('[preflight] written %s (%.0fs)' % (path, time.time() - t0), flush=True)
     return L
 
@@ -1176,10 +1204,20 @@ def main():
                     if write_sheet(args.out, sheet, items, args.progress):
                         sheets_done.add(sheet)
     total = time.time() - t_all
-    lines = ['## Render log (%d images, %.1f min, Cycles CPU %d samples + denoise)\n' % (len(log), total / 60, args.samples),
+    lp = os.path.join(args.out, 'render_log.md')
+    rows = {}
+    if os.path.exists(lp):                                   # keep entries of earlier partial runs
+        for l in open(lp).read().split('\n'):
+            c = [x.strip() for x in l.split('|')]
+            if len(c) == 6 and c[1] not in ('state', '---') and c[3].replace('.', '').isdigit():
+                rows[(c[1], c[2])] = (c[1], c[2], float(c[3]), c[4])
+    for x in log:
+        rows[(x[0], x[1])] = x
+    secs = sum(x[2] for x in rows.values())
+    lines = ['## Render log (%d images, %.1f min render time, Cycles CPU %d samples + denoise)\n' % (len(rows), secs / 60, args.samples),
              '| state | camera | seconds | pose |', '|---|---|---|---|']
-    lines += ['| %s | %s | %.0f | %s |' % x for x in log]
-    with open(os.path.join(args.out, 'render_log.md'), 'w') as f:
+    lines += ['| %s | %s | %.0f | %s |' % x for x in rows.values()]
+    with open(lp, 'w') as f:
         f.write('\n'.join(lines) + '\n')
     print('[done] %d renders in %.1f min; sheets %s' % (len(log), total / 60, sorted(sheets_done)), flush=True)
 

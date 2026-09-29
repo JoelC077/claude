@@ -8,3 +8,4 @@
 2026-09-29T22:51Z [5/10] Build v1 - fx + sound v1 done: validate/budget/build PASS; sound 6 files, luatest 59/59, fx luatest 19/19 (~820k est)
 2026-09-29T23:04Z [7/10] Critic pass 1 - FX pass 1: F1 6 F2 5 F3 6 F4 7 F5 7 F6 6 -> overall 5; 7 blocks-8, round 1 fixing (135k)
 2026-09-29T23:05Z [7/10] Critic pass 1 - Sound pass 1: S1 5 S2 6 S3 6 S4 6 S5 8 S6 7 -> overall 5; 6 blocks-8, round 1 fixing (151k)
+2026-09-29T23:15Z [6/10] Pre-flight - 3D v1 pre-flight: cut exact (0.0000%), seam invisible, 2 spec FAILs -> spec v2.1 (0 slivers, clearance PASS), re-rendering (~1600k est)

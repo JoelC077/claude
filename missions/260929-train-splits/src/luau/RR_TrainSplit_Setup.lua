@@ -20,7 +20,8 @@ part:SubtractAsync (front piece = part minus the REAR cutter boxes, rear piece =
 local DRY_RUN = true -- true: print the plan and change nothing; false: do it
 local FRONT_AT = "min" -- the train's front is the "min" (lower) or "max" end of its long world axis
 local MARGIN = 0.1 -- a box closer than this to the tear counts as crossing it (same as RR_BreakChecker)
-local CUTTER_OVERLAP = 0 -- widen cutter boxes sideways by this many studs if CSG leaves slivers (try 0.01)
+local CUTTER_BRIDGE = 0.01 -- neighbouring cutter boxes overlap by this much where both remove material, so
+                           -- float round-off between them cannot leave paper-thin slivers (0 = off)
 local ALLOW_PLANE_FALLBACK = false -- no roof union found (another train): allow one flat cut per carriage
 local PLANE_OFFSET = 0 -- plane fallback only: studs from the carriage centre toward the rear
 
@@ -471,6 +472,45 @@ local RULE_TEXT = {
 
 ---------------------------------------------------------------- plan (DRY_RUN and apply share it)
 
+-- Cutter boxes for one side, in frame coordinates {x0, x1, y0, y1, z0, z1, name}. Each cell the part touches
+-- gives a box from its tear to the far end (FRONT: -zext .. d, REAR: d .. zext). Thin bridges over the edges
+-- two cells share, spanning only the Z range both remove, overlap the boxes so round-off leaves no sliver.
+local function cutterSpecs(car, b, side)
+	local cells = Core.touched(car.cells, b, 0.01)
+	local function zRange(d)
+		if side == "Front" then
+			return -car.zext, d
+		end
+		return d, car.zext
+	end
+	local specs = {}
+	for _, c in cells do
+		local z0, z1 = zRange(c[5])
+		table.insert(specs, { c[1], c[2], c[3], c[4], z0, z1, c[6] })
+	end
+	local o = CUTTER_BRIDGE
+	if o > 0 then
+		for i = 1, #cells - 1 do
+			for j = i + 1, #cells do
+				local z0, z1 = zRange(side == "Front" and math.min(cells[i][5], cells[j][5]) or math.max(cells[i][5], cells[j][5]))
+				for _, pq in { { cells[i], cells[j] }, { cells[j], cells[i] } } do
+					local p, q = pq[1], pq[2]
+					local bridge
+					if math.abs(p[2] - q[1]) < 1e-6 and math.min(p[4], q[4]) - math.max(p[3], q[3]) > 1e-6 then
+						bridge = { p[2] - o, p[2] + o, math.max(p[3], q[3]) - o, math.min(p[4], q[4]) + o, z0, z1, "bridge" }
+					elseif math.abs(p[4] - q[3]) < 1e-6 and math.min(p[2], q[2]) - math.max(p[1], q[1]) > 1e-6 then
+						bridge = { math.max(p[1], q[1]) - o, math.min(p[2], q[2]) + o, p[4] - o, p[4] + o, z0, z1, "bridge" }
+					end
+					if bridge and z1 - z0 > 1e-6 and bridge[2] > b.x0 and bridge[1] < b.x1 and bridge[4] > b.y0 and bridge[3] < b.y1 then
+						table.insert(specs, bridge)
+					end
+				end
+			end
+		end
+	end
+	return specs
+end
+
 local function planCut(found, part, k, box)
 	local car = found.carriages[k]
 	local cr = { part = part, k = k, box = box, notes = {}, front = 0, rear = 0, children = part:GetChildren() }
@@ -502,6 +542,7 @@ local function planCut(found, part, k, box)
 	else
 		cr.method = "csg"
 		cr.front, cr.rear = 1, 1
+		cr.boxes = { Front = #cutterSpecs(car, box, "Front"), Rear = #cutterSpecs(car, box, "Rear") }
 		if part:IsA("MeshPart") then
 			table.insert(cr.notes, "MeshPart: if this Studio refuses CSG on meshes it is reported and left whole")
 		end
@@ -668,7 +709,7 @@ local function printPlan(P)
 		if cr.method == "slice" then
 			how = ("slice into %d exact boxes (%d front, %d rear)"):format(#cr.pieces, cr.front, cr.rear)
 		elseif cr.method == "csg" then
-			how = ("SubtractAsync: front = minus %d rear boxes, rear = minus %d front boxes"):format(#cr.touched, #cr.touched)
+			how = ("SubtractAsync over %d cells: front = minus %d rear boxes, rear = minus %d front boxes (with edge bridges)"):format(#cr.touched, cr.boxes.Rear, cr.boxes.Front)
 		else
 			how = "NOT CUT: " .. cr.why
 		end
@@ -733,25 +774,42 @@ local function mirrorOf(ctx, half, container)
 	return inst
 end
 
--- A crosser's PrimaryPart role passes to its front piece (or the moved part keeps it in the mirror).
-local function carryPrimary(ctx, from, target, newPart)
-	if from == ctx.train then
-		ctx.train.PrimaryPart = newPart
-	elseif target:IsA("Model") then
-		target.PrimaryPart = newPart
+-- Models from the part up to the train that use it as PrimaryPart (read before it moves).
+local function primaryOwners(ctx, part)
+	local owners = {}
+	local p = part.Parent
+	while p do
+		if p:IsA("Model") and p.PrimaryPart == part then
+			table.insert(owners, p)
+		end
+		if p == ctx.train then
+			break
+		end
+		p = p.Parent
+	end
+	return owners
+end
+
+-- The PrimaryPart role moves with the part (or to a crosser's front piece): the train points at it, and so
+-- does each builder's model's mirror in the half it went to.
+local function passPrimary(ctx, owners, half, newPart)
+	for _, m in owners do
+		if m == ctx.train then
+			ctx.train.PrimaryPart = newPart
+		else
+			local mirror = mirrorOf(ctx, half, m)
+			if mirror:IsA("Model") then
+				mirror.PrimaryPart = newPart
+			end
+		end
 	end
 end
 
-local function cutterBoxes(car, box, side, template, folder)
+local function cutterBoxes(car, b, side, template, folder)
 	local list = {}
-	local o = CUTTER_OVERLAP
-	for _, c in Core.touched(car.cells, box, 0.01) do
-		local z0, z1 = c[5], car.zext
-		if side == "Front" then
-			z0, z1 = -car.zext, c[5]
-		end
+	for _, s in cutterSpecs(car, b, side) do
 		local p = Instance.new("Part")
-		p.Name = ("Cutter%s_%s"):format(side, c[6])
+		p.Name = ("Cutter%s_%s"):format(side, s[7])
 		p.Anchored = true
 		p.CanCollide = false
 		p.CanQuery = false
@@ -763,8 +821,8 @@ local function cutterBoxes(car, box, side, template, folder)
 		pcall(function()
 			p.MaterialVariant = template.MaterialVariant
 		end)
-		p.Size = Vector3.new(c[2] - c[1] + 2 * o, c[4] - c[3] + 2 * o, z1 - z0)
-		p.CFrame = car.frame * CFrame.new((c[1] + c[2]) / 2, (c[3] + c[4]) / 2, (z0 + z1) / 2)
+		p.Size = Vector3.new(s[2] - s[1], s[4] - s[3], s[6] - s[5])
+		p.CFrame = car.frame * CFrame.new((s[1] + s[2]) / 2, (s[3] + s[4]) / 2, (s[5] + s[6]) / 2)
 		p.Parent = folder
 		table.insert(list, p)
 	end
@@ -847,7 +905,7 @@ end
 local function cutOne(ctx, cr)
 	local part, car = cr.part, ctx.found.carriages[cr.k]
 	local from = part.Parent
-	local wasPrimary = from:IsA("Model") and from.PrimaryPart == part
+	local owners = primaryOwners(ctx, part)
 	local made = {}
 	if cr.method == "slice" then
 		local rot = car.frame:ToObjectSpace(part.CFrame).Rotation
@@ -891,10 +949,7 @@ local function cutOne(ctx, cr)
 	for _, m in made do
 		m.part.Parent = mirrorOf(ctx, ctx.halves[cr.k][m.side], from)
 	end
-	if wasPrimary then
-		local frontPiece = pieceFor(made, "Front", Vector3.zero)
-		carryPrimary(ctx, from, frontPiece.Parent, frontPiece)
-	end
+	passPrimary(ctx, owners, ctx.halves[cr.k].Front, pieceFor(made, "Front", Vector3.zero))
 	rehome(ctx, cr, car, made)
 	part.Parent = ctx.originals -- never destroyed
 	return made
@@ -982,13 +1037,10 @@ local function doApply(P, R)
 
 	-- 3. whole parts into their halves
 	for _, mv in P.moves do
-		local from = mv.part.Parent
-		local wasPrimary = from:IsA("Model") and from.PrimaryPart == mv.part
-		local target = mirrorOf(ctx, ctx.halves[mv.c][mv.half], from)
-		mv.part.Parent = target
-		if wasPrimary and from ~= train then
-			carryPrimary(ctx, from, target, mv.part)
-		end
+		local owners = primaryOwners(ctx, mv.part)
+		local half = ctx.halves[mv.c][mv.half]
+		mv.part.Parent = mirrorOf(ctx, half, mv.part.Parent)
+		passPrimary(ctx, owners, half, mv.part)
 	end
 
 	-- 4. the crossers (cutters live in a temporary folder and are destroyed after)

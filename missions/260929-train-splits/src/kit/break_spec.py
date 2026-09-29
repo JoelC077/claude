@@ -19,29 +19,30 @@ FLOOR_DY = -12.258                       # floor top (y 13.927) relative to the 
 ZEXT = 40.0                              # cutter reach along Z (carriage spans -34.5 .. +27.9 from the break)
 XEXT, YLO, YHI = 14.0, -12.0, 18.0       # cutter reach across / below the bogies / above the roof
 
-Y_FLOOR_TOP, Y_WALL_TOP = 0.4, 10.4      # band limits: floor | walls+mid | roof  (world y 14.33 / 24.33)
-X_WALL = 7.5                             # |X| > 7.5 = wall column
+Y_FLOOR_TOP, Y_WALL_TOP = 0.6, 11.18      # band limits: floor | walls+mid | roof (v2.1: moved off the carpet, shell and
+                                         # ceiling-cove faces; sliver_check.py >= 0.1 stud)
+X_WALL = 7.1                             # |X| > 7.1 = wall column (v2.1: outside the curtain pleats at 7.33-8.07)
 
 cells = []
 def cell(x0, x1, y0, y1, d, region):
     cells.append({"X": [x0, x1], "Y": [y0, y1], "d": d, "region": region})
 
 # floor: tears reach back into the lost half (the kept floor sticks out past the walls, like a torn deck)
-for (x0, x1), d in zip([(-XEXT, -6.2), (-6.2, -2.8), (-2.8, 0.6), (0.6, 4.1), (4.1, X_WALL), (X_WALL, XEXT)],
+for (x0, x1), d in zip([(-XEXT, -X_WALL), (-X_WALL, -2.8), (-2.8, 0.6), (0.6, 4.1), (4.1, X_WALL), (X_WALL, XEXT)],
                        [0.6, 2.4, 0.9, 3.6, 1.5, -0.3]):
     cell(x0, x1, YLO, Y_FLOOR_TOP, d, "floor")
 # walls: stay inside the solid pillar between windows 4 and 5 (clear band +-1.1); W and E tear differently
-wall_y = [(Y_FLOOR_TOP, 1.5), (1.5, 3.3), (3.3, 5.7), (5.7, 7.4), (7.4, 9.1), (9.1, Y_WALL_TOP)]
+wall_y = [(Y_FLOOR_TOP, 1.5), (1.5, 3.3), (3.3, 5.7), (5.7, 7.4), (7.4, 8.95), (8.95, Y_WALL_TOP)]
 for (y0, y1), dw, de in zip(wall_y, [0.7, -0.4, 0.9, 0.1, -0.8, 0.4], [-0.6, 0.5, -0.2, 0.8, -0.5, 0.2]):
     cell(-XEXT, -X_WALL, y0, y1, dw, "wall_W")
     cell(X_WALL, XEXT, y0, y1, de, "wall_E")
 # mid (interior between the walls): curtain pelmet height gets its own teeth
-cell(-X_WALL, X_WALL, Y_FLOOR_TOP, 9.1, 0.2, "mid")
-for (x0, x1), d in zip([(-X_WALL, -2.5), (-2.5, 2.5), (2.5, X_WALL)], [0.3, -0.5, 0.6]):
-    cell(x0, x1, 9.1, Y_WALL_TOP, d, "mid_pelmet")
+cell(-X_WALL, X_WALL, Y_FLOOR_TOP, 8.95, 0.2, "mid")
+for (x0, x1), d in zip([(-X_WALL, -2.5), (-2.5, 2.5), (2.5, X_WALL)], [0.3, -0.5, 0.25]):  # E tooth 0.25: clears the ceiling fitting at Z 0.47
+    cell(x0, x1, 8.95, Y_WALL_TOP, d, "mid_pelmet")
 # roof: rips further forward (the kept half loses a jagged bite of roof)
-for (x0, x1), d in zip([(-XEXT, -X_WALL), (-X_WALL, -4.6), (-4.6, -1.9), (-1.9, 0.9), (0.9, 3.8), (3.8, X_WALL), (X_WALL, XEXT)],
-                       [0.3, -1.6, -3.9, -2.2, -4.8, -1.1, 0.1]):
+for (x0, x1), d in zip([(-XEXT, -X_WALL), (-X_WALL, -4.6), (-4.6, -1.9), (-1.9, 0.9), (0.9, 3.7), (3.7, X_WALL), (X_WALL, XEXT)],
+                       [0.3, -1.6, -3.9, -2.4, -4.8, -1.1, 0.1]):
     cell(x0, x1, Y_WALL_TOP, YHI, d, "roof")
 
 # ------------------------------------------------------------------ what happens when it snaps
@@ -56,11 +57,12 @@ motion = {
 topple = {
     "side": "random per snap (seeded), config 'left'|'right' forces it",
     "pivot": {"X_abs": 11.7, "Y": -8.6, "note": "rail level (world y 5.33) at the outer edge of the bogies on the falling side"},
+    "rest_note": "roll 95.9 deg puts the roof eave (X 9.74, Y 10.46) on the ground with the bogie edge (v2.1: was 88, the body hung 1.2-1.8 above the ground)",
     "bodies": [
-        {"who": "the broken half (front-most lost body)", "delay": 0.45, "roll": 88, "roll_time": 1.05, "ease": "QuadIn",
-         "bounce": [82, 88], "bounce_time": 0.35, "yaw": 7, "sink": 0.6},
-        {"who": "a whole carriage dragged behind it (break 1 only: carriage 2)", "delay": 0.8, "roll": 86, "roll_time": 1.2,
-         "ease": "QuadIn", "bounce": [80, 86], "bounce_time": 0.4, "yaw": -4, "sink": 0.5},
+        {"who": "the broken half (front-most lost body)", "delay": 0.45, "roll": 95, "roll_time": 1.05, "ease": "QuadIn",
+         "bounce": [90, 95], "bounce_time": 0.35, "yaw": 7, "sink": 0.4},
+        {"who": "a whole carriage dragged behind it (break 1 only: carriage 2)", "delay": 0.8, "roll": 95, "roll_time": 1.2,
+         "ease": "QuadIn", "bounce": [91, 95], "bounce_time": 0.4, "yaw": -4, "sink": 0.35},
     ],
 }
 events = [  # t = seconds after the snap; anchors in B coords of the breaking carriage
@@ -72,15 +74,16 @@ events = [  # t = seconds after the snap; anchors in B coords of the breaking ca
     {"t": "topple impact (delay+roll_time)", "id": "topple_crash", "kind": "fx(topple_dust)+sound+shake", "shake": "medium"},
     {"t": "0.3 .. V/brake", "id": "wreck_scrape", "kind": "sound", "at": "wreck"},
 ]
+structure = {"gangway": "Carriage2.FrontHalf", "front_stub": "Carriage1.FrontHalf", "rear_platform": "Carriage2.RearHalf"}
 lost_rule = {
-    "break1": "Carriage1.RearHalf (with the gangway) + all of Carriage2 still attached",
+    "break1": "Carriage1.RearHalf + all of Carriage2 still attached (the gangway union belongs to Carriage2.FrontHalf: it is built 0.7-0.8 stud into C2's front wall)",
     "break2": "Carriage2.RearHalf",
     "bodies": "each carriage's lost pieces animate as one body; break 1 gives two bodies (C1 rear half, C2)",
 }
 
-spec = {"version": "2.0.0", "frame": __doc__.split("\n")[2].strip(), "roof_signature": ROOF_SIG,
+spec = {"version": "2.1.0", "frame": __doc__.split("\n")[2].strip(), "roof_signature": ROOF_SIG,
         "roof_centres_export": ROOF_CENTRES, "break_dz": BREAK_DZ, "floor_dy": FLOOR_DY, "zext": ZEXT,
-        "cells": cells, "motion": motion, "topple": topple, "events": events, "lost": lost_rule,
+        "cells": cells, "structure": structure, "motion": motion, "topple": topple, "events": events, "lost": lost_rule,
         "expected_crossers_export": {
             "1": ["Carpet1", "CurtainCorroded1", "Part269", "Union12", "Union16", "Union19", "Union28", "Union38", "Union56", "Union61"],
             "2": ["Carpet2", "CurtainCorroded2", "Part409", "Union109", "Union134", "Union138", "Union77", "Union80", "Union84", "Union86"]},

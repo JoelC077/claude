@@ -9,7 +9,7 @@ Engine stand-ins (only for tests; the production files never see this module):
   BasePart:GetJoints      joints registered by the test
   Selection:Get, ChangeHistoryService recording/waypoints, Workspace:GetServerTimeNow (a fake clock),
   RunService (IsServer/IsStudio/Heartbeat/BindToRenderStep), RemoteEvent/BindableEvent signals,
-  Players:GetPlayers, Workspace.CurrentCamera, Instance:WaitForChild / GetAttributeChangedSignal /
+  Players:GetPlayers, Instance:WaitForChild / GetAttributeChangedSignal /
   DescendantAdded, Sound:Play/Stop, ParticleEmitter:Emit.
 ]]
 
@@ -68,7 +68,6 @@ function H.resetState()
 	state.joints = {}
 	state.fired = {}
 	state.players = {}
-	state.camera = nil
 	state.renderSteps = {}
 	state.isServer = true
 	state.isStudio = true
@@ -157,6 +156,9 @@ H.boxInFrame = boxInFrame
 
 local function subtractAsync(self, cutters)
 	state.csgCalls += 1
+	if state.onSubtract then
+		state.onSubtract(self, cutters)
+	end
 	local name = self:GetAttribute("ExportName")
 	if name and state.failNames[name] then
 		error("CSG failed (simulated) on " .. name)
@@ -245,9 +247,6 @@ end)
 roblox.implementMethod("Workspace", "GetServerTimeNow", function()
 	return state.clock
 end)
-roblox.implementProperty("Workspace", "CurrentCamera", function()
-	return state.camera
-end)
 roblox.implementMethod("RunService", "IsServer", function()
 	return state.isServer
 end)
@@ -297,7 +296,8 @@ roblox.implementProperty("Instance", "DescendantAdded", function(self)
 	return H.signal(self, "DescendantAdded")
 end)
 roblox.implementMethod("Sound", "Play", function(self)
-	table.insert(state.played, { sound = self, at = state.clock })
+	-- recorded now: Lune cannot read an instance once it is destroyed (Roblox can)
+	table.insert(state.played, { sound = self, name = self.Name, parent = self.Parent, speed = self.PlaybackSpeed, volume = self.Volume, at = state.clock })
 end)
 roblox.implementMethod("Sound", "Stop", function(self)
 	state.stopped[self] = state.clock

@@ -12,26 +12,26 @@
   ],
   "moon": false
  },
- "mean_luma": 114.6,
+ "mean_luma": 133.6,
  "clipped_pct": 0.0,
- "crushed_pct": 4.04,
- "frame_mean": "#6C7855",
+ "crushed_pct": 0.0,
+ "frame_mean": "#858A60",
  "sky_mean": "#AABDAF",
- "ground_mean": "#728943",
- "ground_sat_hsl": 0.35,
- "train_mean": "#4A4A2E",
- "train_vs_world_contrast": 2.04,
- "crushed_train_pct": 9.26,
+ "ground_mean": "#879D51",
+ "ground_sat_hsl": 0.32,
+ "train_mean": "#74663E",
+ "train_vs_world_contrast": 1.69,
+ "crushed_train_pct": 0.0,
  "hazard_vs_world": null,
  "hazard_mean": null,
  "spawn_edge_fog": 0.956,
  "spawn_edge_studs": 2048.0,
  "fx_on": [],
  "bands": [],
- "phone": false,
- "png": "grassland.day_door1p.png",
+ "phone": true,
+ "png": "grassland.day_door1p.phone.png",
  "res": [
-  192,
-  108
+  210,
+  96
  ]
 }

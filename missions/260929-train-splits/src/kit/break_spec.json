@@ -1,5 +1,5 @@
 {
- "version": "2.0.0",
+ "version": "2.1.0",
  "frame": "Break frame B (per carriage): origin on the carriage centre line, at floor-top height, at the break plane.",
  "roof_signature": [
   19.48,
@@ -25,23 +25,23 @@
   {
    "X": [
     -14.0,
-    -6.2
+    -7.1
    ],
    "Y": [
     -12.0,
-    0.4
+    0.6
    ],
    "d": 0.6,
    "region": "floor"
   },
   {
    "X": [
-    -6.2,
+    -7.1,
     -2.8
    ],
    "Y": [
     -12.0,
-    0.4
+    0.6
    ],
    "d": 2.4,
    "region": "floor"
@@ -53,7 +53,7 @@
    ],
    "Y": [
     -12.0,
-    0.4
+    0.6
    ],
    "d": 0.9,
    "region": "floor"
@@ -65,7 +65,7 @@
    ],
    "Y": [
     -12.0,
-    0.4
+    0.6
    ],
    "d": 3.6,
    "region": "floor"
@@ -73,23 +73,23 @@
   {
    "X": [
     4.1,
-    7.5
+    7.1
    ],
    "Y": [
     -12.0,
-    0.4
+    0.6
    ],
    "d": 1.5,
    "region": "floor"
   },
   {
    "X": [
-    7.5,
+    7.1,
     14.0
    ],
    "Y": [
     -12.0,
-    0.4
+    0.6
    ],
    "d": -0.3,
    "region": "floor"
@@ -97,10 +97,10 @@
   {
    "X": [
     -14.0,
-    -7.5
+    -7.1
    ],
    "Y": [
-    0.4,
+    0.6,
     1.5
    ],
    "d": 0.7,
@@ -108,11 +108,11 @@
   },
   {
    "X": [
-    7.5,
+    7.1,
     14.0
    ],
    "Y": [
-    0.4,
+    0.6,
     1.5
    ],
    "d": -0.6,
@@ -121,7 +121,7 @@
   {
    "X": [
     -14.0,
-    -7.5
+    -7.1
    ],
    "Y": [
     1.5,
@@ -132,7 +132,7 @@
   },
   {
    "X": [
-    7.5,
+    7.1,
     14.0
    ],
    "Y": [
@@ -145,7 +145,7 @@
   {
    "X": [
     -14.0,
-    -7.5
+    -7.1
    ],
    "Y": [
     3.3,
@@ -156,7 +156,7 @@
   },
   {
    "X": [
-    7.5,
+    7.1,
     14.0
    ],
    "Y": [
@@ -169,7 +169,7 @@
   {
    "X": [
     -14.0,
-    -7.5
+    -7.1
    ],
    "Y": [
     5.7,
@@ -180,7 +180,7 @@
   },
   {
    "X": [
-    7.5,
+    7.1,
     14.0
    ],
    "Y": [
@@ -193,23 +193,23 @@
   {
    "X": [
     -14.0,
-    -7.5
+    -7.1
    ],
    "Y": [
     7.4,
-    9.1
+    8.95
    ],
    "d": -0.8,
    "region": "wall_W"
   },
   {
    "X": [
-    7.5,
+    7.1,
     14.0
    ],
    "Y": [
     7.4,
-    9.1
+    8.95
    ],
    "d": -0.5,
    "region": "wall_E"
@@ -217,47 +217,47 @@
   {
    "X": [
     -14.0,
-    -7.5
+    -7.1
    ],
    "Y": [
-    9.1,
-    10.4
+    8.95,
+    11.18
    ],
    "d": 0.4,
    "region": "wall_W"
   },
   {
    "X": [
-    7.5,
+    7.1,
     14.0
    ],
    "Y": [
-    9.1,
-    10.4
+    8.95,
+    11.18
    ],
    "d": 0.2,
    "region": "wall_E"
   },
   {
    "X": [
-    -7.5,
-    7.5
+    -7.1,
+    7.1
    ],
    "Y": [
-    0.4,
-    9.1
+    0.6,
+    8.95
    ],
    "d": 0.2,
    "region": "mid"
   },
   {
    "X": [
-    -7.5,
+    -7.1,
     -2.5
    ],
    "Y": [
-    9.1,
-    10.4
+    8.95,
+    11.18
    ],
    "d": 0.3,
    "region": "mid_pelmet"
@@ -268,8 +268,8 @@
     2.5
    ],
    "Y": [
-    9.1,
-    10.4
+    8.95,
+    11.18
    ],
    "d": -0.5,
    "region": "mid_pelmet"
@@ -277,22 +277,22 @@
   {
    "X": [
     2.5,
-    7.5
+    7.1
    ],
    "Y": [
-    9.1,
-    10.4
+    8.95,
+    11.18
    ],
-   "d": 0.6,
+   "d": 0.25,
    "region": "mid_pelmet"
   },
   {
    "X": [
     -14.0,
-    -7.5
+    -7.1
    ],
    "Y": [
-    10.4,
+    11.18,
     18.0
    ],
    "d": 0.3,
@@ -300,11 +300,11 @@
   },
   {
    "X": [
-    -7.5,
+    -7.1,
     -4.6
    ],
    "Y": [
-    10.4,
+    11.18,
     18.0
    ],
    "d": -1.6,
@@ -316,7 +316,7 @@
     -1.9
    ],
    "Y": [
-    10.4,
+    11.18,
     18.0
    ],
    "d": -3.9,
@@ -328,19 +328,19 @@
     0.9
    ],
    "Y": [
-    10.4,
+    11.18,
     18.0
    ],
-   "d": -2.2,
+   "d": -2.4,
    "region": "roof"
   },
   {
    "X": [
     0.9,
-    3.8
+    3.7
    ],
    "Y": [
-    10.4,
+    11.18,
     18.0
    ],
    "d": -4.8,
@@ -348,11 +348,11 @@
   },
   {
    "X": [
-    3.8,
-    7.5
+    3.7,
+    7.1
    ],
    "Y": [
-    10.4,
+    11.18,
     18.0
    ],
    "d": -1.1,
@@ -360,17 +360,22 @@
   },
   {
    "X": [
-    7.5,
+    7.1,
     14.0
    ],
    "Y": [
-    10.4,
+    11.18,
     18.0
    ],
    "d": 0.1,
    "region": "roof"
   }
  ],
+ "structure": {
+  "gangway": "Carriage2.FrontHalf",
+  "front_stub": "Carriage1.FrontHalf",
+  "rear_platform": "Carriage2.RearHalf"
+ },
  "motion": {
   "speed_source": "train attribute 'Speed' (studs/s) if present, else opts.speed, else 35 (gameplay.speed.normal)",
   "speed_default": 35,
@@ -390,34 +395,35 @@
    "Y": -8.6,
    "note": "rail level (world y 5.33) at the outer edge of the bogies on the falling side"
   },
+  "rest_note": "roll 95.9 deg puts the roof eave (X 9.74, Y 10.46) on the ground with the bogie edge (v2.1: was 88, the body hung 1.2-1.8 above the ground)",
   "bodies": [
    {
     "who": "the broken half (front-most lost body)",
     "delay": 0.45,
-    "roll": 88,
+    "roll": 95,
     "roll_time": 1.05,
     "ease": "QuadIn",
     "bounce": [
-     82,
-     88
+     90,
+     95
     ],
     "bounce_time": 0.35,
     "yaw": 7,
-    "sink": 0.6
+    "sink": 0.4
    },
    {
     "who": "a whole carriage dragged behind it (break 1 only: carriage 2)",
     "delay": 0.8,
-    "roll": 86,
+    "roll": 95,
     "roll_time": 1.2,
     "ease": "QuadIn",
     "bounce": [
-     80,
-     86
+     91,
+     95
     ],
     "bounce_time": 0.4,
     "yaw": -4,
-    "sink": 0.5
+    "sink": 0.35
    }
   ]
  },
@@ -479,7 +485,7 @@
   }
  ],
  "lost": {
-  "break1": "Carriage1.RearHalf (with the gangway) + all of Carriage2 still attached",
+  "break1": "Carriage1.RearHalf + all of Carriage2 still attached (the gangway union belongs to Carriage2.FrontHalf: it is built 0.7-0.8 stud into C2's front wall)",
   "break2": "Carriage2.RearHalf",
   "bodies": "each carriage's lost pieces animate as one body; break 1 gives two bodies (C1 rear half, C2)"
  },
