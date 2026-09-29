@@ -8,7 +8,7 @@ The scanner's findings are hints, not verdicts: confirm or reject them; 'trusted
 ```
 reviewer: <your agent id or name>
 independent: yes
-scan: 120a53b73e5c
+scan: 25ffd7857bea
 R01 | SAFE | <= 25 words, cite file:line
 R02 | VULN | <the exploit path, file:line>
 NEW: <file:line> | <critical|high|medium> | <a problem the scanner missed>
@@ -16,6 +16,6 @@ NEW: <file:line> | <critical|high|medium> | <a problem the scanner missed>
 
 Ask of every item: If an exploiter sends any values 1000 times a second, what is the worst outcome?
 
-Scan: 2026-09-29T23:26:20+00:00 · 20 files · 0 items · inputs sha256 120a53b73e5c
+Scan: 2026-09-29T23:50:38+00:00 · 20 files · 0 items · inputs sha256 25ffd7857bea
 
 No entry points take client values and nothing sensitive was found: nothing to review.

@@ -1,0 +1,362 @@
+{
+ "spec": "2.2.0",
+ "counts": {
+  "C1F": 243,
+  "C1R": 188,
+  "C2F": 233,
+  "C2R": 333
+ },
+ "groups_imported": 957,
+ "crossers": [
+  {
+   "k": 1,
+   "name": "Carpet1",
+   "path": "manifold3d",
+   "caps": "22 / 22",
+   "v_orig": 499.5668597868448,
+   "off_pct": 1.13785407793187e-14,
+   "nonmanifold": 0,
+   "fins": 0,
+   "degenerate": 0,
+   "m3_import": ""
+  },
+  {
+   "k": 1,
+   "name": "CurtainCorroded1",
+   "path": "manifold3d",
+   "caps": "336 / 336",
+   "v_orig": 34.51148776287848,
+   "off_pct": 2.26474446626673e-12,
+   "nonmanifold": 0,
+   "fins": 0,
+   "degenerate": 0,
+   "m3_import": ""
+  },
+  {
+   "k": 1,
+   "name": "Part269",
+   "path": "block sliced per cell",
+   "caps": "6 boxes / 6 boxes",
+   "v_orig": 209.72633781624373,
+   "off_pct": 1.3551807429788006e-14,
+   "nonmanifold": 0,
+   "fins": 0,
+   "degenerate": 0,
+   "m3_import": ""
+  },
+  {
+   "k": 1,
+   "name": "Union12",
+   "path": "manifold3d",
+   "caps": "41 / 41",
+   "v_orig": 196.5332256906412,
+   "off_pct": 2.1692293501920654e-13,
+   "nonmanifold": 0,
+   "fins": 0,
+   "degenerate": 0,
+   "m3_import": ""
+  },
+  {
+   "k": 1,
+   "name": "Union16",
+   "path": "manifold3d",
+   "caps": "4 / 4",
+   "v_orig": 3.2200073266294247,
+   "off_pct": -1.0991872512942051e-11,
+   "nonmanifold": 0,
+   "fins": 0,
+   "degenerate": 0,
+   "m3_import": ""
+  },
+  {
+   "k": 1,
+   "name": "Union19",
+   "path": "clip+caps",
+   "caps": "242 / 242",
+   "v_orig": 714.1580705573652,
+   "off_pct": 2.706230344437771e-13,
+   "nonmanifold": 3,
+   "fins": 1,
+   "degenerate": 0,
+   "m3_import": "manifold3d would import it as 713.139 (-0.14 %)"
+  },
+  {
+   "k": 1,
+   "name": "Union28",
+   "path": "manifold3d",
+   "caps": "157 / 157",
+   "v_orig": 245.06808277562504,
+   "off_pct": -4.870939465299058e-13,
+   "nonmanifold": 0,
+   "fins": 0,
+   "degenerate": 4,
+   "m3_import": ""
+  },
+  {
+   "k": 1,
+   "name": "Union38",
+   "path": "manifold3d",
+   "caps": "102 / 102",
+   "v_orig": 194.01982370635247,
+   "off_pct": 5.713058833943597e-13,
+   "nonmanifold": 0,
+   "fins": 0,
+   "degenerate": 0,
+   "m3_import": ""
+  },
+  {
+   "k": 1,
+   "name": "Union56",
+   "path": "manifold3d",
+   "caps": "102 / 102",
+   "v_orig": 194.02290668854917,
+   "off_pct": 3.6621590094033723e-13,
+   "nonmanifold": 0,
+   "fins": 0,
+   "degenerate": 0,
+   "m3_import": ""
+  },
+  {
+   "k": 1,
+   "name": "Union61",
+   "path": "clip+caps",
+   "caps": "130 / 130",
+   "v_orig": 1415.4485789916332,
+   "off_pct": 1.6063718514254558e-14,
+   "nonmanifold": 1,
+   "fins": 0,
+   "degenerate": 0,
+   "m3_import": "manifold3d would import it as 1414.736 (-0.05 %)"
+  },
+  {
+   "k": 2,
+   "name": "Carpet2",
+   "path": "manifold3d",
+   "caps": "22 / 22",
+   "v_orig": 498.7448325085973,
+   "off_pct": -1.1397294800007408e-14,
+   "nonmanifold": 0,
+   "fins": 0,
+   "degenerate": 0,
+   "m3_import": ""
+  },
+  {
+   "k": 2,
+   "name": "CurtainCorroded2",
+   "path": "manifold3d",
+   "caps": "362 / 362",
+   "v_orig": 34.50769857642503,
+   "off_pct": 2.001430311642556e-11,
+   "nonmanifold": 0,
+   "fins": 0,
+   "degenerate": 0,
+   "m3_import": ""
+  },
+  {
+   "k": 2,
+   "name": "Part409",
+   "path": "block sliced per cell",
+   "caps": "6 boxes / 6 boxes",
+   "v_orig": 209.7257881671692,
+   "off_pct": 1.3551842946347398e-14,
+   "nonmanifold": 0,
+   "fins": 0,
+   "degenerate": 0,
+   "m3_import": ""
+  },
+  {
+   "k": 2,
+   "name": "Union109",
+   "path": "manifold3d",
+   "caps": "95 / 95",
+   "v_orig": 194.00806470428975,
+   "off_pct": -8.936351578462551e-13,
+   "nonmanifold": 0,
+   "fins": 0,
+   "degenerate": 0,
+   "m3_import": ""
+  },
+  {
+   "k": 2,
+   "name": "Union134",
+   "path": "manifold3d",
+   "caps": "148 / 148",
+   "v_orig": 245.07344946973095,
+   "off_pct": 6.005504897933964e-10,
+   "nonmanifold": 0,
+   "fins": 0,
+   "degenerate": 4,
+   "m3_import": ""
+  },
+  {
+   "k": 2,
+   "name": "Union138",
+   "path": "manifold3d",
+   "caps": "4 / 4",
+   "v_orig": 3.219944903579599,
+   "off_pct": 9.585319317193208e-12,
+   "nonmanifold": 0,
+   "fins": 0,
+   "degenerate": 0,
+   "m3_import": ""
+  },
+  {
+   "k": 2,
+   "name": "Union77",
+   "path": "manifold3d",
+   "caps": "43 / 43",
+   "v_orig": 196.52951016032594,
+   "off_pct": 5.784720962713028e-14,
+   "nonmanifold": 0,
+   "fins": 0,
+   "degenerate": 0,
+   "m3_import": ""
+  },
+  {
+   "k": 2,
+   "name": "Union80",
+   "path": "manifold3d",
+   "caps": "93 / 93",
+   "v_orig": 194.00812611253392,
+   "off_pct": -3.076447930290711e-13,
+   "nonmanifold": 0,
+   "fins": 0,
+   "degenerate": 0,
+   "m3_import": ""
+  },
+  {
+   "k": 2,
+   "name": "Union84",
+   "path": "clip+caps",
+   "caps": "127 / 127",
+   "v_orig": 1415.469010542697,
+   "off_pct": -3.212697328584481e-14,
+   "nonmanifold": 2,
+   "fins": 0,
+   "degenerate": 0,
+   "m3_import": "manifold3d would import it as 1414.757 (-0.05 %)"
+  },
+  {
+   "k": 2,
+   "name": "Union86",
+   "path": "clip+caps",
+   "caps": "242 / 242",
+   "v_orig": 714.1716194039833,
+   "off_pct": 3.1837400040201583e-14,
+   "nonmanifold": 3,
+   "fins": 1,
+   "degenerate": 0,
+   "m3_import": "manifold3d would import it as 687.017 (-3.80 %)"
+  }
+ ],
+ "vol_worst_pct": 6.005504897933964e-10,
+ "slivers": {
+  "true_count": 0,
+  "true_min": [
+   0.18285973200798034,
+   "Union19.F"
+  ],
+  "feather_count": 35,
+  "feather_min": [
+   0.0021309879910200833,
+   "Union28.F"
+  ],
+  "feather_planes": [
+   [
+    "X = +3.70",
+    0.0021309879910200833,
+    19,
+    [
+     "Union109",
+     "Union28",
+     "Union38",
+     "Union56",
+     "Union80"
+    ]
+   ],
+   [
+    "X = -4.60",
+    0.0027170467026531695,
+    16,
+    [
+     "Union134",
+     "Union28"
+    ]
+   ]
+  ],
+  "true_planes": []
+ },
+ "floaters": {
+  "1": {
+   "kept": 243,
+   "checked": 61,
+   "created": [],
+   "preexisting": []
+  },
+  "2": {
+   "kept": 664,
+   "checked": 61,
+   "created": [],
+   "preexisting": []
+  }
+ },
+ "rest": [
+  {
+   "k": 1,
+   "body": 1,
+   "name": "C1.Rear",
+   "pose": "roll 97.65 yaw 7.0 sink 0.15 lift 0.75 back 0.00",
+   "lowest": 5.176823363440221,
+   "lowest_part": "Union12.R",
+   "limit": 5.13,
+   "bogie": 5.178997228160675,
+   "bogie_part": "Union4",
+   "roof": 5.176823363440221,
+   "roof_part": "Union12.R",
+   "sink": 0.15,
+   "ok": true
+  },
+  {
+   "k": 1,
+   "body": 2,
+   "name": "C2 incl. gangway",
+   "pose": "roll 97.65 yaw -4.0 sink 0.15 lift 0.75 back 0.60",
+   "lowest": 5.174062812021276,
+   "lowest_part": "Union134.R",
+   "limit": 5.13,
+   "bogie": 5.17580469572593,
+   "bogie_part": "Union100",
+   "roof": 5.174062812021276,
+   "roof_part": "Union134.R",
+   "sink": 0.15,
+   "ok": true
+  },
+  {
+   "k": 2,
+   "body": 1,
+   "name": "C2.Rear",
+   "pose": "roll 96.10 yaw -7.0 sink 0.15 lift 0.20 back 0.00",
+   "lowest": 5.0365099914073,
+   "lowest_part": "Union103",
+   "limit": 5.13,
+   "bogie": 5.0365099914073,
+   "bogie_part": "Union103",
+   "roof": 5.182088634630986,
+   "roof_part": "Union134.R",
+   "sink": 0.15,
+   "ok": false
+  }
+ ],
+ "penetration": {
+  "t4": 0.0,
+  "pair": null,
+  "pairs": 0,
+  "intact": 0.0026932372711598873,
+  "intact_pair": [
+   "Part190",
+   "Union22"
+  ]
+ },
+ "gap_max": 0.0,
+ "tear_hits": []
+}

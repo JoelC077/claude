@@ -11,7 +11,7 @@ Break frame B: origin on the carriage centre line at floor-top height on the bre
 ]]
 
 local Shared = {}
-Shared.Version = "2.1.0"
+Shared.Version = "2.2.0"
 
 local EASE = {
 	Linear = function(u)
@@ -88,18 +88,20 @@ function Shared.terrainSpeed(t, V, a, recoil)
 end
 
 -- Highest honest speed of a body's root (studs/s): 1.5x the terrain speed, the blast's shove, and the fastest
--- roll or bounce at the body's far edge (farRadius studs from the pivot line), plus a little slack.
-function Shared.velocityCap(V, params, farRadius)
+-- roll or bounce at the body's far edge (farRadius studs from the pivot line), plus the lift/sink/push rates
+-- and a little slack. side picks the rest pose (+1 falls to +X).
+function Shared.velocityCap(V, params, farRadius, side)
 	local omega, lin = 0, 0
 	local tp = params.topple
 	if tp then
+		local rest = Shared.restPose(params.rest, side) or {}
 		local rollTime = math.max(tp.roll_time or 1, 1e-3)
 		-- every ease here peaks at or below twice its average rate
-		omega = 2 * math.rad(math.abs(tp.roll or 0)) / rollTime
-		lin = 2 * (math.abs(tp.sink or 0) + math.abs(tp.lift or 0) + math.abs(tp.extra_back or 0)) / rollTime
-		local b, bt = tp.bounce, tp.bounce_time or 0
-		if b and bt > 0 then
-			omega = math.max(omega, math.rad(math.abs(b[2] - (tp.roll or 0)) + math.pi * math.abs(b[1] - b[2])) / bt)
+		omega = 2 * math.rad(math.abs(rest.roll or tp.roll or 0)) / rollTime
+		lin = 2 * (math.abs(tp.sink or 0) + math.abs(rest.lift or 0) + math.abs(tp.extra_back or 0)) / rollTime
+		local bt = tp.bounce_time or 0
+		if bt > 0 then
+			omega = math.max(omega, math.pi * math.rad(math.abs(tp.bounce_back or 0)) / bt)
 		end
 	end
 	local r = params.recoil
@@ -119,33 +121,47 @@ function Shared.clampVelocity(v, cap)
 	return v
 end
 
--- Topple of one lost body at time t: roll (deg, onto its side), yaw (deg, twist), sink (studs into the ground).
--- body = one TrainSplitConfig.Topple entry. It waits `delay`, rolls over in `roll_time`, bounces off the
--- ground (bounce = {lowest, rest}) in `bounce_time`, then lies still.
-function Shared.topple(t, body)
+-- The rest pose for the falling side: rest = Config.ToppleRest ({["+X"] = {roll, lift}, ["-X"] = ...}) or a
+-- pose already picked. The bogies are asymmetric, so each side lands at its own angle and height.
+function Shared.restPose(rest, side)
+	if not rest or rest.roll then
+		return rest
+	end
+	return rest[(side or 1) >= 0 and "+X" or "-X"]
+end
+
+--[[
+Topple of one lost body at time t -> roll, yaw, sink, lift, back.
+  body  one Config.Topple entry: delay, roll_time, ease, bounce_back, bounce_time, yaw, sink, extra_back
+  rest  its rest pose for the falling side: {roll (deg), lift (studs along world up)}
+It waits `delay`, then over `roll_time` rolls onto its side while yaw (twist, deg), sink (dig-in), lift and
+back (extra push along the rear axis) all ease in with it; it rocks back by bounce_back degrees and settles
+over `bounce_time`, then lies still.
+]]
+function Shared.topple(t, body, rest)
 	if not body then
-		return 0, 0, 0
+		return 0, 0, 0, 0, 0
 	end
 	local tt = t - (body.delay or 0)
 	if tt <= 0 then
-		return 0, 0, 0
+		return 0, 0, 0, 0, 0
 	end
+	local roll = rest and rest.roll or body.roll or 0
+	local lift = rest and rest.lift or 0
+	local yaw, sink, back = body.yaw or 0, body.sink or 0, body.extra_back or 0
 	local rollTime = math.max(body.roll_time or 1, 1e-3)
-	local roll, yaw, sink = body.roll or 0, body.yaw or 0, body.sink or 0
 	if tt < rollTime then
 		local e = Shared.ease(body.ease or "QuadIn", tt / rollTime)
-		return roll * e, yaw * e, sink * e
+		return roll * e, yaw * e, sink * e, lift * e, back * e
 	end
-	local bounce, bounceTime = body.bounce, body.bounce_time or 0
-	if bounce and bounceTime > 0 then
-		local v = (tt - rollTime) / bounceTime
+	local bt = body.bounce_time or 0
+	if bt > 0 and (body.bounce_back or 0) ~= 0 then
+		local v = (tt - rollTime) / bt
 		if v < 1 then
-			-- from the impact angle to the rest angle, dipping back up to bounce[1] half way
-			return roll + (bounce[2] - roll) * v + (bounce[1] - bounce[2]) * math.sin(math.pi * v), yaw, sink
+			return roll - body.bounce_back * math.sin(math.pi * v), yaw, sink, lift, back
 		end
-		return bounce[2], yaw, sink
 	end
-	return roll, yaw, sink
+	return roll, yaw, sink, lift, back
 end
 
 --[[
@@ -153,9 +169,11 @@ World CFrame of a lost body's root, t s after the snap.
   baseRootCF  root CFrame at the snap (intact position)
   breakCF     break frame B of the carriage that snapped
   pivotSide   +1 falls to the right (+X of B), -1 to the left
-  params      { V, brake, recoil = {dist, time}, pivot = {X_abs, Y}, topple = one Config.Topple entry }
-The body rolls about the rail-level line on the falling side, twists about its own vertical axis
-(mirrored with the side), sinks a little and slides back by drift(t).
+  params      { V, brake, recoil = {dist, time}, pivot = {X_abs, Y}, topple = one Config.Topple entry,
+                rest = Config.ToppleRest (per side) }
+The body rolls about the rail-level line on the falling side to that side's rest angle, twists about its
+own vertical axis (mirrored with the side), slides back by drift(t) plus its extra push, and rises by
+lift minus sink along world up.
 ]]
 function Shared.bodyCFrame(baseRootCF, breakCF, pivotSide, t, params)
 	if t <= 0 then
@@ -163,13 +181,13 @@ function Shared.bodyCFrame(baseRootCF, breakCF, pivotSide, t, params)
 	end
 	local s = (pivotSide or 1) >= 0 and 1 or -1
 	local z = Shared.drift(t, params.V, params.brake, params.recoil)
-	local roll, yaw, sink = Shared.topple(t, params.topple)
+	local roll, yaw, sink, lift, back = Shared.topple(t, params.topple, Shared.restPose(params.rest, s))
 	local rel = breakCF:ToObjectSpace(baseRootCF)
 	local pivot = Vector3.new(s * params.pivot.X_abs, params.pivot.Y, 0)
 	local rolled = CFrame.new(pivot) * CFrame.Angles(0, 0, -s * math.rad(roll)) * CFrame.new(-pivot) * rel
 	local c = rolled.Position
 	local twist = CFrame.new(c.X, 0, c.Z) * CFrame.Angles(0, s * math.rad(yaw), 0) * CFrame.new(-c.X, 0, -c.Z)
-	return breakCF * (CFrame.new(0, -sink, z) * twist * rolled)
+	return CFrame.new(0, lift - sink, 0) * (breakCF * (CFrame.new(0, 0, z + back) * twist * rolled))
 end
 
 -- Root velocity (studs/s, world) by central difference; feeds AssemblyLinearVelocity so riders are carried.

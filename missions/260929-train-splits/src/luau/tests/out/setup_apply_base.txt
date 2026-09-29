@@ -1,4 +1,4 @@
-== RR_TrainSplit_Setup 2.1.0 APPLY: Workspace.Train ==
+== RR_TrainSplit_Setup 2.2.0 APPLY: Workspace.Train ==
 Mode: roof unions -> jagged tear. Front = the min end of world Z (FRONT_AT = "min").
 Break 1 frame: origin (-58.05, 13.93, 86.20)  right (1.00, 0.00, 0.00)  up (0.00, 1.00, 0.00)  rear (0.00, 0.00, 1.00)
 Break 2 frame: origin (-58.05, 13.93, 153.60)  right (1.00, 0.00, 0.00)  up (0.00, 1.00, 0.00)  rear (0.00, 0.00, 1.00)
@@ -68,6 +68,6 @@ Result:
   Re-homed PointLight "TestLight" from CurtainCorroded: to the piece holding the part centre
   Still points at a cut original (now in the backup): WeldConstraint Workspace.Train.Body.TestWeld (Part0); re-point it at a piece or delete it
   2 emptied container(s) moved into the backup (EmptiedContainers).
-  Backup: ServerStorage.RR_Backups.Train_20260929-234627Z (full copy, CutOriginals, Cutters).
+  Backup: ServerStorage.RR_Backups.Train_20260929-235033Z (full copy, CutOriginals, Cutters).
   Undo: Ctrl+Z (one step).
 Next: run RR_BreakChecker again (it checks the halves), then test with TrainSplitDemo (RR_TestBreak = 1 or 2).

@@ -1249,10 +1249,10 @@ def preflight(B, path):
 PACK_BAND = [('break1 t4.0 POV inside (player view)', 'break1_t4.0__Cam_POV_In.png', (640, 360)),
              ('break1 t4.0 roof 3rd person (player view)', 'break1_t4.0__Cam_Roof3P.png', (640, 360)),
              ('break1 t4.0 game distance 400x225', 'break1_t4.0__Cam_Game.png', None)]
-PACK_GRID = [('intact seam outside', 'intact__Cam_SeamOut.png'), ('intact roof top', 'intact__Cam_SeamRoof.png'),
-             ('exploded 6 studs', 'exploded__Cam_Exploded.png'), ('break1 t1.0 wide', 'break1_t1.0__Cam_Wide.png'),
-             ('break1 t4.0 hero (torn end)', 'break1_t4.0__Cam_Hero.png'), ('break1 t4.0 wide', 'break1_t4.0__Cam_Wide.png'),
-             ('break1 t4.0 side (ortho 140)', 'break1_t4.0__Cam_Side.png'), ('break2 t4.0 hero (torn end)', 'break2_t4.0__Cam_Hero.png')]
+PACK_GRID = [('intact seam out', 'intact__Cam_SeamOut.png'), ('intact roof', 'intact__Cam_SeamRoof.png'),
+             ('exploded', 'exploded__Cam_Exploded.png'), ('b1 t1.0 wide', 'break1_t1.0__Cam_Wide.png'),
+             ('b1 t4.0 hero', 'break1_t4.0__Cam_Hero.png'), ('b1 t4.0 wide', 'break1_t4.0__Cam_Wide.png'),
+             ('b1 t4.0 side', 'break1_t4.0__Cam_Side.png'), ('b2 t4.0 hero', 'break2_t4.0__Cam_Hero.png')]
 
 
 def cam_project(cname, k, t, pts):
@@ -1310,9 +1310,9 @@ def critic_pack(out_dir, pack):
             used_tile = tile; print('[pack] contact.png tile %dx%d: %s' % (tile[0], tile[1], msg.splitlines()[0]), flush=True); break
     # 1:1 crops of the seam (intact, inside) and the torn end (break 1, t = 4.0, hero)
     crops = []
-    seam = [(-8.8, y, c[4]) for c in CELLS if c[1] <= -7.1 for y in (c[2], c[3])]
+    seam = [(-8.8, y, c[4]) for c in CELLS if c[1] <= -7.1 and c[2] >= 0.6 - 1e-9 and c[3] <= 11.18 + 1e-9 for y in (c[2], c[3])]
     pix, WH = cam_project('Cam_SeamIn', 1, None, seam)
-    torn = [(x, y, z) for x in (-9.74, 9.74) for y in (-8.6, 0.0, 14.05) for z in (D_LO, D_HI)]
+    torn = [(x, y, z) for x in (-9.74, 9.74) for y in (-0.5, 14.05) for z in (D_LO, D_HI)]
     pix2, WH2 = cam_project('Cam_Hero', 1, 4.0, torn)
     for lab, src, px, wh in (('intact inside, seam at the tear line (1:1 crop)', 'intact__Cam_SeamIn.png', pix, WH),
                              ('break1 t4.0 hero, torn end of the kept half (1:1 crop)', 'break1_t4.0__Cam_Hero.png', pix2, WH2)):

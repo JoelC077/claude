@@ -29,7 +29,7 @@ local Config = require(ReplicatedStorage:WaitForChild("TrainSplitConfig"))
 local Shared = require(ReplicatedStorage:WaitForChild("TrainSplitShared"))
 
 local TrainSplit = {}
-TrainSplit.Version = "2.1.0"
+TrainSplit.Version = "2.2.0"
 
 local BRAKE_FALLBACK = 12 -- break_spec motion.brake, used if Config.Brake is not a positive number
 local CONFIRM_MARGIN = 6 -- studs around a wreck that still count as "on it" when riders are re-checked
@@ -421,8 +421,9 @@ function TrainSplit.SplitAt(train, k, opts)
 				recoil = Config.Recoil,
 				pivot = Config.Pivot,
 				topple = Config.Topple[math.min(i, #Config.Topple)],
+				rest = Config.ToppleRest,
 			}
-			body.cap = Shared.velocityCap(V, body.params, body.far)
+			body.cap = Shared.velocityCap(V, body.params, body.far, side)
 			table.insert(run.bodies, body)
 			table.insert(result.bodies, body.model)
 		end
@@ -447,6 +448,7 @@ function TrainSplit.SplitAt(train, k, opts)
 			brake = brake,
 			recoil = Config.Recoil,
 			pivot = Config.Pivot,
+			rest = Config.ToppleRest,
 			handoff = opts.terrain ~= nil,
 			despawnTime = Config.Despawn.time,
 		},

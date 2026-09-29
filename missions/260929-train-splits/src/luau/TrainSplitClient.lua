@@ -329,7 +329,8 @@ local function anchorsFor(snap, e, at)
 		if not body then
 			return {}, B.Position
 		end
-		local z = B:ToObjectSpace(body.base).Position.Z + Shared.drift(e.t, body.params.V, body.params.brake, body.params.recoil)
+		local _, _, _, _, back = Shared.topple(e.t, body.params.topple, Shared.restPose(body.params.rest, snap.side))
+		local z = B:ToObjectSpace(body.base).Position.Z + Shared.drift(e.t, body.params.V, body.params.brake, body.params.recoil) + back
 		local cf = anchorCF(B, Vector3.new(snap.side * body.params.pivot.X_abs, body.params.pivot.Y, z))
 		return { anchorOn(terrain(), cf) }, cf.Position
 	elseif at == "torn_edge" then
@@ -496,7 +497,7 @@ local function onSnap(payload)
 			name = b.name,
 			root = b.root,
 			base = b.base,
-			params = { V = params.V, brake = params.brake, recoil = params.recoil, pivot = params.pivot, topple = b.topple },
+			params = { V = params.V, brake = params.brake, recoil = params.recoil, pivot = params.pivot, topple = b.topple, rest = params.rest },
 		}
 		topples[i] = b.topple
 	end

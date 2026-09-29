@@ -37,14 +37,61 @@ local function cellLines(indent)
 	return table.concat(out, "\n")
 end
 
+-- A spec table as a Luau literal: known keys first in a stable order, then the rest sorted; notes and "who" skipped.
+local ORDER = { "delay", "roll", "roll_time", "ease", "bounce", "bounce_back", "bounce_time", "yaw", "sink", "lift", "extra_back" }
+local function value(v)
+	if type(v) == "number" then
+		return num(v)
+	elseif type(v) == "string" then
+		return ("%q"):format(v)
+	elseif type(v) == "table" then
+		local parts = {}
+		for _, x in v do
+			table.insert(parts, value(x))
+		end
+		return "{ " .. table.concat(parts, ", ") .. " }"
+	end
+	return tostring(v)
+end
+local function fields(t)
+	local keys, seen = {}, {}
+	for _, k in ORDER do
+		if t[k] ~= nil then
+			table.insert(keys, k)
+			seen[k] = true
+		end
+	end
+	local rest = {}
+	for k in t do
+		if not seen[k] and k ~= "who" and not k:match("_note$") and k ~= "note" then
+			table.insert(rest, k)
+		end
+	end
+	table.sort(rest)
+	for _, k in rest do
+		table.insert(keys, k)
+	end
+	local out = {}
+	for _, k in keys do
+		table.insert(out, ("%s = %s"):format(k, value(t[k])))
+	end
+	return "{ " .. table.concat(out, ", ") .. " }"
+end
+
 local function toppleLines()
 	local t = S.topple
 	local out = { ("Config.Pivot = { X_abs = %s, Y = %s } -- outer bogie edge at rail level on the falling side"):format(num(t.pivot.X_abs), num(t.pivot.Y)) }
+	if t.rest then
+		table.insert(out, "Config.ToppleRest = { -- rest pose per falling side")
+		for _, side in { "+X", "-X" } do
+			table.insert(out, ("\t[%q] = %s,"):format(side, fields(t.rest[side])))
+		end
+		table.insert(out, "}")
+	end
 	table.insert(out, "Config.Topple = {")
 	for _, b in t.bodies do
 		table.insert(out, "\t-- " .. b.who)
-		table.insert(out, ("\t{ delay = %s, roll = %s, roll_time = %s, ease = %q, bounce = { %s, %s }, bounce_time = %s, yaw = %s, sink = %s },"):format(
-			num(b.delay), num(b.roll), num(b.roll_time), b.ease, num(b.bounce[1]), num(b.bounce[2]), num(b.bounce_time), num(b.yaw), num(b.sink)))
+		table.insert(out, "\t" .. fields(b) .. ",")
 	end
 	table.insert(out, "}")
 	return table.concat(out, "\n")

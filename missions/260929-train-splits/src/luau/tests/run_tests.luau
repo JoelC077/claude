@@ -133,15 +133,32 @@ guarded("static", function()
 	check("config motion == break_spec (speed, brake, recoil, despawn)", Config.SpeedDefault == m.speed_default and Config.Brake == m.brake
 		and Config.Recoil.dist == m.recoil.dist and Config.Recoil.time == m.recoil.time
 		and Config.Despawn.distance == m.despawn_distance and Config.Despawn.time == m.despawn_time and Config.SpeedAttribute == "Speed")
-	local toppleOk = Config.Pivot.X_abs == t.pivot.X_abs and Config.Pivot.Y == t.pivot.Y and #Config.Topple == #t.bodies
-	for i, b in t.bodies do
-		local c = Config.Topple[i]
-		for _, key in { "delay", "roll", "roll_time", "ease", "bounce_time", "yaw", "sink" } do
-			toppleOk = toppleOk and c[key] == b[key]
+	local function same(a, b)
+		if type(b) == "number" then
+			return type(a) == "number" and near(a, b, 1e-9)
+		elseif type(b) == "table" then
+			if type(a) ~= "table" then
+				return false
+			end
+			for key, v in b do
+				if not same(a[key], v) then
+					return false
+				end
+			end
+			return true
 		end
-		toppleOk = toppleOk and c.bounce[1] == b.bounce[1] and c.bounce[2] == b.bounce[2]
+		return a == b
 	end
-	check("config topple == break_spec (pivot, 2 bodies)", toppleOk)
+	local toppleOk = Config.Pivot.X_abs == t.pivot.X_abs and Config.Pivot.Y == t.pivot.Y and #Config.Topple == #t.bodies
+		and same(Config.ToppleRest, t.rest)
+	for i, b in t.bodies do
+		for key, v in b do
+			if key ~= "who" and not key:match("_note$") then
+				toppleOk = toppleOk and same(Config.Topple[i][key], v)
+			end
+		end
+	end
+	check("config topple == break_spec (pivot, rest pose per side, 2 bodies)", toppleOk)
 	local times = {}
 	for _, e in Config.Events do
 		times[e.id] = e.t
@@ -230,10 +247,12 @@ guarded("shared", function()
 		local baseC = Bc * CFrame.new(0.5, 6, 15)
 		local worst = 0
 		for bi = 1, #Config.Topple do
-			local pr = { V = V, brake = a, recoil = rc, pivot = Config.Pivot, topple = Config.Topple[bi] }
-			local cap = Shared.velocityCap(V, pr, 31)
-			for i = 0, 600 do
-				worst = math.max(worst, Shared.bodyVelocity(baseC, Bc, 1, i / 100, pr).Magnitude / cap)
+			local pr = { V = V, brake = a, recoil = rc, pivot = Config.Pivot, topple = Config.Topple[bi], rest = Config.ToppleRest }
+			for _, side in { 1, -1 } do
+				local cap = Shared.velocityCap(V, pr, 31, side)
+				for i = 0, 600 do
+					worst = math.max(worst, Shared.bodyVelocity(baseC, Bc, side, i / 100, pr).Magnitude / cap)
+				end
 			end
 		end
 		check("velocityCap sits above every honest root speed (0..6 s, both bodies)", worst < 1, ("peak %.0f%% of the cap"):format(worst * 100))
@@ -244,23 +263,31 @@ guarded("shared", function()
 	end
 
 	local b1, b2 = Config.Topple[1], Config.Topple[2]
-	local function topple(tt, bi, er, ey, es)
-		local r, y, s = Shared.topple(tt, Config.Topple[bi])
-		check(("topple body %d at t=%.3f: roll %.2f yaw %.2f sink %.3f"):format(bi, tt, r, y, s),
-			near(r, er, 1e-6) and near(y, ey, 1e-6) and near(s, es, 1e-6), ("expected %g %g %g"):format(er, ey, es))
+	local function topple(tt, bi, side, want)
+		local rest = Shared.restPose(Config.ToppleRest, side)
+		local got = { Shared.topple(tt, Config.Topple[bi], rest) }
+		local ok = true
+		for i = 1, 5 do
+			ok = ok and near(got[i], want[i], 1e-6)
+		end
+		check(("topple body %d falling %s at t=%.3f: roll %.2f yaw %.2f sink %.3f lift %.3f back %.3f"):format(bi, side > 0 and "+X" or "-X", tt,
+			got[1], got[2], got[3], got[4], got[5]), ok, ("expected %g %g %g %g %g"):format(table.unpack(want)))
 	end
-	-- key times from the spec: waits its delay, half way through the roll (QuadIn -> a quarter), impact,
-	-- top of the bounce, settled, later
+	-- key times from the spec: waits its delay, half way through the roll (QuadIn -> a quarter), impact (the rest
+	-- pose), rocked back by bounce_back, settled, later; lift and extra_back ease in with the roll
 	for bi, sb in S.topple.bodies do
-		local d, rt, bt = sb.delay, sb.roll_time, sb.bounce_time
-		topple(d, bi, 0, 0, 0)
-		topple(d + rt / 2, bi, sb.roll / 4, sb.yaw / 4, sb.sink / 4)
-		topple(d + rt, bi, sb.roll, sb.yaw, sb.sink)
-		topple(d + rt + bt / 2, bi, (sb.roll + sb.bounce[2]) / 2 + sb.bounce[1] - sb.bounce[2], sb.yaw, sb.sink)
-		topple(d + rt + bt, bi, sb.bounce[2], sb.yaw, sb.sink)
-		topple(d + rt + bt + 1, bi, sb.bounce[2], sb.yaw, sb.sink)
+		for _, side in { 1, -1 } do
+			local rp = S.topple.rest[side > 0 and "+X" or "-X"]
+			local d, rt, bt = sb.delay, sb.roll_time, sb.bounce_time
+			local full = { rp.roll, sb.yaw, sb.sink, rp.lift, sb.extra_back }
+			topple(d, bi, side, { 0, 0, 0, 0, 0 })
+			topple(d + rt / 2, bi, side, { rp.roll / 4, sb.yaw / 4, sb.sink / 4, rp.lift / 4, sb.extra_back / 4 })
+			topple(d + rt, bi, side, full)
+			topple(d + rt + bt / 2, bi, side, { rp.roll - sb.bounce_back, sb.yaw, sb.sink, rp.lift, sb.extra_back })
+			topple(d + rt + bt, bi, side, full)
+			topple(d + rt + bt + 1, bi, side, full)
+		end
 	end
-
 	local function lost(stateTable, k)
 		local bodies = Shared.lostHalves(stateTable, k)
 		local out = {}
@@ -279,10 +306,31 @@ guarded("shared", function()
 
 	local B = CFrame.new(10, 5, 20) * CFrame.Angles(0, 0.3, 0)
 	local base = B * CFrame.new(0.5, 6, 15)
-	local params = { V = V, brake = a, recoil = rc, pivot = Config.Pivot, topple = b1 }
+	local params = { V = V, brake = a, recoil = rc, pivot = Config.Pivot, topple = b1, rest = Config.ToppleRest }
 	check("bodyCFrame at t <= 0 is the intact place", Shared.bodyCFrame(base, B, 1, 0, params) == base and Shared.bodyCFrame(base, B, 1, -0.2, params) == base)
+	for bi, sb in S.topple.bodies do
+		for _, side in { 1, -1 } do
+			local name = side > 0 and "+X" or "-X"
+			local rp = S.topple.rest[name]
+			local pr = { V = V, brake = a, recoil = rc, pivot = Config.Pivot, topple = Config.Topple[bi], rest = Config.ToppleRest }
+			local flat = table.clone(Config.Topple[bi])
+			flat.extra_back = 0
+			local noLift = { ["+X"] = { roll = rp.roll, lift = 0 }, ["-X"] = { roll = rp.roll, lift = 0 } }
+			local p0 = { V = V, brake = a, recoil = rc, pivot = Config.Pivot, topple = flat, rest = noLift }
+			local tr = sb.delay + sb.roll_time + sb.bounce_time + 1 -- lying still
+			local cf, ref = Shared.bodyCFrame(base, B, side, tr, pr), Shared.bodyCFrame(base, B, side, tr, p0)
+			local rel = B:ToObjectSpace(cf)
+			local roll = math.deg(math.acos(math.clamp(rel.YVector.Y, -1, 1)))
+			local d = cf.Position - ref.Position
+			check(("rest pose body %d falling %s: roll %.2f deg, lift %.2f up, extra_back %.2f back"):format(bi, name, roll, d.Y, d:Dot(B.ZVector)),
+				near(roll, rp.roll, 0.05) and near(d.Y, rp.lift, 1e-3) and near(d:Dot(B.ZVector), sb.extra_back, 1e-3) and near(d:Dot(B.XVector), 0, 1e-3)
+				and rel.YVector.X * side > 0)
+			local d0 = Shared.bodyCFrame(base, B, side, sb.delay, pr).Position - Shared.bodyCFrame(base, B, side, sb.delay, p0).Position
+			check(("body %d falling %s: no lift or extra push before it starts to roll"):format(bi, name), d0.Magnitude < 1e-4)
+		end
+	end
 	local r5 = B:ToObjectSpace(Shared.bodyCFrame(base, B, 1, 5, params))
-	check("bodyCFrame t=5 right: lies on its right side (+X), slid back by drift(5)", r5.YVector.X > 0.98 and near(r5.Position.Z - 15, Shared.drift(5, V, a, rc), 1e-4),
+	check("bodyCFrame t=5 right: lies on its right side (+X), slid back by drift(5)", r5.YVector.X > 0.98 and near(r5.Position.Z - 15, Shared.drift(5, V, a, rc) + b1.extra_back, 1e-4),
 		("up.X %.3f dz %.3f"):format(r5.YVector.X, r5.Position.Z - 15))
 	local l5 = B:ToObjectSpace(Shared.bodyCFrame(base, B, -1, 5, params))
 	check("bodyCFrame t=5 left: mirrors to -X", l5.YVector.X < -0.98 and near(l5.Position.Z, r5.Position.Z, 1e-4))
@@ -754,7 +802,18 @@ guarded("rerun", function()
 		u.Parent = nil
 	end
 	state.failNames = {}
+	-- the halves may have been cut by an older script: fine while the tear cells are the same, refused if not
+	local recs = { train.RR_Breaks.Break1, train.RR_Breaks.Break2 }
+	local cellsText = recs[1]:GetAttribute("TearCells")
+	recs[1]:SetAttribute("TearCells", "0,0,0,0,0")
+	local other = H.load("RR_TrainSplit_Setup.lua", game, nil)
+	check("re-run refused when the halves were cut with other tear cells", other.refused ~= nil and other.refused:find("other tear cells") ~= nil)
+	recs[1]:SetAttribute("TearCells", cellsText)
+	for _, r in recs do
+		r:SetAttribute("Version", "2.1.0")
+	end
 	local dry = H.load("RR_TrainSplit_Setup.lua", game, nil)
+	check("re-run allowed across spec versions when the tear cells match (noted in the plan)", dry.ok and table.concat(dry.lines, "\n"):find("same tear cells") ~= nil)
 	local slices, skips, csg = 0, 0, 0
 	for _, cr in dry.plan.crossers or {} do
 		if cr.method == "slice" then
@@ -911,7 +970,7 @@ guarded("server 2 then 1", function()
 
 	local hb = H.signal(game:GetService("RunService"), "Heartbeat")
 	local base = payload.bodies[1].base
-	local params = { V = 35, brake = 12, recoil = Config.Recoil, pivot = Config.Pivot, topple = Config.Topple[1] }
+	local params = { V = 35, brake = 12, recoil = Config.Recoil, pivot = Config.Pivot, topple = Config.Topple[1], rest = Config.ToppleRest }
 	state.clock = payload.t0 - 0.1
 	hb:Fire(1 / 60)
 	check("before the snap moment the wreck holds still", root.CFrame == base)
@@ -1231,7 +1290,7 @@ guarded("client", function()
 	check("camera shakes on the explosion (camera 32 studs away)", game.Workspace.CurrentCamera == cam and shook)
 	local smoothOk = true
 	for i, b in payload.bodies do
-		local want = Shared.bodyCFrame(b.base, B, payload.side, lastT, { V = 20, brake = 12, recoil = Config.Recoil, pivot = Config.Pivot, topple = b.topple })
+		local want = Shared.bodyCFrame(b.base, B, payload.side, lastT, { V = 20, brake = 12, recoil = Config.Recoil, pivot = Config.Pivot, topple = b.topple, rest = Config.ToppleRest })
 		smoothOk = smoothOk and nearV(b.root.CFrame.Position, want.Position, 1e-4)
 	end
 	check("each wreck root smoothed every frame from TrainSplitShared", smoothOk)

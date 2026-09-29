@@ -2,12 +2,12 @@
  "slug": "train-splits",
  "kind": "mixed",
  "status": "intake",
- "step": 6,
+ "step": 8,
  "steps": 10,
  "bar": 8,
  "cap_passes": 5,
  "budget": null,
- "tokens": 60000,
+ "tokens": 93000,
  "env": {
   "root": "/home/user/claude/missions",
   "critic": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/multiuse-critic",
@@ -36,6 +36,6 @@
  },
  "next": "sound delta p2 running; fx round 1 running; T1 re-render v2.1 running; guard review running. At export: resync TrainSplitConfig.Sounds with final/SOUNDS.md (renamed files, topple_crash_2 at 0.84/-3 dB, Split group)",
  "created": "2026-09-29T21:35Z",
- "updated": "2026-09-29T23:47Z",
- "tokens_est": true
+ "updated": "2026-09-29T23:50Z",
+ "tokens_est": false
 }

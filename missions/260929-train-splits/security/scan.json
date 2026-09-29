@@ -1,7 +1,7 @@
 {
  "tool": "rr-exploit-guard",
  "version": 1,
- "scanned_at": "2026-09-29T23:26:20+00:00",
+ "scanned_at": "2026-09-29T23:50:38+00:00",
  "paths": [
   "/home/user/claude/missions/260929-train-splits/src/luau",
   "/home/user/claude/missions/260929-train-splits/src/fx/build",
@@ -12,7 +12,7 @@
    "rel": "luau/RR_BreakChecker.lua",
    "origin": "/home/user/claude/missions/260929-train-splits/src/luau/RR_BreakChecker.lua",
    "src_path": "/home/user/claude/missions/260929-train-splits/src/luau/RR_BreakChecker.lua",
-   "sha256": "1aed89a704321808bf7fe4559f32ace6538e55173ffae858c70b64f13f066729",
+   "sha256": "ab24431733a291e06d561da041270c7f1358b2c604ea87a97e571a61d36f5d71",
    "ctx": "unknown",
    "vendor": false,
    "lines": 577,
@@ -23,10 +23,10 @@
    "rel": "luau/RR_TrainSplit_Setup.lua",
    "origin": "/home/user/claude/missions/260929-train-splits/src/luau/RR_TrainSplit_Setup.lua",
    "src_path": "/home/user/claude/missions/260929-train-splits/src/luau/RR_TrainSplit_Setup.lua",
-   "sha256": "1c3005369a6d292a95d33648d6c272204a8a328def5ffbabffaadef4bd08b29a",
+   "sha256": "aca490e2afe796e305c8b354a3ac4aabc9c6298a5ce4b495b0e6903ca9d7cae7",
    "ctx": "unknown",
    "vendor": false,
-   "lines": 1340,
+   "lines": 1357,
    "notes": [],
    "compile_errors": []
   },
@@ -34,10 +34,10 @@
    "rel": "luau/TrainSplit.lua",
    "origin": "/home/user/claude/missions/260929-train-splits/src/luau/TrainSplit.lua",
    "src_path": "/home/user/claude/missions/260929-train-splits/src/luau/TrainSplit.lua",
-   "sha256": "de62e955df0d3501066316532d2f3c04db248e6b9d0a6a7ecbad990c88ace08c",
+   "sha256": "2dcc930b58ed63c4dd6008fdad8f51f331034134f38980e9637ace190612b758",
    "ctx": "server",
    "vendor": false,
-   "lines": 375,
+   "lines": 519,
    "notes": [],
    "compile_errors": []
   },
@@ -45,10 +45,10 @@
    "rel": "luau/TrainSplitClient.lua",
    "origin": "/home/user/claude/missions/260929-train-splits/src/luau/TrainSplitClient.lua",
    "src_path": "/home/user/claude/missions/260929-train-splits/src/luau/TrainSplitClient.lua",
-   "sha256": "3113887fc77eee86608a7bd4db5f59c16ee2fe0639cfe408bca56caed77f2710",
+   "sha256": "c133c83bfee1ffd455f600a14e4649422d3bee4e84b81749be0d5bbdd7db9f57",
    "ctx": "client",
    "vendor": false,
-   "lines": 515,
+   "lines": 523,
    "notes": [],
    "compile_errors": []
   },
@@ -56,10 +56,10 @@
    "rel": "luau/TrainSplitConfig.lua",
    "origin": "/home/user/claude/missions/260929-train-splits/src/luau/TrainSplitConfig.lua",
    "src_path": "/home/user/claude/missions/260929-train-splits/src/luau/TrainSplitConfig.lua",
-   "sha256": "195fdd82d0433fa88e51c4e62b374fb39d3e8a7a0fa8e5104bd7d6c63a5bc237",
+   "sha256": "fed1fec22f7528b3f9dfbb7a3c09aa93ee749a8f3b5a66403acdec3c16b781e0",
    "ctx": "unknown",
    "vendor": false,
-   "lines": 180,
+   "lines": 194,
    "notes": [],
    "compile_errors": []
   },
@@ -78,10 +78,10 @@
    "rel": "luau/TrainSplitShared.lua",
    "origin": "/home/user/claude/missions/260929-train-splits/src/luau/TrainSplitShared.lua",
    "src_path": "/home/user/claude/missions/260929-train-splits/src/luau/TrainSplitShared.lua",
-   "sha256": "28b09b9b7e985c93a900c82070f0d21c734e2310291d66f1a4fae31c7e8dd37b",
+   "sha256": "cda77b019af68eb4c7bb4f831df2726d1c3ec18037d58f24b204301e51ae3cc9",
    "ctx": "unknown",
    "vendor": false,
-   "lines": 287,
+   "lines": 343,
    "notes": [],
    "compile_errors": []
   },
@@ -89,10 +89,10 @@
    "rel": "luau/tests/harness.luau",
    "origin": "/home/user/claude/missions/260929-train-splits/src/luau/tests/harness.luau",
    "src_path": "/home/user/claude/missions/260929-train-splits/src/luau/tests/harness.luau",
-   "sha256": "4771cc6e3e826c343fe169e0f59cef1fb5b49ddb824bf50249da1d2fbff79a08",
+   "sha256": "baf4dacc36cb26ba62ad20dc5fd46be82d4d36e2886a79a0262dfcea84153849",
    "ctx": "server",
    "vendor": false,
-   "lines": 544,
+   "lines": 552,
    "notes": [],
    "compile_errors": []
   },
@@ -100,10 +100,10 @@
    "rel": "luau/tests/run_tests.luau",
    "origin": "/home/user/claude/missions/260929-train-splits/src/luau/tests/run_tests.luau",
    "src_path": "/home/user/claude/missions/260929-train-splits/src/luau/tests/run_tests.luau",
-   "sha256": "15a8d53c9350a3ee6f32f17b054a58dab6cd0693b89382b897b98c542f30cb7f",
+   "sha256": "a43e4da70b57914341b193d90a97a4c51c0993f7b7a90ad4873aa76af1295b52",
    "ctx": "server",
    "vendor": false,
-   "lines": 1133,
+   "lines": 1350,
    "notes": [],
    "compile_errors": []
   },
@@ -111,10 +111,10 @@
    "rel": "luau/tests/sync_spec.luau",
    "origin": "/home/user/claude/missions/260929-train-splits/src/luau/tests/sync_spec.luau",
    "src_path": "/home/user/claude/missions/260929-train-splits/src/luau/tests/sync_spec.luau",
-   "sha256": "61f572d9c4c51e98c1a9c71aa481cfffcea39fe574bb3b6e886260f96f013bd5",
+   "sha256": "58891a9f8af880c8bc325c3cc58cc40be938fabbdd847f1d0fcfb796ce9490ff",
    "ctx": "unknown",
    "vendor": false,
-   "lines": 107,
+   "lines": 154,
    "notes": [],
    "compile_errors": []
   },
@@ -133,10 +133,10 @@
    "rel": "fx/build/RR_FXPresets.lua",
    "origin": "/home/user/claude/missions/260929-train-splits/src/fx/build/RR_FXPresets.lua",
    "src_path": "/home/user/claude/missions/260929-train-splits/src/fx/build/RR_FXPresets.lua",
-   "sha256": "cba4a8c800d7ffbd291bcc0b3d1ffe58d68da7f212ecc26784be58f2e5819595",
+   "sha256": "bc5dcbfeec4057fd316e852bab711cdbc4224c63802ee81053a2b78218b70fc7",
    "ctx": "unknown",
    "vendor": false,
-   "lines": 239,
+   "lines": 252,
    "notes": [],
    "compile_errors": []
   },
@@ -210,7 +210,7 @@
    "rel": "sound/build/RR_SoundMap.lua",
    "origin": "/home/user/claude/missions/260929-train-splits/src/sound/build/RR_SoundMap.lua",
    "src_path": "/home/user/claude/missions/260929-train-splits/src/sound/build/RR_SoundMap.lua",
-   "sha256": "4dfd60e05f55245836121fa80ac12353a8a07fc2eab2647ed2c3d7b9ab260588",
+   "sha256": "619f4a001dc63384cc311a00525de0e0dce5d427ca6fdf40eaaba492a2315ea2",
    "ctx": "unknown",
    "vendor": false,
    "lines": 1069,
@@ -231,13 +231,46 @@
  ],
  "places": {},
  "place_props": {},
- "inputs_sha256": "120a53b73e5c320c66bcae432300217e436d8788f9094361dc2340ed56146040",
+ "inputs_sha256": "25ffd7857bea60918d51604eec0c66c53edfcf2e2f2a81e4f214be136589a61f",
  "remotes": {
-  "server": [],
+  "server": [
+   "findOrMake(ReplicatedStorage,\"RemoteEven"
+  ],
   "client_fired": {},
   "place": []
  },
- "entries": [],
+ "entries": [
+  {
+   "id": "E01",
+   "kind": "remote",
+   "remote": "findOrMake(ReplicatedStorage,\"RemoteEven",
+   "file": "luau/TrainSplit.lua",
+   "line": 55,
+   "reg_line": 55,
+   "end_line": 64,
+   "domains": [],
+   "player": "player",
+   "tainted": [],
+   "hfacts": [
+    "lock"
+   ],
+   "sinks": [
+    "write"
+   ],
+   "validators": [],
+   "chain": [
+    {
+     "file": "luau/TrainSplit.lua",
+     "line": 55,
+     "end": 64,
+     "name": "<anon>",
+     "depth": 0
+    }
+   ],
+   "findings": [],
+   "resolved": true
+  }
+ ],
  "findings": [],
  "notes": [],
  "counts": {

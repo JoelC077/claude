@@ -30,7 +30,7 @@ local ALLOW_PLANE_FALLBACK = false -- no roof union found (another train): allow
 local PLANE_OFFSET = 0 -- plane fallback only: studs from the carriage centre toward the rear
 
 -- CORE BEGIN: break geometry, identical in RR_BreakChecker and RR_TrainSplit_Setup (the Lune suite checks it)
-local SPEC_VERSION = "2.1.0"
+local SPEC_VERSION = "2.2.0"
 local ROOF_SIG = { 3.59, 19.48, 62.34 } -- roof union size, smallest first (break_spec roof_signature)
 local ROOF_TOL = 0.1 -- studs of slack per axis when matching a roof
 local BREAK_DZ = 3.31 -- break plane = roof centre + 3.31 studs toward the rear
@@ -39,7 +39,7 @@ local ZEXT = 40 -- cutter reach along the carriage (a carriage spans -34.5 .. +2
 local LONG_PART = 0.6 -- plane fallback: parts this fraction of the longest one outline a carriage
 local EXPECTED_CROSSERS = 10 -- per carriage in Joel's train (break_spec clearance check)
 
--- CELLS BEGIN (break_spec.json v2.1.0) {X0, X1, Y0, Y1, d, region}: inside a cell the tear is at Z = d.
+-- CELLS BEGIN (break_spec.json v2.2.0) {X0, X1, Y0, Y1, d, region}: inside a cell the tear is at Z = d.
 -- Frame B: +X across (right when facing the front), +Y up from the floor top, +Z toward the rear.
 local CELLS = {
 	{ -14.0, -7.1, -12.0, 0.6, 0.6, "floor" },
@@ -585,6 +585,16 @@ local function referencesTo(set)
 	return list
 end
 
+-- The tear cells as text, stored on each break record so a later run can tell whether the halves were cut
+-- the same way (spec versions also change for runtime-only reasons, e.g. the topple).
+local function cellsText(cells)
+	local parts = {}
+	for _, c in cells do
+		table.insert(parts, ("%.4f,%.4f,%.4f,%.4f,%.4f"):format(c[1], c[2], c[3], c[4], c[5]))
+	end
+	return table.concat(parts, ";")
+end
+
 -- A re-run works from the break records (the roofs are cut by now): same frames, cells, halves and spans.
 local function foundFromRecords(folder)
 	local found = { mode = "roof", carriages = {}, rerun = true }
@@ -597,10 +607,13 @@ local function foundFromRecords(folder)
 		if typeof(frame) ~= "CFrame" or typeof(centre) ~= "Vector3" or type(half) ~= "number" or not (kept and kept.Value and lost and lost.Value) then
 			return nil, ("RR_Breaks.Break%d is incomplete (BreakCFrame, CarriageCentre, HalfLength, KeptHalf, LostHalf)"):format(k)
 		end
-		if rec:GetAttribute("Version") ~= SPEC_VERSION then
-			return nil, ("this train was split with break spec %s but this script is %s; undo or restore the backup to re-split it"):format(
+		local recorded = rec:GetAttribute("TearCells")
+		local sameCut = rec:GetAttribute("Mode") == "plane" or (recorded and recorded == cellsText(CELLS)) or (not recorded and rec:GetAttribute("Version") == SPEC_VERSION)
+		if not sameCut then
+			return nil, ("this train was cut with other tear cells (break spec %s; this script is %s): undo or restore the backup to re-split it"):format(
 				tostring(rec:GetAttribute("Version")), SPEC_VERSION)
 		end
+		found.version = rec:GetAttribute("Version")
 		local cells = CELLS
 		if rec:GetAttribute("Mode") == "plane" then
 			local pc = rec:GetAttribute("PlaneCell")
@@ -655,6 +668,9 @@ local function plan(train)
 		end
 		P.rerun = true
 		table.insert(P.notes, ("re-run: %d part(s) sit outside the halves (a crosser left whole, or what Separate made of it); nothing already in a half is touched"):format(#parts))
+		if found.version ~= SPEC_VERSION then
+			table.insert(P.notes, ("the halves were cut with break spec %s and this script is %s: same tear cells, so the new parts match"):format(tostring(found.version), SPEC_VERSION))
+		end
 	else
 		parts = Core.baseParts(train)
 		found = Core.findCarriages(parts, FRONT_AT, PLANE_OFFSET)
@@ -1194,6 +1210,7 @@ local function doApply(P, R)
 			rec:SetAttribute("CarriageCentre", car.centre)
 			rec:SetAttribute("HalfLength", car.half)
 			rec:SetAttribute("CutterReach", car.zext)
+			rec:SetAttribute("TearCells", cellsText(car.cells))
 			if found.mode == "plane" then
 				rec:SetAttribute("PlaneCell", Vector3.new(car.cells[1][2], car.cells[1][4], car.zext))
 			end
