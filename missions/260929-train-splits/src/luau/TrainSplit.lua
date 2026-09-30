@@ -164,12 +164,16 @@ end
 -- Joints to characters (seat welds) are left alone so seated riders go with the wreck.
 local function releaseFromTrain(parts, train)
 	local released = 0
+	local lostSet = {}
+	for _, part in parts do
+		lostSet[part] = true
+	end
 	for _, part in parts do
 		local ok, joints = pcall(part.GetJoints, part)
 		if ok then
 			for _, joint in joints do
 				local other = otherEnd(joint, part)
-				if other and other:IsDescendantOf(train) and pcall(function()
+				if other and not lostSet[other] and other:IsDescendantOf(train) and pcall(function()
 					joint.Enabled = false
 				end) then
 					released += 1
@@ -188,8 +192,26 @@ local function makeBody(train, k, index, B, halves)
 		lo = lo and vmin(lo, a) or a
 		hi = hi and vmax(hi, b) or b
 	end
+	-- Parts stay where the builder put them (the setup only labels them RR_Half = "<carriage><Front|Rear>"),
+	-- so a half's parts are its own Root plus every labelled part in the train.
+	local members = {}
 	for _, half in halves do
 		for _, d in half:GetDescendants() do
+			table.insert(members, d)
+		end
+		local id = half:GetAttribute("RR_HalfId")
+		if id then
+			for _, d in train:GetDescendants() do
+				if d:GetAttribute("RR_Half") == id then
+					table.insert(members, d)
+				end
+			end
+		end
+	end
+	do
+		local d
+		for _, dd in members do
+			d = dd
 			if d:IsA("BasePart") then
 				table.insert(parts, d)
 				-- only parts anchored at the snap count: an unanchored one may be client-owned and anywhere
@@ -261,7 +283,7 @@ local function makeBody(train, k, index, B, halves)
 			end
 		end
 	end
-	return { model = model, root = root, base = root.CFrame, lo = lo, hi = hi, centre = centre, far = far, released = released }
+	return { model = model, root = root, base = root.CFrame, lo = lo, hi = hi, centre = centre, far = far, released = released, parts = parts }
 end
 
 -- Players standing (or seated) on a lost body at the snap: candidates, judged from client-owned positions.
@@ -320,6 +342,9 @@ local function drive(run)
 					TrainSplit.Despawned:Fire(run.train, run.k, body.model)
 					local model = body.model
 					task.defer(function()
+						for _, p in body.parts or {} do
+							p:Destroy()
+						end
 						model:Destroy() -- deferred so Despawned handlers still see the wreck
 					end)
 				else

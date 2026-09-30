@@ -36,6 +36,7 @@ local ROOF_TOL = 0.1 -- studs of slack per axis when matching a roof
 local BREAK_DZ = 3.31 -- break plane = roof centre + 3.31 studs toward the rear
 local FLOOR_DY = -11.443 -- floor top (y 13.927) below the live roof union centre (y 25.37)
 local CROSS_DX = -0.05 -- live roof union sits 0.05 off the carriage centre line
+local IN_PLACE = true -- label parts with RR_Half instead of moving them into half models
 local ZEXT = 40 -- cutter reach along the carriage (a carriage spans -34.5 .. +27.9 from its break)
 local LONG_PART = 0.6 -- plane fallback: parts this fraction of the longest one outline a carriage
 local EXPECTED_CROSSERS = 10 -- per carriage in Joel's train (break_spec clearance check)
@@ -858,6 +859,9 @@ end
 
 -- Mirror the builder's containers (same class and name) inside a half, created on first use and reused on a re-run.
 local function mirrorOf(ctx, half, container)
+	if IN_PLACE then
+		return container or ctx.train -- leave parts where the builder put them (scripts find them by path)
+	end
 	if container == ctx.train or container == nil then
 		return half
 	end
@@ -1065,6 +1069,7 @@ local function cutOne(ctx, cr)
 	end
 	for _, m in made do
 		m.part.Parent = mirrorOf(ctx, ctx.halves[cr.k][m.side], from)
+		m.part:SetAttribute("RR_Half", cr.k .. m.side)
 	end
 	passPrimary(ctx, owners, ctx.halves[cr.k].Front, pieceFor(made, "Front", Vector3.zero))
 	rehome(ctx, cr, car, made)
@@ -1153,11 +1158,12 @@ local function doApply(P, R)
 			ctx.halves[k] = found.carriages[k].halves
 		else
 			local carriage = Instance.new("Model")
-			carriage.Name = "Carriage" .. k
+			carriage.Name = "RR_Carriage" .. k -- not "Carriage<k>": the builder's own models use those names
 			ctx.halves[k] = {}
 			for _, side in { "Front", "Rear" } do
 				local half = Instance.new("Model")
 				half.Name = side .. "Half"
+				half:SetAttribute("RR_HalfId", k .. side)
 				half.Parent = carriage
 				ctx.halves[k][side] = half
 			end
@@ -1171,6 +1177,7 @@ local function doApply(P, R)
 		local owners = primaryOwners(ctx, mv.part)
 		local half = ctx.halves[mv.c][mv.half]
 		mv.part.Parent = mirrorOf(ctx, half, mv.part.Parent)
+		mv.part:SetAttribute("RR_Half", mv.c .. mv.half)
 		passPrimary(ctx, owners, half, mv.part)
 	end
 
