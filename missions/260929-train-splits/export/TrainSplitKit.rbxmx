@@ -1965,7 +1965,7 @@ return run()
     </Item>
     <Item class="Folder" referent="4">
       <Properties>
-        <string name="Name">Put_in_ServerScriptService</string>
+        <string name="Name">DragContentsInto_ServerScriptService.Scripts.TrainSystems</string>
       </Properties>
       <Item class="ModuleScript" referent="5">
         <Properties>
@@ -1976,7 +1976,7 @@ TrainSplit  (ModuleScript in ServerScriptService)
 Tears a carriage in half at runtime. Needs RR_TrainSplit_Setup to have run on the train:
 Train/Carriage1..2/{FrontHalf, RearHalf} and Train/RR_Breaks/Break1..2.
 
-	local TrainSplit = require(game:GetService("ServerScriptService").TrainSplit)
+	local TrainSplit = require(game:GetService("ServerScriptService").Scripts.TrainSystems.TrainSplit)
 	local result = TrainSplit.SplitAt(train, 1)   -- your damage system decides when (windows and walls not fixed)
 	TrainSplit.Snapped.Event:Connect(function(train, k, result) end)
 	TrainSplit.Despawned.Event:Connect(function(train, k, wreck) end)  -- fires just before the wreck is destroyed
@@ -1997,8 +1997,8 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local Config = require(ReplicatedStorage:WaitForChild("TrainSplitConfig"))
-local Shared = require(ReplicatedStorage:WaitForChild("TrainSplitShared"))
+local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("TrainSplit"):WaitForChild("TrainSplitConfig"))
+local Shared = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("TrainSplit"):WaitForChild("TrainSplitShared"))
 
 local TrainSplit = {}
 TrainSplit.Version = "2.3.0"
@@ -2576,12 +2576,16 @@ workspace.DescendantAdded:Connect(consider)
     </Item>
     <Item class="Folder" referent="7">
       <Properties>
-        <string name="Name">Put_in_ReplicatedStorage</string>
+        <string name="Name">DragThisFolderInto_ReplicatedStorage.Modules</string>
       </Properties>
-      <Item class="ModuleScript" referent="8">
+      <Item class="Folder" referent="8">
         <Properties>
-          <string name="Name">TrainSplitShared</string>
-          <string name="Source"><![CDATA[--[[
+          <string name="Name">TrainSplit</string>
+        </Properties>
+        <Item class="ModuleScript" referent="9">
+          <Properties>
+            <string name="Name">TrainSplitShared</string>
+            <string name="Source"><![CDATA[--[[
 TrainSplitShared  (ModuleScript in ReplicatedStorage)
 
 Pure, deterministic maths for the carriage split. The server (TrainSplit) moves each wreck with it
@@ -2924,12 +2928,12 @@ end
 
 return Shared
 ]]></string>
-        </Properties>
-      </Item>
-      <Item class="ModuleScript" referent="9">
-        <Properties>
-          <string name="Name">TrainSplitConfig</string>
-          <string name="Source"><![CDATA[--[[
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="10">
+          <Properties>
+            <string name="Name">TrainSplitConfig</string>
+            <string name="Source"><![CDATA[--[[
 TrainSplitConfig  (ModuleScript in ReplicatedStorage)
 
 Every tunable for the carriage split lives here; the server (TrainSplit) and every client
@@ -3123,249 +3127,12 @@ Config.FallbackFX = {
 
 return Config
 ]]></string>
-        </Properties>
-      </Item>
-      <Item class="ModuleScript" referent="10">
-        <Properties>
-          <string name="Name">RR_Lighting</string>
-          <string name="Source"><![CDATA[-- RR_Lighting (ModuleScript, client only): applies rr-vfx-lighting looks from RR_LightingPresets (generated).
--- Looks are resolved offline for every biome.time; only overrides (tunnel_under, overbridge_flash) apply here as
--- add/mul/lerp ops, in push order. Canon: tunnels darken client lighting while a tunnel segment is under the train
--- (av.vfx.tunnel). It edits Lighting and its own RRFX_* effects (and an existing Atmosphere, since only one counts).
--- Phones: effects listed in P.phone_post_off are disabled (tech.lighting.post_low_quality).
---
---   Lighting.apply("grassland.day", 1.5)     tween to a look
---   Lighting.push("tunnel_under")             streamer: tunnel segment under the train; Lighting.pop("tunnel_under")
---   Lighting.push("overbridge_flash")         overrides with a duration pop themselves
---   Lighting.setFlashes(false)                players' flashes setting: overrides marked flash (overbridge) are skipped
--- Looks switch their fx_on presets through VFX.setLookFx, so a preset attached later still follows the look.
--- Studio test pending (owner).
-
-local LightingService = game:GetService("Lighting")
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-
-local P = require(script.Parent:WaitForChild("RR_LightingPresets"))
-local okV, VFX = pcall(function()
-	return require(script.Parent:FindFirstChild("RR_VFX"))
-end)
-if not okV then
-	VFX = nil
-end
-
-local M = {current = nil, stack = {}, flashes = true}
-local tweens = {}
-local phone = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
-
--- presets that looks switch on and off (headlamp, rain); crisis effects are never touched here
-local lookDriven = {}
-for _, look in pairs(P.looks) do
-	for _, f in ipairs(look.fx_on) do
-		lookDriven[f] = true
-	end
-end
-for _, ov in pairs(P.overrides) do
-	for _, f in ipairs(ov.fx_on) do
-		lookDriven[f] = true
-	end
-end
-if VFX and VFX.setLookFx then
-	VFX.setLookFx(lookDriven, {})   -- known before any look is applied: look-driven presets start off
-end
-
-local function ensure(cls)
-	if cls == "Lighting" then
-		return LightingService
-	end
-	local inst = LightingService:FindFirstChild("RRFX_" .. cls)
-	if not inst and cls == "Atmosphere" then
-		inst = LightingService:FindFirstChildOfClass("Atmosphere")
-	end
-	if not inst then
-		inst = Instance.new(cls)
-		inst.Name = "RRFX_" .. cls
-		inst.Parent = LightingService
-	end
-	return inst
-end
-
-local function phoneOff(cls)
-	for _, c in ipairs(P.phone_post_off) do
-		if c == cls then
-			return true
-		end
-	end
-	return false
-end
-
-local function applyOp(cur, op)
-	local k = op[1]
-	if k == "set" then
-		return op[2]
-	elseif k == "add" then
-		return cur + op[2]
-	elseif k == "mul" then
-		if typeof(cur) == "Color3" then
-			return Color3.new(math.min(1, cur.R * op[2]), math.min(1, cur.G * op[2]), math.min(1, cur.B * op[2]))
-		end
-		return cur * op[2]
-	elseif k == "lerp" then
-		return cur:Lerp(op[2], op[3])
-	end
-	return cur
-end
-
-local function resolve(name)
-	local look = P.looks[name]
-	assert(look, "RR_Lighting: no look " .. tostring(name))
-	local out, fx = {}, {}
-	for cls, props in pairs(look) do
-		if cls == "fx_on" then
-			for _, f in ipairs(props) do
-				fx[f] = true
-			end
-		else
-			local t = {}
-			for k, v in pairs(props) do
-				t[k] = v
-			end
-			out[cls] = t
-		end
-	end
-	for _, oname in ipairs(M.stack) do
-		local ov = P.overrides[oname]
-		for cls, ops in pairs(ov.ops) do
-			out[cls] = out[cls] or {}
-			for k, op in pairs(ops) do
-				local cur = out[cls][k]
-				if cur ~= nil or op[1] == "set" then
-					out[cls][k] = applyOp(cur, op)
-				end
-			end
-		end
-		for _, f in ipairs(ov.fx_on) do
-			fx[f] = true
-		end
-	end
-	return out, fx
-end
-
-local function tweenTo(inst, props, t)
-	if tweens[inst] then
-		tweens[inst]:Cancel()
-		tweens[inst] = nil
-	end
-	local tw, now = {}, {}
-	for k, v in pairs(props) do
-		local ty = typeof(v)
-		local jump = k == "ClockTime" and math.abs(v - inst.ClockTime) > 6
-		if t > 0 and not jump and (ty == "number" or ty == "Color3") then
-			tw[k] = v
-		else
-			now[k] = v
-		end
-	end
-	for k, v in pairs(now) do
-		pcall(function()
-			inst[k] = v
-		end)
-	end
-	if next(tw) then
-		local ok, tween = pcall(function()
-			return TweenService:Create(inst, TweenInfo.new(t, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), tw)
-		end)
-		if ok then
-			tweens[inst] = tween
-			tween:Play()
-		else
-			for k, v in pairs(tw) do
-				pcall(function()
-					inst[k] = v
-				end)
-			end
-		end
-	end
-end
-
-function M.apply(name, t)
-	M.current = name
-	local looks, fx = resolve(name)
-	t = t or 1
-	for cls, props in pairs(looks) do
-		local inst = ensure(cls)
-		if cls ~= "Lighting" and phone and phoneOff(cls) then
-			props = {Enabled = false}
-		end
-		tweenTo(inst, props, t)
-	end
-	if VFX and VFX.setLookFx then
-		VFX.setLookFx(lookDriven, fx)
-	end
-end
-
-function M.setFlashes(on)
-	M.flashes = on ~= false
-end
-
-function M.push(name, t)
-	local ov = P.overrides[name]
-	assert(ov, "RR_Lighting: no override " .. tostring(name))
-	if ov.flash and not M.flashes then
-		return
-	end
-	for _, n in ipairs(M.stack) do
-		if n == name then
-			return
-		end
-	end
-	table.insert(M.stack, name)
-	M.apply(M.current or P.default, t or ov.tween_in)
-	if ov.duration then
-		task.delay(ov.duration, function()
-			M.pop(name)
-		end)
-	end
-end
-
-function M.pop(name, t)
-	for i, n in ipairs(M.stack) do
-		if n == name then
-			table.remove(M.stack, i)
-			M.apply(M.current or P.default, t or P.overrides[name].tween_out)
-			return
-		end
-	end
-end
-
-function M.setPhone(on)
-	phone = on and true or false
-	if M.current then
-		M.apply(M.current, 0)
-	end
-end
-
-function M.looks()
-	local names = {}
-	for n in pairs(P.looks) do
-		table.insert(names, n)
-	end
-	table.sort(names)
-	return names
-end
-
--- compare with the preview's printed sun direction (facts: sun.dir_roblox) when calibrating the heading
-function M.sunDirection()
-	return LightingService:GetSunDirection()
-end
-
-return M
-]]></string>
-        </Properties>
-      </Item>
-      <Item class="ModuleScript" referent="11">
-        <Properties>
-          <string name="Name">RR_VFX</string>
-          <string name="Source"><![CDATA[-- RR_VFX (ModuleScript, client only): applies rr-vfx-lighting effect presets from RR_FXPresets (generated).
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="11">
+          <Properties>
+            <string name="Name">RR_VFX</string>
+            <string name="Source"><![CDATA[-- RR_VFX (ModuleScript, client only): applies rr-vfx-lighting effect presets from RR_FXPresets (generated).
 -- Canon it follows: effects are client-side and attached to the stationary train (av.vfx.client_side,
 -- tech.streaming.fx_client); steam rate follows Speed (av.vfx.speed_link). The train never moves, so drift comes
 -- from Workspace.GlobalWind = -forward * Speed (particles with WindAffectsDrag and Drag > 0 follow it).
@@ -3860,204 +3627,12 @@ end
 
 return VFX
 ]]></string>
-        </Properties>
-      </Item>
-      <Item class="ModuleScript" referent="12">
-        <Properties>
-          <string name="Name">RR_LightingPresets</string>
-          <string name="Source"><![CDATA[-- RR_LightingPresets: GENERATED by rr-vfx-lighting (vfx.py build, 2026-09-29) from presets/lighting.json.
--- Do not edit: change the JSON and rebuild. Palette colours use hex(); light levels use lvl() (intensities, not palette).
-local function hex(h) return Color3.fromHex(h) end
-local function lvl(r, g, b) return Color3.fromRGB(r, g, b) end
-
-local P = {}
-
-P.default = "grassland.day"
-P.looks = {
-	["grassland.day"] = {
-		Lighting = {ClockTime = 14.2, GeographicLatitude = 41.7, Brightness = 2.4, ExposureCompensation = 0, OutdoorAmbient = lvl(70, 80, 70), Ambient = lvl(44, 50, 48), EnvironmentDiffuseScale = 0.35, EnvironmentSpecularScale = 0.25, ColorShift_Top = lvl(24, 22, 14), ColorShift_Bottom = lvl(0, 6, 4), ShadowSoftness = 0.2},
-		Atmosphere = {Density = 0.3, Offset = 0.12, Color = hex("C2CAB0"), Decay = hex("9FB0A8"), Glare = 0.2, Haze = 1.4},
-		ColorCorrectionEffect = {Enabled = true, Saturation = 0.12, Contrast = 0.05, Brightness = 0, TintColor = lvl(255, 252, 244)},
-		BloomEffect = {Enabled = true, Intensity = 0.35, Size = 22, Threshold = 1.4},
-		SunRaysEffect = {Enabled = true, Intensity = 0.035, Spread = 0.55},
-		fx_on = {},
-	},
-	["grassland.golden"] = {
-		Lighting = {ClockTime = 17.3, GeographicLatitude = 41.7, Brightness = 1.9, ExposureCompensation = 0.1, OutdoorAmbient = lvl(78, 76, 70), Ambient = lvl(44, 50, 48), EnvironmentDiffuseScale = 0.35, EnvironmentSpecularScale = 0.25, ColorShift_Top = lvl(70, 42, 12), ColorShift_Bottom = lvl(0, 6, 4), ShadowSoftness = 0.2},
-		Atmosphere = {Density = 0.32, Offset = 0.12, Color = hex("EFE4C8"), Decay = hex("93A6A2"), Glare = 0.8, Haze = 1.8},
-		ColorCorrectionEffect = {Enabled = true, Saturation = 0.1, Contrast = 0.05, Brightness = 0, TintColor = lvl(255, 246, 232)},
-		BloomEffect = {Enabled = true, Intensity = 0.55, Size = 22, Threshold = 1.2},
-		SunRaysEffect = {Enabled = true, Intensity = 0.1, Spread = 0.7},
-		fx_on = {},
-	},
-	["grassland.dusk"] = {
-		Lighting = {ClockTime = 17.85, GeographicLatitude = 41.7, Brightness = 1.5, ExposureCompensation = 1.05, OutdoorAmbient = lvl(74, 68, 80), Ambient = lvl(46, 44, 54), EnvironmentDiffuseScale = 0.3, EnvironmentSpecularScale = 0.25, ColorShift_Top = lvl(150, 100, 84), ColorShift_Bottom = lvl(8, 6, 14), ShadowSoftness = 0.2},
-		Atmosphere = {Density = 0.33, Offset = 0.12, Color = hex("C4B6B4"), Decay = hex("7A5E6A"), Glare = 0.6, Haze = 1.7},
-		ColorCorrectionEffect = {Enabled = true, Saturation = 0.22, Contrast = 0.08, Brightness = 0, TintColor = lvl(255, 244, 240)},
-		BloomEffect = {Enabled = true, Intensity = 0.6, Size = 22, Threshold = 1.1},
-		SunRaysEffect = {Enabled = true, Intensity = 0.08, Spread = 0.8},
-		fx_on = {"headlamp"},
-	},
-	["grassland.night"] = {
-		Lighting = {ClockTime = 0.5, GeographicLatitude = 41.7, Brightness = 1.4, ExposureCompensation = 0.9, OutdoorAmbient = lvl(56, 62, 78), Ambient = lvl(38, 42, 52), EnvironmentDiffuseScale = 0.2, EnvironmentSpecularScale = 0.25, ColorShift_Top = lvl(10, 14, 24), ColorShift_Bottom = lvl(0, 0, 0), ShadowSoftness = 0.2},
-		Atmosphere = {Density = 0.34, Offset = 0.12, Color = hex("1B2540"), Decay = hex("07090F"), Glare = 0, Haze = 0.8},
-		ColorCorrectionEffect = {Enabled = true, Saturation = 0, Contrast = 0.1, Brightness = 0, TintColor = lvl(236, 242, 255)},
-		BloomEffect = {Enabled = true, Intensity = 0.8, Size = 28, Threshold = 0.95},
-		SunRaysEffect = {Enabled = true, Intensity = 0, Spread = 0.55},
-		fx_on = {"headlamp"},
-	},
-	["grassland.storm"] = {
-		Lighting = {ClockTime = 13.5, GeographicLatitude = 41.7, Brightness = 1.1, ExposureCompensation = 0, OutdoorAmbient = lvl(74, 80, 82), Ambient = lvl(40, 44, 46), EnvironmentDiffuseScale = 0.35, EnvironmentSpecularScale = 0.25, ColorShift_Top = lvl(0, 0, 0), ColorShift_Bottom = lvl(0, 6, 4), ShadowSoftness = 0.6},
-		Atmosphere = {Density = 0.42, Offset = 0.12, Color = hex("8A8D98"), Decay = hex("363A42"), Glare = 0, Haze = 2.6},
-		ColorCorrectionEffect = {Enabled = true, Saturation = 0, Contrast = 0.08, Brightness = 0, TintColor = lvl(240, 246, 248)},
-		BloomEffect = {Enabled = true, Intensity = 0.2, Size = 22, Threshold = 1.4},
-		SunRaysEffect = {Enabled = true, Intensity = 0, Spread = 0.55},
-		fx_on = {"rain"},
-	},
-	["cutting.day"] = {
-		Lighting = {ClockTime = 14.2, GeographicLatitude = 41.7, Brightness = 2.4, ExposureCompensation = 0, OutdoorAmbient = lvl(63, 72, 63), Ambient = lvl(44, 50, 48), EnvironmentDiffuseScale = 0.28, EnvironmentSpecularScale = 0.25, ColorShift_Top = lvl(24, 22, 14), ColorShift_Bottom = lvl(0, 6, 4), ShadowSoftness = 0.2},
-		Atmosphere = {Density = 0.26, Offset = 0.12, Color = hex("C2CAB0"), Decay = hex("9FB0A8"), Glare = 0.2, Haze = 1.4},
-		ColorCorrectionEffect = {Enabled = true, Saturation = 0.12, Contrast = 0.05, Brightness = 0, TintColor = lvl(255, 252, 244)},
-		BloomEffect = {Enabled = true, Intensity = 0.35, Size = 22, Threshold = 1.4},
-		SunRaysEffect = {Enabled = true, Intensity = 0.035, Spread = 0.55},
-		fx_on = {},
-	},
-	["cutting.golden"] = {
-		Lighting = {ClockTime = 17.3, GeographicLatitude = 41.7, Brightness = 1.9, ExposureCompensation = 0.1, OutdoorAmbient = lvl(70, 68, 63), Ambient = lvl(44, 50, 48), EnvironmentDiffuseScale = 0.28, EnvironmentSpecularScale = 0.25, ColorShift_Top = lvl(70, 42, 12), ColorShift_Bottom = lvl(0, 6, 4), ShadowSoftness = 0.2},
-		Atmosphere = {Density = 0.28, Offset = 0.12, Color = hex("EFE4C8"), Decay = hex("93A6A2"), Glare = 0.8, Haze = 1.8},
-		ColorCorrectionEffect = {Enabled = true, Saturation = 0.1, Contrast = 0.05, Brightness = 0, TintColor = lvl(255, 246, 232)},
-		BloomEffect = {Enabled = true, Intensity = 0.55, Size = 22, Threshold = 1.2},
-		SunRaysEffect = {Enabled = true, Intensity = 0.1, Spread = 0.7},
-		fx_on = {},
-	},
-	["cutting.night"] = {
-		Lighting = {ClockTime = 0.5, GeographicLatitude = 41.7, Brightness = 1.4, ExposureCompensation = 0.9, OutdoorAmbient = lvl(50, 56, 70), Ambient = lvl(38, 42, 52), EnvironmentDiffuseScale = 0.16, EnvironmentSpecularScale = 0.25, ColorShift_Top = lvl(10, 14, 24), ColorShift_Bottom = lvl(0, 0, 0), ShadowSoftness = 0.2},
-		Atmosphere = {Density = 0.3, Offset = 0.12, Color = hex("1B2540"), Decay = hex("07090F"), Glare = 0, Haze = 0.8},
-		ColorCorrectionEffect = {Enabled = true, Saturation = 0, Contrast = 0.1, Brightness = 0, TintColor = lvl(236, 242, 255)},
-		BloomEffect = {Enabled = true, Intensity = 0.8, Size = 28, Threshold = 0.95},
-		SunRaysEffect = {Enabled = true, Intensity = 0, Spread = 0.55},
-		fx_on = {"headlamp"},
-	},
-	["cutting.storm"] = {
-		Lighting = {ClockTime = 13.5, GeographicLatitude = 41.7, Brightness = 1.1, ExposureCompensation = 0, OutdoorAmbient = lvl(67, 72, 74), Ambient = lvl(40, 44, 46), EnvironmentDiffuseScale = 0.28, EnvironmentSpecularScale = 0.25, ColorShift_Top = lvl(0, 0, 0), ColorShift_Bottom = lvl(0, 6, 4), ShadowSoftness = 0.6},
-		Atmosphere = {Density = 0.38, Offset = 0.12, Color = hex("8A8D98"), Decay = hex("363A42"), Glare = 0, Haze = 2.6},
-		ColorCorrectionEffect = {Enabled = true, Saturation = 0, Contrast = 0.08, Brightness = 0, TintColor = lvl(240, 246, 248)},
-		BloomEffect = {Enabled = true, Intensity = 0.2, Size = 22, Threshold = 1.4},
-		SunRaysEffect = {Enabled = true, Intensity = 0, Spread = 0.55},
-		fx_on = {"rain"},
-	},
-	["viaduct.day"] = {
-		Lighting = {ClockTime = 14.2, GeographicLatitude = 41.7, Brightness = 2.4, ExposureCompensation = 0, OutdoorAmbient = lvl(70, 80, 70), Ambient = lvl(44, 50, 48), EnvironmentDiffuseScale = 0.35, EnvironmentSpecularScale = 0.25, ColorShift_Top = lvl(24, 22, 14), ColorShift_Bottom = lvl(0, 6, 4), ShadowSoftness = 0.2},
-		Atmosphere = {Density = 0.4, Offset = 0.12, Color = hex("C2CAB0"), Decay = hex("9FB0A8"), Glare = 0.2, Haze = 2.6},
-		ColorCorrectionEffect = {Enabled = true, Saturation = 0.12, Contrast = 0.05, Brightness = 0, TintColor = lvl(255, 252, 244)},
-		BloomEffect = {Enabled = true, Intensity = 0.35, Size = 22, Threshold = 1.4},
-		SunRaysEffect = {Enabled = true, Intensity = 0.035, Spread = 0.55},
-		fx_on = {},
-	},
-	["viaduct.golden"] = {
-		Lighting = {ClockTime = 17.3, GeographicLatitude = 41.7, Brightness = 1.9, ExposureCompensation = 0.1, OutdoorAmbient = lvl(78, 76, 70), Ambient = lvl(44, 50, 48), EnvironmentDiffuseScale = 0.35, EnvironmentSpecularScale = 0.25, ColorShift_Top = lvl(70, 42, 12), ColorShift_Bottom = lvl(0, 6, 4), ShadowSoftness = 0.2},
-		Atmosphere = {Density = 0.42, Offset = 0.12, Color = hex("EFE4C8"), Decay = hex("93A6A2"), Glare = 0.8, Haze = 3},
-		ColorCorrectionEffect = {Enabled = true, Saturation = 0.1, Contrast = 0.05, Brightness = 0, TintColor = lvl(255, 246, 232)},
-		BloomEffect = {Enabled = true, Intensity = 0.55, Size = 22, Threshold = 1.2},
-		SunRaysEffect = {Enabled = true, Intensity = 0.1, Spread = 0.7},
-		fx_on = {},
-	},
-	["viaduct.night"] = {
-		Lighting = {ClockTime = 0.5, GeographicLatitude = 41.7, Brightness = 1.4, ExposureCompensation = 0.9, OutdoorAmbient = lvl(56, 62, 78), Ambient = lvl(38, 42, 52), EnvironmentDiffuseScale = 0.2, EnvironmentSpecularScale = 0.25, ColorShift_Top = lvl(10, 14, 24), ColorShift_Bottom = lvl(0, 0, 0), ShadowSoftness = 0.2},
-		Atmosphere = {Density = 0.44, Offset = 0.12, Color = hex("1B2540"), Decay = hex("07090F"), Glare = 0, Haze = 2},
-		ColorCorrectionEffect = {Enabled = true, Saturation = 0, Contrast = 0.1, Brightness = 0, TintColor = lvl(236, 242, 255)},
-		BloomEffect = {Enabled = true, Intensity = 0.8, Size = 28, Threshold = 0.95},
-		SunRaysEffect = {Enabled = true, Intensity = 0, Spread = 0.55},
-		fx_on = {"headlamp"},
-	},
-	["viaduct.storm"] = {
-		Lighting = {ClockTime = 13.5, GeographicLatitude = 41.7, Brightness = 1.1, ExposureCompensation = 0, OutdoorAmbient = lvl(74, 80, 82), Ambient = lvl(40, 44, 46), EnvironmentDiffuseScale = 0.35, EnvironmentSpecularScale = 0.25, ColorShift_Top = lvl(0, 0, 0), ColorShift_Bottom = lvl(0, 6, 4), ShadowSoftness = 0.6},
-		Atmosphere = {Density = 0.52, Offset = 0.12, Color = hex("8A8D98"), Decay = hex("363A42"), Glare = 0, Haze = 3.8},
-		ColorCorrectionEffect = {Enabled = true, Saturation = 0, Contrast = 0.08, Brightness = 0, TintColor = lvl(240, 246, 248)},
-		BloomEffect = {Enabled = true, Intensity = 0.2, Size = 22, Threshold = 1.4},
-		SunRaysEffect = {Enabled = true, Intensity = 0, Spread = 0.55},
-		fx_on = {"rain"},
-	},
-	["yard.day"] = {
-		Lighting = {ClockTime = 14.2, GeographicLatitude = 41.7, Brightness = 2.4, ExposureCompensation = 0, OutdoorAmbient = lvl(70, 80, 70), Ambient = lvl(44, 50, 48), EnvironmentDiffuseScale = 0.35, EnvironmentSpecularScale = 0.25, ColorShift_Top = lvl(24, 22, 14), ColorShift_Bottom = lvl(0, 6, 4), ShadowSoftness = 0.2},
-		Atmosphere = {Density = 0.35, Offset = 0.12, Color = hex("C2CAB0"):Lerp(hex("8A8D98"), 0.35), Decay = hex("9FB0A8"), Glare = 0.2, Haze = 1.4},
-		ColorCorrectionEffect = {Enabled = true, Saturation = 0.07, Contrast = 0.05, Brightness = 0, TintColor = lvl(255, 252, 244)},
-		BloomEffect = {Enabled = true, Intensity = 0.35, Size = 22, Threshold = 1.4},
-		SunRaysEffect = {Enabled = true, Intensity = 0.035, Spread = 0.55},
-		fx_on = {},
-	},
-	["yard.golden"] = {
-		Lighting = {ClockTime = 17.3, GeographicLatitude = 41.7, Brightness = 1.9, ExposureCompensation = 0.1, OutdoorAmbient = lvl(78, 76, 70), Ambient = lvl(44, 50, 48), EnvironmentDiffuseScale = 0.35, EnvironmentSpecularScale = 0.25, ColorShift_Top = lvl(70, 42, 12), ColorShift_Bottom = lvl(0, 6, 4), ShadowSoftness = 0.2},
-		Atmosphere = {Density = 0.37, Offset = 0.12, Color = hex("EFE4C8"):Lerp(hex("8A8D98"), 0.35), Decay = hex("93A6A2"), Glare = 0.8, Haze = 1.8},
-		ColorCorrectionEffect = {Enabled = true, Saturation = 0.05, Contrast = 0.05, Brightness = 0, TintColor = lvl(255, 246, 232)},
-		BloomEffect = {Enabled = true, Intensity = 0.55, Size = 22, Threshold = 1.2},
-		SunRaysEffect = {Enabled = true, Intensity = 0.1, Spread = 0.7},
-		fx_on = {},
-	},
-	["yard.night"] = {
-		Lighting = {ClockTime = 0.5, GeographicLatitude = 41.7, Brightness = 1.4, ExposureCompensation = 0.9, OutdoorAmbient = lvl(56, 62, 78), Ambient = lvl(38, 42, 52), EnvironmentDiffuseScale = 0.2, EnvironmentSpecularScale = 0.25, ColorShift_Top = lvl(10, 14, 24), ColorShift_Bottom = lvl(0, 0, 0), ShadowSoftness = 0.2},
-		Atmosphere = {Density = 0.39, Offset = 0.12, Color = hex("1B2540"):Lerp(hex("8A8D98"), 0.35), Decay = hex("07090F"), Glare = 0, Haze = 0.8},
-		ColorCorrectionEffect = {Enabled = true, Saturation = -0.05, Contrast = 0.1, Brightness = 0, TintColor = lvl(236, 242, 255)},
-		BloomEffect = {Enabled = true, Intensity = 0.8, Size = 28, Threshold = 0.95},
-		SunRaysEffect = {Enabled = true, Intensity = 0, Spread = 0.55},
-		fx_on = {"headlamp"},
-	},
-	["yard.storm"] = {
-		Lighting = {ClockTime = 13.5, GeographicLatitude = 41.7, Brightness = 1.1, ExposureCompensation = 0, OutdoorAmbient = lvl(74, 80, 82), Ambient = lvl(40, 44, 46), EnvironmentDiffuseScale = 0.35, EnvironmentSpecularScale = 0.25, ColorShift_Top = lvl(0, 0, 0), ColorShift_Bottom = lvl(0, 6, 4), ShadowSoftness = 0.6},
-		Atmosphere = {Density = 0.47, Offset = 0.12, Color = hex("8A8D98"):Lerp(hex("8A8D98"), 0.35), Decay = hex("363A42"), Glare = 0, Haze = 2.6},
-		ColorCorrectionEffect = {Enabled = true, Saturation = -0.05, Contrast = 0.08, Brightness = 0, TintColor = lvl(240, 246, 248)},
-		BloomEffect = {Enabled = true, Intensity = 0.2, Size = 22, Threshold = 1.4},
-		SunRaysEffect = {Enabled = true, Intensity = 0, Spread = 0.55},
-		fx_on = {"rain"},
-	},
-	["depot.day"] = {
-		Lighting = {ClockTime = 14.2, GeographicLatitude = 41.7, Brightness = 2.4, ExposureCompensation = 0, OutdoorAmbient = lvl(70, 80, 70), Ambient = lvl(44, 50, 48), EnvironmentDiffuseScale = 0.35, EnvironmentSpecularScale = 0.25, ColorShift_Top = lvl(24, 22, 14), ColorShift_Bottom = lvl(0, 6, 4), ShadowSoftness = 0.2},
-		Atmosphere = {Density = 0.22, Offset = 0.12, Color = hex("C2CAB0"), Decay = hex("9FB0A8"), Glare = 0.2, Haze = 1.4},
-		ColorCorrectionEffect = {Enabled = true, Saturation = 0.12, Contrast = 0.08, Brightness = 0, TintColor = lvl(255, 252, 244)},
-		BloomEffect = {Enabled = true, Intensity = 0.35, Size = 22, Threshold = 1.4},
-		SunRaysEffect = {Enabled = true, Intensity = 0.035, Spread = 0.55},
-		fx_on = {},
-	},
-	["depot.golden"] = {
-		Lighting = {ClockTime = 17.3, GeographicLatitude = 41.7, Brightness = 1.9, ExposureCompensation = 0.1, OutdoorAmbient = lvl(78, 76, 70), Ambient = lvl(44, 50, 48), EnvironmentDiffuseScale = 0.35, EnvironmentSpecularScale = 0.25, ColorShift_Top = lvl(70, 42, 12), ColorShift_Bottom = lvl(0, 6, 4), ShadowSoftness = 0.2},
-		Atmosphere = {Density = 0.24, Offset = 0.12, Color = hex("EFE4C8"), Decay = hex("93A6A2"), Glare = 0.8, Haze = 1.8},
-		ColorCorrectionEffect = {Enabled = true, Saturation = 0.1, Contrast = 0.08, Brightness = 0, TintColor = lvl(255, 246, 232)},
-		BloomEffect = {Enabled = true, Intensity = 0.55, Size = 22, Threshold = 1.2},
-		SunRaysEffect = {Enabled = true, Intensity = 0.1, Spread = 0.7},
-		fx_on = {},
-	},
-}
-
-P.overrides = {
-	tunnel_under = {
-		tween_in = 0.35, tween_out = 0.8, duration = nil,
-		fx_on = {"headlamp"}, flash = false,
-		ops = {
-			Lighting = {Brightness = {"mul", 0.2}, OutdoorAmbient = {"mul", 1}, Ambient = {"mul", 1.3}, EnvironmentDiffuseScale = {"mul", 0.2}, ExposureCompensation = {"add", 0.8}},
-			Atmosphere = {Density = {"mul", 0.4}, Color = {"lerp", hex("15181B"), 0.8}, Decay = {"lerp", hex("15181B"), 0.8}},
-			BloomEffect = {Threshold = {"mul", 0.7}},
-			SunRaysEffect = {Intensity = {"set", 0}},
-		},
-	},
-	overbridge_flash = {
-		tween_in = 0.08, tween_out = 0.35, duration = 0.6,
-		fx_on = {}, flash = true,
-		ops = {
-			Lighting = {Brightness = {"mul", 0.5}, OutdoorAmbient = {"mul", 0.6}, Ambient = {"mul", 0.6}},
-		},
-	},
-}
-
-P.phone_post_off = {"BloomEffect", "SunRaysEffect", "DepthOfFieldEffect"} -- assumed (OQ-029 default A): not canon until the owner decides; re-measure at the alpha live check (tech.streaming.live_check)
-
-return P
-]]></string>
-        </Properties>
-      </Item>
-      <Item class="ModuleScript" referent="13">
-        <Properties>
-          <string name="Name">RR_FXPresets</string>
-          <string name="Source"><![CDATA[-- RR_FXPresets: GENERATED by rr-vfx-lighting (vfx.py build, 2026-09-29) from presets/vfx.json.
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="12">
+          <Properties>
+            <string name="Name">RR_FXPresets</string>
+            <string name="Source"><![CDATA[-- RR_FXPresets: GENERATED by rr-vfx-lighting (vfx.py build, 2026-09-29) from presets/vfx.json.
 -- Do not edit: change the JSON and rebuild. Palette colours use hex(); light levels use lvl() (intensities, not palette).
 local function hex(h) return Color3.fromHex(h) end
 local function lvl(r, g, b) return Color3.fromRGB(r, g, b) end
@@ -4309,14 +3884,15 @@ P.presets = {
 
 return P
 ]]></string>
-        </Properties>
+          </Properties>
+        </Item>
       </Item>
     </Item>
-    <Item class="Folder" referent="14">
+    <Item class="Folder" referent="13">
       <Properties>
-        <string name="Name">Put_in_StarterPlayerScripts</string>
+        <string name="Name">DragContentsInto_StarterPlayer.StarterPlayerScripts</string>
       </Properties>
-      <Item class="LocalScript" referent="15">
+      <Item class="LocalScript" referent="14">
         <Properties>
           <string name="Name">TrainSplitClient</string>
           <string name="Source"><![CDATA[--[[
@@ -4341,8 +3917,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
 
-local Config = require(ReplicatedStorage:WaitForChild("TrainSplitConfig"))
-local Shared = require(ReplicatedStorage:WaitForChild("TrainSplitShared"))
+local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("TrainSplit"):WaitForChild("TrainSplitConfig"))
+local Shared = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("TrainSplit"):WaitForChild("TrainSplitShared"))
 local remote = ReplicatedStorage:WaitForChild(Config.RemoteName)
 local player = Players.LocalPlayer
 
@@ -4358,7 +3934,8 @@ task.spawn(function()
 		game.Loaded:Wait()
 	end
 	local folder = ReplicatedStorage:FindFirstChild("RRFX")
-	local mod = ReplicatedStorage:FindFirstChild("RR_VFX") or (folder and folder:FindFirstChild("RR_VFX"))
+	local tsFolder = ReplicatedStorage:FindFirstChild("Modules") and ReplicatedStorage.Modules:FindFirstChild("TrainSplit")
+	local mod = (tsFolder and tsFolder:FindFirstChild("RR_VFX")) or ReplicatedStorage:FindFirstChild("RR_VFX") or (folder and folder:FindFirstChild("RR_VFX"))
 	if mod and mod:IsA("ModuleScript") then
 		local ok, lib = pcall(require, mod)
 		if ok and type(lib) == "table" then

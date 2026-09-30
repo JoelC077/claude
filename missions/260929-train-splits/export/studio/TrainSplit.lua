@@ -4,7 +4,7 @@ TrainSplit  (ModuleScript in ServerScriptService)
 Tears a carriage in half at runtime. Needs RR_TrainSplit_Setup to have run on the train:
 Train/Carriage1..2/{FrontHalf, RearHalf} and Train/RR_Breaks/Break1..2.
 
-	local TrainSplit = require(game:GetService("ServerScriptService").TrainSplit)
+	local TrainSplit = require(game:GetService("ServerScriptService").Scripts.TrainSystems.TrainSplit)
 	local result = TrainSplit.SplitAt(train, 1)   -- your damage system decides when (windows and walls not fixed)
 	TrainSplit.Snapped.Event:Connect(function(train, k, result) end)
 	TrainSplit.Despawned.Event:Connect(function(train, k, wreck) end)  -- fires just before the wreck is destroyed
@@ -25,8 +25,8 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local Config = require(ReplicatedStorage:WaitForChild("TrainSplitConfig"))
-local Shared = require(ReplicatedStorage:WaitForChild("TrainSplitShared"))
+local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("TrainSplit"):WaitForChild("TrainSplitConfig"))
+local Shared = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("TrainSplit"):WaitForChild("TrainSplitShared"))
 
 local TrainSplit = {}
 TrainSplit.Version = "2.3.0"

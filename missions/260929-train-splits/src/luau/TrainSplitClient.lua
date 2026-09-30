@@ -20,8 +20,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
 
-local Config = require(ReplicatedStorage:WaitForChild("TrainSplitConfig"))
-local Shared = require(ReplicatedStorage:WaitForChild("TrainSplitShared"))
+local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("TrainSplit"):WaitForChild("TrainSplitConfig"))
+local Shared = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("TrainSplit"):WaitForChild("TrainSplitShared"))
 local remote = ReplicatedStorage:WaitForChild(Config.RemoteName)
 local player = Players.LocalPlayer
 
@@ -37,7 +37,8 @@ task.spawn(function()
 		game.Loaded:Wait()
 	end
 	local folder = ReplicatedStorage:FindFirstChild("RRFX")
-	local mod = ReplicatedStorage:FindFirstChild("RR_VFX") or (folder and folder:FindFirstChild("RR_VFX"))
+	local tsFolder = ReplicatedStorage:FindFirstChild("Modules") and ReplicatedStorage.Modules:FindFirstChild("TrainSplit")
+	local mod = (tsFolder and tsFolder:FindFirstChild("RR_VFX")) or ReplicatedStorage:FindFirstChild("RR_VFX") or (folder and folder:FindFirstChild("RR_VFX"))
 	if mod and mod:IsA("ModuleScript") then
 		local ok, lib = pcall(require, mod)
 		if ok and type(lib) == "table" then
