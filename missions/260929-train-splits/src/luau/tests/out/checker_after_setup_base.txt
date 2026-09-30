@@ -1,0 +1,5 @@
+== RR_BreakChecker 2.3.0: Workspace.Train (1001 BaseParts) ==
+Already split (RR_Breaks found): checking the halves against their tears.
+Break1  Intact=true  FrontHalf 243 parts, RearHalf 188 parts
+Break2  Intact=true  FrontHalf 233 parts, RearHalf 333 parts
+Summary: every part sits in a half, on its side of the tear.

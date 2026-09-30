@@ -1,0 +1,201 @@
+{
+ "sheet": [
+  792,
+  1203
+ ],
+ "megapixels": 0.95,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "Ladder",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/ladder.png",
+   "box": [
+    6,
+    24,
+    780,
+    553
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "boiler_boom",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/boiler_boom.png",
+   "box": [
+    6,
+    601,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 3,
+   "label": "alarm_coal",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/alarm_coal.png",
+   "box": [
+    262,
+    601,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 4,
+   "label": "alarm_pressure",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/alarm_pressure.png",
+   "box": [
+    518,
+    601,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 5,
+   "label": "breakdown_bang",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/breakdown_bang.png",
+   "box": [
+    6,
+    725,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 6,
+   "label": "coupling_snap",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/coupling_snap.png",
+   "box": [
+    262,
+    725,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 7,
+   "label": "glass_smash",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/glass_smash.png",
+   "box": [
+    518,
+    725,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 8,
+   "label": "metal_tear",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/metal_tear.png",
+   "box": [
+    6,
+    849,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 9,
+   "label": "passengers_scream",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/passengers_scream.png",
+   "box": [
+    262,
+    849,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 10,
+   "label": "split_explosion",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/split_explosion.png",
+   "box": [
+    518,
+    849,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 11,
+   "label": "split_glass",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/split_glass.png",
+   "box": [
+    6,
+    973,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 12,
+   "label": "countdown_tick",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/countdown_tick.png",
+   "box": [
+    262,
+    973,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 13,
+   "label": "junction_beep",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/junction_beep.png",
+   "box": [
+    518,
+    973,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 14,
+   "label": "lever_clunk",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/lever_clunk.png",
+   "box": [
+    6,
+    1097,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 15,
+   "label": "stamp_slam",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/stamp_slam.png",
+   "box": [
+    262,
+    1097,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  },
+  {
+   "n": 16,
+   "label": "topple_crash",
+   "src": "/home/user/claude/missions/260929-train-splits/src/sound/sheet/tiles/topple_crash.png",
+   "box": [
+    518,
+    1097,
+    250,
+    100
+   ],
+   "scale": "fit x1.00"
+  }
+ ]
+}

@@ -1,0 +1,41 @@
+{
+ "slug": "train-splits",
+ "kind": "mixed",
+ "status": "intake",
+ "step": 8,
+ "steps": 10,
+ "bar": 8,
+ "cap_passes": 5,
+ "budget": null,
+ "tokens": 300000,
+ "env": {
+  "root": "/home/user/claude/missions",
+  "critic": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/multiuse-critic",
+  "critic_mode": "agent",
+  "blender_mcp": "none",
+  "studio_mcp": "none",
+  "render": "bpy-headless-pending",
+  "owner": "present-async",
+  "skill": {
+   "rr-exploit-guard": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/rr-exploit-guard",
+   "rr-bible": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/rr-bible",
+   "rr-asset-foundry": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/rr-asset-foundry",
+   "rr-soundsmith": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/rr-soundsmith",
+   "rr-vfx-lighting": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/rr-vfx-lighting"
+  }
+ },
+ "agent": {
+  "maker-sound": "a5c0269878acf8970",
+  "maker-fx": "a63b60c97159fbf09",
+  "maker-3d": "adfc7ab95bd900a40",
+  "maker-luau": "a58563090f1060c2e",
+  "critic-fx": "aa896d320634a430d",
+  "critic-sound": "a3c93cfb8e3ddbb63",
+  "guard-review": "abfbce413a2aaee07",
+  "critic-sound-final": "a934f4a51283fcbfc"
+ },
+ "next": "export: TrainSplitConfig glass fx -> glass_split; resync Sounds with final/SOUNDS.md",
+ "created": "2026-09-29T21:35Z",
+ "updated": "2026-09-29T23:52Z",
+ "tokens_est": true
+}

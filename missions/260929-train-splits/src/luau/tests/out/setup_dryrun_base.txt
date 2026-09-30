@@ -1,0 +1,2 @@
+== RR_TrainSplit_Setup 2.3.0 DRY RUN (nothing changes): Workspace.Train ==
+Refused: no roof union of about 19.48 x 3.59 x 62.34 was found, so the jagged tear has nothing to hang on. Run RR_BreakChecker to see what it finds; for another train set ALLOW_PLANE_FALLBACK = true (flat cut).
