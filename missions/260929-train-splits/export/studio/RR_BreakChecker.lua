@@ -21,10 +21,11 @@ local SHOW_BAND = true -- list the parts inside the jagged band that do not cros
 
 -- CORE BEGIN: break geometry, identical in RR_BreakChecker and RR_TrainSplit_Setup (the Lune suite checks it)
 local SPEC_VERSION = "2.3.0"
-local ROOF_SIG = { 3.59, 19.48, 62.34 } -- roof union size, smallest first (break_spec roof_signature)
+local ROOF_SIG = { 5.86, 19.23, 62.34 } -- live roof union in CoalTrain (the export had 3.59 x 19.48 x 62.34)
 local ROOF_TOL = 0.1 -- studs of slack per axis when matching a roof
 local BREAK_DZ = 3.31 -- break plane = roof centre + 3.31 studs toward the rear
-local FLOOR_DY = -12.258 -- frame origin height = the floor top, 12.258 below the roof centre
+local FLOOR_DY = -11.443 -- floor top (y 13.927) below the live roof union centre (y 25.37)
+local CROSS_DX = -0.05 -- live roof union sits 0.05 off the carriage centre line
 local ZEXT = 40 -- cutter reach along the carriage (a carriage spans -34.5 .. +27.9 from its break)
 local LONG_PART = 0.6 -- plane fallback: parts this fraction of the longest one outline a carriage
 local EXPECTED_CROSSERS = 10 -- per carriage in Joel's train (break_spec clearance check)
@@ -368,7 +369,7 @@ function Core.findCarriages(parts, frontAt, planeOffset)
 		table.insert(found.carriages, {
 			index = i,
 			roof = roof,
-			frame = frameFor(centre + r * BREAK_DZ + up * FLOOR_DY, r, up),
+			frame = frameFor(centre + r * BREAK_DZ + up * FLOOR_DY + up:Cross(r) * CROSS_DX, r, up),
 			cells = CELLS,
 			centre = centre,
 			half = math.max(roof.Size.X, roof.Size.Y, roof.Size.Z) / 2,
