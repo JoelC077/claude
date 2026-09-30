@@ -365,6 +365,7 @@ function Core.findCarriages(parts, frontAt, planeOffset)
 	for i, roof in roofs do
 		local long, up = roofAxes(roof)
 		local r = long:Dot(rear) >= 0 and long or -long
+		up = (Vector3.yAxis - r * Vector3.yAxis:Dot(r)).Unit -- carriages stand level: ignore any roll baked into the roof union
 		local centre = roof.CFrame.Position
 		table.insert(found.carriages, {
 			index = i,
