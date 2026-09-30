@@ -449,7 +449,7 @@ local function copyLook(from, to)
 		end
 	end
 	for name, value in from:GetAttributes() do
-		to:SetAttribute(name, value)
+		if string.sub(name, 1, 3) ~= "RBX" then pcall(to.SetAttribute, to, name, value) end -- Roblox-reserved attributes cannot be copied
 	end
 	for _, tag in from:GetTags() do
 		to:AddTag(tag)
@@ -875,7 +875,7 @@ local function mirrorOf(ctx, half, container)
 		m = ok and inst or Instance.new("Folder")
 		m.Name = container.Name
 		for name, value in container:GetAttributes() do
-			m:SetAttribute(name, value)
+			if string.sub(name, 1, 3) ~= "RBX" then pcall(m.SetAttribute, m, name, value) end
 		end
 		for _, tag in container:GetTags() do
 			m:AddTag(tag)
