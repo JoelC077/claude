@@ -68,6 +68,6 @@ Result:
   Re-homed PointLight "TestLight" from CurtainCorroded: to the piece holding the part centre
   Still points at a cut original (now in the backup): WeldConstraint Workspace.Train.Body.TestWeld (Part0); re-point it at a piece or delete it
   2 emptied container(s) moved into the backup (EmptiedContainers).
-  Backup: ServerStorage.RR_Backups.Train_20260930-112149Z (full copy, CutOriginals, Cutters).
+  Backup: ServerStorage.RR_Backups.Train_20260930-112225Z (full copy, CutOriginals, Cutters).
   Undo: Ctrl+Z (one step).
 Next: run RR_BreakChecker again (it checks the halves), then test with TrainSplitDemo (RR_TestBreak = 1 or 2).

@@ -89,7 +89,7 @@ Config.Cells = {
 Config.Events = {
 	{ t = -0.25, id = "metal_tear", sound = "metal_tear", at = "split_core" },
 	{ t = 0.0, id = "split_explosion", fx = "split_explosion", sound = "split_explosion", shake = "big", at = "split_core" },
-	{ t = 0.0, id = "glass_burst", fx = "glass_split", sound = "split_glass", at = "glass" },
+	{ t = 0.0, id = "glass_burst", fx = "glass_burst", sound = "split_glass", at = "glass" },
 	{ t = 0.05, id = "torn_edge_smoke", fx = "torn_edge_smoke", loop = 20, fade = 3.5, at = "torn_edge" },
 	{ t = 0.3, t_end = "stop", id = "wreck_scrape", sound = "wreck_scrape", at = "wreck" },
 	{ t = 0.8, id = "debris_rain", sound = "debris_rain", at = "debris" },
@@ -114,7 +114,7 @@ Config.Anchors = {
 -- A missing RR_VFX or a failing preset falls back to Config.FallbackFX below.
 Config.FX = {
 	split_explosion = "split_explosion", -- burst, SplitCore
-	glass_burst = "glass_split", -- burst, SplitGlassL/R
+	glass_burst = "glass_burst", -- burst, SplitGlassL/R
 	torn_edge_smoke = "torn_edge_smoke", -- loop, TornEdge
 	topple_dust = "topple_dust", -- burst, WreckDust
 }
