@@ -1,0 +1,97 @@
+{
+ "skill": "rr-exploit-guard",
+ "version": 1,
+ "verdict": "HOLD",
+ "stage": "alpha",
+ "gated_at": "2026-09-29T23:38:00+00:00",
+ "scanned_at": "2026-09-29T23:26:20+00:00",
+ "inputs_sha256": "120a53b73e5c320c66bcae432300217e436d8788f9094361dc2340ed56146040",
+ "places": {},
+ "files": 20,
+ "counts": {
+  "critical": 0,
+  "high": 0,
+  "medium": 0,
+  "low": 0,
+  "info": 0,
+  "suppressed": 0
+ },
+ "blocking": [],
+ "hold": [
+  "owner checklist OC1 open: ServerScriptService.LoadStringEnabled is off (no place file scanned: scan the .rbxlx or tick it after checking in Studio)",
+  "owner checklist OC2 open: HttpService.HttpEnabled is on only if scanned code makes HTTP requests (no place file scanned: scan the .rbxlx or tick it after checking in Studio)",
+  "owner checklist OC4 open: Bug bash security lines done in Studio: double-tap an order, spam the lever after it locks (release.alpha.bug_bash)"
+ ],
+ "accepted": [],
+ "review": {
+  "status": "not needed",
+  "file": "/home/user/claude/missions/260929-train-splits/security/review/verdict.md",
+  "reviewer": ""
+ },
+ "fuzz": false,
+ "checklist": [
+  {
+   "id": "OC1",
+   "text": "ServerScriptService.LoadStringEnabled is off",
+   "needed_from": "alpha",
+   "status": "open",
+   "how": "auto: place file"
+  },
+  {
+   "id": "OC2",
+   "text": "HttpService.HttpEnabled is on only if scanned code makes HTTP requests",
+   "needed_from": "alpha",
+   "status": "open",
+   "how": "auto: place file"
+  },
+  {
+   "id": "OC3",
+   "text": "Free models and plugins audited: backdoor rules clean (require-id, loadstring, fenv, obfuscated)",
+   "needed_from": "alpha",
+   "status": "pass",
+   "how": "auto: scan"
+  },
+  {
+   "id": "OC4",
+   "text": "Bug bash security lines done in Studio: double-tap an order, spam the lever after it locks (release.alpha.bug_bash)",
+   "needed_from": "alpha",
+   "status": "open",
+   "how": "owner"
+  },
+  {
+   "id": "OC5",
+   "text": "Two-player fuzz run in Studio (guard.py fuzz) and the probe result is clean",
+   "needed_from": "beta",
+   "status": "open",
+   "how": "owner"
+  },
+  {
+   "id": "OC6",
+   "text": "Experience Settings > Security: Allow Third Party Teleports off; Access Control for Places = Secure (trip place joinable only by server teleport)",
+   "needed_from": "beta",
+   "status": "open",
+   "how": "owner"
+  },
+  {
+   "id": "OC7",
+   "text": "Studio tests use a separate data store name or test universe, never live player data",
+   "needed_from": "beta",
+   "status": "open",
+   "how": "owner"
+  },
+  {
+   "id": "OC8",
+   "text": "Collaborators with edit rights are trusted; owner account has 2-step verification",
+   "needed_from": "beta",
+   "status": "open",
+   "how": "owner"
+  },
+  {
+   "id": "OC9",
+   "text": "Admin/debug commands restricted to the owner's UserId and debug off (tech.security.admin)",
+   "needed_from": "live",
+   "status": "open",
+   "how": "owner + scan"
+  }
+ ]
+}

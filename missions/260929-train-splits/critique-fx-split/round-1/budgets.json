@@ -1,0 +1,162 @@
+{
+ "version": 1,
+ "status": "assumed (OQ-029 default A): not canon until the owner decides; re-measure at the alpha live check (tech.streaming.live_check)",
+ "oq": "OQ-029",
+ "about": "live = rate x max lifetime for loops at full intensity (after the tier's rate scale) plus every burst's emit count; fill = live x mean size squared (stud^2), an overdraw proxy; lights include the baseline cab lights.",
+ "baseline": {
+  "lights": 2,
+  "lights_shadowed": 1,
+  "note": "cab lamp (shadows on) and desk SurfaceLight from style.light.*; the firebox light is counted in firebox_glow"
+ },
+ "tiers": {
+  "phone": {
+   "detect": "TouchEnabled and not KeyboardEnabled",
+   "live_particles": 400,
+   "burst_peak": 800,
+   "emitters": 12,
+   "fill_stud2": 7000,
+   "lights_view": 8,
+   "lights_shadowed": 2,
+   "beams": 4,
+   "debris_parts": 8,
+   "post_off": [
+    "BloomEffect",
+    "SunRaysEffect",
+    "DepthOfFieldEffect"
+   ],
+   "rate_scale": {
+    "1": 1.0,
+    "2": 0.7,
+    "3": 0.5
+   }
+  },
+  "pc": {
+   "live_particles": 1500,
+   "burst_peak": 2500,
+   "emitters": 24,
+   "fill_stud2": 20000,
+   "lights_view": 16,
+   "lights_shadowed": 4,
+   "beams": 12,
+   "debris_parts": 16,
+   "post_off": [
+    "DepthOfFieldEffect"
+   ],
+   "rate_scale": {
+    "1": 1.0,
+    "2": 1.0,
+    "3": 1.0
+   }
+  }
+ },
+ "priorities": {
+  "1": "crisis signal (must read on every device)",
+  "2": "feedback",
+  "3": "ambience (first to go)"
+ },
+ "sets": {
+  "cruise": {
+   "use": "normal running at the fast notch",
+   "presets": [
+    "steam_chimney",
+    "smoke_chimney",
+    "firebox_glow"
+   ]
+  },
+  "crisis_stack": {
+   "use": "worst realistic stack: valve open, electrics down, axle sparks, someone shovelling, brakes on",
+   "presets": [
+    "steam_chimney",
+    "smoke_chimney",
+    "firebox_glow",
+    "steam_valve",
+    "sparks_powerbox",
+    "sparks_axle",
+    "coal_dust",
+    "sparks_brake"
+   ]
+  },
+  "night_tunnel": {
+   "use": "Night Running or a tunnel with the headlamp on while braking",
+   "presets": [
+    "steam_chimney",
+    "smoke_chimney",
+    "firebox_glow",
+    "headlamp",
+    "sparks_brake"
+   ]
+  },
+  "storm_crisis": {
+   "use": "rain plus a pressure crisis and axle sparks (OQ-027 option B or C only)",
+   "presets": [
+    "steam_chimney",
+    "smoke_chimney",
+    "firebox_glow",
+    "steam_valve",
+    "sparks_axle",
+    "rain",
+    "headlamp"
+   ]
+  },
+  "boiler_fail": {
+   "use": "boiler explosion over cruise",
+   "presets": [
+    "boiler_burst",
+    "smoke_chimney",
+    "firebox_glow"
+   ]
+  },
+  "derail": {
+   "use": "derail burst over cruise (OQ-028 option B only)",
+   "presets": [
+    "derail_explosion",
+    "steam_chimney",
+    "smoke_chimney",
+    "firebox_glow"
+   ]
+  },
+  "windows": {
+   "use": "windows crisis over cruise with the valve open",
+   "presets": [
+    "glass_burst",
+    "steam_chimney",
+    "smoke_chimney",
+    "firebox_glow",
+    "steam_valve"
+   ]
+  },
+  "arrival_brake": {
+   "use": "braking into a station at speed (gameplay.run.brake_formula)",
+   "presets": [
+    "steam_chimney",
+    "smoke_chimney",
+    "firebox_glow",
+    "sparks_brake"
+   ]
+  },
+  "pressure_brake": {
+   "use": "pressure redline answered with the brake and the valve while someone shovels (gameplay.crisis.pressure)",
+   "presets": [
+    "steam_chimney",
+    "smoke_chimney",
+    "firebox_glow",
+    "steam_valve",
+    "sparks_brake",
+    "coal_dust"
+   ]
+  },
+  "carriage_split": {
+   "use": "carriage split (mission 260929-train-splits): split burst, torn-edge smoke, one wreck landing, the two nearest windows, over cruise",
+   "presets": [
+    "split_explosion",
+    "torn_edge_smoke",
+    "topple_dust",
+    "glass_burst",
+    "glass_burst",
+    "steam_chimney",
+    "smoke_chimney",
+    "firebox_glow"
+   ]
+  }
+ }
+}

@@ -1,0 +1,616 @@
+{
+ "version": 1,
+ "about": "rr-vfx-lighting looks. A look is biome.time[+override]; it resolves base -> times[time] -> biomes[biome] -> overrides in order. Plain values set; {add}, {mul}, {lerp: [colour, t]} adjust. Light levels ([r,g,b] on Ambient, OutdoorAmbient, ColorShift_*, TintColor) are intensities, exempt from the palette gate but band-checked. Schema: references/presets.md.",
+ "fx_colours": {
+  "haze_grassland": {
+   "hex": "#C2CAB0",
+   "why": "canon asks a grey-green haze (tech.lighting.atmosphere); no token is a light grey-green"
+  },
+  "decay_day": {
+   "hex": "#9FB0A8",
+   "why": "zenith kept grey-green so the sky desaturates with the ground (style.material.sky), away from the blue-sky band"
+  },
+  "decay_golden": {
+   "hex": "#93A6A2",
+   "why": "cool zenith against the cream horizon keeps golden hour out of the sepia band (style.dont.dead_rails)"
+  },
+  "haze_dusk": {
+   "hex": "#C4B6B4",
+   "why": "dusk horizon: dusty rose-grey, warm enough to read as sunset, pink-leaning and low-saturation, away from the sepia band (style.dont.dead_rails)"
+  },
+  "decay_dusk": {
+   "hex": "#7A5E6A",
+   "why": "dusk zenith: mauve, so dusk has its own colour idea between day and night (critic pass-1 B4-1); not blue (style.dont.land_or_die)"
+  }
+ },
+ "studio": {
+  "about": "Studio-only settings, applied by studio_lighting_setup.lua in the command bar (not scriptable at runtime or set once per place)",
+  "LightingStyle": "Enum.LightingStyle.Realistic",
+  "PrioritizeLightingQuality": true,
+  "Use2022Materials": {
+   "v": false,
+   "canon": "tech.lighting.materials_2022"
+  },
+  "canon_note": "tech.lighting.technology (Future) maps to LightingStyle Realistic + PrioritizeLightingQuality (tech.lighting.technology_api)"
+ },
+ "base": {
+  "Lighting": {
+   "ClockTime": 14.2,
+   "GeographicLatitude": 41.7,
+   "Brightness": 2.4,
+   "ExposureCompensation": 0,
+   "OutdoorAmbient": {
+    "v": [
+     70,
+     80,
+     70
+    ],
+    "canon": "tech.lighting.outdoor_ambient"
+   },
+   "Ambient": [
+    44,
+    50,
+    48
+   ],
+   "EnvironmentDiffuseScale": 0.35,
+   "EnvironmentSpecularScale": 0.25,
+   "ColorShift_Top": [
+    24,
+    22,
+    14
+   ],
+   "ColorShift_Bottom": [
+    0,
+    6,
+    4
+   ],
+   "ShadowSoftness": 0.2
+  },
+  "Atmosphere": {
+   "Density": {
+    "v": 0.3,
+    "canon": "tech.lighting.atmosphere"
+   },
+   "Offset": 0.12,
+   "Color": "$haze_grassland",
+   "Decay": "$decay_day",
+   "Glare": 0.2,
+   "Haze": 1.4
+  },
+  "ColorCorrectionEffect": {
+   "Enabled": true,
+   "Saturation": {
+    "v": 0.12,
+    "canon": "tech.lighting.color_correction"
+   },
+   "Contrast": {
+    "v": 0.05,
+    "canon": "tech.lighting.color_correction"
+   },
+   "Brightness": 0,
+   "TintColor": [
+    255,
+    252,
+    244
+   ]
+  },
+  "BloomEffect": {
+   "Enabled": true,
+   "Intensity": 0.35,
+   "Size": 22,
+   "Threshold": 1.4
+  },
+  "SunRaysEffect": {
+   "Enabled": true,
+   "Intensity": 0.035,
+   "Spread": 0.55
+  },
+  "fx_on": []
+ },
+ "times": {
+  "day": {
+   "use": "default running look"
+  },
+  "golden": {
+   "use": "late sun; OQ-026 default keeps it for the Depot lobby and results",
+   "Lighting": {
+    "ClockTime": 17.3,
+    "Brightness": 1.9,
+    "ExposureCompensation": 0.1,
+    "ColorShift_Top": [
+     70,
+     42,
+     12
+    ],
+    "OutdoorAmbient": [
+     78,
+     76,
+     70
+    ]
+   },
+   "Atmosphere": {
+    "Density": 0.32,
+    "Color": "@style.brand.cream",
+    "Decay": "$decay_golden",
+    "Haze": 1.8,
+    "Glare": 0.8
+   },
+   "ColorCorrectionEffect": {
+    "Saturation": 0.1,
+    "TintColor": [
+     255,
+     246,
+     232
+    ]
+   },
+   "BloomEffect": {
+    "Intensity": 0.55,
+    "Threshold": 1.2
+   },
+   "SunRaysEffect": {
+    "Intensity": 0.1,
+    "Spread": 0.7
+   }
+  },
+  "dusk": {
+   "use": "sun on the horizon, lamps lit; no slot in the run under OQ-026 default C (fits option B's end state or an evening modifier)",
+   "oq": "OQ-026",
+   "Lighting": {
+    "ClockTime": 17.85,
+    "Brightness": 1.5,
+    "ExposureCompensation": 1.05,
+    "ColorShift_Top": [
+     150,
+     100,
+     84
+    ],
+    "ColorShift_Bottom": [
+     8,
+     6,
+     14
+    ],
+    "OutdoorAmbient": [
+     74,
+     68,
+     80
+    ],
+    "Ambient": [
+     46,
+     44,
+     54
+    ],
+    "EnvironmentDiffuseScale": 0.3
+   },
+   "Atmosphere": {
+    "Density": 0.33,
+    "Color": "$haze_dusk",
+    "Decay": "$decay_dusk",
+    "Haze": 1.7,
+    "Glare": 0.6
+   },
+   "ColorCorrectionEffect": {
+    "Saturation": 0.22,
+    "Contrast": 0.08,
+    "TintColor": [
+     255,
+     244,
+     240
+    ]
+   },
+   "BloomEffect": {
+    "Intensity": 0.6,
+    "Threshold": 1.1
+   },
+   "SunRaysEffect": {
+    "Intensity": 0.08,
+    "Spread": 0.8
+   },
+   "fx_on": [
+    "headlamp"
+   ]
+  },
+  "night": {
+   "use": "Night Running modifier look (gameplay.modifiers.hard_pool, proposed); headlamp on",
+   "Lighting": {
+    "ClockTime": 0.5,
+    "Brightness": 1.4,
+    "ExposureCompensation": 0.9,
+    "OutdoorAmbient": [
+     56,
+     62,
+     78
+    ],
+    "Ambient": [
+     38,
+     42,
+     52
+    ],
+    "ColorShift_Top": [
+     10,
+     14,
+     24
+    ],
+    "ColorShift_Bottom": [
+     0,
+     0,
+     0
+    ],
+    "EnvironmentDiffuseScale": 0.2
+   },
+   "Atmosphere": {
+    "Density": 0.34,
+    "Color": "@style.brand.night_bg_top",
+    "Decay": "@style.brand.night_bg_bottom",
+    "Haze": 0.8,
+    "Glare": 0
+   },
+   "ColorCorrectionEffect": {
+    "Saturation": 0,
+    "Contrast": 0.1,
+    "TintColor": [
+     236,
+     242,
+     255
+    ]
+   },
+   "BloomEffect": {
+    "Intensity": 0.8,
+    "Size": 28,
+    "Threshold": 0.95
+   },
+   "SunRaysEffect": {
+    "Intensity": 0
+   },
+   "fx_on": [
+    "headlamp"
+   ]
+  },
+  "storm": {
+   "use": "overcast rain look; shelved with the rain preset until OQ-027",
+   "oq": "OQ-027",
+   "Lighting": {
+    "ClockTime": 13.5,
+    "Brightness": 1.1,
+    "OutdoorAmbient": [
+     74,
+     80,
+     82
+    ],
+    "Ambient": [
+     40,
+     44,
+     46
+    ],
+    "ColorShift_Top": [
+     0,
+     0,
+     0
+    ],
+    "ShadowSoftness": 0.6
+   },
+   "Atmosphere": {
+    "Density": 0.42,
+    "Color": "@style.world.diamond_plate",
+    "Decay": "@style.world.ironwork",
+    "Haze": 2.6,
+    "Glare": 0
+   },
+   "ColorCorrectionEffect": {
+    "Saturation": {
+     "add": -0.12
+    },
+    "Contrast": 0.08,
+    "TintColor": [
+     240,
+     246,
+     248
+    ]
+   },
+   "BloomEffect": {
+    "Intensity": 0.2
+   },
+   "SunRaysEffect": {
+    "Intensity": 0
+   },
+   "fx_on": [
+    "rain"
+   ]
+  }
+ },
+ "biomes": {
+  "grassland": {
+   "use": "Line 1 base biome (world.biomes.base)",
+   "times": [
+    "day",
+    "golden",
+    "dusk",
+    "night",
+    "storm"
+   ],
+   "scene": "grassland"
+  },
+  "cutting": {
+   "use": "tunnel and deep cutting fork biome (world.biomes.mvp_forks)",
+   "times": [
+    "day",
+    "golden",
+    "night",
+    "storm"
+   ],
+   "scene": "cutting",
+   "Lighting": {
+    "OutdoorAmbient": {
+     "mul": 0.9
+    },
+    "EnvironmentDiffuseScale": {
+     "mul": 0.8
+    }
+   },
+   "Atmosphere": {
+    "Density": {
+     "add": -0.04
+    }
+   }
+  },
+  "viaduct": {
+   "use": "viaduct fork biome; bridges get haze so players cannot see track still spawning (av.vfx.bridge_haze)",
+   "times": [
+    "day",
+    "golden",
+    "night",
+    "storm"
+   ],
+   "scene": "viaduct",
+   "Atmosphere": {
+    "Density": {
+     "add": 0.1
+    },
+    "Haze": {
+     "add": 1.2
+    }
+   }
+  },
+  "yard": {
+   "use": "marshalling yard fork biome (world.biomes.mvp_forks)",
+   "times": [
+    "day",
+    "golden",
+    "night",
+    "storm"
+   ],
+   "scene": "yard",
+   "Atmosphere": {
+    "Density": {
+     "add": 0.05
+    },
+    "Color": {
+     "lerp": [
+      "@style.world.diamond_plate",
+      0.35
+     ]
+    }
+   },
+   "ColorCorrectionEffect": {
+    "Saturation": {
+     "add": -0.05
+    }
+   }
+  },
+  "depot": {
+   "use": "Depot lobby (preview uses the Line 1 test stand; lobby geometry not modelled)",
+   "times": [
+    "day",
+    "golden"
+   ],
+   "scene": "grassland",
+   "Atmosphere": {
+    "Density": {
+     "add": -0.08
+    }
+   },
+   "ColorCorrectionEffect": {
+    "Contrast": {
+     "add": 0.03
+    }
+   }
+  }
+ },
+ "overrides": {
+  "tunnel_under": {
+   "use": "while a tunnel segment is under the train (av.vfx.tunnel)",
+   "canon": [
+    "av.vfx.tunnel"
+   ],
+   "tween_in": 0.35,
+   "tween_out": 0.8,
+   "Lighting": {
+    "Brightness": {
+     "mul": 0.2
+    },
+    "OutdoorAmbient": {
+     "mul": 1.0
+    },
+    "Ambient": {
+     "mul": 1.3
+    },
+    "EnvironmentDiffuseScale": {
+     "mul": 0.2
+    },
+    "ExposureCompensation": {
+     "add": 0.8
+    }
+   },
+   "Atmosphere": {
+    "Density": {
+     "mul": 0.4
+    },
+    "Color": {
+     "lerp": [
+      "@style.world.soot_black",
+      0.8
+     ]
+    },
+    "Decay": {
+     "lerp": [
+      "@style.world.soot_black",
+      0.8
+     ]
+    }
+   },
+   "BloomEffect": {
+    "Threshold": {
+     "mul": 0.7
+    }
+   },
+   "SunRaysEffect": {
+    "Intensity": 0
+   },
+   "fx_on": [
+    "headlamp"
+   ]
+  },
+  "overbridge_flash": {
+   "use": "an overbridge briefly darkens the cab (av.vfx.overbridge_flash, proposed); a scene flash: skipped when the players' flashes setting is off (av.feel.flash_limit)",
+   "canon": [
+    "av.vfx.overbridge_flash"
+   ],
+   "tween_in": 0.08,
+   "tween_out": 0.35,
+   "duration": 0.6,
+   "Lighting": {
+    "Brightness": {
+     "mul": 0.5
+    },
+    "OutdoorAmbient": {
+     "mul": 0.6
+    },
+    "Ambient": {
+     "mul": 0.6
+    }
+   },
+   "flash": true
+  }
+ },
+ "preview": {
+  "east_axis": "+Z",
+  "east_note": "preview puts east at Roblox +Z, so the train (forward +X) heads north and the key light comes over the camera's shoulder. The train never turns, so the heading is a look-dev choice; compare the printed sun direction with Lighting:GetSunDirection() in Studio",
+  "default_set": [
+   "grassland.day",
+   "grassland.golden",
+   "grassland.night",
+   "grassland.storm",
+   "cutting.day+tunnel_under@door1p",
+   "viaduct.day",
+   "yard.day",
+   "depot.golden"
+  ],
+  "phone_set": [
+   "grassland.day",
+   "grassland.night"
+  ],
+  "hero": "grassland.day",
+  "pov_sets_about": "default POV composites (preview with no NAMES): presets over a look from one camera; bursts fire after the loops warm up and show t s later; phone: also at phone rates over the phone plate",
+  "pov_sets": [
+   {
+    "name": "pov_cruise",
+    "presets": [
+     "steam_chimney",
+     "smoke_chimney"
+    ],
+    "look": "hero",
+    "camera": "roof3p",
+    "phone": true
+   },
+   {
+    "name": "pov_valve",
+    "presets": [
+     "steam_chimney",
+     "smoke_chimney",
+     "steam_valve"
+    ],
+    "look": "hero",
+    "camera": "roof3p"
+   },
+   {
+    "name": "pov_axle",
+    "presets": [
+     "steam_chimney",
+     "smoke_chimney",
+     "sparks_axle"
+    ],
+    "look": "hero",
+    "camera": "door1p"
+   },
+   {
+    "name": "pov_brake",
+    "presets": [
+     "steam_chimney",
+     "smoke_chimney",
+     "sparks_brake"
+    ],
+    "look": "hero",
+    "camera": "door1p"
+   },
+   {
+    "name": "pov_electrics",
+    "presets": [
+     "sparks_powerbox"
+    ],
+    "look": "hero",
+    "camera": "coach1p"
+   },
+   {
+    "name": "pov_shovel",
+    "presets": [
+     "firebox_glow",
+     "coal_dust"
+    ],
+    "look": "hero",
+    "camera": "cab1p",
+    "t": 0.3
+   },
+   {
+    "name": "pov_glass",
+    "presets": [
+     "steam_chimney",
+     "smoke_chimney",
+     "glass_burst"
+    ],
+    "look": "hero",
+    "camera": "door1p",
+    "t": 0.25
+   },
+   {
+    "name": "pov_boiler",
+    "presets": [
+     "boiler_burst",
+     "smoke_chimney"
+    ],
+    "look": "hero",
+    "camera": "roof3p",
+    "t": 0.5
+   },
+   {
+    "name": "pov_night",
+    "presets": [
+     "steam_chimney",
+     "smoke_chimney",
+     "headlamp",
+     "firebox_glow"
+    ],
+    "look": "grassland.night",
+    "camera": "roof3p",
+    "phone": true
+   },
+   {
+    "name": "pov_rain",
+    "presets": [
+     "steam_chimney",
+     "rain"
+    ],
+    "look": "grassland.storm",
+    "camera": "roof3p"
+   }
+  ]
+ }
+}

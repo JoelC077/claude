@@ -1,0 +1,33 @@
+{
+ "sheet": [
+  1258,
+  730
+ ],
+ "megapixels": 0.92,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "intact inside, seam at the tear line (1:1 crop)",
+   "src": "/home/user/claude/missions/260929-train-splits/critique-splits/pass-1/crop_intact__Cam_SeamIn_511_48_1131_748.png",
+   "box": [
+    6,
+    24,
+    620,
+    700
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "break1 t4.0 hero, torn end of the kept half (1:1 crop)",
+   "src": "/home/user/claude/missions/260929-train-splits/critique-splits/pass-1/crop_break1_t4.0__Cam_Hero_591_27_1211_727.png",
+   "box": [
+    632,
+    24,
+    620,
+    700
+   ],
+   "scale": "1:1 true size"
+  }
+ ]
+}

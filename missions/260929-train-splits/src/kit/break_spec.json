@@ -1,0 +1,527 @@
+{
+ "version": "2.3.0",
+ "frame": "Break frame B (per carriage): origin on the carriage centre line, at floor-top height, at the break plane.",
+ "roof_signature": [
+  19.48,
+  3.59,
+  62.34
+ ],
+ "roof_centres_export": {
+  "1": [
+   -58.05,
+   26.185,
+   82.89
+  ],
+  "2": [
+   -58.055,
+   26.185,
+   150.29
+  ]
+ },
+ "break_dz": 3.31,
+ "floor_dy": -12.258,
+ "zext": 40.0,
+ "cells": [
+  {
+   "X": [
+    -14.0,
+    -7.1
+   ],
+   "Y": [
+    -12.0,
+    0.6
+   ],
+   "d": 0.6,
+   "region": "floor"
+  },
+  {
+   "X": [
+    -7.1,
+    -2.8
+   ],
+   "Y": [
+    -12.0,
+    0.6
+   ],
+   "d": 2.4,
+   "region": "floor"
+  },
+  {
+   "X": [
+    -2.8,
+    0.6
+   ],
+   "Y": [
+    -12.0,
+    0.6
+   ],
+   "d": 0.9,
+   "region": "floor"
+  },
+  {
+   "X": [
+    0.6,
+    4.1
+   ],
+   "Y": [
+    -12.0,
+    0.6
+   ],
+   "d": 3.6,
+   "region": "floor"
+  },
+  {
+   "X": [
+    4.1,
+    7.1
+   ],
+   "Y": [
+    -12.0,
+    0.6
+   ],
+   "d": 1.5,
+   "region": "floor"
+  },
+  {
+   "X": [
+    7.1,
+    14.0
+   ],
+   "Y": [
+    -12.0,
+    0.6
+   ],
+   "d": -0.3,
+   "region": "floor"
+  },
+  {
+   "X": [
+    -14.0,
+    -7.1
+   ],
+   "Y": [
+    0.6,
+    1.5
+   ],
+   "d": 0.7,
+   "region": "wall_W"
+  },
+  {
+   "X": [
+    7.1,
+    14.0
+   ],
+   "Y": [
+    0.6,
+    1.5
+   ],
+   "d": -0.6,
+   "region": "wall_E"
+  },
+  {
+   "X": [
+    -14.0,
+    -7.1
+   ],
+   "Y": [
+    1.5,
+    3.3
+   ],
+   "d": -0.4,
+   "region": "wall_W"
+  },
+  {
+   "X": [
+    7.1,
+    14.0
+   ],
+   "Y": [
+    1.5,
+    3.3
+   ],
+   "d": 0.5,
+   "region": "wall_E"
+  },
+  {
+   "X": [
+    -14.0,
+    -7.1
+   ],
+   "Y": [
+    3.3,
+    5.7
+   ],
+   "d": 0.9,
+   "region": "wall_W"
+  },
+  {
+   "X": [
+    7.1,
+    14.0
+   ],
+   "Y": [
+    3.3,
+    5.7
+   ],
+   "d": -0.2,
+   "region": "wall_E"
+  },
+  {
+   "X": [
+    -14.0,
+    -7.1
+   ],
+   "Y": [
+    5.7,
+    7.4
+   ],
+   "d": 0.1,
+   "region": "wall_W"
+  },
+  {
+   "X": [
+    7.1,
+    14.0
+   ],
+   "Y": [
+    5.7,
+    7.4
+   ],
+   "d": 0.8,
+   "region": "wall_E"
+  },
+  {
+   "X": [
+    -14.0,
+    -7.1
+   ],
+   "Y": [
+    7.4,
+    8.95
+   ],
+   "d": -0.8,
+   "region": "wall_W"
+  },
+  {
+   "X": [
+    7.1,
+    14.0
+   ],
+   "Y": [
+    7.4,
+    8.95
+   ],
+   "d": -0.5,
+   "region": "wall_E"
+  },
+  {
+   "X": [
+    -14.0,
+    -7.1
+   ],
+   "Y": [
+    8.95,
+    11.18
+   ],
+   "d": 0.4,
+   "region": "wall_W"
+  },
+  {
+   "X": [
+    7.1,
+    14.0
+   ],
+   "Y": [
+    8.95,
+    11.18
+   ],
+   "d": 0.2,
+   "region": "wall_E"
+  },
+  {
+   "X": [
+    -7.1,
+    7.1
+   ],
+   "Y": [
+    0.6,
+    8.95
+   ],
+   "d": 0.2,
+   "region": "mid"
+  },
+  {
+   "X": [
+    -7.1,
+    -2.5
+   ],
+   "Y": [
+    8.95,
+    11.18
+   ],
+   "d": 0.3,
+   "region": "mid_pelmet"
+  },
+  {
+   "X": [
+    -2.5,
+    2.5
+   ],
+   "Y": [
+    8.95,
+    11.18
+   ],
+   "d": -0.5,
+   "region": "mid_pelmet"
+  },
+  {
+   "X": [
+    2.5,
+    7.1
+   ],
+   "Y": [
+    8.95,
+    11.18
+   ],
+   "d": 0.25,
+   "region": "mid_pelmet"
+  },
+  {
+   "X": [
+    -14.0,
+    -7.1
+   ],
+   "Y": [
+    11.18,
+    18.0
+   ],
+   "d": 0.3,
+   "region": "roof"
+  },
+  {
+   "X": [
+    -7.1,
+    -4.6
+   ],
+   "Y": [
+    11.18,
+    18.0
+   ],
+   "d": -1.6,
+   "region": "roof"
+  },
+  {
+   "X": [
+    -4.6,
+    -1.9
+   ],
+   "Y": [
+    11.18,
+    18.0
+   ],
+   "d": -3.9,
+   "region": "roof"
+  },
+  {
+   "X": [
+    -1.9,
+    0.9
+   ],
+   "Y": [
+    11.18,
+    18.0
+   ],
+   "d": -2.4,
+   "region": "roof"
+  },
+  {
+   "X": [
+    0.9,
+    3.7
+   ],
+   "Y": [
+    11.18,
+    18.0
+   ],
+   "d": -4.8,
+   "region": "roof"
+  },
+  {
+   "X": [
+    3.7,
+    7.1
+   ],
+   "Y": [
+    11.18,
+    18.0
+   ],
+   "d": -1.1,
+   "region": "roof"
+  },
+  {
+   "X": [
+    7.1,
+    14.0
+   ],
+   "Y": [
+    11.18,
+    18.0
+   ],
+   "d": 0.1,
+   "region": "roof"
+  }
+ ],
+ "structure": {
+  "gangway": "Carriage2.FrontHalf",
+  "front_stub": "Carriage1.FrontHalf",
+  "rear_platform": "Carriage2.RearHalf"
+ },
+ "motion": {
+  "speed_source": "train attribute 'Speed' (studs/s) if present, else opts.speed, else 35 (gameplay.speed.normal)",
+  "speed_default": 35,
+  "brake": 12.0,
+  "recoil": {
+   "dist": 0.8,
+   "time": 0.2
+  },
+  "despawn_distance": 700,
+  "despawn_time": 30,
+  "note": "train-frame offset z(t) = recoil(t) + 0.5*brake*t^2 until t = V/brake, then + V*(t - V/brake): after that the wreck is static relative to the terrain"
+ },
+ "topple": {
+  "side": "random per snap (seeded), config 'left'|'right' forces it",
+  "pivot": {
+   "X_abs": 11.7,
+   "Y": -8.6,
+   "note": "rail level (world y 5.33) at the outer edge of the bogies on the falling side"
+  },
+  "rest_note": "v2.2: the wreck rests on the bogie frame's upper outer corner and the roof eave (render pre-flight): falling +X needs roll 97.64 raised 0.747, falling -X roll 96.78 raised 0.435 (bogies are asymmetric; v2.3 checks the whole carriage); then a small dig-in",
+  "rest": {
+   "+X": {
+    "roll": 97.64,
+    "lift": 0.747
+   },
+   "-X": {
+    "roll": 96.78,
+    "lift": 0.435
+   }
+  },
+  "bodies": [
+   {
+    "who": "the broken half (front-most lost body)",
+    "delay": 0.45,
+    "roll_time": 1.05,
+    "ease": "QuadIn",
+    "bounce_back": 5,
+    "bounce_time": 0.35,
+    "yaw": 7,
+    "sink": 0.15,
+    "extra_back": 0.0
+   },
+   {
+    "who": "a whole carriage dragged behind it (break 1 only: carriage 2)",
+    "delay": 0.8,
+    "roll_time": 1.2,
+    "ease": "QuadIn",
+    "bounce_back": 4,
+    "bounce_time": 0.4,
+    "yaw": -4,
+    "sink": 0.15,
+    "extra_back": 0.6,
+    "extra_back_note": "eased in over the roll so the gangway (with C2) clears C1.Rear's end door at rest (0.405 -> < 0.1)"
+   }
+  ]
+ },
+ "events": [
+  {
+   "t": -0.25,
+   "id": "metal_tear",
+   "kind": "sound",
+   "at": [
+    0,
+    5,
+    0
+   ]
+  },
+  {
+   "t": 0.0,
+   "id": "split_explosion",
+   "kind": "fx+sound+shake",
+   "at": [
+    0,
+    5,
+    0
+   ],
+   "shake": "big"
+  },
+  {
+   "t": 0.0,
+   "id": "glass_burst",
+   "kind": "fx+sound",
+   "at": "the window panes nearest the break on both sides"
+  },
+  {
+   "t": 0.05,
+   "id": "torn_edge_smoke",
+   "kind": "fx loop 20 s",
+   "at": "along the kept half's torn end (and the wreck's)"
+  },
+  {
+   "t": 0.8,
+   "id": "debris_rain",
+   "kind": "sound",
+   "at": [
+    0,
+    3,
+    2
+   ]
+  },
+  {
+   "t": "topple impact (delay+roll_time)",
+   "id": "topple_crash",
+   "kind": "fx(topple_dust)+sound+shake",
+   "shake": "medium"
+  },
+  {
+   "t": "0.3 .. V/brake",
+   "id": "wreck_scrape",
+   "kind": "sound",
+   "at": "wreck"
+  }
+ ],
+ "lost": {
+  "break1": "Carriage1.RearHalf + all of Carriage2 still attached (the gangway union belongs to Carriage2.FrontHalf: it is built 0.7-0.8 stud into C2's front wall)",
+  "break2": "Carriage2.RearHalf",
+  "bodies": "each carriage's lost pieces animate as one body; break 1 gives two bodies (C1 rear half, C2)"
+ },
+ "expected_crossers_export": {
+  "1": [
+   "Carpet1",
+   "CurtainCorroded1",
+   "Part269",
+   "Union12",
+   "Union16",
+   "Union19",
+   "Union28",
+   "Union38",
+   "Union56",
+   "Union61"
+  ],
+  "2": [
+   "Carpet2",
+   "CurtainCorroded2",
+   "Part409",
+   "Union109",
+   "Union134",
+   "Union138",
+   "Union77",
+   "Union80",
+   "Union84",
+   "Union86"
+  ]
+ },
+ "block_parts_export": [
+  "Part269",
+  "Part409"
+ ]
+}

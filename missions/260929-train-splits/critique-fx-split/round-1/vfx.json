@@ -1,0 +1,2923 @@
+{
+ "version": 1,
+ "about": "rr-vfx-lighting effect presets. Roblox property names, typed values; schema in references/presets.md. Colours: @bible.key tokens, $name from fx_colours, or #FFFFFF/#000000. Offsets and vectors are studs in the anchor's space (Y up, train forward +X). Generated Luau: vfx.py build.",
+ "meta": {
+  "wind_scale": 1.0,
+  "speed_max": {
+   "canon": "gameplay.speed.fast"
+  },
+  "speeds": {
+   "slow": {
+    "canon": "gameplay.speed.slow"
+   },
+   "normal": {
+    "canon": "gameplay.speed.normal"
+   },
+   "fast": {
+    "canon": "gameplay.speed.fast"
+   }
+  }
+ },
+ "fx_colours": {
+  "steam_grey": {
+   "hex": "#D9D8D2",
+   "why": "steam tail as it thins; a light level of white steam, no palette grey is this light"
+  },
+  "rain_grey": {
+   "hex": "#C3CACB",
+   "why": "rain streaks; neutral cool grey kept out of the blue-sky band (cab glass #BFD9E6 sits in it)"
+  },
+  "dust_pale": {
+   "hex": "#C4BFB5",
+   "why": "dust kicked off the cinder verge and ballast by the carriage split (shock skirt, wreck landing): lighter than ballast so it reads over the verge and grass; low-saturation neutral, kept out of the sepia band"
+  }
+ },
+ "stand": {
+  "about": "preview test stand only (not the game's geometry): anchors in Roblox studs, rail top y=0, forward +X, right +Z; a component may be an expression over the canon envelope: gauge, width, roof, floor (tech.units.*, OQ-030)",
+  "anchors": {
+   "Chimney": [
+    58,
+    17,
+    0
+   ],
+   "SafetyValve": [
+    40,
+    13.5,
+    0
+   ],
+   "Boiler": [
+    47,
+    13,
+    0
+   ],
+   "Firebox": [
+    35.2,
+    6.5,
+    0
+   ],
+   "Headlamp": [
+    67.5,
+    9,
+    0
+   ],
+   "PowerBox": [
+    5,
+    "floor+3.5",
+    "width/2-1.5"
+   ],
+   "WindowPane": [
+    -5,
+    "floor+5",
+    "width/2+0.1"
+   ],
+   "Axle": [
+    2,
+    1,
+    "gauge/2"
+   ],
+   "Bogie": [
+    2,
+    1.5,
+    "gauge/2"
+   ],
+   "BrakeShoe": [
+    46,
+    0.6,
+    0
+   ],
+   "RainBox": [
+    -20,
+    60,
+    10
+   ],
+   "SplitCore": [
+    -44.8,
+    "roof-9",
+    0
+   ],
+   "TornEdge": [
+    -47,
+    "roof-1.6",
+    0
+   ],
+   "WreckDust": [
+    10,
+    0.3,
+    "width/2+3"
+   ]
+  },
+  "near_camera": {
+   "Firebox": "cab1p",
+   "PowerBox": "coach1p",
+   "Axle": "door1p",
+   "Bogie": "door1p",
+   "BrakeShoe": "door1p",
+   "WindowPane": "door1p",
+   "SplitCore": "roof3p",
+   "TornEdge": "roof3p",
+   "WreckDust": "door1p",
+   "about": "which preview camera sees an anchor best (players' views: tech.camera.*)"
+  }
+ },
+ "trails": {
+  "debris_smoke": {
+   "use": "soot trail on flung debris (slapstick arcs); only on parts that move",
+   "width": 0.9,
+   "props": {
+    "Lifetime": 0.6,
+    "MinLength": 0.1,
+    "FaceCamera": true,
+    "WidthScale": [
+     [
+      0,
+      1
+     ],
+     [
+      1,
+      0.25
+     ]
+    ],
+    "Transparency": [
+     [
+      0,
+      0.25
+     ],
+     [
+      1,
+      1
+     ]
+    ],
+    "Color": [
+     [
+      0,
+      "@style.world.soot_black"
+     ],
+     [
+      1,
+      "@style.ground.ballast"
+     ]
+    ],
+    "LightEmission": 0,
+    "LightInfluence": 1
+   }
+  },
+  "debris_spark": {
+   "use": "hot streak on flung metal",
+   "width": 0.35,
+   "props": {
+    "Lifetime": 0.25,
+    "MinLength": 0.05,
+    "FaceCamera": true,
+    "WidthScale": [
+     [
+      0,
+      1
+     ],
+     [
+      1,
+      0.1
+     ]
+    ],
+    "Transparency": [
+     [
+      0,
+      0
+     ],
+     [
+      1,
+      1
+     ]
+    ],
+    "Color": [
+     [
+      0,
+      "@style.brand.hazard_light"
+     ],
+     [
+      1,
+      "@style.light.firebox"
+     ]
+    ],
+    "LightEmission": 1,
+    "LightInfluence": 0
+   }
+  }
+ },
+ "presets": {
+  "steam_chimney": {
+   "kind": "loop",
+   "priority": 2,
+   "anchor": "Chimney",
+   "use": "chimney steam; rate follows Speed (idle to gameplay.speed.fast)",
+   "canon": [
+    "av.vfx.speed_link",
+    "gameplay.speed.drives"
+   ],
+   "speed_link": {
+    "layers": [
+     "plume"
+    ],
+    "rate_idle": 5,
+    "rate_max": 18
+   },
+   "layers": [
+    {
+     "name": "plume",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      0,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      0
+     ],
+     "props": {
+      "Texture": "rbxasset://textures/particles/smoke_main.dds",
+      "Rate": 18,
+      "Lifetime": [
+       2.4,
+       3.2
+      ],
+      "Speed": [
+       7,
+       10
+      ],
+      "SpreadAngle": [
+       8,
+       8
+      ],
+      "Acceleration": [
+       0,
+       3,
+       0
+      ],
+      "Drag": 1.2,
+      "WindAffectsDrag": true,
+      "Size": [
+       [
+        0,
+        2.6
+       ],
+       [
+        0.3,
+        7.5
+       ],
+       [
+        1,
+        12,
+        1.5
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0.15
+       ],
+       [
+        0.6,
+        0.35
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "#FFFFFF"
+       ],
+       [
+        1,
+        "$steam_grey"
+       ]
+      ],
+      "LightEmission": 0.05,
+      "LightInfluence": 0.9,
+      "Rotation": [
+       0,
+       360
+      ],
+      "RotSpeed": [
+       -30,
+       30
+      ],
+      "Orientation": "Enum.ParticleOrientation.FacingCamera"
+     }
+    }
+   ]
+  },
+  "smoke_chimney": {
+   "kind": "loop",
+   "priority": 3,
+   "anchor": "Chimney",
+   "use": "coal smoke mixed into the steam; darker, fewer, slower puffs; rate follows Speed",
+   "canon": [
+    "av.vfx.speed_link"
+   ],
+   "speed_link": {
+    "layers": [
+     "soot"
+    ],
+    "rate_idle": 1.5,
+    "rate_max": 5
+   },
+   "layers": [
+    {
+     "name": "soot",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      0.5,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      0
+     ],
+     "props": {
+      "Texture": "rbxasset://textures/particles/smoke_main.dds",
+      "Rate": 5,
+      "Lifetime": [
+       3,
+       4.2
+      ],
+      "Speed": [
+       5,
+       7
+      ],
+      "SpreadAngle": [
+       10,
+       10
+      ],
+      "Acceleration": [
+       0,
+       2,
+       0
+      ],
+      "Drag": 1.0,
+      "WindAffectsDrag": true,
+      "Size": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        10,
+        1.5
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0.25
+       ],
+       [
+        0.6,
+        0.5
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "@style.world.soot_black"
+       ],
+       [
+        0.5,
+        "@style.world.ironwork"
+       ],
+       [
+        1,
+        "@style.ground.cinder_verge"
+       ]
+      ],
+      "LightEmission": 0,
+      "LightInfluence": 1,
+      "Rotation": [
+       0,
+       360
+      ],
+      "RotSpeed": [
+       -20,
+       20
+      ],
+      "Orientation": "Enum.ParticleOrientation.FacingCamera"
+     }
+    }
+   ]
+  },
+  "steam_valve": {
+   "kind": "loop",
+   "priority": 1,
+   "anchor": "SafetyValve",
+   "use": "pressure safety valve open: loud white jet; the pressure crisis signal",
+   "canon": [
+    "av.vfx.steam_valve",
+    "gameplay.crisis.pressure"
+   ],
+   "layers": [
+    {
+     "name": "jet",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      0,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      -0.15
+     ],
+     "props": {
+      "Texture": "rbxasset://textures/particles/smoke_main.dds",
+      "Rate": 40,
+      "Lifetime": [
+       0.5,
+       0.9
+      ],
+      "Speed": [
+       30,
+       38
+      ],
+      "SpreadAngle": [
+       6,
+       6
+      ],
+      "Acceleration": [
+       0,
+       4,
+       0
+      ],
+      "Drag": 3,
+      "WindAffectsDrag": true,
+      "Size": [
+       [
+        0,
+        0.8
+       ],
+       [
+        0.4,
+        2.6
+       ],
+       [
+        1,
+        5,
+        1
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0.1
+       ],
+       [
+        0.6,
+        0.4
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "#FFFFFF"
+       ],
+       [
+        1,
+        "$steam_grey"
+       ]
+      ],
+      "LightEmission": 0.15,
+      "LightInfluence": 0.7,
+      "Rotation": [
+       0,
+       360
+      ],
+      "RotSpeed": [
+       -60,
+       60
+      ]
+     }
+    },
+    {
+     "name": "core",
+     "class": "Beam",
+     "offset": [
+      0,
+      0,
+      0
+     ],
+     "a1": [
+      0,
+      7,
+      -1
+     ],
+     "props": {
+      "Width0": 0.7,
+      "Width1": 2.4,
+      "Segments": 1,
+      "FaceCamera": true,
+      "Transparency": [
+       [
+        0,
+        0.15
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": "#FFFFFF",
+      "LightEmission": 0.3,
+      "LightInfluence": 0.6
+     }
+    }
+   ]
+  },
+  "sparks_powerbox": {
+   "kind": "loop",
+   "priority": 1,
+   "anchor": "PowerBox",
+   "use": "electrics down: irregular crackle of sparks and a flash from the power box",
+   "canon": [
+    "av.vfx.sparks_powerbox",
+    "gameplay.crisis.electrics"
+   ],
+   "crackle": {
+    "every": [
+     0.35,
+     1.1
+    ],
+    "emit": [
+     10,
+     20
+    ],
+    "flash": {
+     "peak": 3,
+     "duration": 0.12
+    }
+   },
+   "layers": [
+    {
+     "name": "sparks",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      0,
+      0
+     ],
+     "dir": [
+      0,
+      0.4,
+      -1
+     ],
+     "props": {
+      "Texture": "rbxasset://textures/particles/sparkles_main.dds",
+      "Rate": 0,
+      "Lifetime": [
+       0.25,
+       0.6
+      ],
+      "Speed": [
+       8,
+       16
+      ],
+      "SpreadAngle": [
+       60,
+       60
+      ],
+      "Acceleration": [
+       0,
+       -40,
+       0
+      ],
+      "Drag": 1.5,
+      "WindAffectsDrag": false,
+      "Size": [
+       [
+        0,
+        1.1
+       ],
+       [
+        1,
+        0.35
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0
+       ],
+       [
+        0.7,
+        0.2
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "@style.brand.hazard_light"
+       ],
+       [
+        0.4,
+        "@style.light.firebox_hot"
+       ],
+       [
+        1,
+        "@style.light.firebox"
+       ]
+      ],
+      "LightEmission": 1,
+      "LightInfluence": 0,
+      "Brightness": 2,
+      "Squash": [
+       [
+        0,
+        1.5
+       ],
+       [
+        1,
+        0.5
+       ]
+      ],
+      "Orientation": "Enum.ParticleOrientation.VelocityParallel"
+     }
+    },
+    {
+     "name": "flash",
+     "class": "PointLight",
+     "offset": [
+      0,
+      0,
+      -0.5
+     ],
+     "props": {
+      "Brightness": 0,
+      "Range": 8,
+      "Color": "@style.light.firebox_hot",
+      "Shadows": false
+     }
+    }
+   ]
+  },
+  "sparks_axle": {
+   "kind": "loop",
+   "priority": 1,
+   "anchor": "Axle",
+   "use": "axle sparks breakdown: a steady spray thrown out past the body side and back along the rail",
+   "canon": [
+    "gameplay.crisis.breakdowns"
+   ],
+   "layers": [
+    {
+     "name": "spray",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      0,
+      0
+     ],
+     "dir": [
+      -0.35,
+      0.5,
+      0.8
+     ],
+     "props": {
+      "Texture": "rbxasset://textures/particles/sparkles_main.dds",
+      "Rate": 60,
+      "Lifetime": [
+       0.4,
+       0.8
+      ],
+      "Speed": [
+       28,
+       40
+      ],
+      "SpreadAngle": [
+       25,
+       12
+      ],
+      "Acceleration": [
+       0,
+       -30,
+       0
+      ],
+      "Drag": 0.4,
+      "WindAffectsDrag": true,
+      "Size": [
+       [
+        0,
+        1.8
+       ],
+       [
+        1,
+        0.6
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "@style.brand.hazard_light"
+       ],
+       [
+        0.5,
+        "@style.light.firebox_hot"
+       ],
+       [
+        1,
+        "@style.light.firebox_deep"
+       ]
+      ],
+      "LightEmission": 1,
+      "LightInfluence": 0,
+      "Brightness": 2,
+      "Squash": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ]
+      ],
+      "Orientation": "Enum.ParticleOrientation.VelocityParallel"
+     }
+    },
+    {
+     "name": "glow",
+     "class": "PointLight",
+     "offset": [
+      0,
+      1,
+      2.5
+     ],
+     "flicker": {
+      "min": 0.6,
+      "max": 1.0,
+      "hz": 3
+     },
+     "props": {
+      "Brightness": 2,
+      "Range": 10,
+      "Color": "@style.light.firebox_hot",
+      "Shadows": false
+     }
+    }
+   ]
+  },
+  "coal_dust": {
+   "kind": "burst",
+   "priority": 2,
+   "anchor": "Firebox",
+   "use": "one shovel into the firebox: dust puff, embers and a firebox flare",
+   "canon": [
+    "gameplay.crisis.firebox",
+    "gameplay.fuel.shovel_pct"
+   ],
+   "layers": [
+    {
+     "name": "dust",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      0,
+      0
+     ],
+     "dir": [
+      0,
+      0.5,
+      -1
+     ],
+     "emit": 14,
+     "props": {
+      "Texture": "rbxasset://textures/particles/smoke_main.dds",
+      "Rate": 0,
+      "Lifetime": [
+       0.8,
+       1.4
+      ],
+      "Speed": [
+       3,
+       6
+      ],
+      "SpreadAngle": [
+       40,
+       40
+      ],
+      "Acceleration": [
+       0,
+       -2,
+       0
+      ],
+      "Drag": 2.5,
+      "WindAffectsDrag": false,
+      "Size": [
+       [
+        0,
+        0.6
+       ],
+       [
+        1,
+        2.6,
+        0.5
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0.35
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "@style.cab.coal"
+       ],
+       [
+        1,
+        "@style.ground.cinder_verge"
+       ]
+      ],
+      "LightEmission": 0,
+      "LightInfluence": 1,
+      "Rotation": [
+       0,
+       360
+      ],
+      "RotSpeed": [
+       -40,
+       40
+      ]
+     }
+    },
+    {
+     "name": "embers",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      0,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      0
+     ],
+     "emit": 6,
+     "delay": 0.1,
+     "props": {
+      "Texture": "rbxasset://textures/particles/sparkles_main.dds",
+      "Rate": 0,
+      "Lifetime": [
+       0.4,
+       0.9
+      ],
+      "Speed": [
+       4,
+       9
+      ],
+      "SpreadAngle": [
+       30,
+       30
+      ],
+      "Acceleration": [
+       0,
+       6,
+       0
+      ],
+      "Drag": 1,
+      "WindAffectsDrag": false,
+      "Size": [
+       [
+        0,
+        0.18
+       ],
+       [
+        1,
+        0.05
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "@style.light.firebox_hot"
+       ],
+       [
+        1,
+        "@style.light.firebox_deep"
+       ]
+      ],
+      "LightEmission": 1,
+      "LightInfluence": 0
+     }
+    },
+    {
+     "name": "flare",
+     "class": "PointLight",
+     "offset": [
+      0,
+      0,
+      0
+     ],
+     "pulse": {
+      "peak": 4,
+      "duration": 0.35
+     },
+     "props": {
+      "Brightness": 0,
+      "Range": 9,
+      "Color": "@style.light.firebox",
+      "Shadows": false
+     }
+    }
+   ]
+  },
+  "firebox_glow": {
+   "kind": "loop",
+   "priority": 2,
+   "anchor": "Firebox",
+   "use": "firebox light with the flicker canon asked for, plus a few rising embers",
+   "canon": [
+    "av.vfx.firebox_glow",
+    "style.light.firebox"
+   ],
+   "layers": [
+    {
+     "name": "light",
+     "class": "PointLight",
+     "offset": [
+      0,
+      0,
+      0
+     ],
+     "flicker": {
+      "min": 0.85,
+      "max": 1.1,
+      "hz": 6
+     },
+     "props": {
+      "Brightness": {
+       "v": 2,
+       "canon": "style.light.firebox"
+      },
+      "Range": {
+       "v": 9,
+       "canon": "style.light.firebox"
+      },
+      "Color": "@style.light.firebox",
+      "Shadows": false
+     }
+    },
+    {
+     "name": "embers",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      0.5,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      0
+     ],
+     "props": {
+      "Texture": "rbxasset://textures/particles/sparkles_main.dds",
+      "Rate": 4,
+      "Lifetime": [
+       0.6,
+       1.2
+      ],
+      "Speed": [
+       1,
+       3
+      ],
+      "SpreadAngle": [
+       20,
+       20
+      ],
+      "Acceleration": [
+       0,
+       5,
+       0
+      ],
+      "Drag": 1,
+      "WindAffectsDrag": false,
+      "Size": [
+       [
+        0,
+        0.15
+       ],
+       [
+        1,
+        0.05
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0.1
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "@style.light.firebox_hot"
+       ],
+       [
+        1,
+        "@style.light.firebox_deep"
+       ]
+      ],
+      "LightEmission": 1,
+      "LightInfluence": 0
+     }
+    }
+   ]
+  },
+  "headlamp": {
+   "kind": "loop",
+   "priority": 2,
+   "anchor": "Headlamp",
+   "use": "loco headlamp for tunnels and night: spot light plus a soft beam cone (glow colour style.thumb.glow; tunnel and night use proposed)",
+   "canon": [
+    "style.thumb.glow",
+    "av.vfx.tunnel"
+   ],
+   "layers": [
+    {
+     "name": "spot",
+     "class": "SpotLight",
+     "offset": [
+      0.2,
+      0,
+      0
+     ],
+     "dir": [
+      1,
+      -0.08,
+      0
+     ],
+     "props": {
+      "Brightness": 3,
+      "Range": 60,
+      "Angle": 50,
+      "Face": "Enum.NormalId.Front",
+      "Color": "@style.thumb.glow",
+      "Shadows": false
+     }
+    },
+    {
+     "name": "cone",
+     "class": "Beam",
+     "offset": [
+      0.3,
+      0,
+      0
+     ],
+     "a1": [
+      40,
+      -3,
+      0
+     ],
+     "props": {
+      "Width0": 1.5,
+      "Width1": 22,
+      "Segments": 1,
+      "FaceCamera": true,
+      "Transparency": [
+       [
+        0,
+        0.72
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": "@style.thumb.glow",
+      "LightEmission": 1,
+      "LightInfluence": 0
+     }
+    }
+   ]
+  },
+  "glass_burst": {
+   "kind": "burst",
+   "priority": 1,
+   "anchor": "WindowPane",
+   "use": "window smash: glinting shards outward and down",
+   "canon": [
+    "av.vfx.glass",
+    "gameplay.crisis.windows"
+   ],
+   "layers": [
+    {
+     "name": "shards",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      0,
+      0
+     ],
+     "dir": [
+      0,
+      0.3,
+      1
+     ],
+     "emit": 18,
+     "props": {
+      "Texture": "rbxasset://textures/particles/sparkles_main.dds",
+      "Rate": 0,
+      "Lifetime": [
+       0.6,
+       1.1
+      ],
+      "Speed": [
+       10,
+       18
+      ],
+      "SpreadAngle": [
+       35,
+       35
+      ],
+      "Acceleration": [
+       0,
+       -60,
+       0
+      ],
+      "Drag": 0.6,
+      "WindAffectsDrag": true,
+      "Size": [
+       [
+        0,
+        0.5
+       ],
+       [
+        1,
+        0.3
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0
+       ],
+       [
+        0.8,
+        0.1
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "#FFFFFF"
+       ],
+       [
+        1,
+        "@style.cab.glass"
+       ]
+      ],
+      "LightEmission": 0.6,
+      "LightInfluence": 0.3,
+      "Rotation": [
+       0,
+       360
+      ],
+      "RotSpeed": [
+       -400,
+       400
+      ]
+     }
+    },
+    {
+     "name": "puff",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      0,
+      0
+     ],
+     "dir": [
+      0,
+      0.2,
+      1
+     ],
+     "emit": 5,
+     "props": {
+      "Texture": "rbxasset://textures/particles/smoke_main.dds",
+      "Rate": 0,
+      "Lifetime": [
+       0.4,
+       0.7
+      ],
+      "Speed": [
+       4,
+       7
+      ],
+      "SpreadAngle": [
+       30,
+       30
+      ],
+      "Drag": 3,
+      "WindAffectsDrag": true,
+      "Size": [
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        3
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0.5
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": "#FFFFFF",
+      "LightEmission": 0,
+      "LightInfluence": 1
+     }
+    }
+   ]
+  },
+  "derail_explosion": {
+   "kind": "burst",
+   "priority": 1,
+   "anchor": "Bogie",
+   "use": "slapstick derail burst: flash, fire core, soot cloud, dust, sparks, flung debris. Unassigned until OQ-028",
+   "canon": "none: OQ-028 default A keeps derailment a breakdown task; this preset is unassigned",
+   "oq": "OQ-028",
+   "layers": [
+    {
+     "name": "flash",
+     "class": "PointLight",
+     "offset": [
+      0,
+      2,
+      0
+     ],
+     "pulse": {
+      "peak": 8,
+      "duration": 0.25
+     },
+     "props": {
+      "Brightness": 0,
+      "Range": 30,
+      "Color": "@style.light.cab_lamp",
+      "Shadows": false
+     }
+    },
+    {
+     "name": "core",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      1,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      0
+     ],
+     "emit": 10,
+     "props": {
+      "Texture": "rbxasset://textures/particles/smoke_main.dds",
+      "Rate": 0,
+      "Lifetime": [
+       0.35,
+       0.6
+      ],
+      "Speed": [
+       10,
+       20
+      ],
+      "SpreadAngle": [
+       180,
+       180
+      ],
+      "Drag": 4,
+      "WindAffectsDrag": false,
+      "Size": [
+       [
+        0,
+        4
+       ],
+       [
+        1,
+        10
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0
+       ],
+       [
+        0.6,
+        0.3
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "@style.light.cab_lamp"
+       ],
+       [
+        0.3,
+        "@style.brand.hazard_yellow"
+       ],
+       [
+        1,
+        "@style.light.firebox"
+       ]
+      ],
+      "LightEmission": 0.8,
+      "LightInfluence": 0
+     }
+    },
+    {
+     "name": "soot",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      1,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      0
+     ],
+     "emit": 16,
+     "delay": 0.08,
+     "props": {
+      "Texture": "rbxasset://textures/particles/smoke_main.dds",
+      "Rate": 0,
+      "Lifetime": [
+       1.6,
+       2.6
+      ],
+      "Speed": [
+       8,
+       16
+      ],
+      "SpreadAngle": [
+       70,
+       70
+      ],
+      "Acceleration": [
+       0,
+       3,
+       0
+      ],
+      "Drag": 2,
+      "WindAffectsDrag": true,
+      "Size": [
+       [
+        0,
+        4
+       ],
+       [
+        1,
+        13,
+        2
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0.1
+       ],
+       [
+        0.7,
+        0.4
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "@style.world.soot_black"
+       ],
+       [
+        0.5,
+        "@style.world.ironwork"
+       ],
+       [
+        1,
+        "@style.ground.ballast"
+       ]
+      ],
+      "LightEmission": 0,
+      "LightInfluence": 1,
+      "Rotation": [
+       0,
+       360
+      ],
+      "RotSpeed": [
+       -25,
+       25
+      ]
+     }
+    },
+    {
+     "name": "dust",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      0,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      0
+     ],
+     "emit": 12,
+     "props": {
+      "Texture": "rbxasset://textures/particles/smoke_main.dds",
+      "Rate": 0,
+      "Lifetime": [
+       1.0,
+       1.6
+      ],
+      "Speed": [
+       12,
+       20
+      ],
+      "SpreadAngle": [
+       80,
+       80
+      ],
+      "Acceleration": [
+       0,
+       -6,
+       0
+      ],
+      "Drag": 3,
+      "WindAffectsDrag": true,
+      "Size": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        7
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0.3
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "@style.ground.cinder_verge"
+       ],
+       [
+        1,
+        "@style.ground.ballast"
+       ]
+      ],
+      "LightEmission": 0,
+      "LightInfluence": 1
+     }
+    },
+    {
+     "name": "sparks",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      1,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      0
+     ],
+     "emit": 30,
+     "props": {
+      "Texture": "rbxasset://textures/particles/sparkles_main.dds",
+      "Rate": 0,
+      "Lifetime": [
+       0.5,
+       1.0
+      ],
+      "Speed": [
+       20,
+       40
+      ],
+      "SpreadAngle": [
+       70,
+       70
+      ],
+      "Acceleration": [
+       0,
+       -50,
+       0
+      ],
+      "Drag": 0.5,
+      "WindAffectsDrag": true,
+      "Size": [
+       [
+        0,
+        0.4
+       ],
+       [
+        1,
+        0.1
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "@style.brand.hazard_light"
+       ],
+       [
+        1,
+        "@style.light.firebox"
+       ]
+      ],
+      "LightEmission": 1,
+      "LightInfluence": 0,
+      "Brightness": 2,
+      "Squash": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ]
+      ],
+      "Orientation": "Enum.ParticleOrientation.VelocityParallel"
+     }
+    },
+    {
+     "name": "chunks",
+     "class": "Debris",
+     "offset": [
+      0,
+      1.5,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      0
+     ],
+     "debris": {
+      "count": 5,
+      "size": [
+       1.2,
+       0.5,
+       0.9
+      ],
+      "speed": [
+       40,
+       55
+      ],
+      "spread": 50,
+      "lifetime": 1.4,
+      "gravity_scale": 0.35,
+      "carry": 1.0,
+      "colours": [
+       "@style.world.ironwork",
+       "@style.world.brass",
+       "@style.world.walnut"
+      ],
+      "trail": "debris_smoke"
+     }
+    }
+   ]
+  },
+  "boiler_burst": {
+   "kind": "burst",
+   "priority": 1,
+   "anchor": "Boiler",
+   "use": "boiler explosion hard fail: steam blast, black soot puff, sparks, flung brass and iron (the YOU'RE FIRED stamp is UI, not here)",
+   "canon": [
+    "av.vfx.boiler_fail",
+    "gameplay.crisis.fail_states",
+    "gameplay.crisis.fail_cinematic"
+   ],
+   "layers": [
+    {
+     "name": "flash",
+     "class": "PointLight",
+     "offset": [
+      0,
+      2,
+      0
+     ],
+     "pulse": {
+      "peak": 6,
+      "duration": 0.3
+     },
+     "props": {
+      "Brightness": 0,
+      "Range": 40,
+      "Color": "@style.light.cab_lamp",
+      "Shadows": false
+     }
+    },
+    {
+     "name": "blast",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      1,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      0
+     ],
+     "emit": 26,
+     "props": {
+      "Texture": "rbxasset://textures/particles/smoke_main.dds",
+      "Rate": 0,
+      "Lifetime": [
+       1.4,
+       2.4
+      ],
+      "Speed": [
+       20,
+       34
+      ],
+      "SpreadAngle": [
+       80,
+       80
+      ],
+      "Acceleration": [
+       0,
+       4,
+       0
+      ],
+      "Drag": 2.2,
+      "WindAffectsDrag": true,
+      "Size": [
+       [
+        0,
+        3
+       ],
+       [
+        0.4,
+        9
+       ],
+       [
+        1,
+        14,
+        2
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0.05
+       ],
+       [
+        0.6,
+        0.3
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "#FFFFFF"
+       ],
+       [
+        1,
+        "$steam_grey"
+       ]
+      ],
+      "LightEmission": 0.1,
+      "LightInfluence": 0.8,
+      "Rotation": [
+       0,
+       360
+      ],
+      "RotSpeed": [
+       -30,
+       30
+      ]
+     }
+    },
+    {
+     "name": "soot",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      1,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      0
+     ],
+     "emit": 8,
+     "delay": 0.1,
+     "props": {
+      "Texture": "rbxasset://textures/particles/smoke_main.dds",
+      "Rate": 0,
+      "Lifetime": [
+       1.2,
+       1.8
+      ],
+      "Speed": [
+       6,
+       12
+      ],
+      "SpreadAngle": [
+       50,
+       50
+      ],
+      "Drag": 2,
+      "WindAffectsDrag": true,
+      "Size": [
+       [
+        0,
+        3
+       ],
+       [
+        1,
+        9,
+        1
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0.05
+       ],
+       [
+        0.7,
+        0.35
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "@style.world.soot_black"
+       ],
+       [
+        1,
+        "@style.world.ironwork"
+       ]
+      ],
+      "LightEmission": 0,
+      "LightInfluence": 1
+     }
+    },
+    {
+     "name": "sparks",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      1,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      0
+     ],
+     "emit": 20,
+     "props": {
+      "Texture": "rbxasset://textures/particles/sparkles_main.dds",
+      "Rate": 0,
+      "Lifetime": [
+       0.5,
+       1.0
+      ],
+      "Speed": [
+       18,
+       34
+      ],
+      "SpreadAngle": [
+       75,
+       75
+      ],
+      "Acceleration": [
+       0,
+       -50,
+       0
+      ],
+      "Drag": 0.5,
+      "WindAffectsDrag": true,
+      "Size": [
+       [
+        0,
+        0.35
+       ],
+       [
+        1,
+        0.1
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "@style.brand.hazard_light"
+       ],
+       [
+        1,
+        "@style.light.firebox"
+       ]
+      ],
+      "LightEmission": 1,
+      "LightInfluence": 0,
+      "Brightness": 2,
+      "Squash": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ]
+      ],
+      "Orientation": "Enum.ParticleOrientation.VelocityParallel"
+     }
+    },
+    {
+     "name": "plates",
+     "class": "Debris",
+     "offset": [
+      0,
+      2,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      0
+     ],
+     "debris": {
+      "count": 6,
+      "size": [
+       1.4,
+       0.3,
+       1.0
+      ],
+      "speed": [
+       42,
+       58
+      ],
+      "spread": 55,
+      "lifetime": 1.5,
+      "gravity_scale": 0.35,
+      "carry": 1.0,
+      "colours": [
+       "@style.world.brass",
+       "@style.world.ironwork",
+       "@style.world.navy"
+      ],
+      "trail": "debris_smoke"
+     }
+    }
+   ]
+  },
+  "rain": {
+   "kind": "loop",
+   "priority": 3,
+   "anchor": "RainBox",
+   "use": "rain over the train; streaks slant back with GlobalWind at train speed. Shelved until OQ-027",
+   "canon": "none: no weather canon; OQ-027 default A shelves it",
+   "oq": "OQ-027",
+   "preview": {
+    "window": [
+     -40,
+     -8,
+     -2,
+     22
+    ]
+   },
+   "layers": [
+    {
+     "name": "streaks",
+     "class": "ParticleEmitter",
+     "parent": "part",
+     "preview_sprite": "streak",
+     "part_size": [
+      200,
+      1,
+      120
+     ],
+     "offset": [
+      0,
+      0,
+      0
+     ],
+     "dir": [
+      0,
+      -1,
+      0
+     ],
+     "props": {
+      "Texture": "rbxasset://textures/particles/sparkles_main.dds",
+      "Shape": "Enum.ParticleEmitterShape.Box",
+      "ShapeStyle": "Enum.ParticleEmitterShapeStyle.Volume",
+      "Rate": 420,
+      "Lifetime": [
+       1.0,
+       1.2
+      ],
+      "Speed": [
+       55,
+       65
+      ],
+      "SpreadAngle": [
+       2,
+       2
+      ],
+      "Drag": 0.5,
+      "WindAffectsDrag": true,
+      "Size": [
+       [
+        0,
+        0.5
+       ],
+       [
+        1,
+        0.5
+       ]
+      ],
+      "Squash": [
+       [
+        0,
+        3
+       ],
+       [
+        1,
+        3
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        1
+       ],
+       [
+        0.1,
+        0.4
+       ],
+       [
+        0.9,
+        0.4
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": "$rain_grey",
+      "LightEmission": 0.3,
+      "LightInfluence": 0.4,
+      "Brightness": 1.6,
+      "Orientation": "Enum.ParticleOrientation.VelocityParallel"
+     }
+    }
+   ]
+  },
+  "sparks_brake": {
+   "kind": "loop",
+   "priority": 2,
+   "anchor": "BrakeShoe",
+   "start": "off",
+   "use": "brakes on (station arrival, pressure-crisis brake): fans of sparks thrown out past both body sides and back from the loco wheels, plus a ground glow; rate and glow follow Speed so they die as the train stops. Effect proposed: canon has the brake, not brake sparks",
+   "canon": [
+    "gameplay.run.brake_formula",
+    "gameplay.crisis.pressure"
+   ],
+   "speed_link": {
+    "layers": [
+     "fan_r",
+     "fan_l",
+     "glow"
+    ],
+    "rate_idle": 0,
+    "rate_max": 80
+   },
+   "layers": [
+    {
+     "name": "fan_r",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      0,
+      "gauge/2"
+     ],
+     "dir": [
+      -0.35,
+      0.5,
+      0.8
+     ],
+     "props": {
+      "Texture": "rbxasset://textures/particles/sparkles_main.dds",
+      "Rate": 80,
+      "Lifetime": [
+       0.4,
+       0.8
+      ],
+      "Speed": [
+       30,
+       44
+      ],
+      "SpreadAngle": [
+       20,
+       12
+      ],
+      "Acceleration": [
+       0,
+       -50,
+       0
+      ],
+      "Drag": 0.4,
+      "WindAffectsDrag": true,
+      "Size": [
+       [
+        0,
+        2.2
+       ],
+       [
+        1,
+        0.8
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0
+       ],
+       [
+        0.7,
+        0.2
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "@style.thumb.glow"
+       ],
+       [
+        0.4,
+        "@style.light.firebox_hot"
+       ],
+       [
+        1,
+        "@style.light.firebox_deep"
+       ]
+      ],
+      "LightEmission": 0.7,
+      "LightInfluence": 0,
+      "Brightness": 2.5,
+      "Squash": [
+       [
+        0,
+        1.5
+       ],
+       [
+        1,
+        1.5
+       ]
+      ],
+      "Orientation": "Enum.ParticleOrientation.VelocityParallel"
+     }
+    },
+    {
+     "name": "fan_l",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      0,
+      "-gauge/2"
+     ],
+     "dir": [
+      -0.35,
+      0.5,
+      -0.8
+     ],
+     "props": {
+      "Texture": "rbxasset://textures/particles/sparkles_main.dds",
+      "Rate": 80,
+      "Lifetime": [
+       0.4,
+       0.8
+      ],
+      "Speed": [
+       30,
+       44
+      ],
+      "SpreadAngle": [
+       20,
+       12
+      ],
+      "Acceleration": [
+       0,
+       -50,
+       0
+      ],
+      "Drag": 0.4,
+      "WindAffectsDrag": true,
+      "Size": [
+       [
+        0,
+        2.2
+       ],
+       [
+        1,
+        0.8
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0
+       ],
+       [
+        0.7,
+        0.2
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "@style.thumb.glow"
+       ],
+       [
+        0.4,
+        "@style.light.firebox_hot"
+       ],
+       [
+        1,
+        "@style.light.firebox_deep"
+       ]
+      ],
+      "LightEmission": 0.7,
+      "LightInfluence": 0,
+      "Brightness": 2.5,
+      "Squash": [
+       [
+        0,
+        1.5
+       ],
+       [
+        1,
+        1.5
+       ]
+      ],
+      "Orientation": "Enum.ParticleOrientation.VelocityParallel"
+     }
+    },
+    {
+     "name": "glow",
+     "class": "PointLight",
+     "offset": [
+      0,
+      1,
+      0
+     ],
+     "flicker": {
+      "min": 0.75,
+      "max": 1.0,
+      "hz": 3
+     },
+     "props": {
+      "Brightness": 2,
+      "Range": 12,
+      "Color": "@style.light.firebox_hot",
+      "Shadows": false
+     }
+    }
+   ]
+  },
+  "split_explosion": {
+   "kind": "burst",
+   "priority": 1,
+   "anchor": "SplitCore",
+   "use": "carriage split: big slapstick burst in the tear (flash, fire core, soot cloud, low shock dust, flung chunks and hot bits on the debris trails); owner decision 2026-09-29 (C10 'I want a big explosion aswell') overrides the OQ-028 default for the carriage split only",
+   "canon": "none: owner decision 2026-09-29 (C10 'I want a big explosion aswell') overrides the OQ-028 default for the carriage split only; proposed",
+   "oq": "OQ-028",
+   "preview": {
+    "window": [
+     -88,
+     -2,
+     -2,
+     52
+    ],
+    "t": 0.5
+   },
+   "layers": [
+    {
+     "name": "flash",
+     "class": "PointLight",
+     "offset": [
+      0,
+      2,
+      0
+     ],
+     "pulse": {
+      "peak": 8,
+      "duration": 0.4
+     },
+     "props": {
+      "Brightness": 0,
+      "Range": 45,
+      "Color": "@style.light.cab_lamp",
+      "Shadows": false
+     }
+    },
+    {
+     "name": "core",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      3,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      0
+     ],
+     "emit": 6,
+     "props": {
+      "Texture": "rbxasset://textures/particles/smoke_main.dds",
+      "Rate": 0,
+      "Lifetime": [
+       0.8,
+       1.2
+      ],
+      "Speed": [
+       18,
+       32
+      ],
+      "SpreadAngle": [
+       90,
+       90
+      ],
+      "Drag": 3,
+      "WindAffectsDrag": false,
+      "Size": [
+       [
+        0,
+        9
+       ],
+       [
+        0.35,
+        15
+       ],
+       [
+        1,
+        18
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0
+       ],
+       [
+        0.65,
+        0.1
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "@style.light.cab_lamp"
+       ],
+       [
+        0.3,
+        "@style.brand.hazard_yellow"
+       ],
+       [
+        1,
+        "@style.light.firebox"
+       ]
+      ],
+      "LightEmission": 0.8,
+      "LightInfluence": 0,
+      "Rotation": [
+       0,
+       360
+      ],
+      "RotSpeed": [
+       -60,
+       60
+      ]
+     }
+    },
+    {
+     "name": "soot",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      4,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      0
+     ],
+     "emit": 8,
+     "delay": 0.1,
+     "props": {
+      "Texture": "rbxasset://textures/particles/smoke_main.dds",
+      "Rate": 0,
+      "Lifetime": [
+       2.4,
+       3.4
+      ],
+      "Speed": [
+       12,
+       22
+      ],
+      "SpreadAngle": [
+       55,
+       55
+      ],
+      "Acceleration": [
+       0,
+       5,
+       0
+      ],
+      "Drag": 1.0,
+      "WindAffectsDrag": true,
+      "Size": [
+       [
+        0,
+        6
+       ],
+       [
+        0.3,
+        13
+       ],
+       [
+        1,
+        18,
+        2
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0
+       ],
+       [
+        0.6,
+        0.2
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "@style.world.soot_black"
+       ],
+       [
+        0.5,
+        "@style.world.ironwork"
+       ],
+       [
+        1,
+        "@style.ground.ballast"
+       ]
+      ],
+      "LightEmission": 0,
+      "LightInfluence": 1,
+      "Rotation": [
+       0,
+       360
+      ],
+      "RotSpeed": [
+       -30,
+       30
+      ]
+     }
+    },
+    {
+     "name": "shock",
+     "class": "ParticleEmitter",
+     "offset": [
+      0,
+      -4.5,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      0
+     ],
+     "emit": 6,
+     "props": {
+      "Texture": "rbxasset://textures/particles/smoke_main.dds",
+      "Rate": 0,
+      "Lifetime": [
+       1.2,
+       2.0
+      ],
+      "Speed": [
+       38,
+       52
+      ],
+      "SpreadAngle": [
+       88,
+       88
+      ],
+      "Acceleration": [
+       0,
+       -10,
+       0
+      ],
+      "Drag": 4,
+      "WindAffectsDrag": true,
+      "Size": [
+       [
+        0,
+        3
+       ],
+       [
+        1,
+        8
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0.1
+       ],
+       [
+        0.6,
+        0.35
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "@style.ground.ballast"
+       ],
+       [
+        0.15,
+        "$dust_pale"
+       ],
+       [
+        1,
+        "$dust_pale"
+       ]
+      ],
+      "LightEmission": 0,
+      "LightInfluence": 1
+     }
+    },
+    {
+     "name": "chunks",
+     "class": "Debris",
+     "offset": [
+      0,
+      1,
+      0
+     ],
+     "dir": [
+      -0.3,
+      1,
+      0
+     ],
+     "debris": {
+      "count": 4,
+      "size": [
+       1.6,
+       0.5,
+       1.1
+      ],
+      "speed": [
+       42,
+       60
+      ],
+      "spread": 55,
+      "lifetime": 1.8,
+      "gravity_scale": 0.35,
+      "carry": 1.0,
+      "colours": [
+       "@style.world.walnut",
+       "@style.world.ironwork",
+       "@style.world.brass"
+      ],
+      "trail": "debris_smoke"
+     }
+    },
+    {
+     "name": "hotbits",
+     "class": "Debris",
+     "offset": [
+      0,
+      1,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      0
+     ],
+     "debris": {
+      "count": 4,
+      "size": [
+       0.6,
+       0.35,
+       0.6
+      ],
+      "speed": [
+       45,
+       70
+      ],
+      "spread": 75,
+      "lifetime": 1.2,
+      "gravity_scale": 0.5,
+      "carry": 1.0,
+      "colours": [
+       "@style.brand.hazard_light",
+       "@style.light.firebox"
+      ],
+      "trail": "debris_spark"
+     }
+    }
+   ]
+  },
+  "torn_edge_smoke": {
+   "kind": "loop",
+   "priority": 2,
+   "anchor": "TornEdge",
+   "use": "carriage split aftermath: thin smoke born as ember specks along the kept half's torn end, wall top to wall top, with a flickering ember glow; attach on the snap, switch off after about 20 s",
+   "canon": "none: mission 260929-train-splits R3 (torn ends read as torn); proposed",
+   "layers": [
+    {
+     "name": "smoulder",
+     "class": "ParticleEmitter",
+     "parent": "part",
+     "part_size": [
+      4,
+      4,
+      19
+     ],
+     "offset": [
+      0,
+      0,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      0
+     ],
+     "props": {
+      "Texture": "rbxasset://textures/particles/smoke_main.dds",
+      "Shape": "Enum.ParticleEmitterShape.Box",
+      "ShapeStyle": "Enum.ParticleEmitterShapeStyle.Volume",
+      "Rate": 8,
+      "Lifetime": [
+       2.5,
+       3.5
+      ],
+      "Speed": [
+       2,
+       4
+      ],
+      "SpreadAngle": [
+       20,
+       20
+      ],
+      "Acceleration": [
+       0,
+       4,
+       0
+      ],
+      "Drag": 0.5,
+      "WindAffectsDrag": true,
+      "Size": [
+       [
+        0,
+        0.5
+       ],
+       [
+        0.12,
+        0.9
+       ],
+       [
+        1,
+        5.5
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0
+       ],
+       [
+        0.12,
+        0.1
+       ],
+       [
+        0.6,
+        0.4
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "@style.brand.hazard_light"
+       ],
+       [
+        0.06,
+        "@style.light.firebox"
+       ],
+       [
+        0.18,
+        "@style.world.soot_black"
+       ],
+       [
+        0.6,
+        "@style.world.ironwork"
+       ],
+       [
+        1,
+        "@style.ground.ballast"
+       ]
+      ],
+      "LightEmission": 0.2,
+      "LightInfluence": 0.6,
+      "Rotation": [
+       0,
+       360
+      ],
+      "RotSpeed": [
+       -20,
+       20
+      ]
+     }
+    },
+    {
+     "name": "glow",
+     "class": "PointLight",
+     "offset": [
+      0,
+      0,
+      0
+     ],
+     "flicker": {
+      "min": 0.65,
+      "max": 1.05,
+      "hz": 4
+     },
+     "props": {
+      "Brightness": 1.2,
+      "Range": 10,
+      "Color": "@style.light.firebox",
+      "Shadows": false
+     }
+    }
+   ]
+  },
+  "topple_dust": {
+   "kind": "burst",
+   "priority": 1,
+   "anchor": "WreckDust",
+   "use": "carriage split: long low dust cloud squeezed out along a lost body's side when it lands on the ground after the topple (one per landing body)",
+   "canon": "none: owner C11 topple (mission 260929-train-splits R12); proposed",
+   "preview": {
+    "window": [
+     -32,
+     38,
+     -2,
+     20
+    ],
+    "t": 0.5
+   },
+   "layers": [
+    {
+     "name": "dust",
+     "class": "ParticleEmitter",
+     "parent": "part",
+     "part_size": [
+      30,
+      1,
+      3
+     ],
+     "offset": [
+      0,
+      0,
+      0
+     ],
+     "dir": [
+      0,
+      1,
+      0
+     ],
+     "emit": 10,
+     "props": {
+      "Texture": "rbxasset://textures/particles/smoke_main.dds",
+      "Shape": "Enum.ParticleEmitterShape.Box",
+      "ShapeStyle": "Enum.ParticleEmitterShapeStyle.Volume",
+      "Rate": 0,
+      "Lifetime": [
+       1.6,
+       2.6
+      ],
+      "Speed": [
+       8,
+       16
+      ],
+      "SpreadAngle": [
+       65,
+       65
+      ],
+      "Acceleration": [
+       0,
+       -3,
+       0
+      ],
+      "Drag": 2.5,
+      "WindAffectsDrag": true,
+      "Size": [
+       [
+        0,
+        3.5
+       ],
+       [
+        1,
+        10
+       ]
+      ],
+      "Transparency": [
+       [
+        0,
+        0.1
+       ],
+       [
+        0.6,
+        0.35
+       ],
+       [
+        1,
+        1
+       ]
+      ],
+      "Color": [
+       [
+        0,
+        "@style.ground.ballast"
+       ],
+       [
+        0.15,
+        "$dust_pale"
+       ],
+       [
+        1,
+        "$dust_pale"
+       ]
+      ],
+      "LightEmission": 0,
+      "LightInfluence": 1,
+      "Rotation": [
+       0,
+       360
+      ],
+      "RotSpeed": [
+       -15,
+       15
+      ]
+     }
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,30 @@
+# Security gate · rr-exploit-guard
+
+VERDICT: HOLD
+
+stage alpha · scanned 2026-09-29T23:26:20+00:00 · 20 files · inputs sha256 120a53b73e5c320c
+review: not needed · fuzz evidence: no
+
+## Blocking (0)
+- none
+
+## Hold (3)
+- owner checklist OC1 open: ServerScriptService.LoadStringEnabled is off (no place file scanned: scan the .rbxlx or tick it after checking in Studio)
+- owner checklist OC2 open: HttpService.HttpEnabled is on only if scanned code makes HTTP requests (no place file scanned: scan the .rbxlx or tick it after checking in Studio)
+- owner checklist OC4 open: Bug bash security lines done in Studio: double-tap an order, spam the lever after it locks (release.alpha.bug_bash)
+
+## Accepted by the owner (0)
+- none
+
+## Owner checklist
+- [ ] OC1 ServerScriptService.LoadStringEnabled is off (open; needed from alpha)
+- [ ] OC2 HttpService.HttpEnabled is on only if scanned code makes HTTP requests (open; needed from alpha)
+- [x] OC3 Free models and plugins audited: backdoor rules clean (require-id, loadstring, fenv, obfuscated) (pass; needed from alpha)
+- [ ] OC4 Bug bash security lines done in Studio: double-tap an order, spam the lever after it locks (release.alpha.bug_bash) (open; needed from alpha)
+- [ ] OC5 Two-player fuzz run in Studio (guard.py fuzz) and the probe result is clean (open; needed from beta)
+- [ ] OC6 Experience Settings > Security: Allow Third Party Teleports off; Access Control for Places = Secure (trip place joinable only by server teleport) (open; needed from beta)
+- [ ] OC7 Studio tests use a separate data store name or test universe, never live player data (open; needed from beta)
+- [ ] OC8 Collaborators with edit rights are trusted; owner account has 2-step verification (open; needed from beta)
+- [ ] OC9 Admin/debug commands restricted to the owner's UserId and debug off (tech.security.admin) (open; needed from live)
+
+HOLD means the scanner and the owner checklist (no entry point takes client values, so no review) found the items above. PASS is not proof of safety; Studio fuzzing and the bug bash test what static reading cannot.

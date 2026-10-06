@@ -1,0 +1,93 @@
+{
+ "sheet": [
+  856,
+  1140
+ ],
+ "megapixels": 0.98,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "grassland.day roof3p PHONE (phone rates; no shadows, Bloom, SunRays): torn \u00b7 stand-in train",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_grassland.day_roof3p.phone.png",
+   "box": [
+    6,
+    24,
+    844,
+    390
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "day roof: torn",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_grassland.day_roof3p.png",
+   "box": [
+    6,
+    438,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 3,
+   "label": "day roof: torn, split",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_split_explosion.png",
+   "box": [
+    396,
+    438,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 4,
+   "label": "day roof: torn, boiler",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_boiler_burst.png",
+   "box": [
+    6,
+    678,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 5,
+   "label": "day door: no effect | hid torn",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_grassland.day_door1p.png",
+   "box": [
+    396,
+    678,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 6,
+   "label": "day door: topple | hid torn",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_topple_dust.png",
+   "box": [
+    6,
+    918,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  },
+  {
+   "n": 7,
+   "label": "day door: glass | hid torn",
+   "src": "/home/user/claude/missions/260929-train-splits/src/fx/preview/vfx/pov_glass_split.png",
+   "box": [
+    396,
+    918,
+    384,
+    216
+   ],
+   "scale": "fit x0.50"
+  }
+ ]
+}

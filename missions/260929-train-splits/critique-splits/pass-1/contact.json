@@ -1,0 +1,141 @@
+{
+ "sheet": [
+  696,
+  1473
+ ],
+ "megapixels": 1.03,
+ "tiles": [
+  {
+   "n": 1,
+   "label": "break1 t4.0 POV inside (player view)",
+   "src": "/home/user/claude/missions/260929-train-splits/critique-splits/pass-1/band_break1_t4.0__Cam_POV_In_640x360.png",
+   "box": [
+    6,
+    24,
+    640,
+    360
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 2,
+   "label": "break1 t4.0 roof 3rd person (player view)",
+   "src": "/home/user/claude/missions/260929-train-splits/critique-splits/pass-1/band_break1_t4.0__Cam_Roof3P_640x360.png",
+   "box": [
+    6,
+    408,
+    640,
+    360
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 3,
+   "label": "break1 t4.0 game distance 400x225",
+   "src": "/home/user/claude/missions/260929-train-splits/critique-splits/pass-1/break1_t4.0__Cam_Game.png",
+   "box": [
+    6,
+    792,
+    400,
+    225
+   ],
+   "scale": "1:1 true size"
+  },
+  {
+   "n": 4,
+   "label": "intact seam out",
+   "src": "/home/user/claude/missions/260929-train-splits/critique-splits/pass-1/intact__Cam_SeamOut.png",
+   "box": [
+    6,
+    1041,
+    224,
+    126
+   ],
+   "scale": "fit x0.14"
+  },
+  {
+   "n": 5,
+   "label": "intact roof",
+   "src": "/home/user/claude/missions/260929-train-splits/critique-splits/pass-1/intact__Cam_SeamRoof.png",
+   "box": [
+    236,
+    1041,
+    224,
+    126
+   ],
+   "scale": "fit x0.14"
+  },
+  {
+   "n": 6,
+   "label": "exploded",
+   "src": "/home/user/claude/missions/260929-train-splits/critique-splits/pass-1/exploded__Cam_Exploded.png",
+   "box": [
+    466,
+    1041,
+    224,
+    126
+   ],
+   "scale": "fit x0.14"
+  },
+  {
+   "n": 7,
+   "label": "b1 t1.0 wide",
+   "src": "/home/user/claude/missions/260929-train-splits/critique-splits/pass-1/break1_t1.0__Cam_Wide.png",
+   "box": [
+    6,
+    1191,
+    224,
+    126
+   ],
+   "scale": "fit x0.14"
+  },
+  {
+   "n": 8,
+   "label": "b1 t4.0 hero",
+   "src": "/home/user/claude/missions/260929-train-splits/critique-splits/pass-1/break1_t4.0__Cam_Hero.png",
+   "box": [
+    236,
+    1191,
+    224,
+    126
+   ],
+   "scale": "fit x0.14"
+  },
+  {
+   "n": 9,
+   "label": "b1 t4.0 wide",
+   "src": "/home/user/claude/missions/260929-train-splits/critique-splits/pass-1/break1_t4.0__Cam_Wide.png",
+   "box": [
+    466,
+    1191,
+    224,
+    126
+   ],
+   "scale": "fit x0.14"
+  },
+  {
+   "n": 10,
+   "label": "b1 t4.0 side",
+   "src": "/home/user/claude/missions/260929-train-splits/critique-splits/pass-1/break1_t4.0__Cam_Side.png",
+   "box": [
+    6,
+    1341,
+    224,
+    126
+   ],
+   "scale": "fit x0.14"
+  },
+  {
+   "n": 11,
+   "label": "b2 t4.0 hero",
+   "src": "/home/user/claude/missions/260929-train-splits/critique-splits/pass-1/break2_t4.0__Cam_Hero.png",
+   "box": [
+    236,
+    1341,
+    224,
+    126
+   ],
+   "scale": "fit x0.14"
+  }
+ ]
+}

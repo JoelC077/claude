@@ -1,0 +1,22 @@
+{
+ "mission": "260929-train-splits",
+ "design_critic_installed": false,
+ "tasks": [
+  {"id":"T0","do":"Break spec by the orchestrator: cells, frame, motion, topple, events in src/kit/break_spec.json; clearance check; cameras","deps":[],"role":"orchestrator","model":"session","effort":"high","reqs":["R1","R3","R5","R8","R14","R*17"],"out":"src/kit/break_spec.json","done_when":"clearance PASS; makers read only this + facts"},
+  {"id":"T1","do":"3D maker: offline CSG of the 20 crossers with the cutter, renders intact/split/topple at fixed cameras, milestone photos, preflight","deps":["T0"],"role":"maker","kind":"v1","model":"strongest","effort":"high","reqs":["R3","R7","R12"],"out":"src/render/","done_when":"renders + preflight numbers"},
+  {"id":"T2","do":"Luau maker: checker, setup (CSG + block slicing, structure, backup), TrainSplit server/shared/client/config/demo, Lune harness","deps":["T0"],"role":"maker","kind":"v1","model":"strongest","effort":"high","reqs":["R1","R2","R4","R9","R10","R*17","R*18"],"out":"src/luau/","done_when":"lune suite PASS"},
+  {"id":"T3","do":"FX maker via rr-vfx-lighting: split_explosion, torn_edge_smoke, topple_dust presets, board, build --only","deps":["T0"],"role":"maker","kind":"v1","model":"strongest","effort":"high","reqs":["R11","R*19"],"out":"src/fx/","done_when":"validate --strict + budget PASS; board built"},
+  {"id":"T4","do":"Sound maker via rr-soundsmith: 6 split sounds, recipes, levels, sheet, build","deps":["T0"],"role":"maker","kind":"v1","model":"strongest","effort":"high","reqs":["R13","R*19"],"out":"src/sound/","done_when":"sound validate --strict PASS; files measured; sheet built"},
+  {"id":"T5","do":"Critic pass 1 on the 3D renders (Profile A)","deps":["T1"],"role":"critic","kind":"full","crit":"critique-splits","model":"strongest","effort":"high","reqs":["R3","R6"],"out":"critique-splits/pass-1/verdict.md","done_when":"verdict checked"},
+  {"id":"T6","do":"Critic pass 1 on the fx board (Profile F)","deps":["T3"],"role":"critic","kind":"full","crit":"critique-fx-split","model":"strongest","effort":"high","reqs":["R11","R6"],"out":"critique-fx-split/pass-1/verdict.md","done_when":"verdict checked"},
+  {"id":"T7","do":"Critic pass 1 on the sound sheet (Profile S)","deps":["T4"],"role":"critic","kind":"full","crit":"critique-sound","model":"strongest","effort":"high","reqs":["R13","R6"],"out":"critique-sound/pass-1/verdict.md","done_when":"verdict checked"},
+  {"id":"T8","do":"Fix rounds 3D (continued T1 maker)","deps":["T5"],"role":"maker","kind":"fix","repeat":2,"model":"strongest","effort":"medium","reqs":["R3"],"out":"src/render/","done_when":"blocks-8 addressed"},
+  {"id":"T9","do":"Fix rounds fx (continued T3 maker)","deps":["T6"],"role":"maker","kind":"fix","repeat":2,"model":"strongest","effort":"medium","reqs":["R11"],"out":"src/fx/","done_when":"blocks-8 addressed"},
+  {"id":"T10","do":"Fix rounds sound (continued T4 maker)","deps":["T7"],"role":"maker","kind":"fix","repeat":1,"model":"strongest","effort":"medium","reqs":["R13"],"out":"src/sound/","done_when":"blocks-8 addressed"},
+  {"id":"T11","do":"Delta passes (continued critics), 3D + fx + sound","deps":["T8","T9","T10"],"role":"critic","kind":"delta","crit":"critique-splits","model":"strongest","effort":"high","reqs":["R6"],"out":"critique-*/pass-2/verdict.md","done_when":"scores logged"},
+  {"id":"T12","do":"Final passes (fresh critics) 3D + fx","deps":["T11"],"role":"critic","kind":"final","crit":"critique-splits","model":"strongest","effort":"high","reqs":["R3","R11"],"out":"critique-*/pass-3/verdict.md","done_when":"all criteria >= 8"},
+  {"id":"T13","do":"Luau gate: exploit-guard scan + review of the export; Lune re-run after wiring fx/sound ids","deps":["T2","T3","T4"],"role":"script","model":"-","effort":"-","reqs":["R*18","R2"],"out":"security/","done_when":"0 high/critical"},
+  {"id":"T14","do":"Export: scripts + fx + sounds + README install steps; lune load check (continued Luau maker)","deps":["T12","T13"],"role":"exporter","kind":"continued","model":"continued maker","effort":"low","reqs":["R1","R2","R9","R10","R13"],"out":"export/","done_when":"every file loads; README matches"},
+  {"id":"T15","do":"Debrief + memory + commit/push","deps":["T14"],"role":"orchestrator","model":"session","effort":"-","reqs":["R6","R7"],"out":"progress.log","done_when":"intake.py cover --final OK"}
+ ]
+}

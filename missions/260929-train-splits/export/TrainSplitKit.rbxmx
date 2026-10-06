@@ -1,0 +1,4426 @@
+<roblox version="4">
+  <Item class="Folder" referent="0">
+    <Properties>
+      <string name="Name">TrainSplitKit</string>
+    </Properties>
+    <Item class="Folder" referent="1">
+      <Properties>
+        <string name="Name">CommandBar_CopyPasteThese</string>
+      </Properties>
+      <Item class="ModuleScript" referent="2">
+        <Properties>
+          <string name="Name">RR_BreakChecker</string>
+          <string name="Source"><![CDATA[--[[
+RR_BreakChecker  (Studio command bar, read-only)
+
+Select the train Model in the Explorer, paste this whole script into the command bar, press Enter.
+It changes nothing. It prints:
+  - the carriages it found and each carriage's break frame,
+  - every BasePart whose box crosses the jagged tear (these are what RR_TrainSplit_Setup will cut),
+  - parts that sit inside the jagged band without crossing it (with their clearance to the tear),
+  - a summary.
+Studio names are generic ("Part", "Union"), so everything is found by geometry: each carriage's roof
+union (about 19.48 x 3.59 x 62.34) fixes its break frame. With no such roof (another train) it clusters
+the long parts along the train and checks one flat plane per carriage, PLANE_OFFSET studs from its centre.
+After the setup has run it checks the halves instead: every part on its half's side of the tear, and nothing
+left outside the halves (a crosser whose CSG failed stays outside until it is Separated and the setup re-run).
+]]
+
+local FRONT_AT = "min" -- the train's front is the "min" (lower) or "max" end of its long world axis
+local MARGIN = 0.1 -- a box closer than this to the tear counts as crossing it
+local PLANE_OFFSET = 0 -- plane fallback only: studs from the carriage centre toward the rear
+local SHOW_BAND = true -- list the parts inside the jagged band that do not cross it
+
+-- CORE BEGIN: break geometry, identical in RR_BreakChecker and RR_TrainSplit_Setup (the Lune suite checks it)
+local SPEC_VERSION = "2.3.0"
+local ROOF_SIG = { 5.86, 19.23, 62.34 } -- live roof union in CoalTrain (the export had 3.59 x 19.48 x 62.34)
+local ROOF_TOL = 0.1 -- studs of slack per axis when matching a roof
+local BREAK_DZ = 3.31 -- break plane = roof centre + 3.31 studs toward the rear
+local FLOOR_DY = -11.443 -- floor top (y 13.927) below the live roof union centre (y 25.37)
+local CROSS_DX = -0.05 -- live roof union sits 0.05 off the carriage centre line
+local ZEXT = 40 -- cutter reach along the carriage (a carriage spans -34.5 .. +27.9 from its break)
+local LONG_PART = 0.6 -- plane fallback: parts this fraction of the longest one outline a carriage
+local EXPECTED_CROSSERS = 10 -- per carriage in Joel's train (break_spec clearance check)
+
+-- CELLS BEGIN (break_spec.json v2.3.0) {X0, X1, Y0, Y1, d, region}: inside a cell the tear is at Z = d.
+-- Frame B: +X across (right when facing the front), +Y up from the floor top, +Z toward the rear.
+local CELLS = {
+	{ -20.0, -7.1, -12.0, 0.6, 0.6, "floor" },
+	{ -7.1, -2.8, -12.0, 0.6, 2.4, "floor" },
+	{ -2.8, 0.6, -12.0, 0.6, 0.9, "floor" },
+	{ 0.6, 4.1, -12.0, 0.6, 3.6, "floor" },
+	{ 4.1, 7.1, -12.0, 0.6, 1.5, "floor" },
+	{ 7.1, 20.0, -12.0, 0.6, -0.3, "floor" },
+	{ -20.0, -7.1, 0.6, 1.5, 0.7, "wall_W" },
+	{ 7.1, 20.0, 0.6, 1.5, -0.6, "wall_E" },
+	{ -20.0, -7.1, 1.5, 3.3, -0.4, "wall_W" },
+	{ 7.1, 20.0, 1.5, 3.3, 0.5, "wall_E" },
+	{ -20.0, -7.1, 3.3, 5.7, 0.9, "wall_W" },
+	{ 7.1, 20.0, 3.3, 5.7, -0.2, "wall_E" },
+	{ -20.0, -7.1, 5.7, 7.4, 0.1, "wall_W" },
+	{ 7.1, 20.0, 5.7, 7.4, 0.8, "wall_E" },
+	{ -20.0, -7.1, 7.4, 8.95, -0.8, "wall_W" },
+	{ 7.1, 20.0, 7.4, 8.95, -0.5, "wall_E" },
+	{ -20.0, -7.1, 8.95, 11.18, 0.4, "wall_W" },
+	{ 7.1, 20.0, 8.95, 11.18, 0.2, "wall_E" },
+	{ -7.1, 7.1, 0.6, 8.95, 0.2, "mid" },
+	{ -7.1, -2.5, 8.95, 11.18, 0.3, "mid_pelmet" },
+	{ -2.5, 2.5, 8.95, 11.18, -0.5, "mid_pelmet" },
+	{ 2.5, 7.1, 8.95, 11.18, 0.25, "mid_pelmet" },
+	{ -20.0, -7.1, 11.18, 24.0, 0.3, "roof" },
+	{ -7.1, -4.6, 11.18, 24.0, -1.6, "roof" },
+	{ -4.6, -1.9, 11.18, 24.0, -3.9, "roof" },
+	{ -1.9, 0.9, 11.18, 24.0, -2.4, "roof" },
+	{ 0.9, 3.7, 11.18, 24.0, -4.8, "roof" },
+	{ 3.7, 7.1, 11.18, 24.0, -1.1, "roof" },
+	{ 7.1, 20.0, 11.18, 24.0, 0.1, "roof" },
+}
+-- CELLS END
+
+local Core = {}
+
+function Core.v(v)
+	return ("(%.2f, %.2f, %.2f)"):format(v.X, v.Y, v.Z)
+end
+
+function Core.size(v)
+	return ("%.2f x %.2f x %.2f"):format(v.X, v.Y, v.Z)
+end
+
+function Core.baseParts(root)
+	local list = {}
+	for _, d in root:GetDescendants() do
+		if d:IsA("BasePart") then
+			table.insert(list, d)
+		end
+	end
+	return list
+end
+
+-- A part inside another part travels with that part instead of being sorted on its own.
+function Core.insidePart(part, root)
+	local p = part.Parent
+	while p and p ~= root do
+		if p:IsA("BasePart") then
+			return true
+		end
+		p = p.Parent
+	end
+	return false
+end
+
+-- Axis-aligned box of a part in frame F, from CFrame and Size only (works for any rotation).
+function Core.boxIn(F, part)
+	local rel = F:ToObjectSpace(part.CFrame)
+	local px, py, pz, r00, r01, r02, r10, r11, r12, r20, r21, r22 = rel:GetComponents()
+	local h = part.Size / 2
+	local ex = math.abs(r00) * h.X + math.abs(r01) * h.Y + math.abs(r02) * h.Z
+	local ey = math.abs(r10) * h.X + math.abs(r11) * h.Y + math.abs(r12) * h.Z
+	local ez = math.abs(r20) * h.X + math.abs(r21) * h.Y + math.abs(r22) * h.Z
+	return { x0 = px - ex, x1 = px + ex, y0 = py - ey, y1 = py + ey, z0 = pz - ez, z1 = pz + ez }
+end
+
+function Core.dAt(cells, X, Y)
+	for _, c in cells do
+		if X >= c[1] and X < c[2] and Y >= c[3] and Y < c[4] then
+			return c[5]
+		end
+	end
+	return nil
+end
+
+-- Cells whose X/Y footprint overlaps the box (eps widens the test).
+function Core.touched(cells, b, eps)
+	eps = eps or 0
+	local list = {}
+	for _, c in cells do
+		if b.x1 > c[1] - eps and b.x0 < c[2] + eps and b.y1 > c[3] - eps and b.y0 < c[4] + eps then
+			table.insert(list, c)
+		end
+	end
+	return list
+end
+
+function Core.bounds(cells)
+	local b = { x0 = math.huge, x1 = -math.huge, y0 = math.huge, y1 = -math.huge, dmin = math.huge, dmax = -math.huge }
+	for _, c in cells do
+		b.x0, b.x1 = math.min(b.x0, c[1]), math.max(b.x1, c[2])
+		b.y0, b.y1 = math.min(b.y0, c[3]), math.max(b.y1, c[4])
+		b.dmin, b.dmax = math.min(b.dmin, c[5]), math.max(b.dmax, c[5])
+	end
+	return b
+end
+
+-- Where a box sits against the tear: "front" | "rear" | "cross" (closer than margin counts as crossing),
+-- the clearance to the tear, whether it sits in a tooth (between the plane Z = 0 and the tear, so it goes
+-- with the half a flat cut would not give it) and whether it is beyond every cell.
+function Core.classify(cells, b, margin)
+	local front, rear, any, tooth = true, true, false, false
+	local clearF, clearR = math.huge, math.huge
+	for _, c in Core.touched(cells, b) do
+		local d = c[5]
+		any = true
+		if b.z1 > d - margin then
+			front = false
+		end
+		if b.z0 < d + margin then
+			rear = false
+		end
+		clearF, clearR = math.min(clearF, d - b.z1), math.min(clearR, b.z0 - d)
+		if b.z1 > math.min(0, d) and b.z0 < math.max(0, d) then
+			tooth = true
+		end
+	end
+	if not any then
+		local zc = (b.z0 + b.z1) / 2
+		return zc < 0 and "front" or "rear", math.abs(zc), false, true
+	end
+	if front then
+		return "front", clearF, tooth, false
+	elseif rear then
+		return "rear", clearR, tooth, false
+	end
+	return "cross", 0, tooth, false
+end
+
+-- A plain Block Part whose axes line up with the frame: it can be sliced into exact boxes, no CSG.
+function Core.isPlainBlock(part, F)
+	if part.ClassName ~= "Part" or part.Shape ~= Enum.PartType.Block then
+		return false
+	end
+	if part:FindFirstChildWhichIsA("DataModelMesh") then
+		return false
+	end
+	local rel = F:ToObjectSpace(part.CFrame)
+	for _, v in { rel.XVector, rel.YVector, rel.ZVector } do
+		if math.max(math.abs(v.X), math.abs(v.Y), math.abs(v.Z)) < 0.9999 then
+			return false
+		end
+	end
+	return true
+end
+
+-- Per-cell boxes of a block (frame coordinates): the front piece of each cell ends at the tear, the rear starts there.
+function Core.slices(cells, b)
+	local out = {}
+	for _, c in cells do
+		local x0, x1 = math.max(b.x0, c[1]), math.min(b.x1, c[2])
+		local y0, y1 = math.max(b.y0, c[3]), math.min(b.y1, c[4])
+		if x1 - x0 > 1e-3 and y1 - y0 > 1e-3 then
+			local zf, zr = math.min(b.z1, c[5]), math.max(b.z0, c[5])
+			if zf - b.z0 > 1e-3 then
+				table.insert(out, { side = "Front", cell = c, lo = Vector3.new(x0, y0, b.z0), hi = Vector3.new(x1, y1, zf) })
+			end
+			if b.z1 - zr > 1e-3 then
+				table.insert(out, { side = "Rear", cell = c, lo = Vector3.new(x0, y0, zr), hi = Vector3.new(x1, y1, b.z1) })
+			end
+		end
+	end
+	return out
+end
+
+local function isRoof(part)
+	local s = { part.Size.X, part.Size.Y, part.Size.Z }
+	table.sort(s)
+	for i = 1, 3 do
+		if math.abs(s[i] - ROOF_SIG[i]) > ROOF_TOL then
+			return false
+		end
+	end
+	return true
+end
+
+-- The roof's long axis and its up axis (its thinnest dimension, turned to point up).
+local function roofAxes(roof)
+	local s, cf = roof.Size, roof.CFrame
+	local dims, vecs = { s.X, s.Y, s.Z }, { cf.XVector, cf.YVector, cf.ZVector }
+	local iLong, iUp = 1, 1
+	for i = 2, 3 do
+		if dims[i] > dims[iLong] then
+			iLong = i
+		end
+		if dims[i] < dims[iUp] then
+			iUp = i
+		end
+	end
+	local up = vecs[iUp]
+	if up.Y < 0 then
+		up = -up
+	end
+	return vecs[iLong], up
+end
+
+-- Point an axis along the positive direction of its biggest world component, so "min"/"max" mean something.
+local function canonical(v)
+	local ax, ay, az = math.abs(v.X), math.abs(v.Y), math.abs(v.Z)
+	local c = (ax >= ay and ax >= az) and v.X or (ay >= az and v.Y or v.Z)
+	return c < 0 and -v or v
+end
+
+local function axisName(v)
+	local ax, ay, az = math.abs(v.X), math.abs(v.Y), math.abs(v.Z)
+	return (ax >= ay and ax >= az) and "X" or (ay >= az and "Y" or "Z")
+end
+
+local function frameFor(origin, rear, up)
+	up = (up - rear * up:Dot(rear)).Unit
+	return CFrame.fromMatrix(origin, up:Cross(rear), up, rear)
+end
+
+-- Each carriage's span along the train and the joins between neighbours (frame of carriage 1, Z = rear).
+function Core.addSpans(found)
+	local F = found.carriages[1].frame
+	for _, car in found.carriages do
+		local z = F:PointToObjectSpace(car.centre).Z
+		car.span = { z - car.half, z + car.half }
+	end
+	found.joins = {}
+	for i = 1, #found.carriages - 1 do
+		local a, b = found.carriages[i].span[2], found.carriages[i + 1].span[1]
+		found.joins[i] = { lo = math.min(a, b), hi = math.max(a, b), mid = (a + b) / 2 }
+	end
+end
+
+-- No roof union: carriages are runs of long parts along the train; each gets one flat plane.
+local function planeCarriages(parts, frontAt, planeOffset)
+	local found = { mode = "plane", carriages = {}, roofs = {} }
+	local longest, len = nil, 0
+	for _, p in parts do
+		local m = math.max(p.Size.X, p.Size.Y, p.Size.Z)
+		if m > len then
+			longest, len = p, m
+		end
+	end
+	if not longest then
+		return found
+	end
+	local s, cf = longest.Size, longest.CFrame
+	local long = (s.X >= s.Y and s.X >= s.Z) and cf.XVector or (s.Y >= s.Z and cf.YVector or cf.ZVector)
+	local L = canonical(long)
+	local rear = frontAt == "max" and -L or L
+	found.axis, found.axisName = rear, axisName(L)
+	local F = frameFor(Vector3.zero, rear, Vector3.yAxis)
+	local boxes, runs = {}, {}
+	for i, p in parts do
+		boxes[i] = Core.boxIn(F, p)
+		if boxes[i].z1 - boxes[i].z0 >= LONG_PART * len then
+			table.insert(runs, { boxes[i].z0, boxes[i].z1 })
+		end
+	end
+	table.sort(runs, function(a, b)
+		return a[1] < b[1]
+	end)
+	local clusters = {}
+	for _, r in runs do
+		local last = clusters[#clusters]
+		if last and r[1] <= last[2] + 0.5 then
+			last[2] = math.max(last[2], r[2])
+		else
+			table.insert(clusters, { r[1], r[2] })
+		end
+	end
+	for i, cl in clusters do
+		local x0, x1, y0, y1 = math.huge, -math.huge, math.huge, -math.huge
+		for _, b in boxes do
+			local zc = (b.z0 + b.z1) / 2
+			if zc >= cl[1] and zc <= cl[2] then
+				x0, x1 = math.min(x0, b.x0), math.max(x1, b.x1)
+				y0, y1 = math.min(y0, b.y0), math.max(y1, b.y1)
+			end
+		end
+		local mid = (cl[1] + cl[2]) / 2
+		local xc, yc = (x0 + x1) / 2, (y0 + y1) / 2
+		local hw, hh = (x1 - x0) / 2 + 2, (y1 - y0) / 2 + 2
+		table.insert(found.carriages, {
+			index = i,
+			frame = frameFor(F * Vector3.new(xc, yc, mid + planeOffset), rear, Vector3.yAxis),
+			cells = { { -hw, hw, -hh, hh, 0, "plane" } },
+			centre = F * Vector3.new(xc, yc, mid),
+			half = (cl[2] - cl[1]) / 2,
+			zext = (cl[2] - cl[1]) / 2 + math.abs(planeOffset) + 5,
+		})
+	end
+	if #found.carriages > 0 then
+		Core.addSpans(found)
+	end
+	return found
+end
+
+-- Carriages in train order (front first) with their break frames and cells.
+-- Each carriage's roof union fixes its frame: B = roof centre + rear * BREAK_DZ + up * FLOOR_DY.
+function Core.findCarriages(parts, frontAt, planeOffset)
+	local roofs = {}
+	for _, p in parts do
+		if isRoof(p) then
+			local dup = nil
+			for i, r in roofs do
+				if (r.CFrame.Position - p.CFrame.Position).Magnitude < 5 then
+					dup = i
+				end
+			end
+			if not dup then
+				table.insert(roofs, p)
+			elseif p:IsA("UnionOperation") and not roofs[dup]:IsA("UnionOperation") then
+				roofs[dup] = p
+			end
+		end
+	end
+	if #roofs == 0 then
+		return planeCarriages(parts, frontAt, planeOffset or 0)
+	end
+	local L = canonical((roofAxes(roofs[1])))
+	local rear = frontAt == "max" and -L or L
+	table.sort(roofs, function(a, b)
+		return a.CFrame.Position:Dot(rear) < b.CFrame.Position:Dot(rear)
+	end)
+	local found = { mode = "roof", axis = rear, axisName = axisName(L), carriages = {}, roofs = roofs }
+	for i, roof in roofs do
+		local long, up = roofAxes(roof)
+		local r = long:Dot(rear) >= 0 and long or -long
+		up = (Vector3.yAxis - r * Vector3.yAxis:Dot(r)).Unit -- carriages stand level: ignore any roll baked into the roof union
+		local centre = roof.CFrame.Position
+		table.insert(found.carriages, {
+			index = i,
+			roof = roof,
+			frame = frameFor(centre + r * BREAK_DZ + up * FLOOR_DY + up:Cross(r) * CROSS_DX, r, up),
+			cells = CELLS,
+			centre = centre,
+			half = math.max(roof.Size.X, roof.Size.Y, roof.Size.Z) / 2,
+			zext = ZEXT,
+		})
+	end
+	Core.addSpans(found)
+	return found
+end
+
+-- Which carriage and half a whole (uncut) part belongs to. Anything spanning or inside the gap between two
+-- carriages (the gangway, built into the next carriage's front wall) joins the FRONT half of the carriage
+-- behind (break_spec structure); the rest goes by its bbox centre against its carriage's tear.
+function Core.assign(found, part)
+	local b = Core.boxIn(found.carriages[1].frame, part)
+	for j, jn in found.joins do
+		if (b.z0 < jn.mid and b.z1 > jn.mid) or (b.z0 >= jn.lo - 0.05 and b.z1 <= jn.hi + 0.05) then
+			return j + 1, "Front", true
+		end
+	end
+	local zc, c = (b.z0 + b.z1) / 2, #found.carriages
+	for j, jn in found.joins do
+		if zc < jn.mid then
+			c = j
+			break
+		end
+	end
+	local car = found.carriages[c]
+	local p = car.frame:PointToObjectSpace(part.CFrame.Position)
+	return c, p.Z < (Core.dAt(car.cells, p.X, p.Y) or 0) and "Front" or "Rear", false
+end
+-- CORE END
+
+local lines = {}
+local function say(fmt, ...)
+	local s = select("#", ...) > 0 and fmt:format(...) or fmt
+	table.insert(lines, s)
+	print(s)
+end
+
+local function describe(part)
+	return ("%-15s %s  size %s  at %s"):format(part.ClassName, part:GetFullName(), Core.size(part.Size), Core.v(part.CFrame.Position))
+end
+
+-- After the setup: every part in a half must sit on that half's side of its tear, and nothing may be left
+-- outside the halves (a crosser the setup could not cut stays where it was until it is dealt with).
+local function checkSplitTrain(train, report)
+	say("Already split (RR_Breaks found): checking the halves against their tears.")
+	local bad, halves = 0, {}
+	for _, rec in train.RR_Breaks:GetChildren() do
+		local B = rec:GetAttribute("BreakCFrame")
+		local kept, lost = rec:FindFirstChild("KeptHalf"), rec:FindFirstChild("LostHalf")
+		if typeof(B) == "CFrame" and kept and lost then
+			local counts = {}
+			for side, holder in { Front = kept, Rear = lost } do
+				local half = holder.Value
+				counts[side] = 0
+				if half then
+					table.insert(halves, half)
+					for _, part in Core.baseParts(half) do
+						if part.Name ~= "Root" then
+							counts[side] += 1
+							local p = B:PointToObjectSpace(part.CFrame.Position)
+							local isFront = p.Z < (Core.dAt(CELLS, p.X, p.Y) or 0)
+							-- the gangway sits far from the break on purpose
+							if (side == "Front") ~= isFront and math.abs(p.Z) < 28 then
+								bad += 1
+								say("  wrong side? %s half of %s: %s", side, rec.Name, describe(part))
+							end
+						end
+					end
+				end
+			end
+			say("%s  Intact=%s  FrontHalf %d parts, RearHalf %d parts", rec.Name, tostring(rec:GetAttribute("Intact")), counts.Front, counts.Rear)
+			report.halves[rec.Name] = counts
+		else
+			bad += 1
+			say("  %s is incomplete (needs BreakCFrame, KeptHalf, LostHalf)", rec:GetFullName())
+		end
+	end
+	local outside = {}
+	for _, part in Core.baseParts(train) do
+		local placed = part:IsDescendantOf(train.RR_Breaks) or Core.insidePart(part, train)
+		for _, h in halves do
+			placed = placed or part:IsDescendantOf(h)
+		end
+		if not placed then
+			table.insert(outside, part)
+			say("  outside the halves: %s", describe(part))
+		end
+	end
+	if #outside > 0 then
+		say("  %d part(s) sit outside the halves: stuck with the train when it snaps. If the setup could not cut one:", #outside)
+		say("  select it, Model > Separate, then run RR_TrainSplit_Setup again (it only handles parts outside the halves).")
+	end
+	report.misplaced, report.outside = bad, #outside
+	report.ok = bad == 0 and #outside == 0
+	say("Summary: %s", report.ok and "every part sits in a half, on its side of the tear." or ("%d misplaced, %d outside the halves."):format(bad, #outside))
+	return report
+end
+
+local function run()
+	local report = { ok = false, mode = nil, carriages = {}, crossers = {}, band = {}, gangway = {}, halves = {}, lines = lines }
+	local selection = game:GetService("Selection"):Get()
+	local train = selection[1]
+	if #selection ~= 1 or not train:IsA("Model") then
+		say("RR_BreakChecker: select exactly one train Model in the Explorer, then run again.")
+		return report
+	end
+	local parts = Core.baseParts(train)
+	say("== RR_BreakChecker %s: %s (%d BaseParts) ==", SPEC_VERSION, train:GetFullName(), #parts)
+	if train:FindFirstChild("RR_Breaks") then
+		report.mode = "split"
+		return checkSplitTrain(train, report)
+	end
+
+	local found = Core.findCarriages(parts, FRONT_AT, PLANE_OFFSET)
+	report.mode = found.mode
+	if #found.carriages == 0 then
+		say("No carriages found: no roof union and no long parts. Is this the train Model?")
+		return report
+	end
+	if found.mode == "roof" then
+		say("Mode: roof unions -> jagged tear (%d cells, margin %.2f studs).", #CELLS, MARGIN)
+	else
+		say("Mode: no roof union of about 19.48 x 3.59 x 62.34 -> plane fallback: one flat cut per carriage, %.2f studs from its centre.", PLANE_OFFSET)
+	end
+	say("Front = the %s end of world %s (FRONT_AT = %q). If the train's front is the other end, set FRONT_AT = %q.",
+		FRONT_AT, found.axisName, FRONT_AT, FRONT_AT == "min" and "max" or "min")
+
+	local counts, bandCounts, teeth = {}, {}, 0
+	for k, car in ipairs(found.carriages) do
+		local F = car.frame
+		local bounds = Core.bounds(car.cells)
+		if car.roof then
+			say("Carriage %d: roof %s at %s, size %s", k, car.roof:GetFullName(), Core.v(car.centre), Core.size(car.roof.Size))
+		else
+			say("Carriage %d: long parts from %.1f to %.1f along the train", k, car.span[1], car.span[2])
+		end
+		say("  Break %d frame: origin %s  right %s  up %s  rear %s", k, Core.v(F.Position), Core.v(F.XVector), Core.v(F.YVector), Core.v(F.ZVector))
+		local crossers, band = {}, {}
+		for _, part in parts do
+			local b = Core.boxIn(F, part)
+			if b.z1 > bounds.dmin - 8 and b.z0 < bounds.dmax + 8 then
+				local side, clearance, tooth = Core.classify(car.cells, b, MARGIN)
+				if side == "cross" then
+					table.insert(crossers, { part = part, box = b })
+				elseif b.z1 > bounds.dmin - MARGIN and b.z0 < bounds.dmax + MARGIN then
+					table.insert(band, { part = part, side = side, clearance = clearance, tooth = tooth })
+					if tooth then
+						teeth += 1
+					end
+				end
+			end
+		end
+		say("  Crossers (%d), cut by RR_TrainSplit_Setup:", #crossers)
+		for _, c in crossers do
+			local how = Core.isPlainBlock(c.part, F) and "slice per cell" or "CSG"
+			say("    %s  [%d cell(s), %s]", describe(c.part), #Core.touched(car.cells, c.box), how)
+		end
+		table.sort(band, function(a, b)
+			return a.clearance < b.clearance
+		end)
+		if SHOW_BAND then
+			say("  In the jagged band (Z %.1f .. %.1f) without crossing (%d): half, clearance to the tear", bounds.dmin, bounds.dmax, #band)
+			for _, e in band do
+				say("    %-5s %5.2f  %s%s", e.side == "front" and "Front" or "Rear", e.clearance, describe(e.part), e.tooth and "  << inside a tooth: goes with the half a flat cut would not give it" or "")
+			end
+		end
+		counts[k], bandCounts[k] = #crossers, #band
+		report.carriages[k] = { frame = F, roof = car.roof, span = car.span }
+		report.crossers[k] = crossers
+		report.band[k] = band
+	end
+
+	for _, part in parts do
+		if not Core.insidePart(part, train) and #found.joins > 0 then
+			local c, half, gangway = Core.assign(found, part)
+			if gangway then
+				table.insert(report.gangway, part)
+				say("Gangway between carriages -> Carriage%d.%sHalf: %s", c, half, describe(part))
+			end
+		end
+	end
+
+	local list = {}
+	local matches = found.mode == "roof"
+	for k, n in counts do
+		list[k] = tostring(n)
+		matches = matches and n == EXPECTED_CROSSERS
+	end
+	report.ok = true
+	say("Summary: %d carriage(s); crossers %s; band %s; parts inside a tooth %d.", #found.carriages, table.concat(list, " + "),
+		table.concat(bandCounts, " + "), teeth)
+	if found.mode == "roof" then
+		say(matches and "Crossers match the design (10 per carriage). Next: RR_TrainSplit_Setup with DRY_RUN = true."
+			or "Crossers differ from the design (10 per carriage): check FRONT_AT and the lists above before the setup.")
+	end
+	if #found.carriages ~= 2 then
+		say("Note: RR_TrainSplit_Setup handles exactly 2 carriages; it found %d.", #found.carriages)
+	end
+	return report
+end
+
+return run()
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="3">
+        <Properties>
+          <string name="Name">RR_TrainSplit_Setup</string>
+          <string name="Source"><![CDATA[--[[
+RR_TrainSplit_Setup  (Studio command bar)
+
+Restructures the train into carriage halves and cuts the parts that cross each carriage's jagged tear,
+so the halves meet seamlessly until TrainSplit.SplitAt tears them apart in game.
+
+1. Select the train Model in the Explorer (run RR_BreakChecker on it first).
+2. Paste this whole script into the command bar with DRY_RUN = true and press Enter: it prints the plan
+   (parts per half, every crosser and how it will be cut, anything unexpected) and changes nothing.
+3. Set DRY_RUN = false and run it again. It saves an undo step, clones the train into
+   ServerStorage.RR_Backups, builds Train/Carriage1..2/{FrontHalf, RearHalf} (each with an invisible
+   anchored Root as PrimaryPart), moves every part into its half (the builder's folders and models are
+   mirrored inside each half), cuts the crossers, writes Train/RR_Breaks and prints a report.
+   Ctrl+Z undoes all of it. Nothing is destroyed: cut originals are moved into the backup folder.
+Cutting: plain axis-aligned Block parts are sliced into exact per-cell boxes; everything else uses
+part:SubtractAsync (front piece = part minus the REAR cutter boxes, rear piece = minus the FRONT ones).
+A crosser whose CSG fails stays where it was, outside the halves, and the report says what to do: select it,
+Model > Separate, and run this setup again. A run on a train that already has RR_Breaks only handles parts
+still outside the halves (using the recorded break frames) and leaves every half alone; with nothing outside
+it refuses. It also refuses unless it finds exactly 2 carriages.
+Break geometry comes from src/kit/break_spec.json (tests/sync_spec.luau writes it into this file).
+]]
+
+local DRY_RUN = true -- true: print the plan and change nothing; false: do it
+local FRONT_AT = "min" -- the train's front is the "min" (lower) or "max" end of its long world axis
+local MARGIN = 0.1 -- a box closer than this to the tear counts as crossing it (same as RR_BreakChecker)
+local CUTTER_BRIDGE = 0.01 -- neighbouring cutter boxes overlap by this much where both remove material, so
+                           -- float round-off between them cannot leave paper-thin slivers (0 = off)
+local ALLOW_PLANE_FALLBACK = false -- no roof union found (another train): allow one flat cut per carriage
+local PLANE_OFFSET = 0 -- plane fallback only: studs from the carriage centre toward the rear
+
+-- CORE BEGIN: break geometry, identical in RR_BreakChecker and RR_TrainSplit_Setup (the Lune suite checks it)
+local SPEC_VERSION = "2.3.0"
+local ROOF_SIG = { 5.86, 19.23, 62.34 } -- live roof union in CoalTrain (the export had 3.59 x 19.48 x 62.34)
+local ROOF_TOL = 0.1 -- studs of slack per axis when matching a roof
+local BREAK_DZ = 3.31 -- break plane = roof centre + 3.31 studs toward the rear
+local FLOOR_DY = -11.443 -- floor top (y 13.927) below the live roof union centre (y 25.37)
+local CROSS_DX = -0.05 -- live roof union sits 0.05 off the carriage centre line
+local IN_PLACE = true -- label parts with RR_Half instead of moving them into half models
+local ZEXT = 40 -- cutter reach along the carriage (a carriage spans -34.5 .. +27.9 from its break)
+local LONG_PART = 0.6 -- plane fallback: parts this fraction of the longest one outline a carriage
+local EXPECTED_CROSSERS = 10 -- per carriage in Joel's train (break_spec clearance check)
+
+-- CELLS BEGIN (break_spec.json v2.3.0) {X0, X1, Y0, Y1, d, region}: inside a cell the tear is at Z = d.
+-- Frame B: +X across (right when facing the front), +Y up from the floor top, +Z toward the rear.
+local CELLS = {
+	{ -20.0, -7.1, -12.0, 0.6, 0.6, "floor" },
+	{ -7.1, -2.8, -12.0, 0.6, 2.4, "floor" },
+	{ -2.8, 0.6, -12.0, 0.6, 0.9, "floor" },
+	{ 0.6, 4.1, -12.0, 0.6, 3.6, "floor" },
+	{ 4.1, 7.1, -12.0, 0.6, 1.5, "floor" },
+	{ 7.1, 20.0, -12.0, 0.6, -0.3, "floor" },
+	{ -20.0, -7.1, 0.6, 1.5, 0.7, "wall_W" },
+	{ 7.1, 20.0, 0.6, 1.5, -0.6, "wall_E" },
+	{ -20.0, -7.1, 1.5, 3.3, -0.4, "wall_W" },
+	{ 7.1, 20.0, 1.5, 3.3, 0.5, "wall_E" },
+	{ -20.0, -7.1, 3.3, 5.7, 0.9, "wall_W" },
+	{ 7.1, 20.0, 3.3, 5.7, -0.2, "wall_E" },
+	{ -20.0, -7.1, 5.7, 7.4, 0.1, "wall_W" },
+	{ 7.1, 20.0, 5.7, 7.4, 0.8, "wall_E" },
+	{ -20.0, -7.1, 7.4, 8.95, -0.8, "wall_W" },
+	{ 7.1, 20.0, 7.4, 8.95, -0.5, "wall_E" },
+	{ -20.0, -7.1, 8.95, 11.18, 0.4, "wall_W" },
+	{ 7.1, 20.0, 8.95, 11.18, 0.2, "wall_E" },
+	{ -7.1, 7.1, 0.6, 8.95, 0.2, "mid" },
+	{ -7.1, -2.5, 8.95, 11.18, 0.3, "mid_pelmet" },
+	{ -2.5, 2.5, 8.95, 11.18, -0.5, "mid_pelmet" },
+	{ 2.5, 7.1, 8.95, 11.18, 0.25, "mid_pelmet" },
+	{ -20.0, -7.1, 11.18, 24.0, 0.3, "roof" },
+	{ -7.1, -4.6, 11.18, 24.0, -1.6, "roof" },
+	{ -4.6, -1.9, 11.18, 24.0, -3.9, "roof" },
+	{ -1.9, 0.9, 11.18, 24.0, -2.4, "roof" },
+	{ 0.9, 3.7, 11.18, 24.0, -4.8, "roof" },
+	{ 3.7, 7.1, 11.18, 24.0, -1.1, "roof" },
+	{ 7.1, 20.0, 11.18, 24.0, 0.1, "roof" },
+}
+-- CELLS END
+
+local Core = {}
+
+function Core.v(v)
+	return ("(%.2f, %.2f, %.2f)"):format(v.X, v.Y, v.Z)
+end
+
+function Core.size(v)
+	return ("%.2f x %.2f x %.2f"):format(v.X, v.Y, v.Z)
+end
+
+function Core.baseParts(root)
+	local list = {}
+	for _, d in root:GetDescendants() do
+		if d:IsA("BasePart") then
+			table.insert(list, d)
+		end
+	end
+	return list
+end
+
+-- A part inside another part travels with that part instead of being sorted on its own.
+function Core.insidePart(part, root)
+	local p = part.Parent
+	while p and p ~= root do
+		if p:IsA("BasePart") then
+			return true
+		end
+		p = p.Parent
+	end
+	return false
+end
+
+-- Axis-aligned box of a part in frame F, from CFrame and Size only (works for any rotation).
+function Core.boxIn(F, part)
+	local rel = F:ToObjectSpace(part.CFrame)
+	local px, py, pz, r00, r01, r02, r10, r11, r12, r20, r21, r22 = rel:GetComponents()
+	local h = part.Size / 2
+	local ex = math.abs(r00) * h.X + math.abs(r01) * h.Y + math.abs(r02) * h.Z
+	local ey = math.abs(r10) * h.X + math.abs(r11) * h.Y + math.abs(r12) * h.Z
+	local ez = math.abs(r20) * h.X + math.abs(r21) * h.Y + math.abs(r22) * h.Z
+	return { x0 = px - ex, x1 = px + ex, y0 = py - ey, y1 = py + ey, z0 = pz - ez, z1 = pz + ez }
+end
+
+function Core.dAt(cells, X, Y)
+	for _, c in cells do
+		if X >= c[1] and X < c[2] and Y >= c[3] and Y < c[4] then
+			return c[5]
+		end
+	end
+	return nil
+end
+
+-- Cells whose X/Y footprint overlaps the box (eps widens the test).
+function Core.touched(cells, b, eps)
+	eps = eps or 0
+	local list = {}
+	for _, c in cells do
+		if b.x1 > c[1] - eps and b.x0 < c[2] + eps and b.y1 > c[3] - eps and b.y0 < c[4] + eps then
+			table.insert(list, c)
+		end
+	end
+	return list
+end
+
+function Core.bounds(cells)
+	local b = { x0 = math.huge, x1 = -math.huge, y0 = math.huge, y1 = -math.huge, dmin = math.huge, dmax = -math.huge }
+	for _, c in cells do
+		b.x0, b.x1 = math.min(b.x0, c[1]), math.max(b.x1, c[2])
+		b.y0, b.y1 = math.min(b.y0, c[3]), math.max(b.y1, c[4])
+		b.dmin, b.dmax = math.min(b.dmin, c[5]), math.max(b.dmax, c[5])
+	end
+	return b
+end
+
+-- Where a box sits against the tear: "front" | "rear" | "cross" (closer than margin counts as crossing),
+-- the clearance to the tear, whether it sits in a tooth (between the plane Z = 0 and the tear, so it goes
+-- with the half a flat cut would not give it) and whether it is beyond every cell.
+function Core.classify(cells, b, margin)
+	local front, rear, any, tooth = true, true, false, false
+	local clearF, clearR = math.huge, math.huge
+	for _, c in Core.touched(cells, b) do
+		local d = c[5]
+		any = true
+		if b.z1 > d - margin then
+			front = false
+		end
+		if b.z0 < d + margin then
+			rear = false
+		end
+		clearF, clearR = math.min(clearF, d - b.z1), math.min(clearR, b.z0 - d)
+		if b.z1 > math.min(0, d) and b.z0 < math.max(0, d) then
+			tooth = true
+		end
+	end
+	if not any then
+		local zc = (b.z0 + b.z1) / 2
+		return zc < 0 and "front" or "rear", math.abs(zc), false, true
+	end
+	if front then
+		return "front", clearF, tooth, false
+	elseif rear then
+		return "rear", clearR, tooth, false
+	end
+	return "cross", 0, tooth, false
+end
+
+-- A plain Block Part whose axes line up with the frame: it can be sliced into exact boxes, no CSG.
+function Core.isPlainBlock(part, F)
+	if part.ClassName ~= "Part" or part.Shape ~= Enum.PartType.Block then
+		return false
+	end
+	if part:FindFirstChildWhichIsA("DataModelMesh") then
+		return false
+	end
+	local rel = F:ToObjectSpace(part.CFrame)
+	for _, v in { rel.XVector, rel.YVector, rel.ZVector } do
+		if math.max(math.abs(v.X), math.abs(v.Y), math.abs(v.Z)) < 0.9999 then
+			return false
+		end
+	end
+	return true
+end
+
+-- Per-cell boxes of a block (frame coordinates): the front piece of each cell ends at the tear, the rear starts there.
+function Core.slices(cells, b)
+	local out = {}
+	for _, c in cells do
+		local x0, x1 = math.max(b.x0, c[1]), math.min(b.x1, c[2])
+		local y0, y1 = math.max(b.y0, c[3]), math.min(b.y1, c[4])
+		if x1 - x0 > 1e-3 and y1 - y0 > 1e-3 then
+			local zf, zr = math.min(b.z1, c[5]), math.max(b.z0, c[5])
+			if zf - b.z0 > 1e-3 then
+				table.insert(out, { side = "Front", cell = c, lo = Vector3.new(x0, y0, b.z0), hi = Vector3.new(x1, y1, zf) })
+			end
+			if b.z1 - zr > 1e-3 then
+				table.insert(out, { side = "Rear", cell = c, lo = Vector3.new(x0, y0, zr), hi = Vector3.new(x1, y1, b.z1) })
+			end
+		end
+	end
+	return out
+end
+
+local function isRoof(part)
+	local s = { part.Size.X, part.Size.Y, part.Size.Z }
+	table.sort(s)
+	for i = 1, 3 do
+		if math.abs(s[i] - ROOF_SIG[i]) > ROOF_TOL then
+			return false
+		end
+	end
+	return true
+end
+
+-- The roof's long axis and its up axis (its thinnest dimension, turned to point up).
+local function roofAxes(roof)
+	local s, cf = roof.Size, roof.CFrame
+	local dims, vecs = { s.X, s.Y, s.Z }, { cf.XVector, cf.YVector, cf.ZVector }
+	local iLong, iUp = 1, 1
+	for i = 2, 3 do
+		if dims[i] > dims[iLong] then
+			iLong = i
+		end
+		if dims[i] < dims[iUp] then
+			iUp = i
+		end
+	end
+	local up = vecs[iUp]
+	if up.Y < 0 then
+		up = -up
+	end
+	return vecs[iLong], up
+end
+
+-- Point an axis along the positive direction of its biggest world component, so "min"/"max" mean something.
+local function canonical(v)
+	local ax, ay, az = math.abs(v.X), math.abs(v.Y), math.abs(v.Z)
+	local c = (ax >= ay and ax >= az) and v.X or (ay >= az and v.Y or v.Z)
+	return c < 0 and -v or v
+end
+
+local function axisName(v)
+	local ax, ay, az = math.abs(v.X), math.abs(v.Y), math.abs(v.Z)
+	return (ax >= ay and ax >= az) and "X" or (ay >= az and "Y" or "Z")
+end
+
+local function frameFor(origin, rear, up)
+	up = (up - rear * up:Dot(rear)).Unit
+	return CFrame.fromMatrix(origin, up:Cross(rear), up, rear)
+end
+
+-- Each carriage's span along the train and the joins between neighbours (frame of carriage 1, Z = rear).
+function Core.addSpans(found)
+	local F = found.carriages[1].frame
+	for _, car in found.carriages do
+		local z = F:PointToObjectSpace(car.centre).Z
+		car.span = { z - car.half, z + car.half }
+	end
+	found.joins = {}
+	for i = 1, #found.carriages - 1 do
+		local a, b = found.carriages[i].span[2], found.carriages[i + 1].span[1]
+		found.joins[i] = { lo = math.min(a, b), hi = math.max(a, b), mid = (a + b) / 2 }
+	end
+end
+
+-- No roof union: carriages are runs of long parts along the train; each gets one flat plane.
+local function planeCarriages(parts, frontAt, planeOffset)
+	local found = { mode = "plane", carriages = {}, roofs = {} }
+	local longest, len = nil, 0
+	for _, p in parts do
+		local m = math.max(p.Size.X, p.Size.Y, p.Size.Z)
+		if m > len then
+			longest, len = p, m
+		end
+	end
+	if not longest then
+		return found
+	end
+	local s, cf = longest.Size, longest.CFrame
+	local long = (s.X >= s.Y and s.X >= s.Z) and cf.XVector or (s.Y >= s.Z and cf.YVector or cf.ZVector)
+	local L = canonical(long)
+	local rear = frontAt == "max" and -L or L
+	found.axis, found.axisName = rear, axisName(L)
+	local F = frameFor(Vector3.zero, rear, Vector3.yAxis)
+	local boxes, runs = {}, {}
+	for i, p in parts do
+		boxes[i] = Core.boxIn(F, p)
+		if boxes[i].z1 - boxes[i].z0 >= LONG_PART * len then
+			table.insert(runs, { boxes[i].z0, boxes[i].z1 })
+		end
+	end
+	table.sort(runs, function(a, b)
+		return a[1] < b[1]
+	end)
+	local clusters = {}
+	for _, r in runs do
+		local last = clusters[#clusters]
+		if last and r[1] <= last[2] + 0.5 then
+			last[2] = math.max(last[2], r[2])
+		else
+			table.insert(clusters, { r[1], r[2] })
+		end
+	end
+	for i, cl in clusters do
+		local x0, x1, y0, y1 = math.huge, -math.huge, math.huge, -math.huge
+		for _, b in boxes do
+			local zc = (b.z0 + b.z1) / 2
+			if zc >= cl[1] and zc <= cl[2] then
+				x0, x1 = math.min(x0, b.x0), math.max(x1, b.x1)
+				y0, y1 = math.min(y0, b.y0), math.max(y1, b.y1)
+			end
+		end
+		local mid = (cl[1] + cl[2]) / 2
+		local xc, yc = (x0 + x1) / 2, (y0 + y1) / 2
+		local hw, hh = (x1 - x0) / 2 + 2, (y1 - y0) / 2 + 2
+		table.insert(found.carriages, {
+			index = i,
+			frame = frameFor(F * Vector3.new(xc, yc, mid + planeOffset), rear, Vector3.yAxis),
+			cells = { { -hw, hw, -hh, hh, 0, "plane" } },
+			centre = F * Vector3.new(xc, yc, mid),
+			half = (cl[2] - cl[1]) / 2,
+			zext = (cl[2] - cl[1]) / 2 + math.abs(planeOffset) + 5,
+		})
+	end
+	if #found.carriages > 0 then
+		Core.addSpans(found)
+	end
+	return found
+end
+
+-- Carriages in train order (front first) with their break frames and cells.
+-- Each carriage's roof union fixes its frame: B = roof centre + rear * BREAK_DZ + up * FLOOR_DY.
+function Core.findCarriages(parts, frontAt, planeOffset)
+	local roofs = {}
+	for _, p in parts do
+		if isRoof(p) then
+			local dup = nil
+			for i, r in roofs do
+				if (r.CFrame.Position - p.CFrame.Position).Magnitude < 5 then
+					dup = i
+				end
+			end
+			if not dup then
+				table.insert(roofs, p)
+			elseif p:IsA("UnionOperation") and not roofs[dup]:IsA("UnionOperation") then
+				roofs[dup] = p
+			end
+		end
+	end
+	if #roofs == 0 then
+		return planeCarriages(parts, frontAt, planeOffset or 0)
+	end
+	local L = canonical((roofAxes(roofs[1])))
+	local rear = frontAt == "max" and -L or L
+	table.sort(roofs, function(a, b)
+		return a.CFrame.Position:Dot(rear) < b.CFrame.Position:Dot(rear)
+	end)
+	local found = { mode = "roof", axis = rear, axisName = axisName(L), carriages = {}, roofs = roofs }
+	for i, roof in roofs do
+		local long, up = roofAxes(roof)
+		local r = long:Dot(rear) >= 0 and long or -long
+		up = (Vector3.yAxis - r * Vector3.yAxis:Dot(r)).Unit -- carriages stand level: ignore any roll baked into the roof union
+		local centre = roof.CFrame.Position
+		table.insert(found.carriages, {
+			index = i,
+			roof = roof,
+			frame = frameFor(centre + r * BREAK_DZ + up * FLOOR_DY + up:Cross(r) * CROSS_DX, r, up),
+			cells = CELLS,
+			centre = centre,
+			half = math.max(roof.Size.X, roof.Size.Y, roof.Size.Z) / 2,
+			zext = ZEXT,
+		})
+	end
+	Core.addSpans(found)
+	return found
+end
+
+-- Which carriage and half a whole (uncut) part belongs to. Anything spanning or inside the gap between two
+-- carriages (the gangway, built into the next carriage's front wall) joins the FRONT half of the carriage
+-- behind (break_spec structure); the rest goes by its bbox centre against its carriage's tear.
+function Core.assign(found, part)
+	local b = Core.boxIn(found.carriages[1].frame, part)
+	for j, jn in found.joins do
+		if (b.z0 < jn.mid and b.z1 > jn.mid) or (b.z0 >= jn.lo - 0.05 and b.z1 <= jn.hi + 0.05) then
+			return j + 1, "Front", true
+		end
+	end
+	local zc, c = (b.z0 + b.z1) / 2, #found.carriages
+	for j, jn in found.joins do
+		if zc < jn.mid then
+			c = j
+			break
+		end
+	end
+	local car = found.carriages[c]
+	local p = car.frame:PointToObjectSpace(part.CFrame.Position)
+	return c, p.Z < (Core.dAt(car.cells, p.X, p.Y) or 0) and "Front" or "Rear", false
+end
+-- CORE END
+
+local ServerStorage = game:GetService("ServerStorage")
+local ChangeHistoryService = game:GetService("ChangeHistoryService")
+
+local lines = {}
+local function say(fmt, ...)
+	local s = select("#", ...) > 0 and fmt:format(...) or fmt
+	table.insert(lines, s)
+	print(s)
+end
+
+local function describe(inst)
+	local size = inst:IsA("BasePart") and ("  size %s  at %s"):format(Core.size(inst.Size), Core.v(inst.CFrame.Position)) or ""
+	return ("%s %s%s"):format(inst.ClassName, inst:GetFullName(), size)
+end
+
+-- What a CSG piece takes over from its original, where the engine lets a script set it.
+local LOOK = {
+	"Color", "Material", "MaterialVariant", "Transparency", "Reflectance", "UsePartColor", "CastShadow",
+	"CanCollide", "CanQuery", "CanTouch", "CollisionGroup", "Anchored", "Massless", "Locked",
+	"CustomPhysicalProperties", "SmoothingAngle", "CollisionFidelity", "RenderFidelity",
+}
+
+local function copyLook(from, to)
+	to.Name = from.Name
+	for _, prop in LOOK do
+		local okGet, value = pcall(function()
+			return from[prop]
+		end)
+		if okGet then
+			pcall(function()
+				to[prop] = value
+			end)
+		end
+	end
+	for name, value in from:GetAttributes() do
+		if string.sub(name, 1, 3) ~= "RBX" then pcall(to.SetAttribute, to, name, value) end -- Roblox-reserved attributes cannot be copied
+	end
+	for _, tag in from:GetTags() do
+		to:AddTag(tag)
+	end
+end
+
+-- How a crosser's child is re-homed onto the pieces.
+local function childRule(child)
+	if child:IsA("Attachment") then
+		return "position" -- keeps its world position, on the piece that holds it
+	elseif child:IsA("Light") or child:IsA("ParticleEmitter") or child:IsA("Fire") or child:IsA("Smoke")
+		or child:IsA("Sparkles") or child:IsA("Sound") then
+		return "centre" -- emits from the part, so it goes with the piece holding the part's centre
+	elseif child:IsA("Decal") or child:IsA("SurfaceAppearance") then
+		return "copy" -- surface looks belong on every piece (Texture is a Decal too)
+	end
+	return "other"
+end
+
+local RULE_TEXT = {
+	position = "by its world position",
+	centre = "to the piece holding the part centre",
+	copy = "copied onto every piece (check how it tiles)",
+	other = "moved to the piece holding the part centre: check it",
+}
+
+local SEPARATE_TIP = "select it, Model > Separate, then run this setup again: it cuts the separated parts one by one "
+	.. "(Blocks sliced per cell) and leaves everything already in a half alone"
+
+---------------------------------------------------------------- plan (DRY_RUN and apply share it)
+
+-- Cutter boxes for one side, in frame coordinates {x0, x1, y0, y1, z0, z1, name}. Each cell the part touches
+-- gives a box from its tear to the far end (FRONT: -zext .. d, REAR: d .. zext). Thin bridges over the edges
+-- two cells share, spanning only the Z range both remove, overlap the boxes so round-off leaves no sliver.
+local function cutterSpecs(car, b, side)
+	local cells = Core.touched(car.cells, b, 0.01)
+	local function zRange(d)
+		if side == "Front" then
+			return -car.zext, d
+		end
+		return d, car.zext
+	end
+	local specs = {}
+	for _, c in cells do
+		local z0, z1 = zRange(c[5])
+		table.insert(specs, { c[1], c[2], c[3], c[4], z0, z1, c[6] })
+	end
+	local o = CUTTER_BRIDGE
+	if o > 0 then
+		for i = 1, #cells - 1 do
+			for j = i + 1, #cells do
+				local z0, z1 = zRange(side == "Front" and math.min(cells[i][5], cells[j][5]) or math.max(cells[i][5], cells[j][5]))
+				for _, pq in { { cells[i], cells[j] }, { cells[j], cells[i] } } do
+					local p, q = pq[1], pq[2]
+					local bridge
+					if math.abs(p[2] - q[1]) < 1e-6 and math.min(p[4], q[4]) - math.max(p[3], q[3]) > 1e-6 then
+						bridge = { p[2] - o, p[2] + o, math.max(p[3], q[3]) - o, math.min(p[4], q[4]) + o, z0, z1, "bridge" }
+					elseif math.abs(p[4] - q[3]) < 1e-6 and math.min(p[2], q[2]) - math.max(p[1], q[1]) > 1e-6 then
+						bridge = { math.max(p[1], q[1]) - o, math.min(p[2], q[2]) + o, p[4] - o, p[4] + o, z0, z1, "bridge" }
+					end
+					if bridge and z1 - z0 > 1e-6 and bridge[2] > b.x0 and bridge[1] < b.x1 and bridge[4] > b.y0 and bridge[3] < b.y1 then
+						table.insert(specs, bridge)
+					end
+				end
+			end
+		end
+	end
+	return specs
+end
+
+local function planCut(found, part, k, box)
+	local car = found.carriages[k]
+	local cr = { part = part, k = k, box = box, notes = {}, front = 0, rear = 0, children = part:GetChildren() }
+	local cb = Core.bounds(car.cells)
+	cr.touched = Core.touched(car.cells, box, 0.01)
+	if part:IsA("NegateOperation") then
+		cr.method = "skip"
+		cr.why = "it is a negative part (from Separate): it only cuts inside a union; union it back into its piece or delete it"
+	elseif box.z0 < -car.zext or box.z1 > car.zext then
+		cr.method = "skip"
+		cr.why = ("it reaches %.1f studs from the break, past the cutters' %.0f"):format(math.max(-box.z0, box.z1), car.zext)
+	elseif box.x0 < cb.x0 or box.x1 > cb.x1 or box.y0 < cb.y0 or box.y1 > cb.y1 then
+		cr.method = "skip"
+		cr.why = "it sticks out past the tear cells (wider or taller than the carriage)"
+	elseif Core.isPlainBlock(part, car.frame) then
+		cr.method = "slice"
+		cr.pieces = Core.slices(car.cells, box)
+		local vol = 0
+		for _, s in cr.pieces do
+			local e = s.hi - s.lo
+			vol += e.X * e.Y * e.Z
+			if s.side == "Front" then
+				cr.front += 1
+			else
+				cr.rear += 1
+			end
+		end
+		local full = (box.x1 - box.x0) * (box.y1 - box.y0) * (box.z1 - box.z0)
+		if math.abs(vol - full) > 1e-4 * full then
+			table.insert(cr.notes, ("the slices hold %.2f%% of the block (slivers under 0.001 stud are dropped)"):format(100 * vol / full))
+		end
+	else
+		cr.method = "csg"
+		cr.front, cr.rear = 1, 1
+		cr.boxes = { Front = #cutterSpecs(car, box, "Front"), Rear = #cutterSpecs(car, box, "Rear") }
+		if part:IsA("MeshPart") then
+			table.insert(cr.notes, "MeshPart: if this Studio refuses CSG on meshes it is reported and left whole")
+		end
+		if part:FindFirstChildWhichIsA("DataModelMesh") then
+			table.insert(cr.notes, "has a SpecialMesh/BlockMesh child: CSG cuts the part's box shape, not the mesh")
+		end
+	end
+	return cr
+end
+
+-- Joints, welds and object values that point at any part in `set`.
+local function referencesTo(set)
+	local list = {}
+	for _, d in workspace:GetDescendants() do
+		local fields = {}
+		if d:IsA("JointInstance") or d:IsA("WeldConstraint") or d:IsA("NoCollisionConstraint") then
+			if set[d.Part0] then
+				table.insert(fields, "Part0")
+			end
+			if set[d.Part1] then
+				table.insert(fields, "Part1")
+			end
+		elseif d:IsA("ObjectValue") and d.Value and set[d.Value] then
+			table.insert(fields, "Value")
+		end
+		if #fields > 0 then
+			table.insert(list, { inst = d, fields = fields })
+		end
+	end
+	return list
+end
+
+-- The tear cells as text, stored on each break record so a later run can tell whether the halves were cut
+-- the same way (spec versions also change for runtime-only reasons, e.g. the topple).
+local function cellsText(cells)
+	local parts = {}
+	for _, c in cells do
+		table.insert(parts, ("%.4f,%.4f,%.4f,%.4f,%.4f"):format(c[1], c[2], c[3], c[4], c[5]))
+	end
+	return table.concat(parts, ";")
+end
+
+-- A re-run works from the break records (the roofs are cut by now): same frames, cells, halves and spans.
+local function foundFromRecords(folder)
+	local found = { mode = "roof", carriages = {}, rerun = true }
+	for k = 1, 2 do
+		local rec = folder:FindFirstChild("Break" .. k)
+		local frame = rec and rec:GetAttribute("BreakCFrame")
+		local centre = rec and rec:GetAttribute("CarriageCentre")
+		local half = rec and rec:GetAttribute("HalfLength")
+		local kept, lost = rec and rec:FindFirstChild("KeptHalf"), rec and rec:FindFirstChild("LostHalf")
+		if typeof(frame) ~= "CFrame" or typeof(centre) ~= "Vector3" or type(half) ~= "number" or not (kept and kept.Value and lost and lost.Value) then
+			return nil, ("RR_Breaks.Break%d is incomplete (BreakCFrame, CarriageCentre, HalfLength, KeptHalf, LostHalf)"):format(k)
+		end
+		local recorded = rec:GetAttribute("TearCells")
+		local sameCut = rec:GetAttribute("Mode") == "plane" or (recorded and recorded == cellsText(CELLS)) or (not recorded and rec:GetAttribute("Version") == SPEC_VERSION)
+		if not sameCut then
+			return nil, ("this train was cut with other tear cells (break spec %s; this script is %s): undo or restore the backup to re-split it"):format(
+				tostring(rec:GetAttribute("Version")), SPEC_VERSION)
+		end
+		found.version = rec:GetAttribute("Version")
+		local cells = CELLS
+		if rec:GetAttribute("Mode") == "plane" then
+			local pc = rec:GetAttribute("PlaneCell")
+			cells = { { -pc.X, pc.X, -pc.Y, pc.Y, 0, "plane" } }
+			found.mode = "plane"
+		end
+		found.carriages[k] = {
+			index = k,
+			frame = frame,
+			cells = cells,
+			centre = centre,
+			half = half,
+			zext = rec:GetAttribute("CutterReach") or ZEXT,
+			halves = { Front = kept.Value, Rear = lost.Value },
+		}
+	end
+	Core.addSpans(found)
+	return found
+end
+
+local function plan(train)
+	local P = { train = train, notes = {}, crossers = {}, moves = {}, gangway = {}, counts = {}, joints = {} }
+	local found, parts
+	local records = train:FindFirstChild("RR_Breaks")
+	if records then
+		-- Re-run: only parts still outside the halves (a crosser left whole after a CSG failure, or the pieces
+		-- Separate made of it) are sorted and cut; everything already in a half is left alone.
+		local err
+		found, err = foundFromRecords(records)
+		if not found then
+			P.refuse = err
+			return P
+		end
+		local halves = {}
+		for _, car in found.carriages do
+			table.insert(halves, car.halves.Front)
+			table.insert(halves, car.halves.Rear)
+		end
+		parts = {}
+		for _, p in Core.baseParts(train) do
+			local placed = p:IsDescendantOf(records)
+			for _, h in halves do
+				placed = placed or p:IsDescendantOf(h)
+			end
+			if not placed then
+				table.insert(parts, p)
+			end
+		end
+		if #parts == 0 then
+			P.refuse = "this train is already set up and every part sits in a half. To redo it, undo (Ctrl+Z) or restore the copy in ServerStorage.RR_Backups."
+			return P
+		end
+		P.rerun = true
+		table.insert(P.notes, ("re-run: %d part(s) sit outside the halves (a crosser left whole, or what Separate made of it); nothing already in a half is touched"):format(#parts))
+		if found.version ~= SPEC_VERSION then
+			table.insert(P.notes, ("the halves were cut with break spec %s and this script is %s: same tear cells, so the new parts match"):format(tostring(found.version), SPEC_VERSION))
+		end
+	else
+		parts = Core.baseParts(train)
+		found = Core.findCarriages(parts, FRONT_AT, PLANE_OFFSET)
+		if found.mode == "plane" and not ALLOW_PLANE_FALLBACK then
+			P.refuse = "no roof union of about 19.48 x 3.59 x 62.34 was found, so the jagged tear has nothing to hang on. "
+				.. "Run RR_BreakChecker to see what it finds; for another train set ALLOW_PLANE_FALLBACK = true (flat cut)."
+			return P
+		end
+		if #found.carriages ~= 2 then
+			P.refuse = ("found %d carriage(s); this kit handles exactly 2 (one roof union per carriage)"):format(#found.carriages)
+			for i, r in found.roofs or {} do
+				table.insert(P.notes, ("roof %d: %s at %s"):format(i, r:GetFullName(), Core.v(r.CFrame.Position)))
+			end
+			return P
+		end
+	end
+	P.parts, P.found = parts, found
+	for k = 1, 2 do
+		P.counts[k] = { Front = 0, Rear = 0 }
+	end
+	local cutSet, perBreak = {}, { 0, 0 }
+	for _, part in parts do
+		if Core.insidePart(part, train) then
+			-- travels inside its parent part; only worth a word if it crosses a tear
+			for k, car in found.carriages do
+				if Core.classify(car.cells, Core.boxIn(car.frame, part), MARGIN) == "cross" then
+					table.insert(P.notes, ("%s crosses break %d but sits inside another part, so it stays whole with it"):format(describe(part), k))
+				end
+			end
+		else
+			local hits = {}
+			for k, car in found.carriages do
+				local box = Core.boxIn(car.frame, part)
+				if Core.classify(car.cells, box, MARGIN) == "cross" then
+					table.insert(hits, { k = k, box = box })
+				end
+			end
+			local c, half, gangway = Core.assign(found, part)
+			local cr = #hits == 1 and planCut(found, part, hits[1].k, hits[1].box) or nil
+			if cr and cr.method ~= "skip" then
+				table.insert(P.crossers, cr)
+				cutSet[part] = true
+				perBreak[cr.k] += 1
+				P.counts[cr.k].Front += cr.front
+				P.counts[cr.k].Rear += cr.rear
+			else
+				if cr then
+					table.insert(P.crossers, cr)
+					perBreak[cr.k] += 1
+					table.insert(P.notes, ("%s crosses break %d but is NOT cut: %s; it stays whole in Carriage%d.%sHalf"):format(describe(part), cr.k, cr.why, c, half))
+				elseif #hits > 1 then
+					table.insert(P.notes, ("%s crosses both breaks; it stays whole in Carriage%d.%sHalf"):format(describe(part), c, half))
+				end
+				table.insert(P.moves, { part = part, c = c, half = half })
+				P.counts[c][half] += 1
+				if gangway then
+					table.insert(P.gangway, { part = part, c = c, half = half })
+				end
+			end
+		end
+	end
+	local order = { slice = 1, csg = 2, skip = 3 }
+	table.sort(P.crossers, function(a, b)
+		if a.k ~= b.k then
+			return a.k < b.k
+		elseif a.method ~= b.method then
+			return order[a.method] < order[b.method]
+		end
+		return a.part.CFrame.Position.Y < b.part.CFrame.Position.Y
+	end)
+	P.cutSet = cutSet
+	P.joints = referencesTo(cutSet)
+
+	-- anything else worth a look before it runs
+	if found.mode == "roof" and not P.rerun then
+		for k = 1, 2 do
+			if perBreak[k] ~= EXPECTED_CROSSERS then
+				table.insert(P.notes, ("break %d has %d crossers; Joel's train has %d per carriage: check FRONT_AT and RR_BreakChecker"):format(k, perBreak[k], EXPECTED_CROSSERS))
+			end
+		end
+	end
+	if not P.rerun then
+		for _, name in { "Carriage1", "Carriage2" } do
+			local existing = train:FindFirstChild(name)
+			if existing then
+				table.insert(P.notes, ("the train already has a child named %s (%s); the new %s Model sits beside it (the runtime finds halves through RR_Breaks, not by name)"):format(name, existing.ClassName, name))
+			end
+		end
+	end
+	local scripts, loose, hidden = 0, 0, 0
+	for _, d in train:GetDescendants() do
+		if d:IsA("LuaSourceContainer") then
+			scripts += 1
+		end
+		if not d.Archivable then
+			hidden += 1
+		end
+	end
+	for _, p in parts do
+		if not p.Anchored and not Core.insidePart(p, train) then
+			loose += 1
+		end
+	end
+	if scripts > 0 and not P.rerun then
+		table.insert(P.notes, ("%d script(s) in the train stay where they are; check any that find parts by path"):format(scripts))
+	end
+	if loose > 0 then
+		table.insert(P.notes, ("%d part(s) are not anchored; TrainSplit welds only anchored parts to a wreck"):format(loose))
+	end
+	if hidden > 0 then
+		table.insert(P.notes, ("%d instance(s) have Archivable = false, so the backup copy will not include them"):format(hidden))
+	end
+	local function primaryNote(m)
+		if m:IsA("Model") and m.PrimaryPart and cutSet[m.PrimaryPart] then
+			table.insert(P.notes, ("%s has a crosser as PrimaryPart; it will point at the front piece"):format(m:GetFullName()))
+		end
+	end
+	primaryNote(train)
+	for _, d in train:GetDescendants() do
+		primaryNote(d)
+	end
+	return P
+end
+
+local function printPlan(P)
+	local found = P.found
+	if P.rerun then
+		say("Mode: re-run from Train/RR_Breaks (break spec %s): only parts outside the halves.", SPEC_VERSION)
+	else
+		say("Mode: %s. Front = the %s end of world %s (FRONT_AT = %q).", found.mode == "roof" and "roof unions -> jagged tear" or "plane fallback",
+			FRONT_AT, found.axisName, FRONT_AT)
+	end
+	for k, car in found.carriages do
+		local F = car.frame
+		say("Break %d frame: origin %s  right %s  up %s  rear %s", k, Core.v(F.Position), Core.v(F.XVector), Core.v(F.YVector), Core.v(F.ZVector))
+	end
+	say(P.rerun and "Parts to add per half (whole parts + cut pieces):" or "Parts per half (whole parts + cut pieces, plus 1 Root each):")
+	for k = 1, 2 do
+		say("  Carriage%d.FrontHalf %4d    Carriage%d.RearHalf %4d", k, P.counts[k].Front, k, P.counts[k].Rear)
+	end
+	say("Crossers (%d) and how each is cut:", #P.crossers)
+	for _, cr in P.crossers do
+		local how
+		if cr.method == "slice" then
+			how = ("slice into %d exact boxes (%d front, %d rear)"):format(#cr.pieces, cr.front, cr.rear)
+		elseif cr.method == "csg" then
+			how = ("SubtractAsync over %d cell(s): front = minus %d rear boxes, rear = minus %d front boxes (cells + edge bridges)"):format(#cr.touched, cr.boxes.Rear, cr.boxes.Front)
+		else
+			how = "NOT CUT: " .. cr.why
+		end
+		say("  Break %d  %s  ->  %s", cr.k, describe(cr.part), how)
+		for _, n in cr.notes do
+			say("      note: %s", n)
+		end
+		for _, child in cr.children do
+			say("      child %s %q: %s", child.ClassName, child.Name, RULE_TEXT[childRule(child)])
+		end
+	end
+	for _, g in P.gangway do
+		say("Gangway between the carriages -> Carriage%d.%sHalf: %s", g.c, g.half, describe(g.part))
+	end
+	for _, j in P.joints do
+		say("Points at a part that will be cut: %s (%s)", describe(j.inst), table.concat(j.fields, ", "))
+	end
+	if #P.notes > 0 then
+		say("Worth a look:")
+		for _, n in P.notes do
+			say("  - %s", n)
+		end
+	else
+		say("Nothing unexpected.")
+	end
+end
+
+---------------------------------------------------------------- apply
+
+local function newFolder(name, parent)
+	local f = Instance.new("Folder")
+	f.Name = name
+	f.Parent = parent
+	return f
+end
+
+-- Mirror the builder's containers (same class and name) inside a half, created on first use and reused on a re-run.
+local function mirrorOf(ctx, half, container)
+	if IN_PLACE then
+		return container or ctx.train -- leave parts where the builder put them (scripts find them by path)
+	end
+	if container == ctx.train or container == nil then
+		return half
+	end
+	ctx.mirrors[half] = ctx.mirrors[half] or {}
+	local m = ctx.mirrors[half][container]
+	if m then
+		return m
+	end
+	local parent = mirrorOf(ctx, half, container.Parent)
+	local existing = parent:FindFirstChild(container.Name)
+	if existing and existing.ClassName == container.ClassName and not existing:IsA("BasePart") then
+		m = existing
+	else
+		local ok, inst = pcall(Instance.new, container.ClassName)
+		m = ok and inst or Instance.new("Folder")
+		m.Name = container.Name
+		for name, value in container:GetAttributes() do
+			if string.sub(name, 1, 3) ~= "RBX" then pcall(m.SetAttribute, m, name, value) end
+		end
+		for _, tag in container:GetTags() do
+			m:AddTag(tag)
+		end
+		m.Parent = parent
+	end
+	ctx.mirrors[half][container] = m
+	ctx.containers[container] = true
+	return m
+end
+
+-- Models from the part up to the train that use it as PrimaryPart (read before it moves).
+local function primaryOwners(ctx, part)
+	local owners = {}
+	local p = part.Parent
+	while p do
+		if p:IsA("Model") and p.PrimaryPart == part then
+			table.insert(owners, p)
+		end
+		if p == ctx.train then
+			break
+		end
+		p = p.Parent
+	end
+	return owners
+end
+
+-- The PrimaryPart role moves with the part (or to a crosser's front piece): the train points at it, and so
+-- does each builder's model's mirror in the half it went to.
+local function passPrimary(ctx, owners, half, newPart)
+	for _, m in owners do
+		if m == ctx.train then
+			ctx.train.PrimaryPart = newPart
+		else
+			local mirror = mirrorOf(ctx, half, m)
+			if mirror:IsA("Model") then
+				mirror.PrimaryPart = newPart
+			end
+		end
+	end
+end
+
+local function cutterBoxes(car, b, side, template, folder)
+	local list = {}
+	for _, s in cutterSpecs(car, b, side) do
+		local p = Instance.new("Part")
+		p.Name = ("Cutter%s_%s"):format(side, s[7])
+		p.Anchored = true
+		p.CanCollide = false
+		p.CanQuery = false
+		p.CanTouch = false
+		p.CastShadow = false
+		-- the cut faces take the cutter's look, so match the part being cut
+		p.Color = template.Color
+		p.Material = template.Material
+		pcall(function()
+			p.MaterialVariant = template.MaterialVariant
+		end)
+		p.Size = Vector3.new(s[2] - s[1], s[4] - s[3], s[6] - s[5])
+		p.CFrame = car.frame * CFrame.new((s[1] + s[2]) / 2, (s[3] + s[4]) / 2, (s[5] + s[6]) / 2)
+		p.Parent = folder
+		table.insert(list, p)
+	end
+	return list
+end
+
+local function subtract(part, cutters)
+	local cf, rf
+	pcall(function()
+		cf = part.CollisionFidelity
+	end)
+	pcall(function()
+		rf = part.RenderFidelity
+	end)
+	local ok, result = pcall(function()
+		if cf and rf then
+			return part:SubtractAsync(cutters, cf, rf)
+		end
+		return part:SubtractAsync(cutters)
+	end)
+	if ok and typeof(result) == "Instance" and result:IsA("BasePart") then
+		return result
+	end
+	return nil, ok and "SubtractAsync returned nothing" or tostring(result)
+end
+
+-- Size of a box (frame extents) in the axes of a part lined up with the frame.
+local function localSize(rot, ext)
+	local _, _, _, r00, r01, r02, r10, r11, r12, r20, r21, r22 = rot:GetComponents()
+	return Vector3.new(
+		math.abs(r00) * ext.X + math.abs(r10) * ext.Y + math.abs(r20) * ext.Z,
+		math.abs(r01) * ext.X + math.abs(r11) * ext.Y + math.abs(r21) * ext.Z,
+		math.abs(r02) * ext.X + math.abs(r12) * ext.Y + math.abs(r22) * ext.Z
+	)
+end
+
+local function sideOf(car, pos)
+	local p = car.frame:PointToObjectSpace(pos)
+	return p.Z < (Core.dAt(car.cells, p.X, p.Y) or 0) and "Front" or "Rear", p
+end
+
+local function pieceFor(made, side, p)
+	local first
+	for _, m in made do
+		if m.side == side then
+			if not m.lo then
+				return m.part
+			end
+			if p.X >= m.lo.X - 1e-3 and p.X <= m.hi.X + 1e-3 and p.Y >= m.lo.Y - 1e-3 and p.Y <= m.hi.Y + 1e-3 then
+				return m.part
+			end
+			first = first or m.part
+		end
+	end
+	return first or made[1].part
+end
+
+local function rehome(ctx, cr, car, made)
+	local part = cr.part
+	local centreSide, centreP = sideOf(car, part.CFrame.Position)
+	for _, child in part:GetChildren() do
+		local rule = childRule(child)
+		if rule == "position" then
+			local world = part.CFrame * child.CFrame
+			local side, p = sideOf(car, world.Position)
+			local target = pieceFor(made, side, p)
+			child.CFrame = target.CFrame:ToObjectSpace(world)
+			child.Parent = target
+		elseif rule == "copy" then
+			for _, m in made do
+				local copy = child:Clone() -- nil when Archivable is off: then it stays on the original
+				if copy then
+					copy.Parent = m.part
+				end
+			end
+		else
+			child.Parent = pieceFor(made, centreSide, centreP)
+		end
+		table.insert(ctx.R.rehomed, { child = child, from = part, rule = rule })
+	end
+end
+
+-- Cut one crosser into its halves. On a CSG failure nothing moves: the original stays where it is (listed in
+-- the report) and its cutter boxes are kept in the backup for a cut by hand.
+local function cutOne(ctx, cr)
+	local part, car = cr.part, ctx.found.carriages[cr.k]
+	local from = part.Parent
+	local owners = primaryOwners(ctx, part)
+	local made = {}
+	if cr.method == "slice" then
+		local rot = car.frame:ToObjectSpace(part.CFrame).Rotation
+		local archivable = part.Archivable
+		part.Archivable = true
+		for _, s in cr.pieces do
+			local piece = part:Clone() -- a clone keeps every property, attribute and tag
+			piece:ClearAllChildren()
+			piece.Size = localSize(rot, s.hi - s.lo)
+			piece.CFrame = car.frame * CFrame.new((s.lo + s.hi) / 2) * rot
+			table.insert(made, { part = piece, side = s.side, lo = s.lo, hi = s.hi })
+		end
+		part.Archivable = archivable
+	else
+		local rearBoxes = cutterBoxes(car, cr.box, "Rear", part, ctx.tmp)
+		local frontBoxes = cutterBoxes(car, cr.box, "Front", part, ctx.tmp)
+		local front, errF = subtract(part, rearBoxes)
+		local rear, errR = subtract(part, frontBoxes)
+		if not (front and rear) then
+			if front then
+				front:Destroy()
+			end
+			if rear then
+				rear:Destroy()
+			end
+			local keep = newFolder(("%02d_%s"):format(#ctx.R.failures + 1, part.Name), ctx.cutters)
+			local rf, ff = newFolder("RearCutter_makes_front_piece", keep), newFolder("FrontCutter_makes_rear_piece", keep)
+			for _, b in rearBoxes do
+				b.Parent = rf
+			end
+			for _, b in frontBoxes do
+				b.Parent = ff
+			end
+			return nil, errF or errR, keep
+		end
+		copyLook(part, front)
+		copyLook(part, rear)
+		made = { { part = front, side = "Front" }, { part = rear, side = "Rear" } }
+	end
+	for _, m in made do
+		m.part.Parent = mirrorOf(ctx, ctx.halves[cr.k][m.side], from)
+		m.part:SetAttribute("RR_Half", cr.k .. m.side)
+	end
+	passPrimary(ctx, owners, ctx.halves[cr.k].Front, pieceFor(made, "Front", Vector3.zero))
+	rehome(ctx, cr, car, made)
+	part.Parent = ctx.originals -- never destroyed
+	return made
+end
+
+local function makeRoot(model, frame)
+	local lo, hi
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") then
+			local b = Core.boxIn(frame, d)
+			lo = lo and Vector3.new(math.min(lo.X, b.x0), math.min(lo.Y, b.y0), math.min(lo.Z, b.z0)) or Vector3.new(b.x0, b.y0, b.z0)
+			hi = hi and Vector3.new(math.max(hi.X, b.x1), math.max(hi.Y, b.y1), math.max(hi.Z, b.z1)) or Vector3.new(b.x1, b.y1, b.z1)
+		end
+	end
+	local root = Instance.new("Part")
+	root.Name = "Root"
+	root.Size = Vector3.new(1, 1, 1)
+	root.Transparency = 1
+	root.Anchored = true
+	root.CanCollide = false
+	root.CanQuery = false
+	root.CanTouch = false
+	root.CastShadow = false
+	root.Massless = true
+	root.CFrame = frame * CFrame.new(lo and (lo + hi) / 2 or Vector3.zero)
+	root.Parent = model
+	model.PrimaryPart = root
+	return root
+end
+
+local function depth(inst)
+	local n = 0
+	while inst.Parent do
+		n += 1
+		inst = inst.Parent
+	end
+	return n
+end
+
+local function countParts(model)
+	local n = 0
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") and d.Name ~= "Root" then
+			n += 1
+		end
+	end
+	return n
+end
+
+local function doApply(P, R)
+	local train, found = P.train, P.found
+	local ctx = { train = train, found = found, mirrors = {}, containers = {}, halves = {}, R = R }
+
+	-- 1. backup: a full copy first, then every cut original joins it
+	local backups = ServerStorage:FindFirstChild("RR_Backups") or newFolder("RR_Backups", ServerStorage)
+	local t = os.date("!*t")
+	local name = ("%s_%04d%02d%02d-%02d%02d%02dZ"):format(train.Name, t.year, t.month, t.day, t.hour, t.min, t.sec)
+	local unique, n = name, 1
+	while backups:FindFirstChild(unique) do
+		n += 1
+		unique = name .. "_" .. n
+	end
+	local archivable = train.Archivable
+	train.Archivable = true
+	local copy = train:Clone()
+	train.Archivable = archivable
+	if not copy then
+		error("could not copy the train for the backup")
+	end
+	local bk = Instance.new("Folder")
+	bk.Name = unique
+	bk:SetAttribute("Train", train:GetFullName())
+	bk:SetAttribute("Version", SPEC_VERSION)
+	bk:SetAttribute("Rerun", P.rerun == true)
+	copy.Parent = bk
+	ctx.originals = newFolder("CutOriginals", bk)
+	ctx.cutters = newFolder("Cutters", bk)
+	bk.Parent = backups
+	R.backup = bk
+
+	-- 2. the halves: new on the first run, the recorded ones on a re-run
+	for k = 1, 2 do
+		if P.rerun then
+			ctx.halves[k] = found.carriages[k].halves
+		else
+			local carriage = Instance.new("Model")
+			carriage.Name = "RR_Carriage" .. k -- not "Carriage<k>": the builder's own models use those names
+			ctx.halves[k] = {}
+			for _, side in { "Front", "Rear" } do
+				local half = Instance.new("Model")
+				half.Name = side .. "Half"
+				half:SetAttribute("RR_HalfId", k .. side)
+				half.Parent = carriage
+				ctx.halves[k][side] = half
+			end
+			carriage.Parent = train
+		end
+	end
+	R.halves = ctx.halves
+
+	-- 3. whole parts into their halves
+	for _, mv in P.moves do
+		local owners = primaryOwners(ctx, mv.part)
+		local half = ctx.halves[mv.c][mv.half]
+		mv.part.Parent = mirrorOf(ctx, half, mv.part.Parent)
+		mv.part:SetAttribute("RR_Half", mv.c .. mv.half)
+		passPrimary(ctx, owners, half, mv.part)
+	end
+
+	-- 4. the crossers (cutters live in a temporary folder and are destroyed after)
+	ctx.tmp = newFolder("RR_TmpCutters", workspace)
+	for i, cr in P.crossers do
+		if cr.method ~= "skip" then
+			say("  cutting %d/%d: %s (%s)", i, #P.crossers, describe(cr.part), cr.method)
+			local made, err, kept = cutOne(ctx, cr)
+			if made then
+				table.insert(R.cut, { cr = cr, pieces = made })
+			else
+				table.insert(R.failures, { cr = cr, err = err, cutters = kept })
+			end
+		end
+	end
+	ctx.tmp:Destroy()
+
+	-- 5. roots, break records, emptied containers
+	for k, car in found.carriages do
+		for _, side in { "Front", "Rear" } do
+			local half = ctx.halves[k][side]
+			if not (half.PrimaryPart and half.PrimaryPart.Name == "Root") then
+				makeRoot(half, car.frame)
+			end
+		end
+	end
+	if not P.rerun then
+		local breaks = newFolder("RR_Breaks", nil)
+		for k, car in found.carriages do
+			local rec = Instance.new("Configuration")
+			rec.Name = "Break" .. k
+			rec:SetAttribute("Carriage", k)
+			rec:SetAttribute("BreakCFrame", car.frame)
+			rec:SetAttribute("Intact", true)
+			rec:SetAttribute("Version", SPEC_VERSION)
+			rec:SetAttribute("Mode", found.mode == "roof" and "jagged" or "plane")
+			-- what a re-run needs to rebuild the plan without the (now cut) roofs
+			rec:SetAttribute("CarriageCentre", car.centre)
+			rec:SetAttribute("HalfLength", car.half)
+			rec:SetAttribute("CutterReach", car.zext)
+			rec:SetAttribute("TearCells", cellsText(car.cells))
+			if found.mode == "plane" then
+				rec:SetAttribute("PlaneCell", Vector3.new(car.cells[1][2], car.cells[1][4], car.zext))
+			end
+			for field, side in { KeptHalf = "Front", LostHalf = "Rear" } do
+				local v = Instance.new("ObjectValue")
+				v.Name = field
+				v.Value = ctx.halves[k][side]
+				v.Parent = rec
+			end
+			rec.Parent = breaks
+		end
+		breaks.Parent = train
+	end
+	local emptied = {}
+	for container in ctx.containers do
+		table.insert(emptied, container)
+	end
+	table.sort(emptied, function(a, b)
+		return depth(a) > depth(b)
+	end)
+	local emptiedFolder
+	for _, container in emptied do
+		if container.Parent and #container:GetDescendants() == 0 then
+			emptiedFolder = emptiedFolder or newFolder("EmptiedContainers", bk)
+			container.Parent = emptiedFolder
+			R.emptied += 1
+		end
+	end
+	local cutOriginals = {}
+	for _, c in R.cut do
+		cutOriginals[c.cr.part] = true
+	end
+	R.joints = referencesTo(cutOriginals)
+	for k = 1, 2 do
+		R.counts[k] = { Front = countParts(ctx.halves[k].Front), Rear = countParts(ctx.halves[k].Rear) }
+	end
+end
+
+local function printResult(P, R)
+	say("Result:")
+	for k = 1, 2 do
+		say("  Carriage%d.FrontHalf %4d parts    Carriage%d.RearHalf %4d parts   (+ Root each)", k, R.counts[k].Front, k, R.counts[k].Rear)
+	end
+	local sliced, pieces, toCut = 0, 0, 0
+	for _, c in R.cut do
+		pieces += #c.pieces
+		if c.cr.method == "slice" then
+			sliced += 1
+		end
+	end
+	for _, cr in P.crossers do
+		if cr.method ~= "skip" then
+			toCut += 1
+		end
+	end
+	say("  Crossers cut: %d of %d (%d sliced into boxes, %d by CSG), %d pieces.", #R.cut, toCut, sliced, #R.cut - sliced, pieces)
+	say("  CSG failures: %d%s", #R.failures, #R.failures > 0 and " (left whole where they were, outside the halves: the train is not ready until they are cut)" or "")
+	for _, f in R.failures do
+		say("    %s: %s", describe(f.cr.part), f.err)
+		say("      Fallback: %s.", SEPARATE_TIP)
+		say("      Or cut it by hand with the saved cutter boxes in %s: Negate the boxes and Union them with a copy", f.cutters:GetFullName())
+		say("      of the part (RearCutter makes the front piece, FrontCutter the rear). If CSG struggles with many boxes,")
+		say("      undo and try CUTTER_BRIDGE = 0 (fewer boxes, small sliver risk). A MeshPart may need splitting in Blender.")
+	end
+	for _, r in R.rehomed do
+		say("  Re-homed %s %q from %s: %s", r.child.ClassName, r.child.Name, r.from.Name, RULE_TEXT[r.rule])
+	end
+	for _, j in R.joints do
+		say("  Still points at a cut original (now in the backup): %s (%s); re-point it at a piece or delete it", describe(j.inst), table.concat(j.fields, ", "))
+	end
+	if R.emptied > 0 then
+		say("  %d emptied container(s) moved into the backup (EmptiedContainers).", R.emptied)
+	end
+	say("  Backup: %s (full copy, CutOriginals, Cutters).", R.backup:GetFullName())
+	say("  Undo: Ctrl+Z (one step).")
+	if #R.failures > 0 then
+		say("Next: deal with the %d part(s) above, run this setup again, then RR_BreakChecker.", #R.failures)
+	else
+		say("Next: run RR_BreakChecker again (it checks the halves), then test with TrainSplitDemo (RR_TestBreak = 1 or 2).")
+	end
+end
+
+local function run()
+	local R = { ok = false, dryRun = DRY_RUN, cut = {}, failures = {}, rehomed = {}, joints = {}, counts = {}, emptied = 0, lines = lines }
+	local selection = game:GetService("Selection"):Get()
+	local train = selection[1]
+	if #selection ~= 1 or not train:IsA("Model") then
+		R.refused = "select exactly one train Model in the Explorer, then run again"
+		say("RR_TrainSplit_Setup: %s.", R.refused)
+		return R
+	end
+	say("== RR_TrainSplit_Setup %s %s: %s ==", SPEC_VERSION, DRY_RUN and "DRY RUN (nothing changes)" or "APPLY", train:GetFullName())
+	local P = plan(train)
+	R.plan = P
+	if P.refuse then
+		R.refused = P.refuse
+		say("Refused: %s", P.refuse)
+		for _, n in P.notes do
+			say("  - %s", n)
+		end
+		return R
+	end
+	R.rerun = P.rerun == true
+	printPlan(P)
+	if DRY_RUN then
+		R.ok = true
+		say("Dry run only. Set DRY_RUN = false and run again to do it.")
+		return R
+	end
+
+	local recording
+	local okRec, id = pcall(function()
+		return ChangeHistoryService:TryBeginRecording("RR_TrainSplit_Setup", "Split the train into carriage halves")
+	end)
+	if okRec and id then
+		recording = id
+	else
+		pcall(function()
+			ChangeHistoryService:SetWaypoint("Before RR_TrainSplit_Setup")
+		end)
+	end
+	local ok, err = pcall(doApply, P, R)
+	if recording then
+		pcall(function()
+			ChangeHistoryService:FinishRecording(recording, ok and Enum.FinishRecordingOperation.Commit or Enum.FinishRecordingOperation.Cancel)
+		end)
+	else
+		pcall(function()
+			ChangeHistoryService:SetWaypoint("RR_TrainSplit_Setup")
+		end)
+	end
+	if not ok then
+		R.error = tostring(err)
+		say("FAILED: %s", R.error)
+		say(recording and "Every change was rolled back." or "Press Ctrl+Z to undo the partial change.")
+		return R
+	end
+	R.ok = true
+	printResult(P, R)
+	return R
+end
+
+return run()
+]]></string>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Folder" referent="4">
+      <Properties>
+        <string name="Name">DragContentsInto_ServerScriptService.Scripts.TrainSystems</string>
+      </Properties>
+      <Item class="ModuleScript" referent="5">
+        <Properties>
+          <string name="Name">TrainSplit</string>
+          <string name="Source"><![CDATA[--[[
+TrainSplit  (ModuleScript in ServerScriptService)
+
+Tears a carriage in half at runtime. Needs RR_TrainSplit_Setup to have run on the train:
+Train/Carriage1..2/{FrontHalf, RearHalf} and Train/RR_Breaks/Break1..2.
+
+	local TrainSplit = require(game:GetService("ServerScriptService").Scripts.TrainSystems.TrainSplit)
+	local result = TrainSplit.SplitAt(train, 1)   -- your damage system decides when (windows and walls not fixed)
+	TrainSplit.Snapped.Event:Connect(function(train, k, result) end)
+	TrainSplit.Despawned.Event:Connect(function(train, k, wreck) end)  -- fires just before the wreck is destroyed
+
+Riders: result.riders are CANDIDATES only, a snapshot of where each client said its character was at the
+snap. Anything that rewards or punishes a rider must use the server re-check instead:
+	local riders = TrainSplit.ConfirmRiders(result)  -- yields until Config.RiderConfirmDelay after the snap
+
+Server authority: only the server moves wrecks. Every lost part is welded to an anchored root the server
+drives, so no client ever owns wreck physics; the wreck's size, place and speed come from parts that were
+anchored at the snap (never from unanchored, possibly client-owned ones), its speed is capped, and it
+despawns by the computed slide, not by where a part is. Clients hear about a snap once, through the
+RR_TrainSplitFX RemoteEvent (server -> clients); a client firing it back is ignored and flagged once.
+Require this module once at server start so the RemoteEvent exists before clients look for it.
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("TrainSplit"):WaitForChild("TrainSplitConfig"))
+local Shared = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("TrainSplit"):WaitForChild("TrainSplitShared"))
+
+local TrainSplit = {}
+TrainSplit.Version = "2.3.0"
+
+local BRAKE_FALLBACK = 12 -- break_spec motion.brake, used if Config.Brake is not a positive number
+local CONFIRM_MARGIN = 6 -- studs around a wreck that still count as "on it" when riders are re-checked
+
+local function findOrMake(parent, className, name)
+	local inst = parent:FindFirstChild(name)
+	if inst and inst:IsA(className) then
+		return inst
+	end
+	inst = Instance.new(className)
+	inst.Name = name
+	inst.Parent = parent
+	return inst
+end
+
+local remote = findOrMake(ReplicatedStorage, "RemoteEvent", Config.RemoteName)
+TrainSplit.Snapped = findOrMake(script, "BindableEvent", "Snapped")
+TrainSplit.Despawned = findOrMake(script, "BindableEvent", "Despawned")
+
+-- Honest clients never fire this remote. Draining it keeps an exploiter's FireServer spam out of the engine's
+-- queue; the sender is flagged once (warning + Player attribute) for your anti-cheat, and nothing else happens.
+local flagged = setmetatable({}, { __mode = "k" })
+remote.OnServerEvent:Connect(function(player)
+	if typeof(player) ~= "Instance" or flagged[player] then
+		return
+	end
+	flagged[player] = true
+	pcall(function()
+		player:SetAttribute(Config.MisuseAttribute, true)
+	end)
+	warn(("TrainSplit: %s fired %s, which is server -> client only; ignored (flagged once)"):format(player.Name, remote.Name))
+end)
+
+local function finite(x)
+	return type(x) == "number" and x == x and x ~= math.huge and x ~= -math.huge
+end
+
+-- The train's speed for the maths: Speed attribute, else opts.speed, else the default. Never NaN, inf or
+-- negative (a negative speed would throw the wreck forward into the kept train).
+local function trainSpeed(train, opts)
+	local v = train:GetAttribute(Config.SpeedAttribute)
+	if not finite(v) then
+		v = opts.speed
+	end
+	if not finite(v) then
+		v = Config.SpeedDefault
+	end
+	return math.clamp(v, 0, Config.MaxSpeed)
+end
+
+local function brakeRate()
+	if finite(Config.Brake) and Config.Brake > 0 then
+		return Config.Brake
+	end
+	return BRAKE_FALLBACK
+end
+
+local function vmin(a, b)
+	return Vector3.new(math.min(a.X, b.X), math.min(a.Y, b.Y), math.min(a.Z, b.Z))
+end
+local function vmax(a, b)
+	return Vector3.new(math.max(a.X, b.X), math.max(a.Y, b.Y), math.max(a.Z, b.Z))
+end
+
+-- AABB of a part in frame B (B-space min, max), from its CFrame and Size only.
+local function boxIn(B, part)
+	local rel = B:ToObjectSpace(part.CFrame)
+	local _, _, _, r00, r01, r02, r10, r11, r12, r20, r21, r22 = rel:GetComponents()
+	local h = part.Size / 2
+	local e = Vector3.new(
+		math.abs(r00) * h.X + math.abs(r01) * h.Y + math.abs(r02) * h.Z,
+		math.abs(r10) * h.X + math.abs(r11) * h.Y + math.abs(r12) * h.Z,
+		math.abs(r20) * h.X + math.abs(r21) * h.Y + math.abs(r22) * h.Z
+	)
+	return rel.Position - e, rel.Position + e
+end
+
+-- Break records written by the setup, indexed by break number.
+function TrainSplit.GetBreaks(train)
+	local list = {}
+	local folder = train and train:FindFirstChild("RR_Breaks")
+	if not folder then
+		return list
+	end
+	for _, rec in folder:GetChildren() do
+		local k = tonumber(string.match(rec.Name, "^Break(%d+)$"))
+		local cf = rec:GetAttribute("BreakCFrame")
+		if k and typeof(cf) == "CFrame" then
+			local kept, lost = rec:FindFirstChild("KeptHalf"), rec:FindFirstChild("LostHalf")
+			list[k] = {
+				k = k,
+				record = rec,
+				cframe = cf,
+				carriage = rec:GetAttribute("Carriage") or k,
+				intact = rec:GetAttribute("Intact") ~= false,
+				detached = rec:GetAttribute("Detached") == true,
+				kept = kept and kept.Value,
+				lost = lost and lost.Value,
+			}
+		end
+	end
+	return list
+end
+
+-- True while break k can still snap: not snapped yet and its carriage still on the train.
+function TrainSplit.IsIntact(train, k)
+	local b = TrainSplit.GetBreaks(train)[k]
+	return b ~= nil and b.intact and not b.detached
+end
+
+local function wreckFolder()
+	return findOrMake(workspace, "Folder", Config.WreckFolderName)
+end
+
+local function otherEnd(joint, part)
+	local a, b
+	if joint:IsA("JointInstance") or joint:IsA("WeldConstraint") then
+		a, b = joint.Part0, joint.Part1
+	elseif joint:IsA("Constraint") then
+		a = joint.Attachment0 and joint.Attachment0.Parent
+		b = joint.Attachment1 and joint.Attachment1.Parent
+	else
+		return nil
+	end
+	if a == part then
+		return b
+	end
+	return a
+end
+
+-- A joint from the wreck to the kept train would hold it back: switch those off (never destroyed).
+-- Joints to characters (seat welds) are left alone so seated riders go with the wreck.
+local function releaseFromTrain(parts, train)
+	local released = 0
+	local lostSet = {}
+	for _, part in parts do
+		lostSet[part] = true
+	end
+	for _, part in parts do
+		local ok, joints = pcall(part.GetJoints, part)
+		if ok then
+			for _, joint in joints do
+				local other = otherEnd(joint, part)
+				if other and not lostSet[other] and other:IsDescendantOf(train) and pcall(function()
+					joint.Enabled = false
+				end) then
+					released += 1
+				end
+			end
+		end
+	end
+	return released
+end
+
+-- One lost body: its halves move into a Model in workspace.RR_Wrecks around an anchored root.
+local function makeBody(train, k, index, B, halves)
+	local parts, lo, hi = {}, nil, nil
+	local function grow(part)
+		local a, b = boxIn(B, part)
+		lo = lo and vmin(lo, a) or a
+		hi = hi and vmax(hi, b) or b
+	end
+	-- Parts stay where the builder put them (the setup only labels them RR_Half = "<carriage><Front|Rear>"),
+	-- so a half's parts are its own Root plus every labelled part in the train.
+	local members = {}
+	for _, half in halves do
+		for _, d in half:GetDescendants() do
+			table.insert(members, d)
+		end
+		local id = half:GetAttribute("RR_HalfId")
+		if id then
+			for _, d in train:GetDescendants() do
+				if d:GetAttribute("RR_Half") == id then
+					table.insert(members, d)
+				end
+			end
+		end
+	end
+	do
+		local d
+		for _, dd in members do
+			d = dd
+			if d:IsA("BasePart") then
+				table.insert(parts, d)
+				-- only parts anchored at the snap count: an unanchored one may be client-owned and anywhere
+				if d.Anchored then
+					grow(d)
+				end
+			end
+		end
+	end
+	if #parts == 0 then
+		return nil
+	end
+	if not lo then
+		for _, half in halves do
+			local r = half.PrimaryPart
+			if r then
+				grow(r)
+			end
+		end
+	end
+	if not lo then
+		lo, hi = Vector3.new(-1, -1, -1), Vector3.new(1, 1, 1)
+	end
+	local centre = (lo + hi) / 2
+	local model = Instance.new("Model")
+	model.Name = ("RR_Wreck_%s_B%d_%d"):format(train.Name, k, index)
+	pcall(function()
+		model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic -- stream the wreck as one piece
+	end)
+	local root = Instance.new("Part")
+	root.Name = "BodyRoot"
+	root.Size = Vector3.new(1, 1, 1)
+	root.Transparency = 1
+	root.Anchored = true
+	root.CanCollide = false
+	root.CanQuery = false
+	root.CanTouch = false
+	root.CastShadow = false
+	root.CFrame = B * CFrame.new(centre)
+	root.Parent = model
+	model.PrimaryPart = root
+	model.Parent = wreckFolder()
+	for _, half in halves do
+		half.Parent = model
+	end
+	local released = releaseFromTrain(parts, train)
+	-- Weld every lost part (anchored or not), then unanchor: the anchored root carries all of it, one CFrame per
+	-- body per frame, and no part is left as a free assembly a client could own.
+	for _, part in parts do
+		local weld = Instance.new("WeldConstraint")
+		weld.Name = "RR_WreckWeld"
+		weld.Part0 = root
+		weld.Part1 = part
+		weld.Parent = root
+	end
+	for _, part in parts do
+		part.Anchored = false
+	end
+	for _, part in parts do
+		-- belt and braces: throws for parts welded to the anchored root, which are server-side anyway
+		pcall(part.SetNetworkOwner, part, nil)
+	end
+	-- the farthest corner from either pivot line sizes the speed cap
+	local far = 0
+	for _, x in { lo.X, hi.X } do
+		for _, y in { lo.Y, hi.Y } do
+			for _, s in { -1, 1 } do
+				far = math.max(far, Vector2.new(x - s * Config.Pivot.X_abs, y - Config.Pivot.Y).Magnitude)
+			end
+		end
+	end
+	return { model = model, root = root, base = root.CFrame, lo = lo, hi = hi, centre = centre, far = far, released = released, parts = parts }
+end
+
+-- Players standing (or seated) on a lost body at the snap: candidates, judged from client-owned positions.
+-- The broken body also has to be behind the tear itself, because its box reaches forward where the roof bites.
+local function findCandidates(B, bodies)
+	local riders, seen = {}, {}
+	for _, player in Players:GetPlayers() do
+		local character = player.Character
+		local hrp = character and character:FindFirstChild("HumanoidRootPart")
+		if hrp and hrp:IsA("BasePart") and not seen[player] then
+			local p = B:PointToObjectSpace(hrp.CFrame.Position)
+			for i, body in bodies do
+				local lo, hi = body.lo, body.hi
+				local inside = p.X >= lo.X - 1 and p.X <= hi.X + 1 and p.Y >= lo.Y - 1 and p.Y <= hi.Y + 8
+					and p.Z >= lo.Z - 1 and p.Z <= hi.Z + 1
+				if inside and i == 1 then
+					local feetY = math.clamp(p.Y - 3, lo.Y, hi.Y)
+					inside = p.Z > (Shared.dAt(Config.Cells, p.X, feetY) or 0)
+				end
+				if inside then
+					seen[player] = true
+					table.insert(riders, player)
+					break
+				end
+			end
+		end
+	end
+	return riders
+end
+
+-- Drives every body of one snap from the Shared maths until it has slid far enough behind to despawn.
+local function drive(run)
+	local stopT = Shared.brakeTime(run.V, run.brake)
+	local connection
+	connection = RunService.Heartbeat:Connect(function()
+		local t = workspace:GetServerTimeNow() - run.t0
+		local alive = 0
+		for _, body in run.bodies do
+			if not body.gone then
+				if not body.handedOff then
+					body.root.CFrame = Shared.bodyCFrame(body.base, run.B, run.side, t, body.params)
+					-- velocity on the anchored root carries riders like a conveyor; capped so it can never fling them
+					local v = Shared.bodyVelocity(body.base, run.B, run.side, t, body.params)
+					body.root.AssemblyLinearVelocity = Shared.clampVelocity(v, body.cap)
+					if run.terrain and t >= stopT then
+						-- now static relative to the terrain: the owner's terrain mover takes over
+						body.handedOff = true
+						body.root.AssemblyLinearVelocity = Vector3.zero
+						body.model.Parent = run.terrain
+					end
+				end
+				-- despawn by the computed slide, never by where a part happens to be
+				local slid = Shared.drift(t, run.V, run.brake, Config.Recoil)
+				if slid >= Config.Despawn.distance or t >= Config.Despawn.time or not body.model.Parent then
+					body.gone = true
+					TrainSplit.Despawned:Fire(run.train, run.k, body.model)
+					local model = body.model
+					task.defer(function()
+						for _, p in body.parts or {} do
+							p:Destroy()
+						end
+						model:Destroy() -- deferred so Despawned handlers still see the wreck
+					end)
+				else
+					alive += 1
+				end
+			end
+		end
+		if alive == 0 then
+			connection:Disconnect()
+		end
+	end)
+	return connection
+end
+
+local runs = setmetatable({}, { __mode = "k" }) -- result -> its snap, for ConfirmRiders
+
+--[[
+SplitAt(train, k, opts) -> { bodies = {Model}, riders = {Player} }
+Snaps break k (1 = Carriage1, 2 = Carriage2). Server only; calling it again for the same break,
+or for a break whose carriage already left, does nothing and returns empty lists.
+Lost set (break_spec): break 1 loses Carriage1.RearHalf plus whatever of Carriage2 is still attached
+(the gangway belongs to Carriage2.FrontHalf); break 2 loses Carriage2.RearHalf. 2 then 1 loses only
+C1.Rear + C2.Front.
+riders are candidates (see the header): confirm them with TrainSplit.ConfirmRiders(result).
+opts (all optional):
+  speed    studs/s when the train has no usable Speed attribute (default Config.SpeedDefault)
+  side     "left" | "right" | "random" (default Config.Side)
+  seed     number, makes side and fx rolls repeatable
+  terrain  Instance: once the wreck moves at terrain speed it is parented here, for your terrain mover
+  lead     seconds before the snap (default Config.LeadTime)
+]]
+function TrainSplit.SplitAt(train, k, opts)
+	opts = opts or {}
+	local result = { bodies = {}, riders = {} }
+	if not RunService:IsServer() then
+		warn("TrainSplit.SplitAt is server-only")
+		return result
+	end
+	if typeof(train) ~= "Instance" or type(k) ~= "number" then
+		warn("TrainSplit.SplitAt(train: Model, k: number) got", typeof(train), typeof(k))
+		return result
+	end
+	local breaks = TrainSplit.GetBreaks(train)
+	local brk = breaks[k]
+	if not brk then
+		warn(("TrainSplit: %s has no Break%d; run RR_TrainSplit_Setup on it first"):format(train:GetFullName(), k))
+		return result
+	end
+	if not TrainSplit.IsIntact(train, k) then
+		return result -- already snapped, or its carriage already left: nothing to do
+	end
+
+	local state = {}
+	for j, b in breaks do
+		state[j] = not b.intact
+	end
+	local groups = Shared.lostHalves(state, k, #breaks)
+
+	-- Record the snap before touching anything, so a repeat call is a no-op even if something below fails.
+	brk.record:SetAttribute("Intact", false)
+	brk.record:SetAttribute("SnapTime", workspace:GetServerTimeNow())
+	for j, b in breaks do
+		if j > k and b.intact then
+			b.record:SetAttribute("Detached", true) -- its whole carriage leaves with this snap
+		end
+	end
+	if #groups == 0 then
+		return result
+	end
+
+	local halves = {}
+	for _, b in breaks do
+		halves[Shared.halfId(b.carriage, "Front")] = b.kept
+		halves[Shared.halfId(b.carriage, "Rear")] = b.lost
+	end
+
+	local B = brk.cframe
+	local V = trainSpeed(train, opts)
+	local brake = brakeRate()
+	local seed = finite(opts.seed) and opts.seed or math.random(1, 2147483646)
+	local side = Shared.side(opts.side or Config.Side, seed)
+	-- t0 is the snap moment on the shared server clock; the lead lets the tear sound play first.
+	local t0 = workspace:GetServerTimeNow() + (finite(opts.lead) and math.max(opts.lead, 0) or Config.LeadTime)
+
+	local run = { train = train, k = k, B = B, side = side, t0 = t0, V = V, brake = brake, terrain = opts.terrain, bodies = {} }
+	for i, ids in groups do
+		local models = {}
+		for _, id in ids do
+			local half = halves[id]
+			if half and half.Parent then
+				table.insert(models, half)
+			end
+		end
+		local body = #models > 0 and makeBody(train, k, i, B, models)
+		if body then
+			body.params = {
+				V = V,
+				brake = brake,
+				recoil = Config.Recoil,
+				pivot = Config.Pivot,
+				topple = Config.Topple[math.min(i, #Config.Topple)],
+				rest = Config.ToppleRest,
+			}
+			body.cap = Shared.velocityCap(V, body.params, body.far, side)
+			table.insert(run.bodies, body)
+			table.insert(result.bodies, body.model)
+		end
+	end
+	if #run.bodies == 0 then
+		return result
+	end
+	result.riders = findCandidates(B, run.bodies)
+	runs[result] = run
+
+	local kept = brk.kept
+	local payload = {
+		v = 1,
+		k = k,
+		t0 = t0,
+		breakCF = B,
+		seed = seed,
+		side = side,
+		kept = kept and (kept.PrimaryPart or kept:FindFirstChild("Root")) or nil,
+		params = {
+			V = V,
+			brake = brake,
+			recoil = Config.Recoil,
+			pivot = Config.Pivot,
+			rest = Config.ToppleRest,
+			handoff = opts.terrain ~= nil,
+			despawnTime = Config.Despawn.time,
+		},
+		bodies = {},
+	}
+	for i, body in run.bodies do
+		payload.bodies[i] = { name = body.model.Name, root = body.root, base = body.base, topple = body.params.topple }
+	end
+	drive(run)
+	remote:FireAllClients(payload)
+	TrainSplit.Snapped:Fire(train, k, result)
+	return result
+end
+
+-- Still on one of this snap's wrecks, judged on the server: seated in it (the seat weld is server-side), or
+-- the character within CONFIRM_MARGIN of the wreck's snap-time box, carried to where the wreck is now.
+local function stillOn(player, run)
+	local character = player.Character
+	if not character then
+		return false
+	end
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	local seat = humanoid and humanoid.SeatPart
+	local hrp = character:FindFirstChild("HumanoidRootPart")
+	for _, body in run.bodies do
+		if not body.gone and body.model.Parent then
+			if seat and seat:IsDescendantOf(body.model) then
+				return true
+			end
+			if hrp and hrp:IsA("BasePart") then
+				local p = body.root.CFrame:PointToObjectSpace(hrp.CFrame.Position)
+				local lo, hi, m = body.lo - body.centre, body.hi - body.centre, CONFIRM_MARGIN
+				if p.X >= lo.X - m and p.X <= hi.X + m and p.Y >= lo.Y - m and p.Y <= hi.Y + m and p.Z >= lo.Z - m and p.Z <= hi.Z + m then
+					return true
+				end
+			end
+		end
+	end
+	return false
+end
+
+--[[
+ConfirmRiders(result, delay) -> {Player}
+Re-checks the candidates in result.riders on the server `delay` seconds after the snap (default
+Config.RiderConfirmDelay; yields until then): a candidate counts if it is seated in a wreck or still over
+one. Use this list, not result.riders, for anything that rewards or punishes a rider.
+]]
+function TrainSplit.ConfirmRiders(result, delay)
+	local run = result and runs[result]
+	if not run then
+		return {}
+	end
+	delay = finite(delay) and math.max(delay, 0) or Config.RiderConfirmDelay
+	local wait = run.t0 + delay - workspace:GetServerTimeNow()
+	if wait > 0 then
+		task.wait(wait)
+	end
+	local confirmed = {}
+	for _, player in result.riders do
+		if player.Parent and stillOn(player, run) then
+			table.insert(confirmed, player)
+		end
+	end
+	return confirmed
+end
+
+return TrainSplit
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="Script" referent="6">
+        <Properties>
+          <string name="Name">TrainSplitDemo</string>
+          <string name="Source"><![CDATA[--[[
+TrainSplitDemo  (Script in ServerScriptService) - Studio test only.
+
+Play in Studio, switch to the Server view, select the train Model and add the number attribute
+RR_TestBreak = 1 or 2: that break snaps through TrainSplit.SplitAt. It does nothing in a live
+server, and attributes set on the client never reach the server, so players cannot use it.
+In the game itself your damage system calls TrainSplit.SplitAt (the kit has no automatic trigger).
+]]
+
+local RunService = game:GetService("RunService")
+if not RunService:IsStudio() then
+	return
+end
+
+local TrainSplit = require(script.Parent:WaitForChild("TrainSplit"))
+
+local hooked = {}
+
+local function hook(train)
+	if hooked[train] then
+		return
+	end
+	hooked[train] = true
+	train:GetAttributeChangedSignal("RR_TestBreak"):Connect(function()
+		local k = tonumber(train:GetAttribute("RR_TestBreak"))
+		if not k then
+			return
+		end
+		local intact = TrainSplit.IsIntact(train, k)
+		local result = TrainSplit.SplitAt(train, k)
+		print(("[TrainSplitDemo] %s break %d: %s, %d bodies, %d riders"):format(
+			train:GetFullName(),
+			k,
+			intact and "snapped" or "already gone (no-op)",
+			#result.bodies,
+			#result.riders
+		))
+	end)
+	print(("[TrainSplitDemo] ready: in the Server view set attribute RR_TestBreak = 1 or 2 on %s"):format(train:GetFullName()))
+end
+
+local function consider(inst)
+	if inst.Name == "RR_Breaks" and inst.Parent and inst.Parent:IsA("Model") then
+		hook(inst.Parent)
+	end
+end
+
+for _, d in workspace:GetDescendants() do
+	consider(d)
+end
+workspace.DescendantAdded:Connect(consider)
+]]></string>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Folder" referent="7">
+      <Properties>
+        <string name="Name">DragThisFolderInto_ReplicatedStorage.Modules</string>
+      </Properties>
+      <Item class="Folder" referent="8">
+        <Properties>
+          <string name="Name">TrainSplit</string>
+        </Properties>
+        <Item class="ModuleScript" referent="9">
+          <Properties>
+            <string name="Name">TrainSplitShared</string>
+            <string name="Source"><![CDATA[--[[
+TrainSplitShared  (ModuleScript in ReplicatedStorage)
+
+Pure, deterministic maths for the carriage split. The server (TrainSplit) moves each wreck with it
+and every client (TrainSplitClient) smooths the same wreck with it, so both agree on where a wreck is
+at any moment from nothing but the snap time. No Instances, no side effects, no wait: every number
+arrives as an argument (the defaults live in TrainSplitConfig).
+
+Break frame B: origin on the carriage centre line at floor-top height on the break plane;
++X across (right when facing the front), +Y up, +Z toward the rear of the train.
+]]
+
+local Shared = {}
+Shared.Version = "2.3.0"
+
+local EASE = {
+	Linear = function(u)
+		return u
+	end,
+	QuadIn = function(u) -- starts slow, like something tipping under gravity
+		return u * u
+	end,
+	QuadOut = function(u)
+		return 1 - (1 - u) * (1 - u)
+	end,
+	SineInOut = function(u)
+		return 0.5 - 0.5 * math.cos(math.pi * u)
+	end,
+}
+
+function Shared.ease(name, u)
+	return (EASE[name] or EASE.Linear)(math.clamp(u, 0, 1))
+end
+
+-- The blast shoves the wreck back by recoil.dist over recoil.time (fast, easing out); the shove is kept.
+function Shared.recoil(t, recoil)
+	if not recoil or t <= 0 or (recoil.dist or 0) == 0 then
+		return 0
+	end
+	if (recoil.time or 0) <= 0 then
+		return recoil.dist
+	end
+	return recoil.dist * Shared.ease("QuadOut", t / recoil.time)
+end
+
+-- Seconds until the lost part has shed all of the train's speed and moves with the terrain.
+function Shared.brakeTime(V, a)
+	if a <= 0 then
+		return math.huge
+	end
+	return V / a
+end
+
+-- How far (studs, toward the rear) the lost part has slid relative to the static train, t s after the snap.
+-- It keeps the train's world speed V and brakes at a, so relative to the train it accelerates at a until
+-- t = V/a; after that it is static relative to the terrain and falls behind at V.
+function Shared.drift(t, V, a, recoil)
+	if t <= 0 then
+		return 0
+	end
+	local r = Shared.recoil(t, recoil)
+	local T = Shared.brakeTime(V, a)
+	if t <= T then
+		return r + 0.5 * a * t * t
+	end
+	return r + 0.5 * a * T * T + V * (t - T)
+end
+
+-- d(drift)/dt: the wreck's speed toward the rear relative to the train.
+function Shared.driftSpeed(t, V, a, recoil)
+	if t <= 0 then
+		return 0
+	end
+	local rv = 0
+	if recoil and (recoil.dist or 0) ~= 0 and (recoil.time or 0) > 0 and t < recoil.time then
+		rv = 2 * recoil.dist * (1 - t / recoil.time) / recoil.time
+	end
+	if t <= Shared.brakeTime(V, a) then
+		return rv + a * t
+	end
+	return rv + V
+end
+
+-- The wreck's speed over the ground: the terrain streams past the static train at V while the wreck slides
+-- back at driftSpeed, so it has stopped (moves with the terrain) when the two match.
+function Shared.terrainSpeed(t, V, a, recoil)
+	return math.abs(V - Shared.driftSpeed(t, V, a, recoil))
+end
+
+-- Highest honest speed of a body's root (studs/s): 1.5x the terrain speed, the blast's shove, and the fastest
+-- roll or bounce at the body's far edge (farRadius studs from the pivot line), plus the lift/sink/push rates
+-- and a little slack. side picks the rest pose (+1 falls to +X).
+function Shared.velocityCap(V, params, farRadius, side)
+	local omega, lin = 0, 0
+	local tp = params.topple
+	if tp then
+		local rest = Shared.restPose(params.rest, side) or {}
+		local rollTime = math.max(tp.roll_time or 1, 1e-3)
+		-- every ease here peaks at or below twice its average rate
+		omega = 2 * math.rad(math.abs(rest.roll or tp.roll or 0)) / rollTime
+		lin = 2 * (math.abs(tp.sink or 0) + math.abs(rest.lift or 0) + math.abs(tp.extra_back or 0)) / rollTime
+		local bt = tp.bounce_time or 0
+		if bt > 0 then
+			omega = math.max(omega, math.pi * math.rad(math.abs(tp.bounce_back or 0)) / bt)
+		end
+	end
+	local r = params.recoil
+	local shove = (r and (r.time or 0) > 0) and 2 * math.abs(r.dist or 0) / r.time or 0
+	return 1.5 * math.abs(V) + shove + omega * (farRadius or 0) + lin + 5
+end
+
+-- A velocity that is finite and no faster than cap (NaN or inf becomes zero).
+function Shared.clampVelocity(v, cap)
+	local m = v.Magnitude
+	if m ~= m or m == math.huge then
+		return Vector3.zero
+	end
+	if m > cap then
+		return v * (cap / m)
+	end
+	return v
+end
+
+-- The rest pose for the falling side: rest = Config.ToppleRest ({["+X"] = {roll, lift}, ["-X"] = ...}) or a
+-- pose already picked. The bogies are asymmetric, so each side lands at its own angle and height.
+function Shared.restPose(rest, side)
+	if not rest or rest.roll then
+		return rest
+	end
+	return rest[(side or 1) >= 0 and "+X" or "-X"]
+end
+
+--[[
+Topple of one lost body at time t -> roll, yaw, sink, lift, back.
+  body  one Config.Topple entry: delay, roll_time, ease, bounce_back, bounce_time, yaw, sink, extra_back
+  rest  its rest pose for the falling side: {roll (deg), lift (studs along world up)}
+It waits `delay`, then over `roll_time` rolls onto its side while yaw (twist, deg), sink (dig-in), lift and
+back (extra push along the rear axis) all ease in with it; it rocks back by bounce_back degrees and settles
+over `bounce_time`, then lies still.
+]]
+function Shared.topple(t, body, rest)
+	if not body then
+		return 0, 0, 0, 0, 0
+	end
+	local tt = t - (body.delay or 0)
+	if tt <= 0 then
+		return 0, 0, 0, 0, 0
+	end
+	local roll = rest and rest.roll or body.roll or 0
+	local lift = rest and rest.lift or 0
+	local yaw, sink, back = body.yaw or 0, body.sink or 0, body.extra_back or 0
+	local rollTime = math.max(body.roll_time or 1, 1e-3)
+	if tt < rollTime then
+		local e = Shared.ease(body.ease or "QuadIn", tt / rollTime)
+		return roll * e, yaw * e, sink * e, lift * e, back * e
+	end
+	local bt = body.bounce_time or 0
+	if bt > 0 and (body.bounce_back or 0) ~= 0 then
+		local v = (tt - rollTime) / bt
+		if v < 1 then
+			return roll - body.bounce_back * math.sin(math.pi * v), yaw, sink, lift, back
+		end
+	end
+	return roll, yaw, sink, lift, back
+end
+
+--[[
+World CFrame of a lost body's root, t s after the snap.
+  baseRootCF  root CFrame at the snap (intact position)
+  breakCF     break frame B of the carriage that snapped
+  pivotSide   +1 falls to the right (+X of B), -1 to the left
+  params      { V, brake, recoil = {dist, time}, pivot = {X_abs, Y}, topple = one Config.Topple entry,
+                rest = Config.ToppleRest (per side) }
+The body rolls about the rail-level line on the falling side to that side's rest angle, twists about its
+own vertical axis (mirrored with the side), slides back by drift(t) plus its extra push, and rises by
+lift minus sink along world up.
+]]
+function Shared.bodyCFrame(baseRootCF, breakCF, pivotSide, t, params)
+	if t <= 0 then
+		return baseRootCF
+	end
+	local s = (pivotSide or 1) >= 0 and 1 or -1
+	local z = Shared.drift(t, params.V, params.brake, params.recoil)
+	local roll, yaw, sink, lift, back = Shared.topple(t, params.topple, Shared.restPose(params.rest, s))
+	local rel = breakCF:ToObjectSpace(baseRootCF)
+	local pivot = Vector3.new(s * params.pivot.X_abs, params.pivot.Y, 0)
+	local rolled = CFrame.new(pivot) * CFrame.Angles(0, 0, -s * math.rad(roll)) * CFrame.new(-pivot) * rel
+	local c = rolled.Position
+	local twist = CFrame.new(c.X, 0, c.Z) * CFrame.Angles(0, s * math.rad(yaw), 0) * CFrame.new(-c.X, 0, -c.Z)
+	return CFrame.new(0, lift - sink, 0) * (breakCF * (CFrame.new(0, 0, z + back) * twist * rolled))
+end
+
+-- Root velocity (studs/s, world) by central difference; feeds AssemblyLinearVelocity so riders are carried.
+function Shared.bodyVelocity(baseRootCF, breakCF, pivotSide, t, params, h)
+	h = h or 1 / 60
+	local a = Shared.bodyCFrame(baseRootCF, breakCF, pivotSide, t - h, params).Position
+	local b = Shared.bodyCFrame(baseRootCF, breakCF, pivotSide, t + h, params).Position
+	return (b - a) / (2 * h)
+end
+
+function Shared.halfId(carriage, half)
+	return ("C%d.%s"):format(carriage, half)
+end
+
+--[[
+Which halves come off when break k snaps, given which breaks have already snapped.
+  breakState  { [j] = true } for every break j that has snapped (break j sits in carriage j)
+  k           the break snapping now
+  carriages   carriage count (default: 2, or more if breakState says so)
+Returns bodies, newState. bodies lists the newly lost halves grouped per carriage, front to rear, e.g.
+{ {"C1.Rear"}, {"C2.Front", "C2.Rear"} }: each carriage's lost pieces animate as one body.
+Halves already gone (behind an earlier snap) are never lost twice; a repeat or impossible snap returns {}.
+]]
+function Shared.lostHalves(breakState, k, carriages)
+	breakState = breakState or {}
+	local n = carriages or 2
+	for j in breakState do
+		if type(j) == "number" and j > n then
+			n = j
+		end
+	end
+	if k < 1 or k > n or breakState[k] then
+		return {}, breakState
+	end
+	-- halves in train order: 2c-1 = Carriage c front, 2c = rear; break j sits between 2j-1 and 2j
+	local function attached(h)
+		for j = 1, n do
+			if breakState[j] and h >= 2 * j then
+				return false
+			end
+		end
+		return true
+	end
+	local bodies, byCarriage = {}, {}
+	for h = 2 * k, 2 * n do
+		if attached(h) then
+			local c = math.ceil(h / 2)
+			if not byCarriage[c] then
+				byCarriage[c] = {}
+				table.insert(bodies, byCarriage[c])
+			end
+			table.insert(byCarriage[c], Shared.halfId(c, h % 2 == 1 and "Front" or "Rear"))
+		end
+	end
+	if #bodies == 0 then
+		return {}, breakState -- its carriage already left with an earlier snap
+	end
+	local newState = table.clone(breakState)
+	newState[k] = true
+	return bodies, newState
+end
+
+--[[
+Resolve Config.Events into a time-sorted list for one snap.
+  params { V, brake, bodies = { topple entry per lost body } }
+"impact" becomes delay + roll_time for each body (one topple_crash each); t_end = "stop" becomes V/brake;
+perBody events get one copy per body. Every item keeps its fields and gains `body` where relevant.
+]]
+function Shared.eventsTimeline(events, params)
+	local out = {}
+	local stopT = Shared.brakeTime(params.V, params.brake)
+	local bodies = params.bodies or {}
+	local function add(e, t, body, order)
+		local item = table.clone(e)
+		item.t = t
+		item.body = body
+		item.order = order
+		if e.t_end == "stop" then
+			item.t_end = stopT
+		end
+		table.insert(out, item)
+	end
+	for i, e in events do
+		if e.t == "impact" then
+			for b, topple in bodies do
+				add(e, (topple.delay or 0) + (topple.roll_time or 0), b, i * 100 + b)
+			end
+		elseif e.perBody then
+			for b in bodies do
+				add(e, e.t, b, i * 100 + b)
+			end
+		else
+			add(e, e.t, nil, i * 100)
+		end
+	end
+	table.sort(out, function(a, b)
+		if a.t == b.t then
+			return a.order < b.order
+		end
+		return a.t < b.t
+	end)
+	return out
+end
+
+-- The tear depth d at (X, Y) of the break frame, or nil outside every cell ({X0, X1, Y0, Y1, d, region}).
+function Shared.dAt(cells, X, Y)
+	for _, c in cells do
+		if X >= c[1] and X < c[2] and Y >= c[3] and Y < c[4] then
+			return c[5]
+		end
+	end
+	return nil
+end
+
+-- (a * b) mod 2^32 in 16-bit halves, exact in doubles.
+local function mul32(a, b)
+	local ah, al = bit32.rshift(a, 16), bit32.band(a, 0xFFFF)
+	local bh, bl = bit32.rshift(b, 16), bit32.band(b, 0xFFFF)
+	return (al * bl + bit32.lshift((ah * bl + al * bh) % 65536, 16)) % 4294967296
+end
+
+-- Tiny xorshift32 so the server and every client roll the same numbers from one seed. The seed is hashed
+-- first (murmur3 finaliser): raw xorshift gives nearly the same first number for every small seed.
+function Shared.rng(seed)
+	local s = math.floor(math.abs(seed or 1)) % 4294967296
+	s = bit32.bxor(s, bit32.rshift(s, 16))
+	s = mul32(s, 0x85EBCA6B)
+	s = bit32.bxor(s, bit32.rshift(s, 13))
+	s = mul32(s, 0xC2B2AE35)
+	s = bit32.bxor(s, bit32.rshift(s, 16))
+	if s == 0 then
+		s = 2463534242
+	end
+	return function()
+		s = bit32.bxor(s, bit32.lshift(s, 13))
+		s = bit32.bxor(s, bit32.rshift(s, 17))
+		s = bit32.bxor(s, bit32.lshift(s, 5))
+		return s / 4294967296
+	end
+end
+
+-- Topple side: "left" = -1, "right" = +1, anything else ("random") comes from the seed.
+function Shared.side(name, seed)
+	if name == "left" then
+		return -1
+	elseif name == "right" then
+		return 1
+	end
+	return Shared.rng(seed)() < 0.5 and -1 or 1
+end
+
+return Shared
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="10">
+          <Properties>
+            <string name="Name">TrainSplitConfig</string>
+            <string name="Source"><![CDATA[--[[
+TrainSplitConfig  (ModuleScript in ReplicatedStorage)
+
+Every tunable for the carriage split lives here; the server (TrainSplit) and every client
+(TrainSplitClient) read the same table, so change numbers here only.
+Numbers marked "break_spec" come from src/kit/break_spec.json (mission 260929-train-splits, T0).
+
+Break frame B (per carriage, saved by RR_TrainSplit_Setup in Train/RR_Breaks/BreakN.BreakCFrame):
+origin on the carriage centre line, at floor-top height, on the break plane.
++X across the carriage (right when facing the front), +Y up, +Z toward the REAR of the train.
+]]
+
+local Config = {}
+
+Config.Version = "2.3.0"
+Config.RemoteName = "RR_TrainSplitFX" -- RemoteEvent in ReplicatedStorage, server -> clients only
+Config.WreckFolderName = "RR_Wrecks" -- workspace folder the lost bodies move into
+
+-- Motion. The train never moves: the world scrolls past it at the train's speed.
+Config.SpeedAttribute = "Speed" -- attribute on the train Model, studs/s (your game keeps it current)
+Config.SpeedDefault = 35 -- canon gameplay.speed.normal; used when the attribute is missing or not a number
+Config.MaxSpeed = 60 -- the Speed attribute is clamped to 0..MaxSpeed (canon fast is 50); NaN/inf use the default
+Config.Brake = 12 -- break_spec motion.brake: studs/s^2 the lost part slows by until it moves with the terrain
+Config.Recoil = { dist = 0.8, time = 0.2 } -- break_spec motion.recoil: the blast shoves the wreck back
+Config.LeadTime = 0.25 -- the snap happens this long after SplitAt, so metal_tear (t = -0.25) lands on the boom
+Config.LateTolerance = 0.5 -- a client that learns of the snap later than this skips the one-shot fx
+Config.Despawn = { distance = 700, time = 30 } -- break_spec: studs behind where it broke off / seconds
+Config.RiderConfirmDelay = 1.0 -- TrainSplit.ConfirmRiders re-checks the rider candidates this long after the snap
+Config.MisuseAttribute = "RR_RemoteMisuse" -- set on a Player who fires the server -> client remote (flagged once)
+
+-- Topple (break_spec topple). One entry per lost body, front-most first; a snap uses one side for all.
+-- ToppleRest: the pose each falling side ends in (roll in degrees; lift = studs raised along world up, eased in
+-- with the roll). Per body: bounce_back = degrees it rocks back after landing, yaw = twist in degrees,
+-- sink = studs dug in, extra_back = studs pushed along the rear axis (eased in with the roll).
+Config.Side = "random" -- "random" (seeded per snap) | "left" | "right" (as seen facing the front)
+-- TOPPLE BEGIN (break_spec.json v2.3.0; generated by tests/sync_spec.luau)
+Config.Pivot = { X_abs = 11.7, Y = -8.6 } -- outer bogie edge at rail level on the falling side
+Config.ToppleRest = { -- rest pose per falling side
+	["+X"] = { roll = 97.64, lift = 0.747 },
+	["-X"] = { roll = 96.78, lift = 0.435 },
+}
+Config.Topple = {
+	-- the broken half (front-most lost body)
+	{ delay = 0.45, roll_time = 1.05, ease = "QuadIn", bounce_back = 5.0, bounce_time = 0.35, yaw = 7.0, sink = 0.15, extra_back = 0.0 },
+	-- a whole carriage dragged behind it (break 1 only: carriage 2)
+	{ delay = 0.8, roll_time = 1.2, ease = "QuadIn", bounce_back = 4.0, bounce_time = 0.4, yaw = -4.0, sink = 0.15, extra_back = 0.6 },
+}
+-- TOPPLE END
+
+-- The jagged tear, {X0, X1, Y0, Y1, d, region}: inside the cell the tear sits at Z = d.
+-- Same numbers as RR_TrainSplit_Setup; the runtime uses them to tell riders from people on the kept half.
+-- CELLS BEGIN (break_spec.json v2.3.0, 29 cells; generated by tests/sync_spec.luau)
+Config.Cells = {
+	{ -14.0, -7.1, -12.0, 0.6, 0.6, "floor" },
+	{ -7.1, -2.8, -12.0, 0.6, 2.4, "floor" },
+	{ -2.8, 0.6, -12.0, 0.6, 0.9, "floor" },
+	{ 0.6, 4.1, -12.0, 0.6, 3.6, "floor" },
+	{ 4.1, 7.1, -12.0, 0.6, 1.5, "floor" },
+	{ 7.1, 14.0, -12.0, 0.6, -0.3, "floor" },
+	{ -14.0, -7.1, 0.6, 1.5, 0.7, "wall_W" },
+	{ 7.1, 14.0, 0.6, 1.5, -0.6, "wall_E" },
+	{ -14.0, -7.1, 1.5, 3.3, -0.4, "wall_W" },
+	{ 7.1, 14.0, 1.5, 3.3, 0.5, "wall_E" },
+	{ -14.0, -7.1, 3.3, 5.7, 0.9, "wall_W" },
+	{ 7.1, 14.0, 3.3, 5.7, -0.2, "wall_E" },
+	{ -14.0, -7.1, 5.7, 7.4, 0.1, "wall_W" },
+	{ 7.1, 14.0, 5.7, 7.4, 0.8, "wall_E" },
+	{ -14.0, -7.1, 7.4, 8.95, -0.8, "wall_W" },
+	{ 7.1, 14.0, 7.4, 8.95, -0.5, "wall_E" },
+	{ -14.0, -7.1, 8.95, 11.18, 0.4, "wall_W" },
+	{ 7.1, 14.0, 8.95, 11.18, 0.2, "wall_E" },
+	{ -7.1, 7.1, 0.6, 8.95, 0.2, "mid" },
+	{ -7.1, -2.5, 8.95, 11.18, 0.3, "mid_pelmet" },
+	{ -2.5, 2.5, 8.95, 11.18, -0.5, "mid_pelmet" },
+	{ 2.5, 7.1, 8.95, 11.18, 0.25, "mid_pelmet" },
+	{ -14.0, -7.1, 11.18, 18.0, 0.3, "roof" },
+	{ -7.1, -4.6, 11.18, 18.0, -1.6, "roof" },
+	{ -4.6, -1.9, 11.18, 18.0, -3.9, "roof" },
+	{ -1.9, 0.9, 11.18, 18.0, -2.4, "roof" },
+	{ 0.9, 3.7, 11.18, 18.0, -4.8, "roof" },
+	{ 3.7, 7.1, 11.18, 18.0, -1.1, "roof" },
+	{ 7.1, 14.0, 11.18, 18.0, 0.1, "roof" },
+}
+-- CELLS END
+
+-- Timeline (break_spec events). t = seconds after the snap. fx = key into Config.FX, sound = key into
+-- Config.Sounds, at = key into Config.Anchors, or "impact" (where each body lands) / "wreck" (a body's root).
+-- soundAt overrides where the sound plays. loop = seconds a looping fx runs, fade = its fade-out after that.
+Config.Events = {
+	{ t = -0.25, id = "metal_tear", sound = "metal_tear", at = "split_core" },
+	{ t = 0.0, id = "split_explosion", fx = "split_explosion", sound = "split_explosion", shake = "big", at = "split_core" },
+	{ t = 0.0, id = "glass_burst", fx = "glass_split", sound = "split_glass", at = "glass" },
+	{ t = 0.05, id = "torn_edge_smoke", fx = "torn_edge_smoke", loop = 20, fade = 3.5, at = "torn_edge" },
+	{ t = 0.3, t_end = "stop", id = "wreck_scrape", sound = "wreck_scrape", at = "wreck" },
+	{ t = 0.8, id = "debris_rain", sound = "debris_rain", at = "debris" },
+	{ t = "impact", id = "topple_crash", fx = "topple_dust", sound = "topple_crash", shake = "medium", at = "impact", soundAt = "wreck" },
+}
+
+-- Anchor points in the break frame (studs). RR_VFX anchors are Attachments turned X forward, Y up, Z right:
+-- CFrame = BreakCF * CFrame.new(p) * CFrame.Angles(0, rad(yaw), 0), yaw 90 unless given.
+Config.Anchors = {
+	split_core = Vector3.new(0, 5, 0), -- SplitCore: split_explosion burst; the "break" sound emitter (metal_tear)
+	debris = Vector3.new(0, 3, 2), -- break_spec events: debris_rain
+	glass = { -- SplitGlassL/R: outer face of the kept half's window pane nearest the break, Z pointing out
+		{ p = Vector3.new(-9.75, 6.6, -4.5), yaw = -90 },
+		{ p = Vector3.new(9.75, 6.6, -4.5), yaw = 90 },
+	},
+	torn_edge = Vector3.new(0, 12.4, -2.4), -- TornEdge: torn_edge_smoke on the kept half, on the roof tooth (Z = its d)
+	-- WreckDust (topple_dust) is placed per body where it lands: (+-Pivot.X_abs, Pivot.Y, body mid-length)
+}
+
+-- FX presets (T3, src/fx/build/RR_FXPresets.lua), played through RR_VFX (ReplicatedStorage.RR_VFX or
+-- ReplicatedStorage.RRFX.RR_VFX): VFX.burst for one-shots, VFX.attach + setIntensity/detach for the loop.
+-- A missing RR_VFX or a failing preset falls back to Config.FallbackFX below.
+Config.FX = {
+	split_explosion = "split_explosion", -- burst, SplitCore
+	glass_burst = "glass_split", -- burst, SplitGlassL/R
+	torn_edge_smoke = "torn_edge_smoke", -- loop, TornEdge
+	topple_dust = "topple_dust", -- burst, WreckDust
+}
+Config.FxAnchorLife = 12 -- seconds a one-shot fx anchor lives: longer than any preset's particles
+
+-- Sounds: made from code by the T4 pass (rr-soundsmith), licence-clean, files in src/sound/final/.
+-- Upload each rr_split_<id>.wav (Studio Asset Manager or Creator Hub) and paste "rbxassetid://<id>".
+-- An empty SoundId is skipped. Numbers are from src/sound/final/SOUNDS.md (mix boom > tear > crash > debris).
+-- Group = SoundGroup name in SoundService, used when it exists. Pitch = random PlaybackSpeed range per play.
+Config.Sounds = {
+	-- rr_split_metal_tear.wav, t -0.25: the snap is 0.25 s into the file, so it lands on the boom
+	metal_tear = { SoundId = "", Volume = 0.594, Is3D = true, RollOffMinDistance = 16, RollOffMaxDistance = 240, Group = "Alarms", Pitch = { 0.97, 1.03 } },
+	-- rr_split_split_explosion.wav, t 0: positional layer at the break plus a flat train-wide layer (Volume2D)
+	split_explosion = { SoundId = "", Volume = 0.5, Volume2D = 0.792, Is3D = true, RollOffMinDistance = 16, RollOffMaxDistance = 240, Group = "Alarms", Pitch = { 0.96, 1.04 } },
+	-- rr_split_split_glass.wav (same audio as glass_smash: one upload serves both), t 0, once per side 0.1 s apart
+	split_glass = { SoundId = "", Volume = 0.562, Is3D = true, RollOffMinDistance = 16, RollOffMaxDistance = 240, Group = "Alarms", Pitch = { 0.93, 1.07 }, Stagger = 0.1 },
+	-- rr_split_debris_rain.wav, t 0.8
+	debris_rain = { SoundId = "", Volume = 0.397, Is3D = true, RollOffMinDistance = 10, RollOffMaxDistance = 140, Group = "Actions", Pitch = { 0.9, 1.1 } },
+	-- rr_split_topple_crash.wav, each landing (break 1: carriage 2 lands 0.5 s later, a bigger body pitched 0.94)
+	topple_crash = { SoundId = "", Volume = 0.561, Is3D = true, RollOffMinDistance = 16, RollOffMaxDistance = 240, Group = "Actions", Pitch = { 0.92, 1.06 }, BodyPitch = { 1, 0.94 } },
+	-- rr_split_wreck_scrape.wav, from t 0.3 on the front-most wreck. Authored 2.7 s for Speed 35: its playback
+	-- speed and fade-out now follow Config.Scrape (S2-4); Length and FitSpeed are no longer read.
+	wreck_scrape = { SoundId = "", Volume = 0.398, Is3D = true, RollOffMinDistance = 10, RollOffMaxDistance = 140, Group = "Actions", Pitch = { 0.95, 1.05 }, Length = 2.7, FitSpeed = { 0.8, 1.25 } },
+}
+
+-- wreck_scrape playback (sound critic S2-4): authored for Speed 35, so it plays at RefSpeed / V (clamped to
+-- PlaybackRange) and fades out over Fade seconds once the wreck's speed over the ground (TrainSplitShared,
+-- not measured) drops under StopBelow studs/s.
+Config.Scrape = { RefSpeed = 35, PlaybackRange = { 0.7, 1.2 }, StopBelow = 2, Fade = 0.3 }
+
+-- Camera shake (client). amplitude in degrees, fading to 0 at `falloff` studs from the camera.
+Config.ReduceMotionAttribute = "ReduceMotion" -- Player attribute; true = no camera shake (your settings menu sets it)
+Config.Shake = {
+	big = { amplitude = 1.5, duration = 0.9, frequency = 14, falloff = 250 },
+	medium = { amplitude = 0.6, duration = 0.5, frequency = 12, falloff = 150 },
+}
+
+-- Built-in fallback emitters, only when RR_VFX or a preset is missing. Built-in textures, phone-sized counts.
+-- Lists are evenly spaced keypoints over a particle's life; colours are hex (canon soot/ironwork/brass/hazard).
+local TEX_FIRE = "rbxasset://textures/particles/fire_main.dds"
+local TEX_SMOKE = "rbxasset://textures/particles/smoke_main.dds"
+local TEX_SPARK = "rbxasset://textures/particles/sparkles_main.dds"
+Config.SmokeWind = 18 -- studs/s^2 pushing fallback smoke toward the rear: the air streams past the moving train
+Config.FallbackFX = {
+	split_explosion = {
+		explosion = true, -- Roblox's built-in Explosion look (no pressure, breaks no joints)
+		flash = { Brightness = 4, Range = 40, Color = "#FFC46B", Time = 0.12 }, -- one short flash (flash-safe)
+		life = 3.5,
+		emitters = {
+			{ Texture = TEX_FIRE, Count = 30, Lifetime = { 0.35, 0.8 }, Speed = { 18, 36 }, Size = { 5, 11, 2 }, Transparency = { 0, 0.2, 1 }, Color = { "#FFE39A", "#FF7A1A", "#7A2E0B" }, LightEmission = 0.8, Drag = 5 },
+			{ Texture = TEX_SMOKE, Count = 22, Lifetime = { 1.6, 3.2 }, Speed = { 6, 14 }, Size = { 6, 16, 22 }, Transparency = { 0.15, 0.5, 1 }, Color = { "#363A42", "#15181B" }, Drag = 2, Wind = true },
+			{ Texture = TEX_SPARK, Count = 36, Lifetime = { 0.5, 1.1 }, Speed = { 30, 60 }, Size = { 0.5, 0.1 }, Transparency = { 0, 1 }, Color = { "#FFD27A", "#F2C230" }, LightEmission = 1, Drag = 1, Acceleration = { 0, -60, 0 } },
+		},
+	},
+	glass_burst = {
+		life = 1.2,
+		emitters = {
+			{ Texture = TEX_SPARK, Count = 14, Lifetime = { 0.4, 0.9 }, Speed = { 12, 24 }, Size = { 0.35, 0.1 }, Transparency = { 0, 1 }, Color = { "#E8F4FF", "#BFD8EE" }, LightEmission = 0.4, Acceleration = { 0, -50, 0 } },
+		},
+	},
+	torn_edge_smoke = {
+		loop = true,
+		life = 3.5,
+		emitters = {
+			{ Texture = TEX_SMOKE, Rate = 6, Lifetime = { 2, 3.5 }, Speed = { 1, 3 }, Size = { 1.5, 5 }, Transparency = { 0.35, 1 }, Color = { "#4A4E55", "#15181B" }, Drag = 1, Wind = true },
+		},
+	},
+	topple_dust = {
+		life = 3,
+		emitters = {
+			{ Texture = TEX_SMOKE, Count = 28, Lifetime = { 1.4, 2.8 }, Speed = { 8, 16 }, Size = { 4, 10, 14 }, Transparency = { 0.2, 0.6, 1 }, Color = { "#8C7A60", "#5E5241" }, Drag = 3, Spread = 75 },
+		},
+	},
+}
+
+return Config
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="11">
+          <Properties>
+            <string name="Name">RR_VFX</string>
+            <string name="Source"><![CDATA[-- RR_VFX (ModuleScript, client only): applies rr-vfx-lighting effect presets from RR_FXPresets (generated).
+-- Canon it follows: effects are client-side and attached to the stationary train (av.vfx.client_side,
+-- tech.streaming.fx_client); steam rate follows Speed (av.vfx.speed_link). The train never moves, so drift comes
+-- from Workspace.GlobalWind = -forward * Speed (particles with WindAffectsDrag and Drag > 0 follow it).
+-- Trails need moving attachments: use VFX.trail only on things that move (debris), never on the train body.
+--
+--   local h = VFX.attach(anchor, "steam_chimney")   anchor = BasePart or Attachment on the train
+--   VFX.setSpeed(speed, forwardVector)               every throttle notch change (also sets GlobalWind)
+--   VFX.burst(anchor, "coal_dust")                   one-shot presets; cleans itself up
+--   VFX.setActive("sparks_axle", true)               start/stop every handle of a loop preset
+--   VFX.setFlashes(false)                             players' flashes setting: soft pulses, no flicker (av.feel.flash_limit)
+--   VFX.detach(h); VFX.budget()                       remove one; live-particle estimate vs the tier budget
+-- Loops start ON, except: priority-1 crisis loops and presets marked start = "off" (sparks_brake) start OFF until
+-- setActive; presets a look switches (headlamp, rain) follow the current look, even when attached after
+-- Lighting.apply (RR_Lighting calls VFX.setLookFx). attach(anchor, name, {enabled = true/false}) overrides both.
+-- Studio test pending (owner): generated and syntax-checked in the cloud, run against stubs in a Lua VM
+-- (scripts/luatest.py), never run in Studio.
+
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local DebrisService = game:GetService("Debris")
+
+local P = require(script.Parent:WaitForChild("RR_FXPresets"))
+
+local VFX = {}
+VFX.presets = P.presets
+VFX.budgetGuard = true
+
+local handles = {}
+local lookDriven, lookOn = {}, {}   -- set by RR_Lighting: presets looks switch, and which the current look has on
+local speed, speedK = 0, 0
+VFX.flashes = true
+local FLASH_OFF_PEAK = 1.5   -- flashes setting off: pulses peak at most this and last twice as long
+local forward = Vector3.new(1, 0, 0)
+local heartbeat = nil
+
+local function detectTier()
+	if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
+		return "phone"
+	end
+	return "pc"
+end
+VFX.tier = detectTier()
+
+local function tierCfg()
+	return P.meta.tiers[VFX.tier] or P.meta.tiers.pc
+end
+
+local function rateScale(priority)
+	local t = tierCfg()
+	return (t.rate_scale and t.rate_scale[priority]) or 1
+end
+
+local function fxFolder()
+	local f = workspace:FindFirstChild("RRFX_Client")
+	if not f then
+		f = Instance.new("Folder")
+		f.Name = "RRFX_Client"
+		f.Parent = workspace
+	end
+	return f
+end
+
+-- attachment frame: "up" puts the UpVector along dir (particles emit along it), "look" the LookVector (lights)
+local function orient(offset, dir, mode)
+	if not dir then
+		return CFrame.new(offset)
+	end
+	local d = dir.Unit
+	if mode == "look" then
+		if math.abs(d.Y) > 0.999 then
+			return CFrame.new(offset) * CFrame.Angles(d.Y > 0 and math.pi / 2 or -math.pi / 2, 0, 0)
+		end
+		return CFrame.lookAt(offset, offset + d)
+	end
+	if math.abs(d.Y) > 0.999 then
+		return d.Y > 0 and CFrame.new(offset) or CFrame.new(offset) * CFrame.Angles(math.pi, 0, 0)
+	end
+	return CFrame.lookAt(offset, offset + d) * CFrame.Angles(-math.pi / 2, 0, 0)
+end
+
+local function basePart(anchor)
+	if anchor:IsA("Attachment") then
+		return anchor.Parent, anchor.CFrame
+	end
+	return anchor, CFrame.new()
+end
+
+local function applyProps(inst, props)
+	for k, v in pairs(props) do
+		local ok, err = pcall(function()
+			inst[k] = v
+		end)
+		if not ok then
+			warn("RR_VFX: " .. inst.ClassName .. "." .. k .. ": " .. tostring(err))
+		end
+	end
+end
+
+local function pulse(light, peak, duration)
+	if not VFX.flashes then
+		peak, duration = math.min(peak, FLASH_OFF_PEAK), duration * 2
+	end
+	light.Brightness = peak
+	TweenService:Create(light, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Brightness = 0}):Play()
+end
+
+-- live-particle estimate of one handle (loops at their current rate)
+local function handleLive(h)
+	local live = 0
+	if not h.active or h.preset.kind ~= "loop" then
+		return 0
+	end
+	for _, rec in ipairs(h.layers) do
+		if rec.inst and rec.inst:IsA("ParticleEmitter") then
+			live = live + rec.inst.Rate * rec.inst.Lifetime.Max
+		end
+	end
+	return live
+end
+
+local function linked(p, L)
+	if p.speed_link then
+		for _, n in ipairs(p.speed_link.layers) do
+			if n == L.name then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+-- 0..1 share of the speed-linked rate at the current Speed (lights named in speed_link dim with it)
+local function linkFrac(p)
+	local sl = p.speed_link
+	if not sl or sl.max <= 0 then
+		return 1
+	end
+	return (sl.idle + (sl.max - sl.idle) * speedK) / sl.max
+end
+
+local function loopRate(h, rec)
+	local p, L = h.preset, rec.L
+	if p.crackle then
+		return 0
+	end
+	local rate = L.props.Rate or 0
+	if linked(p, L) then
+		rate = p.speed_link.idle + (p.speed_link.max - p.speed_link.idle) * speedK
+	end
+	return rate * h.scale * (h.intensity or 1) * (h.guard or 1)
+end
+
+local function refresh(h)
+	h.scale = rateScale(h.preset.priority)
+	if h.preset.kind ~= "loop" then
+		-- bursts own their emitters and lights (VFX.burst); a refresh must never switch a flash off mid-burst
+		for _, rec in ipairs(h.layers) do
+			if rec.inst and rec.inst:IsA("ParticleEmitter") then
+				rec.inst.Enabled = false
+			end
+		end
+		return
+	end
+	for _, rec in ipairs(h.layers) do
+		local inst = rec.inst
+		if inst then
+			if inst:IsA("ParticleEmitter") then
+				inst.Rate = loopRate(h, rec)
+				inst.Enabled = h.active
+			elseif inst:IsA("Light") then
+				inst.Enabled = h.active
+				rec.scale = linked(h.preset, rec.L) and linkFrac(h.preset) or 1
+				if not rec.L.flicker and rec.L.props.Brightness then
+					inst.Brightness = rec.L.props.Brightness * rec.scale
+				end
+			elseif inst:IsA("Beam") then
+				inst.Enabled = h.active
+			end
+		end
+	end
+end
+
+-- signal over ambience: when the tier budget is exceeded, priority-3 loops give way first, then priority 2
+local function enforceBudget()
+	if not VFX.budgetGuard then
+		return
+	end
+	local limit = tierCfg().live_particles or math.huge
+	for _, h in ipairs(handles) do
+		h.guard = 1
+		refresh(h)
+	end
+	for prio = 3, 2, -1 do
+		local total, mine = 0, 0
+		for _, h in ipairs(handles) do
+			local l = handleLive(h)
+			total = total + l
+			if h.preset.priority == prio then
+				mine = mine + l
+			end
+		end
+		if total <= limit or mine <= 0 then
+			return
+		end
+		local k = math.max(0, (limit - (total - mine)) / mine)
+		for _, h in ipairs(handles) do
+			if h.preset.priority == prio then
+				h.guard = k
+				refresh(h)
+			end
+		end
+	end
+end
+
+local function spawnDebris(h, L)
+	local d = L.debris
+	local part, baseCF = basePart(h.anchor)
+	local origin = (part.CFrame * baseCF * CFrame.new(L.offset)).Position
+	local up = (L.dir or Vector3.new(0, 1, 0)).Unit
+	local spread = math.rad(d.spread)
+	local folder = fxFolder()
+	for i = 1, d.count do
+		local c = Instance.new("Part")
+		c.Size = d.size
+		c.Color = d.colours[(i - 1) % #d.colours + 1]
+		c.Material = Enum.Material.SmoothPlastic
+		c.CanCollide = false
+		c.CanQuery = false
+		c.CanTouch = false
+		c.CastShadow = false
+		c.CFrame = CFrame.new(origin) * CFrame.Angles(math.random() * 6.28, math.random() * 6.28, math.random() * 6.28)
+		local dir = (CFrame.lookAt(Vector3.new(), up) * CFrame.Angles((math.random() * 2 - 1) * spread, (math.random() * 2 - 1) * spread, 0)).LookVector
+		local v = d.speed[1] + math.random() * (d.speed[2] - d.speed[1])
+		c.Parent = folder
+		c.AssemblyLinearVelocity = dir * v - forward * (speed * (d.carry or 0))
+		c.AssemblyAngularVelocity = Vector3.new(math.random() - 0.5, math.random() - 0.5, math.random() - 0.5) * 20
+		if (d.gravity_scale or 1) < 1 then
+			local att = Instance.new("Attachment")
+			att.Parent = c
+			local vf = Instance.new("VectorForce")
+			vf.Attachment0 = att
+			vf.RelativeTo = Enum.ActuatorRelativeTo.World
+			vf.Force = Vector3.new(0, c.AssemblyMass * workspace.Gravity * (1 - d.gravity_scale), 0)
+			vf.Parent = c
+		end
+		if d.trail and d.trail ~= "" then
+			VFX.trail(c, d.trail)
+		end
+		DebrisService:AddItem(c, d.lifetime)
+	end
+end
+
+local function step()
+	local t = os.clock()
+	for _, h in ipairs(handles) do
+		if h.active then
+			for _, rec in ipairs(h.layers) do
+				local f = rec.L.flicker
+				if f and rec.inst then
+					local k = (f.min + f.max) / 2   -- flashes off: steady glow, no flicker
+					if VFX.flashes then
+						k = f.min + (f.max - f.min) * (0.5 + 0.5 * math.sin(t * f.hz * 2 * math.pi + rec.phase))
+					end
+					rec.inst.Brightness = (rec.L.props.Brightness or 1) * k * (rec.scale or 1)
+				end
+			end
+			local c = h.preset.crackle
+			if c and h.preset.kind == "loop" and t >= (h.nextCrackle or 0) then
+				for _, rec in ipairs(h.layers) do
+					if rec.inst and rec.inst:IsA("ParticleEmitter") then
+						rec.inst:Emit(math.max(1, math.floor(math.random(c.emit[1], c.emit[2]) * h.scale + 0.5)))
+					elseif rec.inst and rec.inst:IsA("Light") and c.flash then
+						pulse(rec.inst, c.flash.peak, c.flash.duration)
+					end
+				end
+				h.nextCrackle = t + c.every[1] + math.random() * (c.every[2] - c.every[1])
+			end
+		end
+	end
+end
+
+function VFX.attach(anchor, name, opts)
+	opts = opts or {}
+	local p = P.presets[name]
+	assert(p, "RR_VFX: no preset " .. tostring(name))
+	assert(anchor and (anchor:IsA("BasePart") or anchor:IsA("Attachment")), "RR_VFX: anchor must be a BasePart or Attachment")
+	local part, baseCF = basePart(anchor)
+	local active = false
+	if p.kind == "loop" then
+		if opts.enabled ~= nil then
+			active = opts.enabled ~= false
+		elseif lookDriven[name] then
+			active = lookOn[name] == true
+		else
+			active = p.start ~= "off"
+		end
+	end
+	local h = {name = name, preset = p, anchor = anchor, layers = {}, holders = {}, scale = rateScale(p.priority),
+		active = active, intensity = opts.intensity}
+	for _, L in ipairs(p.layers) do
+		local rec = {L = L, phase = math.random() * 6.28}
+		local tag = "RRFX_" .. name .. "_" .. L.name
+		if L.class == "Debris" then
+			rec.debris = true
+		elseif L.parent == "part" then
+			local box = Instance.new("Part")
+			box.Name = tag
+			box.Anchored = true
+			box.CanCollide = false
+			box.CanQuery = false
+			box.CanTouch = false
+			box.CastShadow = false
+			box.Transparency = 1
+			box.Size = L.part_size
+			box.CFrame = part.CFrame * baseCF * CFrame.new(L.offset)
+			local inst = Instance.new(L.class)
+			applyProps(inst, L.props)
+			if L.dir and L.dir.Y < 0 then
+				inst.EmissionDirection = Enum.NormalId.Bottom
+			end
+			inst.Parent = box
+			box.Parent = fxFolder()
+			rec.inst = inst
+			table.insert(h.holders, box)
+		elseif L.class == "Beam" then
+			local a0, a1 = Instance.new("Attachment"), Instance.new("Attachment")
+			a0.Name, a1.Name = tag .. "_0", tag .. "_1"
+			a0.CFrame = baseCF * CFrame.new(L.offset)
+			a1.CFrame = baseCF * CFrame.new(L.a1)
+			a0.Parent, a1.Parent = part, part
+			local b = Instance.new("Beam")
+			applyProps(b, L.props)
+			b.Attachment0, b.Attachment1 = a0, a1
+			b.Parent = a0
+			rec.inst = b
+			table.insert(h.holders, a0)
+			table.insert(h.holders, a1)
+		else
+			local att = Instance.new("Attachment")
+			att.Name = tag
+			local mode = (L.class == "SpotLight" or L.class == "SurfaceLight") and "look" or "up"
+			att.CFrame = baseCF * orient(L.offset, L.dir, mode)
+			att.Parent = part
+			local inst = Instance.new(L.class)
+			applyProps(inst, L.props)
+			inst.Parent = att
+			rec.inst = inst
+			table.insert(h.holders, att)
+		end
+		table.insert(h.layers, rec)
+	end
+	table.insert(handles, h)
+	refresh(h)
+	enforceBudget()
+	if not heartbeat then
+		heartbeat = RunService.Heartbeat:Connect(step)
+	end
+	return h
+end
+
+function VFX.burst(anchor, name, opts)
+	local p = P.presets[name]
+	assert(p, "RR_VFX: no preset " .. tostring(name))
+	local h = VFX.attach(anchor, name, {enabled = false})
+	local done = 0
+	for _, rec in ipairs(h.layers) do
+		local L = rec.L
+		local delay = L.delay or 0
+		if rec.inst and rec.inst:IsA("ParticleEmitter") and L.emit then
+			local n = math.max(1, math.floor(L.emit * h.scale + 0.5))
+			task.delay(delay, function()
+				if rec.inst.Parent then
+					rec.inst:Emit(n)
+				end
+			end)
+			done = math.max(done, delay + rec.inst.Lifetime.Max)
+		elseif rec.inst and rec.inst:IsA("Light") then
+			rec.inst.Enabled = true
+			if L.pulse then
+				task.delay(delay, function()
+					pulse(rec.inst, L.pulse.peak, L.pulse.duration)
+				end)
+				done = math.max(done, delay + L.pulse.duration)
+			end
+		elseif rec.debris then
+			task.delay(delay, function()
+				spawnDebris(h, L)
+			end)
+			done = math.max(done, delay + L.debris.lifetime)
+		end
+	end
+	task.delay(done + 0.5, function()
+		VFX.detach(h)
+	end)
+	return h
+end
+
+function VFX.setSpeed(s, fwd)
+	speed = s or 0
+	if fwd and fwd.Magnitude > 0 then
+		forward = fwd.Unit
+	end
+	speedK = math.clamp(speed / P.meta.speed_max, 0, 1)
+	workspace.GlobalWind = -forward * speed * P.meta.wind_scale
+	for _, h in ipairs(handles) do
+		refresh(h)
+	end
+	enforceBudget()
+end
+
+function VFX.setIntensity(h, k)
+	h.intensity = k
+	refresh(h)
+	enforceBudget()
+end
+
+function VFX.setActive(name, on)
+	for _, h in ipairs(handles) do
+		if h.name == name and h.preset.kind == "loop" then
+			h.active = on and true or false
+			refresh(h)
+		end
+	end
+	enforceBudget()
+end
+
+-- RR_Lighting: which presets looks drive, and which the current look has on (late attaches follow it)
+function VFX.setLookFx(driven, on)
+	lookDriven, lookOn = driven or {}, on or {}
+	for _, h in ipairs(handles) do
+		if lookDriven[h.name] and h.preset.kind == "loop" then
+			h.active = lookOn[h.name] == true
+			refresh(h)
+		end
+	end
+	enforceBudget()
+end
+
+function VFX.setFlashes(on)
+	VFX.flashes = on ~= false
+end
+
+function VFX.setTier(tier)
+	if P.meta.tiers[tier] then
+		VFX.tier = tier
+		for _, h in ipairs(handles) do
+			refresh(h)
+		end
+		enforceBudget()
+	end
+end
+
+function VFX.trail(part, name)
+	local t = P.trails[name]
+	if not t then
+		warn("RR_VFX: no trail " .. tostring(name))
+		return nil
+	end
+	local a0, a1 = Instance.new("Attachment"), Instance.new("Attachment")
+	a0.Position = Vector3.new(0, t.width / 2, 0)
+	a1.Position = Vector3.new(0, -t.width / 2, 0)
+	a0.Parent, a1.Parent = part, part
+	local tr = Instance.new("Trail")
+	applyProps(tr, t.props)
+	tr.Attachment0, tr.Attachment1 = a0, a1
+	tr.Parent = part
+	return tr
+end
+
+function VFX.detach(h)
+	for i, x in ipairs(handles) do
+		if x == h then
+			table.remove(handles, i)
+			break
+		end
+	end
+	for _, inst in ipairs(h.holders) do
+		inst:Destroy()
+	end
+	h.holders = {}
+	enforceBudget()
+end
+
+function VFX.budget()
+	local live = 0
+	for _, h in ipairs(handles) do
+		live = live + handleLive(h)
+	end
+	return live, tierCfg().live_particles, VFX.tier
+end
+
+return VFX
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="12">
+          <Properties>
+            <string name="Name">RR_FXPresets</string>
+            <string name="Source"><![CDATA[-- RR_FXPresets: GENERATED by rr-vfx-lighting (vfx.py build, 2026-09-29) from presets/vfx.json.
+-- Do not edit: change the JSON and rebuild. Palette colours use hex(); light levels use lvl() (intensities, not palette).
+local function hex(h) return Color3.fromHex(h) end
+local function lvl(r, g, b) return Color3.fromRGB(r, g, b) end
+
+local function nr(a, b) return NumberRange.new(a, b) end
+local function ns(t)
+	local k = {}
+	for i, p in ipairs(t) do k[i] = NumberSequenceKeypoint.new(p[1], p[2], p[3] or 0) end
+	return NumberSequence.new(k)
+end
+local function cs(t)
+	local k = {}
+	for i, p in ipairs(t) do k[i] = ColorSequenceKeypoint.new(p[1], p[2]) end
+	return ColorSequence.new(k)
+end
+
+local P = {}
+
+P.meta = {
+	speed_max = 50, -- gameplay.speed.fast (rr-bible)
+	speeds = {slow = 20, normal = 35, fast = 50},
+	wind_scale = 1,
+	budget_status = "assumed (OQ-029 default A): not canon until the owner decides; re-measure at the alpha live check (tech.streaming.live_check)",
+	tiers = {
+		phone = {rate_scale = {[1] = 1, [2] = 0.7, [3] = 0.5}, post_off = {"BloomEffect", "SunRaysEffect", "DepthOfFieldEffect"}, live_particles = 400, burst_peak = 800},
+		pc = {rate_scale = {[1] = 1, [2] = 1, [3] = 1}, post_off = {"DepthOfFieldEffect"}, live_particles = 1500, burst_peak = 2500},
+	},
+}
+
+P.trails = {
+	debris_smoke = {width = 0.9, props = {
+		Lifetime = 0.6,
+		MinLength = 0.1,
+		FaceCamera = true,
+		WidthScale = ns({{0, 1}, {1, 0.25}}),
+		Transparency = ns({{0, 0.25}, {1, 1}}),
+		Color = cs({{0, hex("15181B")}, {1, hex("8C8680")}}),
+		LightEmission = 0,
+		LightInfluence = 1,
+	}},
+	debris_spark = {width = 0.35, props = {
+		Lifetime = 0.25,
+		MinLength = 0.05,
+		FaceCamera = true,
+		WidthScale = ns({{0, 1}, {1, 0.1}}),
+		Transparency = ns({{0, 0}, {1, 1}}),
+		Color = cs({{0, hex("FFD95E")}, {1, hex("FF7A22")}}),
+		LightEmission = 1,
+		LightInfluence = 0,
+	}},
+	split_streak = {width = 0.4, props = {
+		Lifetime = 0.12,
+		MinLength = 0.05,
+		FaceCamera = true,
+		WidthScale = ns({{0, 1}, {1, 0}}),
+		Transparency = ns({{0, 0}, {1, 1}}),
+		Color = cs({{0, hex("FF7A22")}, {1, hex("363A42")}}),
+		LightEmission = 0.6,
+		LightInfluence = 0,
+	}},
+}
+
+P.presets = {
+	headlamp = {
+		kind = "loop", priority = 2, anchor = "Headlamp", start = "on",
+		use = "loco headlamp for tunnels and night: spot light plus a soft beam cone (glow colour style.thumb.glow; tunnel and night use proposed)",
+		layers = {
+			{name = "spot", class = "SpotLight", offset = Vector3.new(0.2, 0, 0), dir = Vector3.new(1, -0.08, 0), props = {
+				Brightness = 3,
+				Range = 60,
+				Angle = 50,
+				Face = Enum.NormalId.Front,
+				Color = hex("FFF6C8"),
+				Shadows = false,
+			}},
+			{name = "cone", class = "Beam", offset = Vector3.new(0.3, 0, 0), a1 = Vector3.new(40, -3, 0), props = {
+				Width0 = 1.5,
+				Width1 = 22,
+				Segments = 1,
+				FaceCamera = true,
+				Transparency = ns({{0, 0.72}, {1, 1}}),
+				Color = cs({{0, hex("FFF6C8")}, {1, hex("FFF6C8")}}),
+				LightEmission = 1,
+				LightInfluence = 0,
+			}},
+		},
+	},
+	split_explosion = {
+		kind = "burst", priority = 1, anchor = "SplitCore", start = "off",
+		use = "carriage split: big slapstick burst in the tear (flash, 6-puff fireball cooling to charcoal in place, 6 round soot puffs rising about 12 studs/s, flat cream shock dust, chunks and hot bits on orange streaks); owner decision 2026-09-29 (C10 'I want a big explosion aswell') overrides the OQ-028 default for the carriage split only",
+		layers = {
+			{name = "flash", class = "PointLight", offset = Vector3.new(0, 2, 0), pulse = {peak = 8, duration = 0.4}, props = {
+				Brightness = 0,
+				Range = 45,
+				Color = hex("FFE7A6"),
+				Shadows = false,
+			}},
+			{name = "core", class = "ParticleEmitter", offset = Vector3.new(0, 3, 0), dir = Vector3.new(0, 1, 0), emit = 6, props = {
+				Texture = "rbxasset://textures/particles/smoke_main.dds",
+				Rate = 0,
+				Lifetime = nr(0.7, 0.85),
+				Speed = nr(66, 80),
+				SpreadAngle = Vector2.new(80, 80),
+				Drag = 4,
+				WindAffectsDrag = true,
+				Size = ns({{0, 13}, {1, 19}}),
+				Transparency = ns({{0, 0}, {0.78, 0.05}, {1, 1}}),
+				Color = cs({{0, hex("FFFFFF")}, {0.12, hex("FFE7A6")}, {0.3, hex("F2C230")}, {0.6, hex("FF7A22")}, {0.88, hex("363A42")}, {1, hex("15181B")}}),
+				LightEmission = 0.6,
+				LightInfluence = 0,
+				Rotation = nr(0, 360),
+				RotSpeed = nr(-60, 60),
+			}},
+			{name = "soot", class = "ParticleEmitter", offset = Vector3.new(0, 7, 0), dir = Vector3.new(0, 1, 0), emit = 5, delay = 0.1, props = {
+				Texture = "rbxasset://textures/particles/smoke_main.dds",
+				Rate = 0,
+				Lifetime = nr(2.4, 3.4),
+				Speed = nr(14, 18),
+				SpreadAngle = Vector2.new(45, 45),
+				Acceleration = Vector3.new(0, 48, 0),
+				Drag = 4,
+				WindAffectsDrag = true,
+				Size = ns({{0, 6}, {0.3, 11}, {1, 12, 2}}),
+				Transparency = ns({{0, 0}, {0.6, 0.2}, {1, 1}}),
+				Color = cs({{0, hex("15181B")}, {0.5, hex("363A42")}, {1, hex("8C8680")}}),
+				LightEmission = 0,
+				LightInfluence = 1,
+				Rotation = nr(0, 360),
+				RotSpeed = nr(-30, 30),
+			}},
+			{name = "shock", class = "ParticleEmitter", offset = Vector3.new(0, -4.5, 0), dir = Vector3.new(1, 0, 0), emit = 7, props = {
+				Texture = "rbxasset://textures/particles/smoke_main.dds",
+				Rate = 0,
+				Lifetime = nr(0.75, 0.85),
+				Speed = nr(34, 42),
+				SpreadAngle = Vector2.new(10, 180),
+				Acceleration = Vector3.new(0, -3, 0),
+				Drag = 0.8,
+				WindAffectsDrag = true,
+				Size = ns({{0, 4}, {1, 12}}),
+				Transparency = ns({{0, 0.1}, {0.6, 0.3}, {1, 1}}),
+				Color = cs({{0, hex("8C8680")}, {0.6, hex("8C8680")}, {1, hex("CFC8A6")}}),
+				LightEmission = 0,
+				LightInfluence = 1,
+			}},
+			{name = "chunks", class = "Debris", offset = Vector3.new(0, 1, 0), dir = Vector3.new(0, 1, 0), debris = {count = 4, size = Vector3.new(1.6, 0.5, 1.1), speed = {48, 62}, spread = 45, lifetime = 1.8, gravity_scale = 0.35, carry = 0.6, colours = {hex("7A4A26"), hex("363A42"), hex("C9953A")}, trail = "split_streak"}, props = {
+			}},
+			{name = "hotbits", class = "Debris", offset = Vector3.new(0, 1, 0), dir = Vector3.new(0, 1, 0), debris = {count = 4, size = Vector3.new(0.6, 0.35, 0.6), speed = {50, 70}, spread = 60, lifetime = 1.2, gravity_scale = 0.5, carry = 1, colours = {hex("FFD95E"), hex("FF7A22")}, trail = "split_streak"}, props = {
+			}},
+		},
+	},
+	torn_edge_smoke = {
+		kind = "loop", priority = 2, anchor = "TornEdge", start = "on",
+		use = "carriage split aftermath: thin mid-grey smoke along the kept half's torn end (roof edge and both wall tops from one box), a few orange embers and an ember glow; attach on the snap, fade out after ~20 s",
+		layers = {
+			{name = "smoulder", class = "ParticleEmitter", offset = Vector3.new(0, 0, 0), dir = Vector3.new(0, 1, 0), part_size = Vector3.new(2.5, 3, 19), parent = "part", props = {
+				Shape = Enum.ParticleEmitterShape.Box,
+				ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+				Texture = "rbxasset://textures/particles/smoke_main.dds",
+				Rate = 14,
+				Lifetime = nr(1.4, 1.8),
+				Speed = nr(3, 5),
+				SpreadAngle = Vector2.new(20, 20),
+				Acceleration = Vector3.new(0, 11, 0),
+				Drag = 0.2,
+				WindAffectsDrag = true,
+				Size = ns({{0, 1.5}, {1, 5}}),
+				Transparency = ns({{0, 0}, {0.6, 0.1}, {1, 1}}),
+				Color = cs({{0, hex("60645E")}, {1, hex("60645E")}}),
+				LightEmission = 0,
+				LightInfluence = 0.3,
+				Rotation = nr(0, 360),
+				RotSpeed = nr(-20, 20),
+			}},
+			{name = "embers", class = "ParticleEmitter", offset = Vector3.new(0, 0, 0), dir = Vector3.new(0, 1, 0), part_size = Vector3.new(2.5, 3, 19), parent = "part", props = {
+				Shape = Enum.ParticleEmitterShape.Box,
+				ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+				Texture = "rbxasset://textures/particles/sparkles_main.dds",
+				Rate = 2,
+				Lifetime = nr(0.8, 1.2),
+				Speed = nr(3, 6),
+				SpreadAngle = Vector2.new(25, 25),
+				Acceleration = Vector3.new(0, 2, 0),
+				Drag = 0.8,
+				WindAffectsDrag = true,
+				Size = ns({{0, 0.9}, {1, 0.4}}),
+				Transparency = ns({{0, 0}, {0.7, 0.15}, {1, 1}}),
+				Color = cs({{0, hex("FF7A22")}, {1, hex("FF7A22")}}),
+				LightEmission = 1,
+				LightInfluence = 0,
+			}},
+			{name = "glow", class = "PointLight", offset = Vector3.new(0, 0, 0), flicker = {min = 0.65, max = 1.05, hz = 4}, props = {
+				Brightness = 2,
+				Range = 10,
+				Color = hex("FF7A22"),
+				Shadows = false,
+			}},
+		},
+	},
+	topple_dust = {
+		kind = "burst", priority = 1, anchor = "WreckDust", start = "off",
+		use = "carriage split: long low cream dust cloud rolled out along a lost body's full length (30-stud box) when it lands after the topple (one per landing body)",
+		layers = {
+			{name = "dust", class = "ParticleEmitter", offset = Vector3.new(0, 0, 0), dir = Vector3.new(0, 1, 0), part_size = Vector3.new(30, 3, 3), emit = 16, parent = "part", props = {
+				Shape = Enum.ParticleEmitterShape.Box,
+				ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+				Texture = "rbxasset://textures/particles/smoke_main.dds",
+				Rate = 0,
+				Lifetime = nr(1.5, 1.7),
+				Speed = nr(12, 16),
+				SpreadAngle = Vector2.new(85, 85),
+				Acceleration = Vector3.new(0, -2, 0),
+				Drag = 3,
+				WindAffectsDrag = true,
+				Size = ns({{0, 6}, {0.25, 8}, {1, 8.5}}),
+				Transparency = ns({{0, 0}, {0.6, 0.2}, {1, 1}}),
+				Color = cs({{0, hex("CFC8A6")}, {1, hex("CFC8A6")}}),
+				LightEmission = 0,
+				LightInfluence = 1,
+				Rotation = nr(0, 360),
+				RotSpeed = nr(-15, 15),
+			}},
+		},
+	},
+	glass_split = {
+		kind = "burst", priority = 1, anchor = "WindowPane", start = "off",
+		use = "carriage split: the pane nearest the break on each wall smashes (mission variant of glass_burst: 23 bigger, longer-lived glinting shards on one emitter)",
+		layers = {
+			{name = "shards", class = "ParticleEmitter", offset = Vector3.new(0, 0, 0), dir = Vector3.new(0, 0.3, 1), emit = 23, props = {
+				Texture = "rbxasset://textures/particles/sparkles_main.dds",
+				Rate = 0,
+				Lifetime = nr(1.4, 1.8),
+				Speed = nr(10, 18),
+				SpreadAngle = Vector2.new(35, 35),
+				Acceleration = Vector3.new(0, -25, 0),
+				Drag = 1.2,
+				WindAffectsDrag = true,
+				Size = ns({{0, 0.7, 0.2}, {1, 0.7, 0.2}}),
+				Transparency = ns({{0, 0}, {0.2, 0}, {0.24, 0.6}, {0.28, 0}, {0.5, 0}, {0.54, 0.6}, {0.58, 0}, {0.78, 0}, {0.82, 0.6}, {0.86, 0}, {0.94, 0.2}, {1, 1}}),
+				Color = cs({{0, hex("FFFFFF")}, {1, hex("BFD9E6")}}),
+				LightEmission = 0.8,
+				LightInfluence = 0.3,
+				Rotation = nr(0, 360),
+				RotSpeed = nr(-400, 400),
+			}},
+		},
+	},
+}
+
+return P
+]]></string>
+          </Properties>
+        </Item>
+      </Item>
+    </Item>
+    <Item class="Folder" referent="13">
+      <Properties>
+        <string name="Name">DragContentsInto_StarterPlayer.StarterPlayerScripts</string>
+      </Properties>
+      <Item class="LocalScript" referent="14">
+        <Properties>
+          <string name="Name">TrainSplitClient</string>
+          <string name="Source"><![CDATA[--[[
+TrainSplitClient  (LocalScript in StarterPlayerScripts)
+
+Plays a carriage snap for this player: the break_spec timeline of fx, sounds and camera shake,
+plus smooth wreck motion. Listens to ReplicatedStorage.RR_TrainSplitFX (server -> client only)
+and never sends anything back.
+
+Everything runs off one render-step callback and the shared server clock
+(workspace:GetServerTimeNow()), so every player sees the same moment and nothing drifts.
+FX go through RR_VFX (ReplicatedStorage.RR_VFX or ReplicatedStorage.RRFX.RR_VFX) when it exists:
+VFX.burst for one-shots, VFX.attach + setIntensity + detach for the torn-edge smoke (never setActive:
+it works by preset name and would stop the other break's smoke too). Without RR_VFX, or when a
+preset fails, a small built-in emitter set from TrainSplitConfig.FallbackFX plays instead.
+Sounds are plain Sound instances from TrainSplitConfig.Sounds (empty ids are skipped).
+Camera shake is off when the player's reduce-motion attribute is true.
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
+
+local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("TrainSplit"):WaitForChild("TrainSplitConfig"))
+local Shared = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("TrainSplit"):WaitForChild("TrainSplitShared"))
+local remote = ReplicatedStorage:WaitForChild(Config.RemoteName)
+local player = Players.LocalPlayer
+
+local RENDER_NAME = "RR_TrainSplit"
+local active = {} -- snaps being played
+local shakes = {} -- running camera shakes
+local bound = false
+
+-- RR_VFX loads in its own thread: its require can wait (for RR_FXPresets), and the render step must never yield.
+local vfxLib = nil
+task.spawn(function()
+	if not game:IsLoaded() then
+		game.Loaded:Wait()
+	end
+	local folder = ReplicatedStorage:FindFirstChild("RRFX")
+	local tsFolder = ReplicatedStorage:FindFirstChild("Modules") and ReplicatedStorage.Modules:FindFirstChild("TrainSplit")
+	local mod = (tsFolder and tsFolder:FindFirstChild("RR_VFX")) or ReplicatedStorage:FindFirstChild("RR_VFX") or (folder and folder:FindFirstChild("RR_VFX"))
+	if mod and mod:IsA("ModuleScript") then
+		local ok, lib = pcall(require, mod)
+		if ok and type(lib) == "table" then
+			vfxLib = lib
+		else
+			warn("TrainSplitClient: RR_VFX failed to load, using fallback fx:", lib)
+		end
+	end
+end)
+local function getVfx()
+	return vfxLib
+end
+
+---------------------------------------------------------------- small builders
+
+local function numberSeq(list)
+	if type(list) == "number" then
+		return NumberSequence.new(list)
+	elseif #list == 1 then
+		return NumberSequence.new(list[1])
+	end
+	local keys = {}
+	for i, v in list do
+		table.insert(keys, NumberSequenceKeypoint.new((i - 1) / (#list - 1), v))
+	end
+	return NumberSequence.new(keys)
+end
+
+local function colorSeq(list)
+	if type(list) == "string" then
+		return ColorSequence.new(Color3.fromHex(list))
+	elseif #list == 1 then
+		return ColorSequence.new(Color3.fromHex(list[1]))
+	end
+	local keys = {}
+	for i, hex in list do
+		table.insert(keys, ColorSequenceKeypoint.new((i - 1) / (#list - 1), Color3.fromHex(hex)))
+	end
+	return ColorSequence.new(keys)
+end
+
+local function range(v)
+	if type(v) == "number" then
+		return NumberRange.new(v)
+	end
+	return NumberRange.new(v[1], v[2] or v[1])
+end
+
+local function later(snap, t, fn)
+	table.insert(snap.cleanup, { at = t, fn = fn })
+end
+
+local function terrain()
+	return workspace:FindFirstChildOfClass("Terrain")
+end
+
+-- RR_VFX anchor frame: X forward (toward the front), Y up, Z right; yaw -90 turns Z to the left instead.
+local function anchorCF(B, p, yaw)
+	return B * CFrame.new(p) * CFrame.Angles(0, math.rad(yaw or 90), 0)
+end
+
+-- An Attachment at a world CFrame on a static part (Terrain sits at the origin) or a moving one.
+local function anchorOn(part, worldCF)
+	local a = Instance.new("Attachment")
+	a.Name = "RR_SplitFX"
+	a.CFrame = part.CFrame:ToObjectSpace(worldCF)
+	a.Parent = part
+	return a
+end
+
+local function worldOf(anchor)
+	if anchor:IsA("Attachment") then
+		return anchor.Parent.CFrame * anchor.CFrame
+	end
+	return anchor.CFrame
+end
+
+local function bodyRoot(body)
+	if body.root and body.root.Parent then
+		return body.root
+	end
+	-- the reference can arrive before the wreck streams in: find it by name
+	local folder = workspace:FindFirstChild(Config.WreckFolderName)
+	local model = folder and folder:FindFirstChild(body.name)
+	body.root = model and model.PrimaryPart or nil
+	return body.root
+end
+
+---------------------------------------------------------------- fx
+
+local function fallbackFx(snap, key, anchor, t, loopFor)
+	local def = Config.FallbackFX[key]
+	if not def then
+		return
+	end
+	local wind = snap.breakCF.ZVector * (Config.SmokeWind or 0) -- the air streams toward the rear
+	local emitters = {}
+	for _, spec in def.emitters or {} do
+		local pe = Instance.new("ParticleEmitter")
+		pe.Texture = spec.Texture
+		pe.Lifetime = range(spec.Lifetime)
+		pe.Speed = range(spec.Speed)
+		pe.Size = numberSeq(spec.Size)
+		pe.Transparency = numberSeq(spec.Transparency or 0)
+		pe.Color = colorSeq(spec.Color or "#FFFFFF")
+		pe.LightEmission = spec.LightEmission or 0
+		pe.Drag = spec.Drag or 0
+		pe.SpreadAngle = Vector2.new(spec.Spread or 180, spec.Spread or 180)
+		pe.Rotation = NumberRange.new(0, 360)
+		pe.RotSpeed = NumberRange.new(-60, 60)
+		local acc = spec.Acceleration and Vector3.new(spec.Acceleration[1], spec.Acceleration[2], spec.Acceleration[3]) or Vector3.zero
+		pe.Acceleration = spec.Wind and acc + wind or acc
+		pe.Enabled = false
+		pe.Parent = anchor
+		if def.loop then
+			pe.Rate = spec.Rate or 4
+			pe.Enabled = true
+		else
+			pe:Emit(spec.Count or 10)
+		end
+		table.insert(emitters, pe)
+	end
+	if def.flash then
+		local light = Instance.new("PointLight")
+		light.Brightness = def.flash.Brightness
+		light.Range = def.flash.Range
+		light.Color = Color3.fromHex(def.flash.Color)
+		light.Shadows = false
+		light.Parent = anchor
+		later(snap, t + def.flash.Time, function()
+			light:Destroy()
+		end)
+	end
+	if def.explosion then
+		local blast = Instance.new("Explosion") -- look only: no pressure, no broken joints, no craters
+		blast.BlastPressure = 0
+		blast.BlastRadius = 4
+		blast.DestroyJointRadiusPercent = 0
+		blast.ExplosionType = Enum.ExplosionType.NoCraters
+		blast.Position = worldOf(anchor).Position
+		blast.Parent = workspace
+	end
+	local stopAt = t + (loopFor or 0)
+	if loopFor then
+		later(snap, stopAt, function()
+			for _, pe in emitters do
+				pe.Enabled = false
+			end
+		end)
+	end
+	later(snap, stopAt + (def.life or 3), function()
+		for _, pe in emitters do
+			pe:Destroy()
+		end
+	end)
+end
+
+local function playFx(snap, e, anchor, t)
+	local preset = Config.FX[e.fx] or e.fx
+	local lib = getVfx()
+	local fn = lib and (e.loop and lib.attach or lib.burst)
+	if type(fn) == "function" then
+		local ok, handle = pcall(fn, anchor, preset)
+		if ok then
+			if e.loop then
+				-- fade the loop out by intensity (never setActive: that is per preset name, for every handle)
+				later(snap, t + e.loop, function()
+					if lib.setIntensity then
+						lib.setIntensity(handle, 0)
+					end
+				end)
+				later(snap, t + e.loop + (e.fade or 0), function()
+					if lib.detach then
+						lib.detach(handle)
+					end
+				end)
+			end
+			return
+		end
+		warn(("TrainSplitClient: RR_VFX %q failed (%s); using fallback fx"):format(preset, tostring(handle)))
+	end
+	fallbackFx(snap, e.fx, anchor, t, e.loop)
+end
+
+---------------------------------------------------------------- sound
+
+local function newSound(key, def, volume, pitch)
+	local sound = Instance.new("Sound")
+	sound.Name = "RR_" .. key
+	sound.SoundId = def.SoundId
+	sound.Volume = volume
+	sound.PlaybackSpeed = pitch
+	sound.RollOffMode = Enum.RollOffMode.InverseTapered
+	sound.RollOffMinDistance = def.RollOffMinDistance or 10
+	sound.RollOffMaxDistance = def.RollOffMaxDistance or 240
+	local group = def.Group and SoundService:FindFirstChild(def.Group)
+	if group and group:IsA("SoundGroup") then
+		sound.SoundGroup = group
+	end
+	return sound
+end
+
+local function playSound(snap, e, parent, t)
+	local def = Config.Sounds[e.sound]
+	if not def or type(def.SoundId) ~= "string" or def.SoundId == "" then
+		return nil -- no id pasted yet: stay silent
+	end
+	local pitch = 1
+	if def.Pitch then
+		pitch = def.Pitch[1] + math.random() * (def.Pitch[2] - def.Pitch[1])
+	end
+	if def.BodyPitch and e.body then
+		pitch *= def.BodyPitch[e.body] or 1
+	end
+	local scrape = Config.Scrape
+	if e.t_end and scrape then
+		-- the slide clip is authored for Speed 35: a faster train slides longer, so it plays slower
+		local V = snap.params.V
+		pitch = V > 0 and math.clamp(scrape.RefSpeed / V, scrape.PlaybackRange[1], scrape.PlaybackRange[2]) or scrape.PlaybackRange[2]
+	end
+	-- a Sound in an attachment or part is heard from there; in SoundService it is flat (2D)
+	local sound = newSound(e.sound, def, def.Volume or 0.5, pitch)
+	sound.Parent = (def.Is3D ~= false and parent) or SoundService
+	sound:Play()
+	local sounds = { sound }
+	if def.Volume2D then
+		local flat = newSound(e.sound, def, def.Volume2D, pitch)
+		flat.Parent = SoundService
+		flat:Play()
+		table.insert(sounds, flat)
+	end
+	if not e.t_end then
+		later(snap, t + (def.Length or 4) / pitch + 1, function()
+			for _, s in sounds do
+				s:Destroy()
+			end
+		end)
+	end
+	return sound
+end
+
+---------------------------------------------------------------- shake
+
+local function addShake(kind, worldPos, now)
+	if player and player:GetAttribute(Config.ReduceMotionAttribute) == true then
+		return
+	end
+	local spec = Config.Shake[kind]
+	local camera = workspace.CurrentCamera
+	if not spec or not camera then
+		return
+	end
+	local scale = math.clamp(1 - (camera.CFrame.Position - worldPos).Magnitude / spec.falloff, 0, 1)
+	if scale > 0 then
+		table.insert(shakes, { start = now, amp = spec.amplitude * scale, dur = spec.duration, freq = spec.frequency, seed = math.random() * 100 })
+	end
+end
+
+local function shakeAngles(now)
+	local x, y, z = 0, 0, 0
+	for i = #shakes, 1, -1 do
+		local s = shakes[i]
+		local u = (now - s.start) / s.dur
+		if u >= 1 then
+			table.remove(shakes, i)
+		elseif u >= 0 then
+			local a = 2 * s.amp * (1 - u) * (1 - u) -- math.noise is about +-0.5
+			local ph = (now - s.start) * s.freq
+			x += math.noise(ph, s.seed) * a
+			y += math.noise(s.seed, ph) * a
+			z += math.noise(ph, ph, s.seed) * a * 0.5
+		end
+	end
+	return x, y, z
+end
+
+---------------------------------------------------------------- the timeline
+
+-- Where an event happens: a list of anchors (Attachments, or a wreck root) and one world position.
+local function anchorsFor(snap, e, at)
+	local B = snap.breakCF
+	if at == "wreck" then
+		local body = snap.bodies[e.body or 1]
+		local root = body and bodyRoot(body)
+		return root and { root } or {}, root and root.CFrame.Position or B.Position
+	elseif at == "impact" then
+		-- WreckDust: upright on the ground at the landed body's track-side edge, mid-length, X along the track
+		local body = snap.bodies[e.body or 1]
+		if not body then
+			return {}, B.Position
+		end
+		local _, _, _, _, back = Shared.topple(e.t, body.params.topple, Shared.restPose(body.params.rest, snap.side))
+		local z = B:ToObjectSpace(body.base).Position.Z + Shared.drift(e.t, body.params.V, body.params.brake, body.params.recoil) + back
+		local cf = anchorCF(B, Vector3.new(snap.side * body.params.pivot.X_abs, body.params.pivot.Y, z))
+		return { anchorOn(terrain(), cf) }, cf.Position
+	elseif at == "torn_edge" then
+		local holder = (snap.kept and snap.kept.Parent) and snap.kept or terrain()
+		local cf = anchorCF(B, Config.Anchors.torn_edge)
+		return { anchorOn(holder, cf) }, cf.Position
+	end
+	local spec = Config.Anchors[at]
+	local list = {}
+	if typeof(spec) == "Vector3" then
+		spec = { spec }
+	end
+	for _, s in spec or {} do
+		local p, yaw = s, nil
+		if typeof(s) ~= "Vector3" then
+			p, yaw = s.p, s.yaw
+		end
+		table.insert(list, anchorOn(terrain(), anchorCF(B, p, yaw)))
+	end
+	return list, (list[1] and worldOf(list[1]).Position) or B.Position
+end
+
+local function runEvent(snap, e, t, now)
+	local anchors, where = anchorsFor(snap, e, e.at)
+	if e.fx then
+		for _, a in anchors do
+			playFx(snap, e, a, t)
+		end
+	end
+	if e.sound then
+		local parents = e.soundAt and anchorsFor(snap, e, e.soundAt) or anchors
+		local stagger = Config.Sounds[e.sound] and Config.Sounds[e.sound].Stagger
+		for i, parent in parents do
+			if i == 1 then
+				local sound = playSound(snap, e, parent, t)
+				if sound and e.t_end then
+					snap.loops[e] = sound
+				end
+			elseif stagger then
+				later(snap, t + (i - 1) * stagger, function()
+					playSound(snap, e, parent, t + (i - 1) * stagger)
+				end)
+			end
+		end
+	end
+	if e.shake then
+		addShake(e.shake, where, now)
+	end
+	-- attachments made for this event go once their fx are done (RR_VFX reads them until then)
+	local keep = (e.loop or 0) + (e.fade or 0) + (Config.FxAnchorLife or 12)
+	for _, a in anchors do
+		if a:IsA("Attachment") then
+			later(snap, t + keep, function()
+				a:Destroy()
+			end)
+		end
+	end
+end
+
+local function step()
+	local now = workspace:GetServerTimeNow()
+	for i = #active, 1, -1 do
+		local snap = active[i]
+		local t = now - snap.t0
+		for _, e in snap.timeline do
+			if not snap.fired[e] and t >= e.t then
+				snap.fired[e] = true
+				-- a one-shot heard about too late is skipped; loops and slides still start
+				if t - e.t <= Config.LateTolerance or e.loop or e.t_end then
+					local ok, err = pcall(runEvent, snap, e, t, now)
+					if not ok then
+						warn("TrainSplitClient:", e.id, err)
+					end
+				end
+			end
+			if e.t_end and snap.fired[e] and not snap.ended[e] then
+				-- the slide is over once the wreck moves with the terrain: computed, never measured from parts
+				local scrape = Config.Scrape
+				local ground = Shared.terrainSpeed(t, snap.params.V, snap.params.brake, snap.params.recoil)
+				if t >= e.t_end or (scrape and ground < scrape.StopBelow) then
+					snap.ended[e] = true
+					local sound = snap.loops[e]
+					if sound then
+						table.insert(snap.fades, { sound = sound, from = sound.Volume, start = t, dur = scrape and scrape.Fade or 0.3 })
+					end
+				end
+			end
+		end
+		for j = #snap.fades, 1, -1 do
+			local f = snap.fades[j]
+			local u = (t - f.start) / f.dur
+			if u >= 1 then
+				table.remove(snap.fades, j)
+				f.sound:Stop()
+				f.sound:Destroy()
+			else
+				f.sound.Volume = f.from * (1 - u)
+			end
+		end
+		-- smooth each wreck root locally; its welded parts follow
+		for _, body in snap.bodies do
+			local root = bodyRoot(body)
+			if root and t <= snap.params.despawnTime and not (snap.params.handoff and t >= snap.stopT) then
+				root.CFrame = Shared.bodyCFrame(body.base, snap.breakCF, snap.side, t, body.params)
+			end
+		end
+		for j = #snap.cleanup, 1, -1 do
+			local job = snap.cleanup[j]
+			if t >= job.at then
+				table.remove(snap.cleanup, j)
+				local ok, err = pcall(job.fn)
+				if not ok then
+					warn("TrainSplitClient: cleanup", err)
+				end
+			end
+		end
+		if t > snap.finishT and #snap.cleanup == 0 and #snap.fades == 0 then
+			table.remove(active, i)
+		end
+	end
+	if #shakes > 0 then
+		local camera = workspace.CurrentCamera
+		local x, y, z = shakeAngles(now)
+		if camera then
+			camera.CFrame = camera.CFrame * CFrame.Angles(math.rad(x), math.rad(y), math.rad(z))
+		end
+	end
+	if #active == 0 and #shakes == 0 and bound then
+		bound = false
+		RunService:UnbindFromRenderStep(RENDER_NAME)
+	end
+end
+
+local function valid(p)
+	return type(p) == "table"
+		and type(p.t0) == "number"
+		and typeof(p.breakCF) == "CFrame"
+		and type(p.params) == "table"
+		and type(p.bodies) == "table"
+end
+
+local function onSnap(payload)
+	if not valid(payload) then
+		return
+	end
+	local params = payload.params
+	local snap = {
+		k = payload.k,
+		t0 = payload.t0,
+		breakCF = payload.breakCF,
+		side = (payload.side or 1) >= 0 and 1 or -1,
+		params = params,
+		kept = payload.kept,
+		bodies = {},
+		fired = {},
+		ended = {},
+		loops = {},
+		fades = {},
+		cleanup = {},
+	}
+	local topples = {}
+	for i, b in payload.bodies do
+		snap.bodies[i] = {
+			name = b.name,
+			root = b.root,
+			base = b.base,
+			params = { V = params.V, brake = params.brake, recoil = params.recoil, pivot = params.pivot, topple = b.topple, rest = params.rest },
+		}
+		topples[i] = b.topple
+	end
+	snap.stopT = Shared.brakeTime(params.V, params.brake)
+	snap.timeline = Shared.eventsTimeline(Config.Events, { V = params.V, brake = params.brake, bodies = topples })
+	local finish = params.despawnTime or 30
+	for _, e in snap.timeline do
+		local ends = (e.t_end or e.t) + (e.loop or 0) + (e.fade or 0) + 1
+		if ends < math.huge then
+			finish = math.max(finish, ends)
+		end
+	end
+	snap.finishT = finish
+	table.insert(active, snap)
+	if not bound then
+		bound = true
+		-- after the camera scripts, so the shake sits on top of this frame's camera
+		RunService:BindToRenderStep(RENDER_NAME, Enum.RenderPriority.Camera.Value + 1, step)
+	end
+end
+
+remote.OnClientEvent:Connect(onSnap)
+]]></string>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+</roblox>
