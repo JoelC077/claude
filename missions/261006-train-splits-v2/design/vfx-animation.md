@@ -1,4 +1,6 @@
 # P5 design: VFX + animation v2 (70% split, 30% split, 0% full train)
+> **Read with mission.md Overrides O1-O12** (2026-10-06, after the 3-lens review in ../review/): where this file disagrees with mission.md, mission.md wins. Key ones here: O2 one 0% timeline (hero blast t0+1.5, SequenceDone t0+4.5), O3 client-side motion (0 server writes/frame), O7 coverage + carry-over + fallback board, O10 6 cameras.
+
 Planning only. Paths: M, V1, SK as in refs/context.md. `vfx` = `python3 SK/rr-vfx-lighting/scripts/vfx.py`,
 `feel` = `python3 SK/rr-game-feel/scripts/feel.py`. Sound ids follow design/sound.md (P6 owns them). est. = estimate.
 

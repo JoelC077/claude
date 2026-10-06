@@ -1,4 +1,6 @@
 # P8 design: systems, integration and quality gates (train splits v2)
+> **Read with mission.md Overrides O1-O12** (2026-10-06, after the 3-lens review in ../review/): where this file disagrees with mission.md, mission.md wins. Key ones here: O1 deepest-stage only (no stagger), O2 0% timing, O3 client-side motion from seed+t0, O4 streaming + slim payload, O5 per-owner RR_Fling, O6 lead >= 0.4 s, O11 host patches.
+
 Planning only. Paths M, V1, SK as in refs/context.md. `guard`, `rel`, `bible` = the rr-exploit-guard, rr-release-train,
 rr-bible scripts. est. = estimate · U = unverified · P = PROPOSED (owner decides) · C = CORE (L2-L11).
 
@@ -28,17 +30,17 @@ version of §2 with the real names) → owner OKs it → build.
 | input | bridge binds whichever exists (I1 decides): (A) server attribute `Integrity` (0-100) on the train model, via GetAttributeChangedSignal; (B) his signal/callback calling `TrainSplit.OnIntegrity(train, value, cause)` |
 | stages (per-train config) | `stages = {{id="split_c2", at=70, kind="split", brk=2}, {id="split_c1", at=30, kind="split", brk=1}, {id="destroy", at=0, kind="destroy"}}`; fire when `value <= at` (inclusive, C: L4-L7) |
 | once | state per train `Intact → S70 → S30 → Destroyed`, stored as server attribute `RR_SplitStage`; a fired stage never re-fires; a rise in integrity never re-arms (default) |
-| multi-cross | one hit past several stages → all fire in order, `stagger_s` apart (default 1.2 s est.; 0% keeps its own -0.2 s inhale only) |
+| multi-cross | **O1:** the deepest crossed stage fires alone; lostSet = union of all crossed stages; no stagger |
 | order | 70 always before 30 before 0, even if 30 is crossed first in a skipped frame |
 | warning (P) | entering `at + warn_band` (default 5 pts est.) sends `warn` (P5/P6 beats); re-arms with 2-pt hysteresis; skipped when staggering |
 | reset | `TrainSplit.Reset(train)`: cancel timers, destroy wrecks/chunks, clear state. Respawn = new train instance from the template (preferred). Same-model reuse needs `Arm()` snapshot/restore (only if E7 says so) |
 | arm | `TrainSplit.Arm(train)` from Joel's spawn/select event (E3); tag `RR_Train`; refuses loud if the profile has no breaks |
 | outputs (server→server) | BindableEvents `StageReached(train, id, info)`, `Snapped`, `Despawned`, `TrainDestroyed(train, t0)`, `SequenceDone(train)`; queries `GetStage`, `IsSectionPresent(train, carriage, half)` |
-| 0% hand-off | at `destroy`: train anchored, scroll braked to 0 by +3 s via the bridge (E6 driver), `TrainDestroyed` fires; Joel's round flow ends the run on `SequenceDone` (+8 s, P5) or a 12 s timeout (est.). His flow must not reset the train before that |
+| 0% hand-off | at `destroy`: train anchored, scroll braked to 0 by +3 s via the bridge (E6 driver), `TrainDestroyed` fires; Joel's round flow ends the run on `SequenceDone` (O2: at t0+4.5) with his timeout at t0+6.5. His flow must not reset the train before that |
 | his events (L3) | lost parts get `RR_Lost=true` and leave the train model at despawn; his event layer skips targets where `IsSectionPresent` is false (I1 checks his path-based lookups) |
 | fling | target pick = server (v1 ConfirmRiders: riders behind the plane + blast radius); impulse execution = owning client (P7 owns the numbers) |
 **Remote (server→client only).** One RemoteEvent `RR_TrainSplitFX`, payload `{v=2, train, stage, seed, t0
-(GetServerTimeNow + lead), lost={part ids}, chunks, flavour, fling={[userId]={dir, mag≤cap}}}`. Clients schedule fx,
+(GetServerTimeNow + lead), ...}`. **O4/O5: the broadcast is {train, stage, seed, t0} only; lost parts derive from RR_Half; flings go per owner on RR_Fling.** Clients schedule fx,
 sound and motion from t0 (P5/P6). `OnServerEvent` only flags misuse (v1). Late joiners read `RR_SplitStage` and wreck
 attributes; nothing asks the server.
 **Per-train profile registry** (`TrainSplitConfig.Trains[profile]`, profile = train attribute `RR_TrainProfile`, else
@@ -48,7 +50,7 @@ model name, else `generic`):
 | `breaks.mode` | `tear` (v1 CSG, break_spec v2.3 cells) | `presplit` (Joel's halves mapped to RR_Half) or `external` (his split code moves parts, v2 adds fx/sound/fling via `TrainSplit.PlayStage`), I1 picks | `plane` (flat cut, P5 look) |
 | `breaks.frames` | `RR_BreakN` Attachments written by Setup v2 | his labels → `RR_BreakN` | bbox centre of each carriage |
 | `carriages` | auto: `RR_Carriage` attribute, else name order front→rear, N ≥ 1 | same | same |
-| `stages`, `stagger_s`, `warn_band` | 70/30/0 | 70/30/0 | 70/30/0 |
+| `stages`, `warn_band` | 70/30/0 | 70/30/0 | 70/30/0 |
 | `chunks` (0%) | RR_Chunk → halves + loco/tender → ≥ 20-stud slices, cap 6 phone / 8 PC (P5) | same | same |
 | `flavour`, `heart`, `blast_scale`, `sound_flavour` | coal / boiler | diesel / fuel tank | coal |
 | `topple` | pivot from body bbox (replaces fixed 11.7/-8.6) | same | same |
@@ -79,7 +81,7 @@ fixtures from the live roof (5.86) then marker-based, one cell table, IN_PLACE c
 | suite | cases |
 |---|---|
 | thresholds | 70.0 fires, 70.01 not; inclusive 0; NaN/negative/>100 clamped and logged |
-| order + stagger | 100→50 = 70 only; 100→20 = 70 then 30 at +stagger; 100→0 = 70, 30, 0 in order; 30 never before 70 |
+| order (O1) | 100→50 = S70 only; 100→20 = S30 only (C2 rear in lostSet); 100→0 = Destroyed only; a fired stage never re-fires |
 | idempotence | same value twice; rise then fall; SplitAt twice; Reset mid-stagger cancels pending |
 | multi-train | 2 trains, independent state; unknown model → generic; missing markers → loud refuse |
 | profiles | Coal tear, Diesel presplit/external fixture from E4, generic plane |

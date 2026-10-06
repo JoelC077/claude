@@ -1,4 +1,6 @@
 # P6 design: sound v2 for train splits ("literally the best sounds ever", L9-L10)
+> **Read with mission.md Overrides O1-O12** (2026-10-06, after the 3-lens review in ../review/): where this file disagrees with mission.md, mission.md wins. Key ones here: O6 lead/late policy + PreRollMs, O8 sound bars + size ladder, O9 sourcing (CC0/Sonniss/claude_synth; Roblox-licensed runtime-only; timed legacy fallback).
+
 Mission 261006-train-splits-v2 · planning only · sources: refs/v1-kit.facts.md (P1), canon-skills.facts.md (P2),
 roblox-audio.facts.md (P4), rr-soundsmith SKILL + references. Beat times are v1 values (est.); P5's timeline wins.
 

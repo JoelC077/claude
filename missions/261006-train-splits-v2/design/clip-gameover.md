@@ -1,4 +1,6 @@
 # P7 design: 0% full-train explosion (game over) + clipability
+> **Read with mission.md Overrides O1-O12** (2026-10-06, after the 3-lens review in ../review/): where this file disagrees with mission.md, mission.md wins. Key ones here: O2 0% timeline (fixed chunk cap 5, hero blast t0+1.5), O5 server flips IsKinematic + per-owner RR_Fling, A3 ceiling/void fixes from mechanic-review.md.
+
 Mission 261006-train-splits-v2 · planning only · 2026-10-06 · sources: refs/context.md, v1-kit, canon-skills (P2),
 roblox-vfx-physics (P3), design/sound.md (P6 cue ids). Numbers marked est. are design guesses for Studio tuning;
 "unverified" = Roblox behaviour not confirmed. P5 owns the VFX beat sheet; times here are high level and P5 wins.

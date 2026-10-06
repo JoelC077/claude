@@ -1,13 +1,13 @@
 {
  "slug": "train-splits-v2",
  "kind": "mixed",
- "status": "intake",
+ "status": "awaiting-owner",
  "step": 4,
  "steps": 10,
  "bar": 8,
  "cap_passes": 5,
  "budget": null,
- "tokens": 1380000,
+ "tokens": 1906000,
  "env": {
   "root": "/home/user/claude/missions",
   "critic": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/multiuse-critic",
@@ -31,8 +31,8 @@
   }
  },
  "agent": {},
- "next": "adversarial review of ROADMAP (2 lenses) -> fixes -> push; then owner checklist (ROADMAP 'Before session 1')",
+ "next": "OWNER: ROADMAP 'Before the alpha' (if Q1 yes) + 'Before session 1' checklist; then session 1: spawn T2 (tasks/T2.md) on intake/, T4 (tasks/T4.md) in parallel",
  "created": "2026-10-06T10:01Z",
- "updated": "2026-10-06T10:39Z",
+ "updated": "2026-10-06T10:57Z",
  "tokens_est": true
 }
