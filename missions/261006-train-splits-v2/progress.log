@@ -1,1 +1,4 @@
 2026-10-06T10:07Z [1/10] Intake - 16 owner lines, 0 noise; env probed: agents yes, Studio no, network blocks roblox/freesound/sonniss; 9 planning orders P1-P9 (~70k est)
+2026-10-06T10:39Z [2/10] Readback - owner away: readback in mission.md + ROADMAP.md; 3 questions (alpha, sound sources, extras), 11 defaults (~1330k est)
+2026-10-06T10:39Z [3/10] Spec - 4 designs + mechanic review (2 go, 11 go-with-changes, 5 park); coverage 16/16, 20 R rows (~1360k est)
+2026-10-06T10:39Z [4/10] Plan - OK: 42 tasks, 7 sessions, est 2.3M (band 1.7-2.9M; bottom-up ~3.3M); session-1 orders T2/T4/T5 (~1380k est)
