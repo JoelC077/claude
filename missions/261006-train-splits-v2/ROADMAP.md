@@ -212,7 +212,7 @@ moment), landing tags, slow-mo at 70/30, hats popping off, flung NPC passengers.
   logic everything else sits on.
 - **ultracode** fans work out to many extra agents and checkers. JARVIS already runs parallel builders and independent
   critics, so ultracode on build sessions would multiply your token bill for little gain.
-- It earned its cost on this planning turn: the reviewers caught 5 plan-breaking problems before you saw it. It's worth
+- It earned its cost on this planning turn: the reviewers caught 6 plan-breaking problems before you saw it. It's worth
   one more run at the end, a final bug and exploit hunt across all v2 code (about 0.4M), if you have limit to spare.
 
 ## Cost
