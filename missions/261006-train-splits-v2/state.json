@@ -1,0 +1,38 @@
+{
+ "slug": "train-splits-v2",
+ "kind": "mixed",
+ "status": "intake",
+ "step": 1,
+ "steps": 10,
+ "bar": 8,
+ "cap_passes": 5,
+ "budget": null,
+ "tokens": 70000,
+ "env": {
+  "root": "/home/user/claude/missions",
+  "critic": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/multiuse-critic",
+  "critic_mode": "agent",
+  "blender_mcp": "none",
+  "studio_mcp": "none",
+  "render": "bpy-5.0.1-headless",
+  "lune": "0.10.5",
+  "owner": "away",
+  "design_critic": "not-installed",
+  "workflow": "ultracode-this-turn",
+  "skill": {
+   "rr-vfx-lighting": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/rr-vfx-lighting",
+   "rr-soundsmith": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/rr-soundsmith",
+   "rr-game-feel": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/rr-game-feel",
+   "rr-exploit-guard": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/rr-exploit-guard",
+   "rr-bible": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/rr-bible",
+   "risky-rails-mechanic-reviewer": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/risky-rails-mechanic-reviewer",
+   "rr-skill-smith": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/rr-skill-smith",
+   "rr-release-train": "/root/.claude/skills/synced/80b8703d-5ce2-4cfa-8173-3f10e032ad2b_d09bd656-edae-46f7-90d5-de67eb3c3270/rr-release-train"
+  }
+ },
+ "agent": {},
+ "next": "workflow: P1-P4 scouts -> P5-P8 designs -> P9 mechanic review; then write mission.md + plan.json + ROADMAP.md",
+ "created": "2026-10-06T10:01Z",
+ "updated": "2026-10-06T10:07Z",
+ "tokens_est": true
+}
